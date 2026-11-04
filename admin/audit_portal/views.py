@@ -1,5 +1,6 @@
 import datetime
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, redirect
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 
@@ -360,3 +361,182 @@ def audit_export(request):
     resp['Content-Disposition'] = f'inline; filename="safecity_audit_{kind}.pdf.html"'
     return resp
 
+
+
+@role_required(*AUDIT_ROLES)
+def login_events(request):
+    """Every authentication attempt with account, IP and device fingerprint."""
+    from admin.dig_portal.models import LoginEvent
+    from django.utils import timezone as tz
+    import datetime as _dt
+
+    qs = LoginEvent.objects.select_related('user').order_by('-timestamp')
+    f_user = (request.GET.get('user') or '').strip()
+    f_outcome = (request.GET.get('outcome') or '').strip()
+    f_ip = (request.GET.get('ip') or '').strip()
+    f_days = (request.GET.get('days') or '').strip()
+    if f_user:
+        qs = qs.filter(Q(user__username__icontains=f_user) | Q(username_attempted__icontains=f_user))
+    if f_outcome == 'success':
+        qs = qs.filter(success=True)
+    elif f_outcome == 'failed':
+        qs = qs.filter(success=False)
+    if f_ip:
+        qs = qs.filter(ip_address__icontains=f_ip)
+    if f_days.isdigit() and int(f_days) > 0:
+        since = tz.now() - _dt.timedelta(days=int(f_days))
+        qs = qs.filter(timestamp__gte=since)
+
+    total = qs.count()
+    events = list(qs[:400])
+    success_count = sum(1 for e in events if e.success)
+    unique_ips = len({e.ip_address for e in events if e.ip_address})
+    unique_users = len({e.username_attempted for e in events})
+    return render(request, 'dashboard/audit/login_events.html', {
+        'events': events,
+        'total': total,
+        'success_count': success_count,
+        'failed_count': len(events) - success_count,
+        'unique_ips': unique_ips,
+        'unique_users': unique_users,
+        'filters': {'user': f_user, 'outcome': f_outcome, 'ip': f_ip, 'days': f_days},
+    })
+
+
+@role_required(*AUDIT_ROLES)
+def login_events_export(request):
+    import csv
+    from django.http import HttpResponse
+    from admin.dig_portal.models import LoginEvent
+    resp = HttpResponse(content_type='text/csv')
+    resp['Content-Disposition'] = 'attachment; filename="safecity_login_events.csv"'
+    w = csv.writer(resp)
+    w.writerow(['Timestamp', 'Account', 'Portal', 'Outcome', 'Failure reason',
+                'IP address', 'Browser', 'OS', 'Device type', 'Device', 'Session'])
+    for e in LoginEvent.objects.select_related('user').order_by('-timestamp')[:10000]:
+        w.writerow([
+            e.timestamp.isoformat() if e.timestamp else '',
+            (e.user.username if e.user else e.username_attempted),
+            e.get_portal_display(),
+            'SUCCESS' if e.success else 'FAILED',
+            e.failure_reason or '',
+            e.ip_address or '',
+            e.browser or '',
+            e.os or '',
+            e.device_type or '',
+            e.device_summary or '',
+            e.session_key or '',
+        ])
+    return resp
+
+
+@role_required(*AUDIT_ROLES)
+def uploads_log(request):
+    """Audit of every upload: videos (with tamper-evident hashes), template
+    uploads, signature uploads and backup downloads."""
+    from video_processor.models import VideoUpload
+    from admin.dig_portal.models import ChallanTemplate
+
+    uploads = [
+        {
+            'kind': 'video', 'id': u.id, 'label': u.original_filename or f'upload #{u.id}',
+            'by': u.uploaded_by, 'at': u.created_at, 'sha256': u.file_sha256 or '—',
+            'meta': f"{u.camera.camera_id if u.camera else '—'} · {u.get_status_display()}",
+            'size_mb': round(u.video_file.size / 1048576, 2) if u.video_file else 0,
+            'frames': u.total_frames_extracted,
+            'bursts': u.burst_evidence_collected,
+        }
+        for u in VideoUpload.objects.select_related('camera', 'uploaded_by').order_by('-created_at')[:200]
+    ]
+    template_logs = AuditLog.objects.filter(
+        Q(action__startswith='challan_template') | Q(action__startswith='challan_studio')
+        | Q(action__startswith='audit_studio') | Q(action__startswith='audit_template')
+    ).select_related('actor').order_by('-timestamp')[:200]
+    for log in template_logs:
+        uploads.append({
+            'kind': 'template', 'id': log.target_id or '', 'label': log.details.get('name') or log.action,
+            'by': log.actor, 'at': log.timestamp, 'sha256': '—',
+            'meta': log.action, 'size_mb': 0, 'frames': 0, 'bursts': 0,
+        })
+    uploads.sort(key=lambda x: x['at'], reverse=True)
+    video_count = VideoUpload.objects.count()
+    template_count = ChallanTemplate.objects.count()
+    return render(request, 'dashboard/audit/uploads_log.html', {
+        'uploads': uploads[:400],
+        'video_count': video_count,
+        'template_count': template_count,
+    })
+
+
+@role_required(*AUDIT_ROLES)
+def generate_document(request):
+    """Auditor: generate a signed, government-style audit document."""
+    import datetime
+    from django import forms
+    from admin.audit_portal.pdf_service import (
+        FILE_TEMPLATE_MAP, generate_audit_pdf, save_audit_document, AUDIT_TEMPLATE_META,
+    )
+    from admin.dig_portal.models import SystemSettings, AuditTemplate, AuditDocument
+
+    sys_settings = SystemSettings.get()
+    active_key = sys_settings.audit_template or 'audit_summary_report'
+
+    today = datetime.date.today()
+    initial = {'period_from': today - datetime.timedelta(days=30), 'period_to': today}
+
+    class DocForm(forms.Form):
+        period_from = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+        period_to = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+        title = forms.CharField(max_length=200, required=False,
+                                widget=forms.TextInput(attrs={'placeholder': 'Optional custom title'}))
+        template_key = forms.ChoiceField(choices=[(k, AUDIT_TEMPLATE_META.get(k, (k,))[0]) for k in FILE_TEMPLATE_MAP])
+
+    if request.method == 'POST':
+        form = DocForm(request.POST)
+        if form.is_valid():
+            f, t = form.cleaned_data['period_from'], form.cleaned_data['period_to']
+            if f > t:
+                messages.error(request, "Period start must be before period end.")
+                return redirect('audit_portal:generate_document')
+            try:
+                doc = save_audit_document(
+                    f, t, request.user,
+                    title=form.cleaned_data.get('title') or None,
+                    template_key=form.cleaned_data['template_key'],
+                )
+                AuditLog.write(request, 'audit.document_generate', 'AuditDocument', doc.id,
+                               title=doc.title, period=f"{f} → {t}", template=doc.template_key,
+                               sha256=doc.sha256[:16])
+                messages.success(request, f"Audit document '{doc.title}' generated and signed.")
+                return redirect('audit_portal:generate_document')
+            except Exception as e:
+                messages.error(request, f"Generation failed: {e}")
+                return redirect('audit_portal:generate_document')
+    else:
+        try:
+            initial['template_key'] = active_key if active_key in FILE_TEMPLATE_MAP else 'audit_summary_report'
+        except Exception:
+            pass
+        form = DocForm(initial=initial)
+
+    documents = AuditDocument.objects.select_related('generated_by').order_by('-created_at')[:50]
+    db_templates = AuditTemplate.objects.count()
+    return render(request, 'dashboard/audit/generate_document.html', {
+        'form': form,
+        'documents': documents,
+        'template_meta': {k: AUDIT_TEMPLATE_META.get(k, (k, '')) for k in FILE_TEMPLATE_MAP},
+        'active_key': active_key,
+        'db_templates': db_templates,
+    })
+
+
+@role_required(*AUDIT_ROLES)
+def audit_document_download(request, doc_id):
+    from admin.dig_portal.models import AuditDocument
+    from django.http import FileResponse, Http404
+    doc = AuditDocument.objects.filter(pk=doc_id).first()
+    if not doc or not doc.pdf_file:
+        raise Http404
+    AuditLog.write(request, 'audit.document_download', 'AuditDocument', doc.id, title=doc.title)
+    return FileResponse(open(doc.pdf_file.path, 'rb'), as_attachment=True,
+                        filename=f"{doc.title}.pdf".replace('/', '-'))

@@ -1,6 +1,11 @@
+import base64
+import datetime
 import os
+import re
 import logging
+from io import BytesIO
 from pathlib import Path
+
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from django.conf import settings
@@ -10,6 +15,92 @@ logger = logging.getLogger('wrongway.pdf')
 LOGO_LEFT = Path(settings.BASE_DIR) / 'static' / 'img' / 'project_logo.png'
 LOGO_RIGHT = Path(settings.BASE_DIR) / 'static' / 'img' / 'university_logo.png'
 
+CHALLAN_TEMPLATES_DIR = Path(settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
+
+FILE_TEMPLATE_MAP = {
+    'standard_a4':      'challan/challan_templates/standard_a4.html',
+    'bilingual_a4':     'challan/challan_templates/bilingual_a4.html',
+    'notice_classic_a4': 'challan/challan_templates/notice_classic_a4.html',
+    'psca_urdu_a4':     'challan/challan_templates/psca_urdu_a4.html',
+    'government_grid_a4': 'challan/challan_templates/government_grid_a4.html',
+}
+DEFAULT_TEMPLATE_KEY = 'standard_a4'
+LEGACY_TEMPLATE_ALIASES = {
+    'modern_a4': 'standard_a4',
+    'classic_a4': 'government_grid_a4',
+    'legal_notice_99a': 'notice_classic_a4',
+    'digital_slip': 'bilingual_a4',
+    'safecityfyp_classic': 'standard_a4',
+}
+
+BRANDING_DEFAULTS = {
+    'authority_name_en': 'SAFE CITY TRAFFIC POLICE',
+    'authority_name_ur': 'سیف سٹی ٹریفک پولیس',
+    'authority_name_en_short': 'Safe City Traffic Police',
+    'authority_name_ur_short': 'سیف سٹی ٹریفک پولیس',
+    'govt_name': 'GOVERNMENT OF PUNJAB',
+    'tagline_part_1': 'SERVICE',
+    'tagline_part_2': 'SECURITY',
+    'tagline_part_3': 'SAFETY',
+    'tagline_en': 'SERVICE · SECURITY · SAFETY',
+    'tagline_ur': 'خدمت · حفاظت · سیکورٹی',
+    'slogan_ur_line_1': 'قانون کی پاسداری',
+    'slogan_ur_line_2': 'ہم سب کی ذمہ داری',
+    'helpline': '15',
+    'website': 'safecity.gov.pk',
+    'portal_name': 'Safe City E-Challan Portal',
+    'office_name': 'Safe City Traffic Police Headquarters',
+    'social_handle': '@SafeCityPolice',
+    'footer_slogan_ur': 'قانون کی پاسداری · ہم سب کی ذمہ داری',
+    'legal_ref_en': 'Section 99-A of the Motor Vehicles Ordinance, 1965',
+    'legal_ref_ur': 'موٹر وہیکلز آرڈیننس 1965ء کی دفعہ 99-اے',
+    'bank_names': 'National Bank of Pakistan / Bank of Punjab',
+    'wallet_names': 'JazzCash / EasyPaisa',
+    'pay_website': 'safecity.gov.pk/pay',
+    'footer_1_en': 'Computer generated document',
+    'footer_1_ur': 'کمپیوٹر سے تیار شدہ دستاویز',
+    'footer_2_en': 'Verifiable at the official portal',
+    'footer_2_ur': 'سرکاری پورٹل پر تصدیق کے قابل',
+    'footer_3_en': 'Safe City Authority',
+    'footer_3_sub': 'Traffic Enforcement Wing',
+    'footer_3_ur': 'سیف سٹی اتھارٹی',
+    'officer_title_en': 'Authorized Traffic Officer',
+    'officer_title_ur': 'مجاز ٹریفک افسر',
+}
+
+_ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+         'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+         'Seventeen', 'Eighteen', 'Nineteen']
+_TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
+
+
+def _three_digit_to_words(n):
+    out = []
+    if n >= 100:
+        out.append(_ONES[n // 100] + ' Hundred')
+        n %= 100
+    if n >= 20:
+        out.append(_TENS[n // 10] + ('' if n % 10 == 0 else '-' + _ONES[n % 10]))
+    elif n > 0:
+        out.append(_ONES[n])
+    return ' '.join(out)
+
+
+def amount_in_words(amount) -> str:
+    try:
+        n = int(float(amount or 0))
+    except (TypeError, ValueError):
+        return ''
+    if n <= 0:
+        return 'Zero Rupees Only'
+    parts = []
+    units = [(10000000, 'Crore'), (100000, 'Lac'), (1000, 'Thousand'), (1, '')]
+    for div, label in units:
+        q, n = divmod(n, div)
+        if q:
+            parts.append(_three_digit_to_words(q) + (' ' + label if label else ''))
+    return ', '.join(parts) + ' Rupees Only'
+
 
 def _make_barcode(ticket_no: str):
     svg = None
@@ -18,7 +109,6 @@ def _make_barcode(ticket_no: str):
     try:
         import barcode
         from barcode.writer import SVGWriter
-        from io import BytesIO
         buf = BytesIO()
         code = barcode.get("code128", text, writer=SVGWriter())
         code.write(buf, options={
@@ -42,30 +132,114 @@ def _make_barcode(ticket_no: str):
     return svg, data_url
 
 
+def _make_qr_data_url(payload: str) -> str:
+    try:
+        import qrcode
+        buf = BytesIO()
+        img = qrcode.make(payload or 'SAFECITY', box_size=6, border=2)
+        img.save(buf, format='PNG')
+        return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii')
+    except Exception as e:
+        logger.debug('QR generation failed: %s', e)
+        return ''
+
+
+def _branding_context(sys_settings) -> dict:
+    cfg = dict(BRANDING_DEFAULTS)
+    tc = getattr(sys_settings, 'template_config', None) or {}
+    if tc.get('header_text'):
+        cfg['authority_name_en'] = str(tc['header_text']).upper()
+        cfg['authority_name_en_short'] = str(tc['header_text']).title()
+    if tc.get('footer_text'):
+        cfg['pay_note_en'] = tc['footer_text']
+    if tc.get('account_number'):
+        cfg['account_number'] = tc['account_number']
+    else:
+        cfg['account_number'] = 'C0263A'
+    return cfg
+
+
+def _speed_context(challan):
+    if getattr(challan, 'violation_type', '') == 'over_speed':
+        return {'allowed': '—', 'detected': '—', 'excess': '—', 'applicable': True}
+    return {'allowed': 'N/A', 'detected': 'N/A', 'excess': 'N/A', 'applicable': False}
+
+
+def _camera_context(challan):
+    det = getattr(challan, 'detection', None)
+    camera = getattr(challan, 'camera', None) or getattr(det, 'camera', None)
+    ts = getattr(det, 'created_at', None) or getattr(challan, 'created_at', None) or datetime.datetime.now()
+    bbox = {'x': 0, 'y': 0, 'w': 0, 'h': 0}
+    raw = getattr(det, 'ai_raw_response', None) or {}
+    norm = raw.get('bbox_norm') or raw.get('plate_bbox_norm')
+    if norm and len(norm) == 4:
+        try:
+            x1, y1, x2, y2 = [float(v) for v in norm]
+            bbox = {'x': x1 * 100, 'y': y1 * 100, 'w': (x2 - x1) * 100, 'h': (y2 - y1) * 100}
+        except (TypeError, ValueError):
+            pass
+    return {
+        'id': getattr(camera, 'camera_id', None) or 'CAM-SAFECITY',
+        'location': getattr(camera, 'location', None) or getattr(challan, 'location', '') or '—',
+        'timestamp': ts.strftime('%Y-%m-%d %H:%M:%S'),
+        'direction': getattr(challan, 'moving_direction', None) or '—',
+        'legal_direction': getattr(challan, 'legal_direction', None) or '—',
+        'bbox': bbox,
+        'has_bbox': bbox['w'] > 0,
+    }
+
+
+def _frame_evidence_context(challan):
+    det = getattr(challan, 'detection', None)
+    frames = []
+    raw = getattr(det, 'ai_raw_response', None) or {}
+    for i, rec in enumerate((raw.get('frame_evidence') or [])[:3], start=1):
+        frames.append({
+            'index': i,
+            'plate': rec.get('plate') or '—',
+            'confidence': rec.get('confidence') or 0.0,
+            'ocr_confidence': rec.get('ocr_confidence') or 0.0,
+            'timestamp': rec.get('timestamp') or '—',
+            'complete': rec.get('plate_complete', True),
+        })
+    if not frames and det is not None:
+        frames.append({
+            'index': 1,
+            'plate': getattr(det, 'ai_plate_text', '') or '—',
+            'confidence': getattr(det, 'ai_confidence', 0.0) or 0.0,
+            'ocr_confidence': (raw.get('ocr_confidence') or 0.0),
+            'timestamp': (getattr(det, 'created_at', None) or datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S'),
+            'complete': True,
+        })
+    return frames
+
+
 def _get_quadrant_images(challan):
-    """Evidence frames for the PDF: full scene, vehicle crop and plate crop."""
-    if not getattr(challan, "detection", None):
-        return []
-    d = challan.detection
-    candidates = [
-        ("Full frame", getattr(d, "raw_image", None)),
-        ("Vehicle", getattr(d, "vehicle_image", None)),
-        ("Number plate", getattr(d, "plate_image", None) or getattr(d, "plate_crop_image", None)),
-    ]
-    out = []
-    for label, img in candidates:
-        if img and hasattr(img, "path"):
+    evidence = []
+    det = getattr(challan, "detection", None)
+    if det is None:
+        return evidence
+    for field, label in (('raw_image', 'Full frame'), ('vehicle_image', 'Vehicle'),
+                         ('plate_crop_image', 'Plate'), ('plate_image', 'Plate')):
+        img = getattr(det, field, None)
+        if img and hasattr(img, 'name') and label not in [e[0] for e in evidence]:
             try:
                 if os.path.exists(img.path):
-                    out.append((label, img.path))
+                    evidence.append((label, img.path))
             except Exception:
                 pass
-    return out
+    if not evidence:
+        for label, img in (("Full frame", getattr(det, "raw_image", None)),):
+            if img and hasattr(img, "path"):
+                try:
+                    if os.path.exists(img.path):
+                        evidence.append((label, img.path))
+                except Exception:
+                    pass
+    return evidence
 
 
 def _fallback_reportlab_pdf(challan) -> bytes:
-    """Simple A4 PDF when WeasyPrint is unavailable."""
-    from io import BytesIO
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
     from reportlab.lib.colors import HexColor, black
@@ -122,7 +296,6 @@ def _fallback_reportlab_pdf(challan) -> bytes:
 
 
 def _minimal_pdf_bytes(ticket_no: str) -> bytes:
-    """Tiny valid PDF with no external deps (last resort)."""
     label = f"Challan {ticket_no or ''}".replace("(", " ").replace(")", " ")[:60]
     content = f"BT /F1 12 Tf 50 750 Td ({label}) Tj ET"
     body = content.encode("latin-1", errors="ignore")
@@ -158,10 +331,6 @@ def _minimal_pdf_bytes(ticket_no: str) -> bytes:
 
 
 def _needs_nadra_excise_integration(challan) -> bool:
-    """True when owner identity could not be resolved because NADRA/Excise
-    registry integration is not configured (or the plate simply wasn't found
-    anywhere, local or external). Drives the red PDF warning text.
-    """
     if getattr(challan, "owner_name", None):
         return False
     try:
@@ -175,11 +344,10 @@ def _needs_nadra_excise_integration(challan) -> bool:
         return True
 
 
-_WEASYPRINT_STATE = None  # None = untested, True = ok, False = broken
+_WEASYPRINT_STATE = None
 
 
 def _render_html_to_pdf(html_string):
-    """HTML → PDF via WeasyPrint, then xhtml2pdf, then None (caller falls back)."""
     global _WEASYPRINT_STATE
     if _WEASYPRINT_STATE is not False:
         try:
@@ -193,9 +361,7 @@ def _render_html_to_pdf(html_string):
             _WEASYPRINT_STATE = False
             logger.warning("WeasyPrint unavailable (%s) — using fallback PDF engine.", e)
     try:
-        import re
         from xhtml2pdf import pisa
-        from io import BytesIO
         clean_html = re.sub(r'<link[^>]+rel=["\']stylesheet["\'][^>]*>', '', html_string, flags=re.IGNORECASE)
         buf = BytesIO()
         result = pisa.CreatePDF(clean_html, dest=buf, link_callback=lambda uri, rel: None)
@@ -203,6 +369,14 @@ def _render_html_to_pdf(html_string):
             return buf.getvalue()
     except Exception as e:
         logger.warning("xhtml2pdf failed: %s", e)
+    return None
+
+
+def _resolve_template_key(tpl_key):
+    key = (tpl_key or '').strip()
+    key = LEGACY_TEMPLATE_ALIASES.get(key, key)
+    if key in FILE_TEMPLATE_MAP:
+        return key
     return None
 
 
@@ -237,6 +411,7 @@ def generate_challan_pdf(challan):
             "track_frames": det.track_frames,
             "track_consistency": det.track_consistency,
         }
+
     context = {
         "challan": challan,
         "settings": sys_settings,
@@ -244,9 +419,19 @@ def generate_challan_pdf(challan):
         "template_config": sys_settings.template_config or getattr(
             SystemSettings, "DEFAULT_TEMPLATE_CONFIG", {}
         ),
+        "branding": _branding_context(sys_settings),
+        "speed": _speed_context(challan),
+        "camera_meta": _camera_context(challan),
+        "frame_evidence": _frame_evidence_context(challan),
+        "fine_in_words": amount_in_words(getattr(challan, 'fine_amount', 0)),
+        "due_days": getattr(sys_settings, 'due_date_days', 30) or 30,
+        "appeal_days": 15,
+        "points_deducted": 0,
+        "qr_code_data_url": _make_qr_data_url(getattr(challan, 'payment_qr_payload', '')),
         "logo_left_path": logo_left_path,
         "logo_right_path": logo_right_path,
         "quadrant_images": _get_quadrant_images(challan),
+        "evidence_images": _get_quadrant_images(challan),
         "barcode_svg": bc_svg,
         "barcode_data_url": bc_url,
         "needs_nadra_excise": _needs_nadra_excise_integration(challan),
@@ -285,7 +470,7 @@ def generate_challan_pdf(challan):
     tpl_key = (
         getattr(sys_settings, "pdf_template", None)
         or (sys_settings.template_config or {}).get("pdf_template")
-        or "modern_a4"
+        or DEFAULT_TEMPLATE_KEY
     )
 
     html_string = None
@@ -300,14 +485,8 @@ def generate_challan_pdf(challan):
         except Exception as e:
             logger.warning("DB template render failed: %s", e)
     else:
-        template_map = {
-            "modern_a4":          "challan/challan_templates/modern_a4.html",
-            "classic_a4":         "challan/challan_templates/classic_a4.html",
-            "legal_notice_99a":   "challan/challan_templates/legal_notice_99a.html",
-            "digital_slip":       "challan/challan_templates/digital_slip.html",
-            "safecityfyp_classic": "challan/challan_templates/modern_a4.html",
-        }
-        tpl_name = template_map.get(tpl_key, template_map["modern_a4"])
+        file_key = _resolve_template_key(tpl_key) or DEFAULT_TEMPLATE_KEY
+        tpl_name = FILE_TEMPLATE_MAP[file_key]
         try:
             html_string = render_to_string(tpl_name, context)
         except Exception as e:

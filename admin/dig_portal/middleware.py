@@ -22,6 +22,8 @@ class AuditLogMiddleware:
             from admin.dig_portal.models import AuditLog
             import logging
             try:
+                ua_str = (request.META.get('HTTP_USER_AGENT') or '')[:400]
+                device, _ = AuditLog.parse_device(ua_str)
                 AuditLog.objects.create(
                     actor=request.user,
                     action=f"{request.method} {request.path}",
@@ -29,6 +31,8 @@ class AuditLogMiddleware:
                     details={'path': request.path, 'method': request.method},
                     ip_address=request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
                               or request.META.get('REMOTE_ADDR'),
+                    user_agent=ua_str,
+                    device=device,
                 )
             except Exception as e:
                 logging.getLogger('safecity').warning(

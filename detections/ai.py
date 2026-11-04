@@ -47,6 +47,9 @@ def get_ai_runtime_config():
         'car_only': True,
         'reject_person': False,
         'ai_confidence_threshold': 0.55,
+        'strict_car_only': True,
+        'strict_pk_plate': True,
+        'plate_min_confidence': 0.50,
     }
     try:
         from admin.dig_portal.models import SystemSettings
@@ -388,19 +391,50 @@ _PK_PLATE_RE = _re.compile(
 )
 
 
-def _normalize_plate_text(raw: str) -> str:
+PK_PLATE_PATTERN = _re.compile(r'^([A-Z]{2,3})-([0-9]{1,4})$')
+
+PK_KNOWN_SERIES = {
+    'LEA', 'LEB', 'LEC', 'LED', 'LEE', 'LEF', 'LEG', 'LEH', 'LEI', 'LEJ', 'LEK',
+    'LEL', 'LEM', 'LEN', 'LEO', 'LEP', 'LEQ', 'LER', 'LES', 'LET', 'LEU', 'LEV',
+    'LEW', 'LEX', 'LEY', 'LEZ', 'LWY', 'LWA', 'LWB', 'LWC', 'LRA', 'LRB', 'LRC',
+    'LRD', 'LRE', 'LRF', 'LRG', 'LRH', 'LRI', 'LRJ', 'LRK', 'LRL', 'LRM', 'LRN',
+    'LRO', 'LRP', 'LRQ', 'LRR', 'LRS', 'LRT', 'LRU', 'LRV', 'LRW', 'LRX', 'LRY', 'LRZ',
+    'ISB', 'ICT', 'KHI', 'HYD', 'RWP', 'PES', 'FSD', 'MUL', 'GUJ', 'SGD', 'SIAL',
+    'BWP', 'DGK', 'SKT', 'SWL', 'MND', 'BWN', 'CHS', 'LHR', 'PJN', 'AJK', 'GB',
+    'CD', 'CC', 'GP', 'PA', 'PB', 'PC', 'PD', 'PE', 'PF', 'PG', 'PH', 'PI', 'PJ',
+    'PK', 'PL', 'PM', 'PN', 'PO', 'PP', 'PQ', 'PR', 'PS', 'PT', 'PU', 'PV', 'PW',
+}
+
+
+def normalize_pk_plate(raw: str) -> str:
+    """Normalize raw OCR text to a strict Pakistani plate: AAA-1234."""
     if not raw:
         return ''
-    s = _re.sub(r'[^A-Za-z0-9]', '', raw).upper()
-    if len(s) < 3:
+    s = _re.sub(r'[^A-Za-z0-9]', '', str(raw)).upper()
+    if len(s) < 4 or len(s) > 8:
         return ''
-    m = _re.match(r'^([A-Z]{1,3})([0-9]{2,4})$', s)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}"
-    m = _re.match(r'^([A-Z]{3})([0-9]{1,4})$', s)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}"
-    return s
+    m = _re.match(r'^([A-Z]{2,3})([0-9]{1,4})$', s)
+    if not m:
+        return ''
+    return f"{m.group(1)}-{m.group(2)}"
+
+
+def is_valid_pk_plate(plate: str) -> bool:
+    """Strict Pakistan number-plate format check (letters-digits, valid length)."""
+    if not plate:
+        return False
+    return bool(PK_PLATE_PATTERN.match(plate))
+
+
+def is_known_pk_series(plate: str) -> bool:
+    m = PK_PLATE_PATTERN.match(plate or '')
+    if not m:
+        return False
+    return m.group(1) in PK_KNOWN_SERIES
+
+
+def _normalize_plate_text(raw: str) -> str:
+    return normalize_pk_plate(raw)
 
 
 _paddle_ocr = None
@@ -444,24 +478,42 @@ def _get_easyocr():
         return None
 
 
+OCR_HD_MIN_HEIGHT = 96
+
+
 def _preprocess_plate_for_ocr(pil_image):
-    """Return list of numpy images (RGB / enhanced) for multi-pass OCR."""
+    """High-definition multi-pass OCR preprocessing.
+
+    Plate crops are upscaled to at least OCR_HD_MIN_HEIGHT px (HD OCR), then
+    enhanced with CLAHE + bilateral filtering and adaptive thresholding so
+    every pass reads a clean, high-resolution rendering of the full plate.
+    """
     import numpy as np
     variants = []
     try:
         import cv2
         arr = np.array(pil_image.convert('RGB'))
+        h, w = arr.shape[:2]
+        if h < OCR_HD_MIN_HEIGHT:
+            factor = OCR_HD_MIN_HEIGHT / max(h, 1)
+            arr = cv2.resize(arr, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
         variants.append(arr)
         gray = cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        gray = clahe.apply(gray)
         gray = cv2.bilateralFilter(gray, 7, 50, 50)
         h, w = gray.shape[:2]
-        scale = 2.5 if max(h, w) < 160 else 1.8
-        gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+        if h < OCR_HD_MIN_HEIGHT * 1.6:
+            factor = (OCR_HD_MIN_HEIGHT * 1.6) / max(h, 1)
+            gray = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
+        variants.append(cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB))
         thr = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 8
         )
         variants.append(cv2.cvtColor(thr, cv2.COLOR_GRAY2RGB))
-        variants.append(cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB))
+        sharpen = cv2.addWeighted(
+            cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB), 1.5, arr, -0.5, 0)
+        variants.append(sharpen)
     except Exception:
         variants.append(np.array(pil_image.convert('RGB')))
     return variants
@@ -543,10 +595,43 @@ def _ocr_plate_image(pil_image) -> tuple:
         bonus = 0.03 if eng == 'paddle' else (0.01 if eng == 'easyocr' else 0.0)
         return (len(text), conf + bonus)
 
-    candidates.sort(key=score, reverse=True)
-    best_text, best_conf, best_eng = candidates[0]
-    logger.info('OCR plate=%s conf=%.2f engine=%s', best_text, best_conf, best_eng)
+    pk_candidates = [c for c in candidates if is_valid_pk_plate(c[0])]
+    pool = pk_candidates if pk_candidates else candidates
+    pool.sort(key=score, reverse=True)
+    best_text, best_conf, best_eng = pool[0]
+    strict_ok = bool(pk_candidates)
+    logger.info('OCR plate=%s conf=%.2f engine=%s pk_format=%s',
+                best_text, best_conf, best_eng, strict_ok)
     return best_text, float(best_conf), best_eng
+
+
+def _plate_completeness(image, bbox) -> dict:
+    """Full-plate check: the plate box must sit fully inside the frame with a
+    Pakistan-valid aspect ratio (roughly 2:1 to 6:1) and a usable crop size.
+    Half / edge-clipped / squashed plates are rejected as incomplete.
+    """
+    if not bbox:
+        return {'complete': False, 'edge_clipped': True, 'aspect_ok': False,
+                'min_size_ok': False, 'aspect': 0.0}
+    ow, oh = image.size
+    x1, y1, x2, y2 = [float(v) for v in bbox]
+    edge_margin_x = max(ow * 0.004, 2.0)
+    edge_margin_y = max(oh * 0.004, 2.0)
+    edge_clipped = (
+        x1 < edge_margin_x or y1 < edge_margin_y
+        or x2 > ow - edge_margin_x or y2 > oh - edge_margin_y
+    )
+    bw, bh = max(x2 - x1, 1.0), max(y2 - y1, 1.0)
+    aspect = bw / bh
+    aspect_ok = 1.8 <= aspect <= 6.0
+    min_size_ok = bh >= 14 and bw >= 34
+    return {
+        'complete': (not edge_clipped) and aspect_ok and min_size_ok,
+        'edge_clipped': bool(edge_clipped),
+        'aspect_ok': bool(aspect_ok),
+        'min_size_ok': bool(min_size_ok),
+        'aspect': round(aspect, 2),
+    }
 
 
 def run_pipeline(image_path, camera=None, plate_threshold: float = PLATE_CONFIDENCE_THRESHOLD):
@@ -570,6 +655,9 @@ def run_pipeline(image_path, camera=None, plate_threshold: float = PLATE_CONFIDE
     min_side = float(sc.get('min_side_confidence') or 0.60)
     expand_w = float(sc.get('crop_expand_w') or 3.5)
     expand_h = float(sc.get('crop_expand_h') or 4.5)
+    strict_car_only = bool(cfg.get('strict_car_only', True))
+    strict_pk_plate = bool(cfg.get('strict_pk_plate', True))
+    plate_min_conf = float(cfg.get('plate_min_confidence') or 0.50)
 
     detections = _detect_plates(image, threshold=det_thr)
     top_confidence = 0.0
@@ -609,13 +697,30 @@ def run_pipeline(image_path, camera=None, plate_threshold: float = PLATE_CONFIDE
     result['confidence'] = float(top_confidence)
     result['bbox'] = [float(v) for v in top_bbox] if top_bbox else None
 
+    completeness = _plate_completeness(image, top_bbox)
+
     side, side_conf = _classify_side(side_image)
     result['side'] = side or None
     violation_side = getattr(camera, 'violation_side', None) or 'back'
 
     has_vehicle = bool(top_bbox is not None and top_confidence >= det_thr)
     side_ok = side_conf >= min_side
-    result['detected_violation'] = bool(has_vehicle and side_ok and side == violation_side)
+
+    car_gate_passed = True
+    if strict_car_only:
+        car_gate_passed = bool(side_ok and side in ('front', 'back') and top_confidence >= plate_min_conf)
+
+    plate_format_ok = True
+    if strict_pk_plate and ocr_text:
+        plate_format_ok = is_valid_pk_plate(ocr_text)
+
+    result['detected_violation'] = bool(
+        has_vehicle and side_ok and side == violation_side
+        and car_gate_passed and completeness['complete']
+    )
+    result['vehicle_class'] = 'car' if car_gate_passed else 'non_car_or_unknown'
+    result['plate_complete'] = bool(completeness['complete'])
+    result['plate_format_ok'] = plate_format_ok
 
     if top_confidence > 0:
         result['confidence'] = float(top_confidence)
@@ -658,10 +763,23 @@ def run_pipeline(image_path, camera=None, plate_threshold: float = PLATE_CONFIDE
         'ocr_confidence': float(ocr_conf),
         'ocr_engine': ocr_engine or None,
         'plate_text': result.get('plate_text'),
+        'vehicle_class': result.get('vehicle_class'),
+        'strict_car_only': strict_car_only,
+        'strict_pk_plate': strict_pk_plate,
+        'plate_complete': bool(completeness['complete']),
+        'plate_edge_clipped': bool(completeness['edge_clipped']),
+        'plate_aspect': completeness['aspect'],
+        'plate_aspect_ok': bool(completeness['aspect_ok']),
+        'plate_min_size_ok': bool(completeness['min_size_ok']),
+        'plate_format_ok': plate_format_ok,
+        'known_pk_series': bool(is_known_pk_series(result.get('plate_text') or '')),
+        'frame_evidence': [],
     }
     logger.info(
-        "AI pipeline: plates=%d plate_conf=%.3f side=%s side_conf=%.3f violation=%s",
+        "AI pipeline: plates=%d plate_conf=%.3f side=%s side_conf=%.3f violation=%s "
+        "car_gate=%s plate_complete=%s pk_format=%s",
         len(detections), top_confidence, side, side_conf, result['detected_violation'],
+        car_gate_passed, completeness['complete'], plate_format_ok,
     )
 
     if result.get('plate_text'):
@@ -751,6 +869,11 @@ def get_model_info():
             'reject_person': cfg.get('reject_person', True),
             'ai_confidence_threshold': cfg.get('ai_confidence_threshold', 0.55),
             'side_on_vehicle_crop': True,
+            'strict_car_only': cfg.get('strict_car_only', True),
+            'strict_pk_plate': cfg.get('strict_pk_plate', True),
+            'plate_min_confidence': cfg.get('plate_min_confidence', 0.50),
+            'ocr_hd_min_height': OCR_HD_MIN_HEIGHT,
+            'evidence_frames_required': 3,
         },
     }
 

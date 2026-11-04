@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load json_tags %}
+{% block title %}Audit Studio — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-challan-studio.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="csModeFlag" data-mode="audit" hidden></div>
+<div class="cs-hero">
+  <div>
+    <h1><i class="bi bi-journal-rich me-2"></i>Audit Studio</h1>
+    <p class="sc-lead">Government-style audit document studio — create, edit, duplicate, redesign and activate audit report layouts. Full access is restricted to IT Support.</p>
+  </div>
+  <div class="cs-hero-actions">
+    <a href="{% url 'it_support_portal:audit_studio' %}" class="sc-btn"><i class="bi bi-speedometer2 me-1"></i>IT Dashboard</a>
+    <a href="{% url 'it_support_portal:dashboard' %}" class="sc-btn"><i class="bi bi-file-earmark-pdf me-1"></i>PDF Settings</a>
+  </div>
+</div>
+
+<div class="cs-mode-tabs" role="tablist">
+  <button type="button" class="cs-tab is-active" data-cs-tab="gallery" role="tab"><i class="bi bi-grid-fill me-1"></i>Gallery</button>
+  <button type="button" class="cs-tab" data-cs-tab="editor" role="tab" id="csTabEditor"><i class="bi bi-sliders me-1"></i>Editor</button>
+</div>
+
+<section class="cs-panel" id="csPanelGallery" data-cs-panel="gallery">
+  <div class="cs-gallery-head">
+    <div class="cs-gallery-stat">
+      <span class="cs-stat-num">{{ studio_templates|length }}</span>
+      <span class="cs-stat-lab">Studio templates</span>
+    </div>
+    <div class="cs-gallery-stat">
+      <span class="cs-stat-num">{{ builtin_files|length }}</span>
+      <span class="cs-stat-lab">Built-in layouts</span>
+    </div>
+    <div class="cs-gallery-stat">
+      <span class="cs-stat-num cs-mono">{{ active_key }}</span>
+      <span class="cs-stat-lab">Active layout</span>
+    </div>
+    <button type="button" class="sc-btn sc-btn-primary cs-new-btn" data-cs-new><i class="bi bi-plus-lg me-1"></i>Create New Audit Design</button>
+  </div>
+
+  {% if messages %}
+  <div class="cs-messages">
+    {% for message in messages %}
+    <div class="alert {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="cs-card cs-card-wide">
+    <div class="cs-card-title"><i class="bi bi-database-fill me-2"></i>My Audit Designs <span class="sc-badge sc-badge-gray">{{ studio_templates|length }}</span></div>
+    {% if studio_templates %}
+    <div class="cs-grid">
+      {% for t in studio_templates %}
+      <div class="cs-tpl-card{% if t.is_active %} is-active{% endif %}" data-cs-card="{{ t.id }}">
+        <div class="cs-tpl-top">
+          <span class="cs-tpl-name">{{ t.name }}</span>
+          {% if t.is_active %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill me-1"></i>Active</span>{% endif %}
+        </div>
+        <div class="cs-tpl-meta">
+          <span><i class="bi bi-clock me-1"></i>{{ t.created_at|date:"d M Y H:i" }}</span>
+          <span><i class="bi bi-filetype-html me-1"></i>{{ t.size }} B</span>
+        </div>
+        <div class="cs-tpl-frame" data-cs-thumb='{{ t.preview_html|escapejs }}'></div>
+        <div class="cs-tpl-actions">
+          <button type="button" class="sc-btn sc-btn-sm" data-cs-edit="{{ t.id }}" title="Open in editor"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+          <form method="post" action="{% url 'it_support_portal:audit_studio' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="duplicate">
+            <input type="hidden" name="template_id" value="{{ t.id }}">
+            <button type="submit" class="sc-btn sc-btn-sm" title="Duplicate design"><i class="bi bi-copy me-1"></i>Copy</button>
+          </form>
+          <form method="post" action="{% url 'it_support_portal:audit_studio' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="template_id" value="{{ t.id }}">
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-danger" data-it-confirm="Delete design '{{ t.name }}'? This cannot be undone."><i class="bi bi-trash3 me-1"></i>Delete</button>
+          </form>
+          {% if not t.is_active %}
+          <form method="post" action="{% url 'it_support_portal:audit_studio' %}" class="d-inline ms-auto">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="activate">
+            <input type="hidden" name="template_id" value="db:{{ t.id }}">
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge-fill me-1"></i>Activate</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="cs-empty">
+      <i class="bi bi-easel"></i>
+      <p>No studio designs yet. Start from a blank A4 canvas or duplicate a built-in layout.</p>
+      <button type="button" class="sc-btn sc-btn-primary" data-cs-new><i class="bi bi-plus-lg me-1"></i>Create your first audit design</button>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="cs-card">
+    <div class="cs-card-title"><i class="bi bi-file-earmark-fill me-2"></i>Built-in Government Audit Layouts</div>
+    <div class="cs-builtin-list">
+      {% for b in builtin_files %}
+      <div class="cs-builtin-row{% if active_key == b.key %} is-active{% endif %}">
+        <div>
+          <span class="cs-mono cs-builtin-key">{{ b.key }}</span>
+          <span class="cs-builtin-desc">{{ b.size|filesizeformat }} · sealed layout rendered by the enforcement pipeline</span>
+        </div>
+        <div class="cs-builtin-actions">
+          <button type="button" class="sc-btn sc-btn-sm" data-cs-branch="{{ b.key }}" title="Copy into studio as editable design"><i class="bi bi-bezier2 me-1"></i>Redesign copy</button>
+          {% if active_key != b.key %}
+          <form method="post" action="{% url 'it_support_portal:audit_studio' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="activate">
+            <input type="hidden" name="template_id" value="{{ b.key }}">
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge-fill me-1"></i>Activate</button>
+          </form>
+          {% else %}
+          <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill me-1"></i>Active</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="cs-panel is-hidden" id="csPanelEditor" data-cs-panel="editor">
+  <div class="cs-editor-topbar">
+    <div class="cs-topbar-left">
+      <button type="button" class="sc-btn sc-btn-sm" data-cs-back><i class="bi bi-arrow-left me-1"></i>Gallery</button>
+      <input type="text" id="csName" class="cs-name-input" placeholder="Design name (e.g. Ramzan Campaign A4)" maxlength="120">
+      <span class="sc-badge sc-badge-gray" id="csDirtyBadge" hidden>Unsaved</span>
+    </div>
+    <div class="cs-topbar-right">
+      <button type="button" class="sc-btn sc-btn-sm" id="csPreviewBtn"><i class="bi bi-eye me-1"></i>Preview PDF</button>
+      <button type="button" class="sc-btn sc-btn-sm" id="csSaveBtn"><i class="bi bi-save me-1"></i>Save</button>
+      <button type="button" class="sc-btn sc-btn-sm sc-btn-primary" id="csSaveActiveBtn"><i class="bi bi-lightning-charge-fill me-1"></i>Save &amp; Activate</button>
+    </div>
+  </div>
+
+  <div class="cs-editor-body">
+    <aside class="cs-blocks" id="csPalette">
+      <div class="cs-side-title"><i class="bi bi-grid-1x2-fill me-1"></i>Blocks</div>
+      <div class="cs-palette-list" id="csPaletteList"></div>
+      <div class="cs-side-title cs-mt"><i class="bi bi-brush-fill me-1"></i>Theme</div>
+      <div class="cs-theme-props" id="csThemeProps"></div>
+    </aside>
+
+    <main class="cs-canvas-wrap">
+      <div class="cs-canvas-toolbar">
+        <span class="cs-canvas-hint">Click a block to edit &middot; use arrows to reorder &middot; A4 live preview uses sample challan data</span>
+        <div class="cs-zoom">
+          <button type="button" class="sc-btn sc-btn-sm" id="csZoomOut">−</button>
+          <span id="csZoomVal">100%</span>
+          <button type="button" class="sc-btn sc-btn-sm" id="csZoomIn">+</button>
+        </div>
+      </div>
+      <div class="cs-canvas-scroll" id="csCanvasScroll">
+        <div class="cs-a4" id="csCanvas"></div>
+      </div>
+    </main>
+
+    <aside class="cs-props" id="csProps">
+      <div class="cs-side-title"><i class="bi bi-sliders2 me-1"></i>Block Properties</div>
+      <div id="csPropsBody" class="cs-props-body">
+        <div class="cs-props-empty">Select a block on the canvas to edit its properties.</div>
+      </div>
+    </aside>
+  </div>
+
+  <form method="post" action="{% url 'it_support_portal:audit_studio' %}" id="csSaveForm" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save">
+    <input type="hidden" name="template_id" id="csFormId" value="">
+    <input type="hidden" name="name" id="csFormName" value="">
+    <input type="hidden" name="html_content" id="csFormHtml" value="">
+    <input type="hidden" name="design_json" id="csFormDesign" value="">
+    <input type="hidden" name="activate" id="csFormActivate" value="0">
+  </form>
+  <form method="post" action="{% url 'it_support_portal:audit_studio_preview' %}" target="_blank" id="csPreviewForm" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="html_content" id="csPreviewHtml" value="">
+  </form>
+</section>
+
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'js/pages/it-challan-studio.js' %}" defer></script>
+{% endblock %}

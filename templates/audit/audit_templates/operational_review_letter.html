@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  :root { --navy: #0b3a78; --line: #c9d6e8; --red: #a3121f; --ink: #16233a; --muted: #5a6b82; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DejaVu Sans', Arial, sans-serif; color: var(--ink); background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ur { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; }
+
+  .sheet { width: 210mm; min-height: 296mm; padding: 12mm 14mm 10mm; display: flex; flex-direction: column; }
+  .hd { text-align: center; border-bottom: 2.5px double var(--navy); padding-bottom: 4mm; }
+  .hd .lg { display: flex; justify-content: center; gap: 8mm; margin-bottom: 2mm; }
+  .hd .lg img { width: 18mm; height: 18mm; object-fit: contain; }
+  .hd h1 { font-size: 14pt; font-weight: 800; color: var(--navy); letter-spacing: .02em; text-transform: uppercase; }
+  .hd h2 { font-size: 9.6pt; font-weight: 700; margin-top: 1.2mm; }
+  .hd .ur-line { font-size: 9.5pt; margin-top: 1.4mm; color: var(--navy); }
+
+  .refline { text-align: center; font-size: 7.6pt; color: var(--muted); margin: 4mm 0 6mm; letter-spacing: .04em; }
+
+  .addressee { font-size: 9pt; line-height: 1.7; margin-bottom: 5mm; }
+  .addressee b { font-size: 9.6pt; }
+
+  .subject { border: 1.2px solid var(--navy); background: #f4f8fd; padding: 2.4mm 4mm; font-size: 8.8pt; margin-bottom: 5mm; border-radius: 1mm; }
+  .subject b { color: var(--navy); }
+
+  .body-text { font-size: 9pt; line-height: 1.9; text-align: justify; }
+  .body-text p { margin-bottom: 3.4mm; text-indent: 8mm; }
+  .body-text p.noindent { text-indent: 0; }
+  .body-text b { color: var(--navy); }
+
+  table.gov { width: 100%; border-collapse: collapse; font-size: 8pt; margin: 2mm 0 4mm; }
+  table.gov th { background: var(--navy); color: #fff; padding: 1.8mm 2.4mm; text-align: left; font-size: 7.4pt; text-transform: uppercase; }
+  table.gov td { border: .5px solid var(--line); padding: 1.7mm 2.4mm; }
+  table.gov tr:nth-child(even) td { background: #f6f9fd; }
+  table.gov td.n { text-align: right; font-weight: 700; }
+
+  .directives { margin: 2mm 0 3mm; padding-left: 7mm; }
+  .directives li { font-size: 8.6pt; line-height: 1.8; margin-bottom: 1.6mm; }
+
+  .signrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: auto; padding-top: 12mm; }
+  .sigbox { text-align: center; }
+  .sigbox .sig { height: 15mm; display: flex; align-items: flex-end; justify-content: center; }
+  .sigbox .sig img { max-height: 14mm; max-width: 45mm; object-fit: contain; }
+  .sigbox .line { border-top: 1.2px solid var(--ink); margin: 1.4mm 8mm 1mm; }
+  .sigbox .nm { font-size: 8.8pt; font-weight: 800; }
+  .sigbox .ds { font-size: 7.4pt; color: var(--muted); }
+  .sigbox .dt { font-size: 7pt; color: var(--muted); margin-top: .4mm; }
+
+  .ft { border-top: 1px solid var(--line); margin-top: 6mm; padding-top: 2mm; display: flex; justify-content: space-between; font-size: 6.8pt; color: var(--muted); }
+  .cc { margin-top: 3mm; font-size: 7.4pt; color: var(--muted); }
+  .cc b { letter-spacing: .05em; }
+  .watermark { position: fixed; top: 44%; left: 10%; font-size: 44pt; font-weight: 800; color: rgba(11,58,120,.05); transform: rotate(-18deg); letter-spacing: .06em; z-index: 0; }
+</style>
+</head>
+<body>
+<div class="watermark">OPERATIONAL REVIEW</div>
+<div class="sheet">
+
+  <header class="hd">
+    <div class="lg">
+      {% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% endif %}
+      {% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% endif %}
+    </div>
+    <h1>{{ branding.authority_name_en }}</h1>
+    <h2>{{ branding.office_name }}</h2>
+    <div class="ur-line ur">عملی جائزہ خط</div>
+  </header>
+  <div class="refline">Ref: {{ doc_no }} &nbsp;·&nbsp; {{ generated_at|date:"d F Y" }} &nbsp;·&nbsp; Classification: Official</div>
+
+  <div class="addressee">
+    <b>To</b><br>
+    The Deputy Inspector General (Traffic)<br>
+    {{ branding.authority_name_en }}<br>
+    {{ branding.office_name }}
+  </div>
+
+  <div class="subject">
+    <b>SUBJECT: OPERATIONAL REVIEW OF THE AUTOMATED E-CHALLAN ENFORCEMENT PIPELINE FOR THE PERIOD {{ period_from|date:"d F Y" }} TO {{ period_to|date:"d F Y" }}</b>
+  </div>
+
+  <div class="body-text">
+    <p class="noindent">Respected Sir,</p>
+    <p>In partial compliance with the standing orders governing periodic audit of the automated traffic enforcement system, the Audit &amp; Vigilance Wing has completed its operational review of the e-challan pipeline for the above period. The salient position is placed below for kind perusal and orders.</p>
+    <p>The enforcement pipeline processed <b>{{ stats.detections_total }}</b> detections during the period, of which <b>{{ stats.detections_confirmed }}</b> were auto-confirmed after passing the full five-step evidence verification and resulted in <b>{{ stats.challans_issued }}</b> e-challans. <b>{{ stats.detections_pending }}</b> detections remain parked for DIG review and <b>{{ stats.detections_flagged }}</b> were escalated for flag-level oversight.</p>
+    <p>Evidence integrity remains satisfactory: of the confirmed population audited ({{ stats.evidence_total }} records), <b>{{ stats.evidence_pass_rate }}%</b> passed all five security checks, and each record carries a SHA-256 tamper-evident chain digest which was found intact.</p>
+  </div>
+
+  <table class="gov">
+    <thead><tr><th>Operational Indicator</th><th>Position</th><th>Indicator</th><th>Position</th></tr></thead>
+    <tbody>
+      <tr><td>Challans issued</td><td class="n">{{ stats.challans_issued }}</td><td>Revenue collected (PKR)</td><td class="n">{{ stats.revenue_collected|floatformat:"0" }}</td></tr>
+      <tr><td>Challans paid</td><td class="n">{{ stats.challans_paid }}</td><td>Revenue pending (PKR)</td><td class="n">{{ stats.revenue_pending|floatformat:"0" }}</td></tr>
+      <tr><td>Detections confirmed</td><td class="n">{{ stats.detections_confirmed }}</td><td>Detections rejected</td><td class="n">{{ stats.detections_rejected }}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="body-text">
+    <p class="noindent"><b>Recommendations for orders:</b></p>
+  </div>
+  <ol class="directives">
+    <li>The pending review queue ({{ stats.detections_pending }} items) may be cleared within 72 hours in line with the review SOP.</li>
+    <li>Failed authentication attempts ({{ stats.login_failed }} in period) may be got examined by IT Support for any pattern of unauthorised access attempts.</li>
+    <li>The 3-frame evidence and strict car-only detection gates are performing as designed; no relaxation is recommended.</li>
+  </ol>
+
+  <div class="body-text">
+    <p class="noindent">Submitted for kind consideration and further orders, please.</p>
+    <p class="noindent" style="margin-top:2mm">Yours faithfully,</p>
+  </div>
+
+  <div class="signrow">
+    <div class="sigbox">
+      <div class="sig">{% if generated_by_ctx.signature_url %}<img src="{{ generated_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="line"></div>
+      <div class="nm">{{ generated_by_ctx.name }}</div>
+      <div class="ds">{{ generated_by_ctx.designation }} · {{ generated_by_ctx.staff_id }}</div>
+      <div class="dt">Audit Officer — {{ generated_at|date:"d M Y" }}</div>
+    </div>
+    <div class="sigbox">
+      <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="line"></div>
+      <div class="nm">{{ countersigned_by_ctx.name }}</div>
+      <div class="ds">{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}</div>
+      <div class="dt">Countersigned — Deputy Inspector General</div>
+    </div>
+  </div>
+
+  <div class="cc"><b>CC:</b> 1. SSP (Traffic Enforcement) &nbsp; 2. IT Support — for necessary action on para A-2 &nbsp; 3. Office copy</div>
+
+  <div class="ft">
+    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
+    <span>System generated · verifiable via document hash</span>
+  </div>
+</div>
+</body>
+</html>

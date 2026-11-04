@@ -373,3 +373,444 @@ def live_tracking_timeline(request):
     })
 
 
+
+
+def _studio_sample_context():
+    import datetime
+    from types import SimpleNamespace
+    from challans.pdf_service import (
+        _branding_context, _speed_context, _camera_context, _frame_evidence_context,
+        amount_in_words, _make_qr_data_url, _make_barcode, _needs_nadra_excise_integration,
+    )
+    from admin.dig_portal.models import SystemSettings
+
+    sys_settings = SystemSettings.get()
+    detection = SimpleNamespace(
+        ai_plate_text='LEA-1234', ai_confidence=0.93, created_at=datetime.datetime(2026, 11, 5, 14, 23, 0),
+        ai_raw_response={'bbox_norm': [0.30, 0.42, 0.46, 0.58], 'ocr_confidence': 0.88,
+                         'frame_evidence': [
+                             {'plate': 'LEA-1234', 'confidence': 0.92, 'ocr_confidence': 0.86, 'timestamp': '2026-11-05 14:23:01', 'plate_complete': True},
+                             {'plate': 'LEA-1234', 'confidence': 0.94, 'ocr_confidence': 0.89, 'timestamp': '2026-11-05 14:23:02', 'plate_complete': True},
+                             {'plate': 'LEA-1234', 'confidence': 0.95, 'ocr_confidence': 0.91, 'timestamp': '2026-11-05 14:23:03', 'plate_complete': True},
+                         ]},
+        raw_image=None, plate_crop_image=None, vehicle_image=None, plate_image=None,
+    )
+    camera = SimpleNamespace(camera_id='CAM-001-FYP', location='Canal Road, Lahore')
+    challan = SimpleNamespace(
+        ticket_no='20990001', plate_number='LEA-1234', owner_name='Ahmed Khan',
+        cnic='35202-1234567-1', address='House 12, Street 4, Gulberg III, Lahore',
+        phone='0300-1234567', vehicle_type='Car', make_year='2023', color='White',
+        chassis_no='CHS-99887766', violation_type='wrong_way',
+        get_violation_type_display=lambda: 'Wrong Way', fine_amount=2000,
+        location='Canal Road, Lahore', ai_confidence=0.93, moving_direction='DOWN',
+        legal_direction='UP', issue_date=datetime.date(2026, 11, 5),
+        due_date=datetime.date(2026, 12, 5), payment_status='UNPAID',
+        get_payment_status_display=lambda: 'Unpaid', created_at=datetime.datetime(2026, 11, 5, 14, 25, 0),
+        camera=camera, detection=detection, psid='209900011',
+        payment_qr_payload='SAFECITY|PSID:209900011|TKT:20990001|PLT:LEA-1234|AMT:2000|STS:UNPAID',
+        is_overdue=False,
+    )
+    bc_svg, _ = _make_barcode(challan.ticket_no)
+    return {
+        'challan': challan,
+        'settings': sys_settings,
+        'evidence_summary': {
+            'checks': [{'check': c, 'passed': True, 'detail': 'verified'} for c in
+                       ('plate_readability', 'frame_consistency', 'violation_logic', 'image_evidence', 'chain_integrity')],
+            'passed': 5, 'total': 5, 'all_passed': True, 'hash': 'ab12cd34ef56' + '0' * 52,
+            'track_id': 'TRK-1-LEA-0001', 'track_frames': 3, 'track_consistency': 1.0,
+        },
+        'template_config': sys_settings.template_config or {},
+        'branding': _branding_context(sys_settings),
+        'speed': _speed_context(challan),
+        'camera_meta': _camera_context(challan),
+        'frame_evidence': _frame_evidence_context(challan),
+        'fine_in_words': amount_in_words(2000),
+        'due_days': 30, 'appeal_days': 15, 'points_deducted': 0,
+        'qr_code_data_url': _make_qr_data_url(challan.payment_qr_payload),
+        'logo_left_path': None, 'logo_right_path': None,
+        'quadrant_images': [], 'evidence_images': [],
+        'barcode_svg': bc_svg, 'barcode_data_url': None,
+        'needs_nadra_excise': _needs_nadra_excise_integration(challan),
+    }
+
+
+@it_required
+def challan_studio(request):
+    from admin.dig_portal.models import ChallanTemplate, SystemSettings
+    from challans.pdf_service import FILE_TEMPLATE_MAP
+
+    sys_settings = SystemSettings.get()
+    active_key = sys_settings.pdf_template or 'standard_a4'
+
+    if request.method == 'POST':
+        action = request.POST.get('action') or ''
+        if action == 'save':
+            name = (request.POST.get('name') or '').strip()
+            html = request.POST.get('html_content') or ''
+            tid = request.POST.get('template_id') or ''
+            if not name or len(html.strip()) < 80:
+                messages.error(request, "A template name and complete HTML are required.")
+                return redirect('it_support_portal:challan_studio')
+            design_json = request.POST.get('design_json') or ''
+            if len(design_json) > 400000:
+                messages.error(request, "Design document too large.")
+                return redirect('it_support_portal:challan_studio')
+            if tid:
+                obj = ChallanTemplate.objects.filter(pk=tid).first()
+                if not obj:
+                    messages.error(request, "Template not found.")
+                    return redirect('it_support_portal:challan_studio')
+                obj.name = name
+                obj.html_content = html
+                obj.design_json = design_json
+                obj.save()
+                AuditLog.write(request, 'challan_studio.save', 'ChallanTemplate', obj.id, name=name)
+                messages.success(request, f"Template '{name}' saved.")
+            else:
+                obj = ChallanTemplate.objects.create(
+                    name=name, html_content=html, design_json=design_json, uploaded_by=request.user)
+                AuditLog.write(request, 'challan_studio.create', 'ChallanTemplate', obj.id, name=name)
+                messages.success(request, f"Template '{name}' created.")
+            if request.POST.get('activate') == '1':
+                ChallanTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                obj.is_active = True
+                obj.save()
+                sys_settings.pdf_template = f'db:{obj.id}'
+                sys_settings.save(update_fields=['pdf_template'])
+                AuditLog.write(request, 'challan_studio.activate', 'ChallanTemplate', obj.id, name=name)
+                messages.success(request, f"Template '{name}' is now the active challan layout.")
+            return redirect('it_support_portal:challan_studio')
+
+        if action == 'delete':
+            tid = request.POST.get('template_id') or ''
+            obj = ChallanTemplate.objects.filter(pk=tid).first()
+            if obj:
+                name = obj.name
+                if sys_settings.pdf_template == f'db:{obj.id}':
+                    sys_settings.pdf_template = 'standard_a4'
+                    sys_settings.save(update_fields=['pdf_template'])
+                obj.delete()
+                AuditLog.write(request, 'challan_studio.delete', 'ChallanTemplate', int(tid), name=name)
+                messages.success(request, f"Template '{name}' deleted.")
+            return redirect('it_support_portal:challan_studio')
+
+        if action == 'duplicate':
+            tid = request.POST.get('template_id') or ''
+            obj = ChallanTemplate.objects.filter(pk=tid).first()
+            if obj:
+                copy = ChallanTemplate.objects.create(
+                    name=f"{obj.name} (Copy)", html_content=obj.html_content,
+                    uploaded_by=request.user, is_active=False)
+                AuditLog.write(request, 'challan_studio.duplicate', 'ChallanTemplate', copy.id, source=obj.id)
+                messages.success(request, f"Template duplicated as '{copy.name}'.")
+            return redirect('it_support_portal:challan_studio')
+
+        if action == 'activate':
+            tid = request.POST.get('template_id') or ''
+            if tid.startswith('db:'):
+                obj = ChallanTemplate.objects.filter(pk=tid[3:]).first()
+                if obj:
+                    ChallanTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                    obj.is_active = True
+                    obj.save()
+                    sys_settings.pdf_template = f'db:{obj.id}'
+                    sys_settings.save(update_fields=['pdf_template'])
+                    AuditLog.write(request, 'challan_studio.activate', 'ChallanTemplate', obj.id, name=obj.name)
+                    messages.success(request, f"Active challan template set to '{obj.name}'.")
+            elif tid in FILE_TEMPLATE_MAP:
+                ChallanTemplate.objects.update(is_active=False)
+                sys_settings.pdf_template = tid
+                sys_settings.save(update_fields=['pdf_template'])
+                AuditLog.write(request, 'challan_studio.activate_file', 'ChallanTemplateFile', 0, key=tid)
+                messages.success(request, f"Active challan template set to '{tid}'.")
+            return redirect('it_support_portal:challan_studio')
+
+    templates = list(ChallanTemplate.objects.order_by('-created_at'))
+    builtin_files = []
+    import pathlib
+    from django.conf import settings as dj_settings
+    from django.template import Template, Context
+    sample_ctx = Context(_studio_sample_context())
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
+    for key in FILE_TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if fp.is_file():
+            try:
+                preview = Template(fp.read_text(encoding='utf-8', errors='ignore')).render(sample_ctx)
+            except Exception:
+                preview = ''
+            builtin_files.append({'key': key, 'size': fp.stat().st_size, 'preview_html': preview})
+    studio_templates = []
+    for t in templates:
+        try:
+            preview = Template(t.html_content or '').render(sample_ctx) if t.html_content else ''
+        except Exception:
+            preview = ''
+        studio_templates.append({
+            'id': t.id, 'name': t.name, 'is_active': (active_key == f'db:{t.id}'),
+            'created_at': t.created_at, 'size': len(t.html_content or ''),
+            'preview_html': preview, 'has_design': bool(t.design_json),
+            'updated': t.updated_at,
+        })
+    return render(request, 'dashboard/it_support/challan_studio.html', {
+        'studio_templates': studio_templates,
+        'builtin_files': builtin_files,
+        'active_key': active_key,
+    })
+
+
+@it_required
+def challan_studio_preview(request):
+    from django.http import HttpResponse
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+    html = request.POST.get('html_content') or ''
+    if len(html.strip()) < 80:
+        return HttpResponse('Template HTML too short.', status=400)
+    from django.template import Template, Context
+    from challans.pdf_service import _render_html_to_pdf
+    try:
+        rendered = Template(html).render(Context(_studio_sample_context()))
+    except Exception as e:
+        return HttpResponse(f'Template render error: {e}', status=400, content_type='text/plain')
+    pdf = _render_html_to_pdf(rendered)
+    if not pdf:
+        return HttpResponse('PDF engine failed to render the preview.', status=500)
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="studio-preview.pdf"'
+    return response
+
+
+@it_required
+def challan_studio_data(request):
+    from django.http import JsonResponse
+    import pathlib
+    from django.conf import settings as dj_settings
+    from admin.dig_portal.models import ChallanTemplate
+    from challans.pdf_service import FILE_TEMPLATE_MAP
+
+    items = [
+        {'kind': 'db', 'id': t.id, 'name': t.name, 'html': t.html_content or '',
+         'design': t.design_json or '', 'has_design': bool(t.design_json)}
+        for t in ChallanTemplate.objects.order_by('-created_at')
+    ]
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
+    for key in FILE_TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if fp.is_file():
+            items.append({'kind': 'builtin', 'key': key, 'name': key, 'html': fp.read_text(encoding='utf-8', errors='ignore')})
+    return JsonResponse({'items': items})
+
+
+def _audit_studio_sample_context():
+    import datetime
+    from types import SimpleNamespace
+    from admin.audit_portal.pdf_service import build_audit_context
+    from admin.dig_portal.models import SystemSettings
+    from accounts.models import User
+
+    sys_settings = SystemSettings.get()
+    auditor = SimpleNamespace(
+        id=5, username='audit@safecity.fyp', get_full_name=lambda: 'Ayesha Audit',
+        designation='Audit Officer', staff_id='PSC-2026-AUD-005',
+        signature=None, signature_stamp=None, get_role_display=lambda: 'Audit Officer',
+    )
+    dig = SimpleNamespace(
+        id=1, username='dig@safecity.fyp', get_full_name=lambda: 'Aamir DIG',
+        designation='Deputy Inspector General (Traffic)', staff_id='PSC-2026-DIG-001',
+        signature=None, signature_stamp=None, get_role_display=lambda: 'DIG',
+    )
+    ctx = build_audit_context(
+        datetime.date(2026, 10, 1), datetime.date(2026, 11, 5),
+        auditor, 'Studio Preview', 'audit_summary_report')
+    ctx['generated_by_ctx'] = {
+        'name': 'Ayesha Audit', 'designation': 'Audit Officer', 'staff_id': 'PSC-2026-AUD-005',
+        'signature_url': None, 'stamp_url': None,
+    }
+    ctx['countersigned_by_ctx'] = {
+        'name': 'Aamir DIG', 'designation': 'Deputy Inspector General (Traffic)',
+        'staff_id': 'PSC-2026-DIG-001', 'signature_url': None, 'stamp_url': None,
+    }
+    return ctx
+
+
+AUDIT_TEMPLATE_META = {
+    'audit_summary_report': ('Periodic Audit Summary Report', 'Enforcement, evidence integrity and financial position with findings'),
+    'compliance_certificate': ('Certificate of Compliance', 'Certifies the pipeline meets the five-step evidence standard'),
+    'financial_audit_statement': ('Financial Audit Statement', 'Revenue collected / outstanding with auditor note and triple signatures'),
+    'security_incident_report': ('Security & Authentication Incident Report', 'Login activity, failed attempts, source IPs and audited actions'),
+    'operational_review_letter': ('Operational Review Letter', 'Official letter to the DIG with recommendations and CC list'),
+}
+
+
+@it_required
+def audit_studio(request):
+    from admin.dig_portal.models import AuditTemplate, SystemSettings
+    from admin.audit_portal.pdf_service import FILE_TEMPLATE_MAP
+
+    sys_settings = SystemSettings.get()
+    active_key = sys_settings.audit_template or 'audit_summary_report'
+
+    if request.method == 'POST':
+        action = request.POST.get('action') or ''
+        if action == 'save':
+            name = (request.POST.get('name') or '').strip()
+            html = request.POST.get('html_content') or ''
+            design_json = request.POST.get('design_json') or ''
+            tid = request.POST.get('template_id') or ''
+            if not name or len(html.strip()) < 80:
+                messages.error(request, "A template name and complete HTML are required.")
+                return redirect('it_support_portal:audit_studio')
+            if len(design_json) > 400000:
+                messages.error(request, "Design document too large.")
+                return redirect('it_support_portal:audit_studio')
+            if tid:
+                obj = AuditTemplate.objects.filter(pk=tid).first()
+                if not obj:
+                    messages.error(request, "Template not found.")
+                    return redirect('it_support_portal:audit_studio')
+                obj.name = name
+                obj.html_content = html
+                obj.design_json = design_json
+                obj.save()
+                AuditLog.write(request, 'audit_studio.save', 'AuditTemplate', obj.id, name=name)
+                messages.success(request, f"Audit template '{name}' saved.")
+            else:
+                obj = AuditTemplate.objects.create(name=name, html_content=html,
+                                                   design_json=design_json, created_by=request.user)
+                AuditLog.write(request, 'audit_studio.create', 'AuditTemplate', obj.id, name=name)
+                messages.success(request, f"Audit template '{name}' created.")
+            if request.POST.get('activate') == '1':
+                AuditTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                obj.is_active = True
+                obj.save()
+                sys_settings.audit_template = f'db:{obj.id}'
+                sys_settings.save(update_fields=['audit_template'])
+                AuditLog.write(request, 'audit_studio.activate', 'AuditTemplate', obj.id, name=name)
+                messages.success(request, f"Audit template '{name}' is now the active audit document layout.")
+            return redirect('it_support_portal:audit_studio')
+
+        if action == 'delete':
+            tid = request.POST.get('template_id') or ''
+            obj = AuditTemplate.objects.filter(pk=tid).first()
+            if obj:
+                name = obj.name
+                if sys_settings.audit_template == f'db:{obj.id}':
+                    sys_settings.audit_template = 'audit_summary_report'
+                    sys_settings.save(update_fields=['audit_template'])
+                obj.delete()
+                AuditLog.write(request, 'audit_studio.delete', 'AuditTemplate', int(tid), name=name)
+                messages.success(request, f"Audit template '{name}' deleted.")
+            return redirect('it_support_portal:audit_studio')
+
+        if action == 'duplicate':
+            tid = request.POST.get('template_id') or ''
+            obj = AuditTemplate.objects.filter(pk=tid).first()
+            if obj:
+                copy = AuditTemplate.objects.create(
+                    name=f"{obj.name} (Copy)", html_content=obj.html_content,
+                    design_json=obj.design_json, created_by=request.user)
+                AuditLog.write(request, 'audit_studio.duplicate', 'AuditTemplate', copy.id, source=obj.id)
+                messages.success(request, f"Audit template duplicated as '{copy.name}'.")
+            return redirect('it_support_portal:audit_studio')
+
+        if action == 'activate':
+            tid = request.POST.get('template_id') or ''
+            if tid.startswith('db:'):
+                obj = AuditTemplate.objects.filter(pk=tid[3:]).first()
+                if obj:
+                    AuditTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                    obj.is_active = True
+                    obj.save()
+                    sys_settings.audit_template = f'db:{obj.id}'
+                    sys_settings.save(update_fields=['audit_template'])
+                    AuditLog.write(request, 'audit_studio.activate', 'AuditTemplate', obj.id, name=obj.name)
+                    messages.success(request, f"Active audit template set to '{obj.name}'.")
+            elif tid in FILE_TEMPLATE_MAP:
+                AuditTemplate.objects.update(is_active=False)
+                sys_settings.audit_template = tid
+                sys_settings.save(update_fields=['audit_template'])
+                AuditLog.write(request, 'audit_studio.activate_file', 'AuditTemplateFile', 0, key=tid)
+                messages.success(request, f"Active audit template set to '{tid}'.")
+            return redirect('it_support_portal:audit_studio')
+
+    import pathlib
+    from django.conf import settings as dj_settings
+    from django.template import Template, Context
+    sample_ctx = Context(_audit_studio_sample_context())
+
+    builtin_files = []
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'audit' / 'audit_templates'
+    for key in FILE_TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if fp.is_file():
+            try:
+                preview = Template(fp.read_text(encoding='utf-8', errors='ignore')).render(sample_ctx)
+            except Exception:
+                preview = ''
+            name, blurb = AUDIT_TEMPLATE_META.get(key, (key, ''))
+            builtin_files.append({'key': key, 'name': name, 'blurb': blurb,
+                                  'size': fp.stat().st_size, 'preview_html': preview})
+
+    studio_templates = []
+    for t in AuditTemplate.objects.order_by('-created_at'):
+        try:
+            preview = Template(t.html_content or '').render(sample_ctx) if t.html_content else ''
+        except Exception:
+            preview = ''
+        studio_templates.append({
+            'id': t.id, 'name': t.name, 'is_active': (active_key == f'db:{t.id}'),
+            'created_at': t.created_at, 'size': len(t.html_content or ''),
+            'preview_html': preview, 'has_design': bool(t.design_json),
+            'updated': t.updated_at,
+        })
+    return render(request, 'dashboard/it_support/audit_studio.html', {
+        'studio_templates': studio_templates,
+        'builtin_files': builtin_files,
+        'active_key': active_key,
+    })
+
+
+@it_required
+def audit_studio_data(request):
+    from django.http import JsonResponse
+    import pathlib
+    from django.conf import settings as dj_settings
+    from admin.dig_portal.models import AuditTemplate
+    from admin.audit_portal.pdf_service import FILE_TEMPLATE_MAP
+
+    items = [
+        {'kind': 'db', 'id': t.id, 'name': t.name, 'html': t.html_content or '',
+         'design': t.design_json or '', 'has_design': bool(t.design_json)}
+        for t in AuditTemplate.objects.order_by('-created_at')
+    ]
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'audit' / 'audit_templates'
+    for key in FILE_TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if fp.is_file():
+            items.append({'kind': 'builtin', 'key': key, 'name': key,
+                          'html': fp.read_text(encoding='utf-8', errors='ignore')})
+    return JsonResponse({'items': items})
+
+
+@it_required
+def audit_studio_preview(request):
+    from django.http import HttpResponse
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+    html = request.POST.get('html_content') or ''
+    if len(html.strip()) < 80:
+        return HttpResponse('Template HTML too short.', status=400)
+    from django.template import Template, Context
+    from challans.pdf_service import _render_html_to_pdf
+    try:
+        rendered = Template(html).render(Context(_audit_studio_sample_context()))
+    except Exception as e:
+        return HttpResponse(f'Template render error: {e}', status=400, content_type='text/plain')
+    pdf = _render_html_to_pdf(rendered)
+    if not pdf:
+        return HttpResponse('PDF engine failed to render the preview.', status=500)
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="audit-studio-preview.pdf"'
+    return response

@@ -1,0 +1,209 @@
+{% load humanize %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>E-Challan {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4; margin: 6mm; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  :root {
+    --ink: #111;
+    --line: #1a1a1a;
+    --soft: #d9d9d9;
+    --bar: #e4e4e4;
+    --muted: #666;
+    --red: #d6001c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #cfcfcf; font-family: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 210mm; min-height: 297mm; margin: 8mm auto; background: #fff; padding: 6mm; }
+  @media print { body { background: #fff; } .page { margin: 0; padding: 0; width: auto; min-height: 0; } }
+  .ur { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; unicode-bidi: isolate; }
+
+  .label { font-size: 6.6pt; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #444; }
+  .val { font-size: 8.4pt; font-weight: 700; margin-top: 1.2mm; }
+  .red { color: var(--red); }
+
+  .frame { border: 0.6mm solid var(--line); }
+  .row { display: grid; border-top: .25mm solid var(--line); }
+  .cell { padding: 1.8mm 2.4mm; border-left: .25mm solid var(--line); min-width: 0; }
+  .cell:first-child { border-left: 0; }
+
+  .head { display: flex; align-items: center; justify-content: space-between; padding: 4mm 5mm 3.4mm; }
+  .head h1 { font-size: 16pt; letter-spacing: .13em; font-weight: 800; line-height: 1; }
+  .head h2 { font-size: 7.6pt; letter-spacing: .1em; margin-top: 2mm; font-weight: 700; }
+  .logos { display: flex; gap: 3mm; }
+  .logo { width: 20mm; height: 20mm; border: .3mm solid #888; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 5.6pt; color: #888; line-height: 1.25; padding: 1mm; border-radius: 50%; background: #fff; }
+  .logo img { width: 100%; height: 100%; object-fit: contain; }
+  .logo.sq { border-radius: 2mm; }
+
+  .meta { grid-template-columns: 1.15fr 1fr 1fr 1fr; border-top: .45mm solid var(--line); }
+  .meta .val { font-size: 10pt; }
+
+  .pay { grid-template-columns: 38mm 1fr; }
+  .barcode { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5mm; gap: 1.2mm; }
+  .barcode svg { width: 100%; height: 11mm; }
+  .barcode small { font-size: 5.8pt; letter-spacing: .2em; }
+  .amount { font-size: 21pt; font-weight: 800; margin: 1.2mm 0 1mm; letter-spacing: .01em; }
+  .due { font-size: 7.4pt; font-weight: 700; }
+  .credit { font-size: 6.2pt; color: var(--muted); border-top: .2mm solid var(--soft); margin-top: 1.8mm; padding-top: 1.2mm; }
+
+  .bar { background: var(--bar); text-align: center; font-size: 7.2pt; font-weight: 800; letter-spacing: .32em; text-transform: uppercase; padding: 1.5mm 0; border-top: .25mm solid var(--line); }
+  .g4 { grid-template-columns: 1.25fr 1fr 1fr 1.1fr; }
+  .g3 { grid-template-columns: 2.45fr 1fr 1.1fr; }
+  .g5 { grid-template-columns: 1fr 1.35fr 1fr 1.35fr 1.1fr; }
+  .g5b { grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr; }
+
+  .evi-title { font-size: 6.6pt; font-weight: 800; letter-spacing: .22em; padding: 2mm 2.4mm 1.4mm; border-top: .25mm solid var(--line); }
+  .evi { margin: 0 2mm 2mm; position: relative; height: 78mm; background: #f3f3f3; border: .3mm solid var(--line); overflow: hidden; }
+  .evi img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tag { position: absolute; top: 0; left: 0; background: rgba(0,0,0,.72); color: #fff; font-size: 6.4pt; line-height: 1.35; padding: 1.2mm 2mm; letter-spacing: .04em; }
+  .tag b { letter-spacing: .12em; }
+  .stamp { position: absolute; right: 0; bottom: 0; background: rgba(0,0,0,.72); color: #fff; font-size: 6.4pt; padding: 1.2mm 2mm; letter-spacing: .05em; }
+  .evi-side { position: absolute; top: 0; right: 0; width: 46mm; height: 100%; background: #fff; border-left: .3mm solid var(--line); padding: 2mm; }
+  .evi-side .thumb { width: 100%; height: 30mm; background: #222; margin-bottom: 2mm; overflow: hidden; }
+  .evi-side .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .instr { border-top: .25mm solid var(--line); padding: 2.2mm 2.6mm; font-size: 6.9pt; line-height: 1.5; }
+  .instr .stats { border-top: .2mm solid var(--soft); margin-top: 1.8mm; padding-top: 1.6mm; font-size: 6.6pt; }
+  .instr .stats b { margin-left: 2mm; }
+  .instr .stats b:first-child { margin-left: 0; }
+
+  .off { grid-template-columns: 1.3fr 1fr 1.4fr 1fr; }
+  .line { border-bottom: .25mm dotted #555; height: 6.5mm; margin-top: 1mm; font-size: 8pt; font-weight: 700; display: flex; align-items: flex-end; padding-bottom: .6mm; }
+  .sign-box { height: 11mm; border-bottom: .25mm dotted #555; margin-top: 1mm; display: flex; align-items: flex-end; font-size: 6.2pt; }
+  .sign-box img { max-height: 10mm; }
+
+  .cut { display: flex; align-items: center; gap: 1.5mm; margin: 2.6mm 0; font-size: 12pt; color: #333; }
+  .cut::after { content: ""; flex: 1; border-top: .35mm dashed #555; }
+
+  .po { padding: 3mm 4mm 2mm; }
+  .po h3 { text-align: center; font-size: 11.5pt; font-weight: 800; letter-spacing: .06em; margin-bottom: 3mm; }
+  .po-grid { display: grid; grid-template-columns: 1.15fr 1fr 40mm; gap: 0 6mm; font-size: 7.6pt; }
+  .po-grid .f { border-bottom: .2mm dotted #777; padding: 1.5mm 0 1.2mm; }
+  .po-grid .f b { font-weight: 800; }
+  .po-stamp { grid-column: 3; grid-row: 1 / span 3; border: .3mm dashed #888; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 6.4pt; letter-spacing: .1em; color: #888; margin: 1mm 0; }
+  .po-foot { display: flex; justify-content: space-between; align-items: flex-end; border-top: .5mm solid var(--line); margin-top: 3mm; padding-top: 1.8mm; font-size: 6.2pt; }
+  .po-foot .sig { font-weight: 700; font-size: 6.8pt; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="frame">
+
+    <div class="head">
+      <div>
+        <h1>{{ branding.govt_name }}</h1>
+        <h2>{{ branding.authority_name_en }} — ELECTRONIC-CHALLAN</h2>
+      </div>
+      <div class="logos">
+        <div class="logo">{% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% else %}SAFE CITY{% endif %}</div>
+        <div class="logo sq">{% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% else %}GOVT{% endif %}</div>
+      </div>
+    </div>
+
+    <div class="row meta">
+      <div class="cell"><div class="label">Ticket No.</div><div class="val">{{ challan.ticket_no }}</div></div>
+      <div class="cell"><div class="label">Registration No.</div><div class="val">{{ challan.plate_number }}</div></div>
+      <div class="cell"><div class="label">Issue Date</div><div class="val">{{ challan.issue_date|date:"d-M-Y" }}</div></div>
+      <div class="cell"><div class="label">Payment Status</div><div class="val red">{{ challan.payment_status }}</div></div>
+    </div>
+
+    <div class="row pay">
+      <div class="cell barcode">{% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}<small>{{ challan.ticket_no }}</small></div>
+      <div class="cell">
+        <div class="label">Payment within due date</div>
+        <div class="amount">PKR {{ challan.fine_amount|floatformat:"0" }}/-</div>
+        <div class="due">Due Date: {{ challan.due_date|date:"d-M-Y" }} &nbsp;·&nbsp; PSID: {{ challan.psid }}</div>
+        <div class="credit">To be credited under Head "<b>{{ branding.account_number }}</b>" — IC3 E-Challans</div>
+      </div>
+    </div>
+
+    <div class="bar">Offender Information</div>
+    <div class="row g4">
+      <div class="cell"><div class="label">Name (First, Middle, Last)</div><div class="val">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</div></div>
+      <div class="cell"><div class="label">CNIC</div><div class="val">{{ challan.cnic|default:"Awaiting Excise Integration" }}</div></div>
+      <div class="cell"><div class="label">Violation Type</div><div class="val red">{{ challan.get_violation_type_display|upper }}</div></div>
+      <div class="cell"><div class="label">Fine Amount</div><div class="val">PKR {{ challan.fine_amount|floatformat:"0" }}/-</div></div>
+    </div>
+    <div class="row g3">
+      <div class="cell"><div class="label">Address</div><div class="val">{{ challan.address|default:"Awaiting Excise Integration" }}</div></div>
+      <div class="cell"><div class="label">City</div><div class="val">{{ challan.location|default:"LAHORE" }}</div></div>
+      <div class="cell"><div class="label">Phone No.</div><div class="val">{{ challan.phone|default:"Awaiting Excise Integration" }}</div></div>
+    </div>
+
+    <div class="bar">Vehicle Information</div>
+    <div class="row g5">
+      <div class="cell"><div class="label">Vehicle Type</div><div class="val">{{ challan.vehicle_type|default:"Car" }}</div></div>
+      <div class="cell"><div class="label">Make / Year</div><div class="val">{{ challan.make_year|default:"Awaiting Excise Integration" }}</div></div>
+      <div class="cell"><div class="label">Color</div><div class="val">{{ challan.color|default:"Awaiting Excise Integration" }}</div></div>
+      <div class="cell"><div class="label">Chassis No.</div><div class="val">{{ challan.chassis_no|default:"Awaiting Excise Integration" }}</div></div>
+      <div class="cell"><div class="label">Date &amp; Time</div><div class="val">{{ camera_meta.timestamp }}</div></div>
+    </div>
+
+    <div class="bar">Violation Evidence — {{ frame_evidence|length }}-Frame Verified</div>
+    <div class="row g5b">
+      <div class="cell"><div class="label">Location</div><div class="val">{{ challan.location|default:"LAHORE" }}</div></div>
+      <div class="cell"><div class="label">Legal Direction</div><div class="val">{{ challan.legal_direction|default:"UP" }}</div></div>
+      <div class="cell"><div class="label">Moving Direction</div><div class="val red">{{ challan.moving_direction|default:"DOWN" }}</div></div>
+      <div class="cell"><div class="label">AI Confidence</div><div class="val">{% if challan.ai_confidence %}{{ challan.ai_confidence|floatformat:2 }}{% else %}N/A{% endif %}</div></div>
+      <div class="cell"><div class="label">Camera ID</div><div class="val">{{ camera_meta.id }}</div></div>
+    </div>
+
+    <div class="evi-title">CAPTURED VIOLATION EVIDENCE</div>
+    <div class="evi">
+      {% if challan.detection.raw_image %}<img src="file://{{ challan.detection.raw_image.path }}" alt="Camera capture">{% endif %}
+      <div class="tag"><b>CAMERA SCREEN</b><br>{{ camera_meta.id }} · Dir: {{ challan.legal_direction|default:"UP" }} &gt; {{ challan.moving_direction|default:"DOWN" }} · Conf: {% if challan.ai_confidence %}{{ challan.ai_confidence|floatformat:2 }}{% else %}N/A{% endif %}</div>
+      <div class="stamp">{{ camera_meta.timestamp }}</div>
+      <div class="evi-side">
+        <div class="thumb">{% if challan.detection.plate_crop_image %}<img src="file://{{ challan.detection.plate_crop_image.path }}" alt="Plate">{% endif %}</div>
+        <div class="thumb">{% if challan.detection.vehicle_image %}<img src="file://{{ challan.detection.vehicle_image.path }}" alt="Vehicle">{% elif challan.detection.raw_image %}<img src="file://{{ challan.detection.raw_image.path }}" alt="Vehicle">{% endif %}</div>
+        <div class="label">Plate Close-up + Vehicle Crop</div>
+      </div>
+    </div>
+
+    <div class="instr">
+      <b>INSTRUCTIONS:</b> You have been fined for a traffic violation under {{ branding.legal_ref_en }}. Please pay your fine within <b>{{ due_days }} days</b> of the issuance of this notice. Failure to do so may result in further legal action, and your vehicle may be impounded until the outstanding fine is paid.
+      <div class="stats">
+        <b>Evidence:</b> {{ frame_evidence|length }} verified frames (1-by-1)
+        <b>Chain Hash:</b> {% if evidence_summary %}{{ evidence_summary.hash|slice:":16" }}…{% endif %}
+        <b>Issue Date:</b> {{ challan.issue_date|date:"d-M-Y" }}
+        <b>Penalty Points:</b> {{ points_deducted }} out of 20
+      </div>
+    </div>
+
+    <div class="bar">Issuing Officer</div>
+    <div class="row off">
+      <div class="cell"><div class="label">Officer Name</div><div class="line">{{ officer_signature_name|default:"System Generated" }}</div></div>
+      <div class="cell"><div class="label">Staff ID</div><div class="line">{{ officer_staff_id|default:"—" }}</div></div>
+      <div class="cell"><div class="label">Officer Signature</div><div class="sign-box">{% if officer_signature_url %}<img src="{{ officer_signature_url }}" alt="Signature">{% endif %}</div></div>
+      <div class="cell"><div class="label">Designation</div><div class="line">{{ officer_signature_designation|default:"Traffic Officer" }}</div></div>
+    </div>
+  </div>
+
+  <div class="cut">&#9986;</div>
+
+  <div class="frame po">
+    <h3>POST OFFICE COPY</h3>
+    <div class="po-grid">
+      <div class="f"><b>TICKET NO.:</b> {{ challan.ticket_no }}</div>
+      <div class="f"><b>REG. NO.:</b> {{ challan.plate_number }}</div>
+      <div class="po-stamp">POST OFFICE<br>RECEIVED STAMP</div>
+      <div class="f"><b>NAME:</b> {{ challan.owner_name|default:"Awaiting Excise Integration" }}</div>
+      <div class="f"><b>AMOUNT:</b> PKR {{ challan.fine_amount|floatformat:"0" }}/-</div>
+      <div class="f"><b>ADDRESS:</b> {{ challan.address|default:"Awaiting Excise Integration" }}</div>
+      <div class="f"><b>DUE DATE:</b> {{ challan.due_date|date:"d-M-Y" }}</div>
+      <div class="f"><b>VIOLATION TYPE:</b> {{ challan.get_violation_type_display }}</div>
+      <div class="f"><b>ACCOUNT NO.:</b> "{{ branding.account_number }}" E-Challans</div>
+    </div>
+    <div class="po-foot">
+      <i>* This is a system-generated challan issued via the Safe City enforcement pipeline.</i>
+      <span class="sig">Cashier / Counter Signature: ______________________</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

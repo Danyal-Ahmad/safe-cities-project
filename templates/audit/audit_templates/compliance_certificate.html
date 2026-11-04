@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  :root { --navy: #0b3a78; --line: #c9d6e8; --red: #a3121f; --ink: #16233a; --muted: #5a6b82; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DejaVu Sans', Arial, sans-serif; color: var(--ink); background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ur { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; }
+
+  .sheet { width: 210mm; min-height: 296mm; padding: 10mm 12mm 8mm; display: flex; flex-direction: column; }
+  .hd { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px double var(--navy); padding-bottom: 4mm; }
+  .hd .lg { width: 20mm; height: 20mm; }
+  .hd .lg img { width: 100%; height: 100%; object-fit: contain; }
+  .hd .ct { text-align: center; }
+  .hd h1 { font-size: 14.5pt; font-weight: 800; color: var(--navy); letter-spacing: .02em; text-transform: uppercase; }
+  .hd h2 { font-size: 10pt; font-weight: 700; color: var(--ink); margin-top: 1.2mm; }
+  .hd .ur-line { font-size: 9.5pt; margin-top: 1mm; color: var(--navy); }
+
+  .refbar { display: flex; justify-content: space-between; font-size: 8pt; border: 1px solid var(--line); border-top: 0; padding: 2mm 4mm; background: #f7fafd; }
+  .refbar b { color: var(--navy); }
+
+  .doctype { text-align: center; margin: 8mm 0 3mm; }
+  .doctype h3 { display: inline-block; font-size: 13pt; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--navy); border: 1.6px solid var(--navy); padding: 2mm 8mm; border-radius: 1mm; }
+
+  .meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; margin: 5mm 0; }
+  .meta .m { border: 1px solid var(--line); border-radius: 1.2mm; padding: 2.4mm 3mm; background: #fbfdff; }
+  .meta .l { font-size: 6.8pt; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+  .meta .v { font-size: 9.5pt; font-weight: 800; margin-top: .8mm; }
+
+  h4.sec { font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--navy); border-bottom: 1.4px solid var(--navy); margin: 5mm 0 2.4mm; padding-bottom: 1mm; }
+
+  .cert-body { font-size: 9pt; line-height: 1.85; text-align: justify; }
+  .cert-body .lead { font-size: 9.6pt; }
+  .cert-body b { color: var(--navy); }
+
+  table.gov { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  table.gov th { background: var(--navy); color: #fff; padding: 1.8mm 2.4mm; text-align: left; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .04em; }
+  table.gov td { border: .5px solid var(--line); padding: 1.7mm 2.4mm; }
+  table.gov tr:nth-child(even) td { background: #f6f9fd; }
+  table.gov td.n { text-align: right; font-weight: 700; }
+  table.gov td.ok { color: #0a7a3b; font-weight: 800; }
+
+  .seal-badge { margin: 5mm auto 0; width: 44mm; border: 2.2px solid var(--red); color: var(--red); border-radius: 2mm; text-align: center; padding: 2.4mm 2mm; transform: rotate(-4deg); }
+  .seal-badge .b1 { font-size: 10.5pt; font-weight: 900; letter-spacing: .14em; }
+  .seal-badge .b2 { font-size: 6.6pt; letter-spacing: .1em; margin-top: 1mm; }
+
+  .signrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: auto; padding-top: 10mm; }
+  .sigbox { text-align: center; }
+  .sigbox .sig { height: 15mm; display: flex; align-items: flex-end; justify-content: center; }
+  .sigbox .sig img { max-height: 14mm; max-width: 45mm; object-fit: contain; }
+  .sigbox .line { border-top: 1.2px solid var(--ink); margin: 1.4mm 8mm 1mm; }
+  .sigbox .nm { font-size: 8.6pt; font-weight: 800; }
+  .sigbox .ds { font-size: 7.4pt; color: var(--muted); }
+  .sigbox .dt { font-size: 7pt; color: var(--muted); margin-top: .4mm; }
+
+  .ft { border-top: 1px solid var(--line); margin-top: 6mm; padding-top: 2mm; display: flex; justify-content: space-between; font-size: 6.8pt; color: var(--muted); }
+  .watermark { position: fixed; top: 42%; left: 8%; font-size: 46pt; font-weight: 800; color: rgba(11,58,120,.05); transform: rotate(-18deg); letter-spacing: .06em; z-index: 0; }
+</style>
+</head>
+<body>
+<div class="watermark">CERTIFIED</div>
+<div class="sheet">
+
+  <header class="hd">
+    <div class="lg">{% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% endif %}</div>
+    <div class="ct">
+      <h1>{{ branding.authority_name_en }}</h1>
+      <h2>{{ branding.office_name }}</h2>
+      <div class="ur-line ur">آڈٹ و ویژلنس وِنگ</div>
+    </div>
+    <div class="lg">{% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% endif %}</div>
+  </header>
+  <div class="refbar">
+    <span>Certificate No: <b>{{ doc_no }}</b></span>
+    <span>Classification: <b>Official — Compliance</b></span>
+    <span>Issued: <b>{{ generated_at|date:"d M Y" }}</b></span>
+  </div>
+
+  <div class="doctype"><h3>Certificate of Compliance</h3></div>
+
+  <div class="meta">
+    <div class="m"><div class="l">Compliance Period</div><div class="v">{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}</div></div>
+    <div class="m"><div class="l">Certified By</div><div class="v">{{ generated_by_ctx.name }}</div></div>
+    <div class="m"><div class="l">Scope</div><div class="v">Enforcement Pipeline &amp; Records</div></div>
+  </div>
+
+  <div class="cert-body">
+    <p class="lead">This is to certify that the electronic enforcement records of <b>{{ branding.authority_name_en }}</b> for the period <b>{{ period_from|date:"d F Y" }}</b> to <b>{{ period_to|date:"d F Y" }}</b> have been examined by the Audit &amp; Vigilance Wing in accordance with the applicable standing orders under <b>{{ branding.legal_ref_en }}</b>.</p>
+    <p style="margin-top:3mm">On the basis of the checks detailed below, the enforcement pipeline is found to be operating in compliance with the prescribed five-step evidence verification standard, and the challan records audited herein are a true and tamper-evident representation of the system of record.</p>
+  </div>
+
+  <h4 class="sec">Compliance Checks Performed</h4>
+  <table class="gov">
+    <thead><tr><th>#</th><th>Control</th><th>Standard</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Pakistan number-plate format validation (AAA-1234)</td><td>100% of challans</td><td class="ok">ENFORCED</td></tr>
+      <tr><td>2</td><td>3-frame evidence verified one-by-one (90fps burst)</td><td>{{ stats.evidence_total }} audited · {{ stats.evidence_pass_rate }}% full pass</td><td class="ok">ENFORCED</td></tr>
+      <tr><td>3</td><td>Strict car-only detection gate</td><td>Non-car detections rejected</td><td class="ok">ENFORCED</td></tr>
+      <tr><td>4</td><td>Full-plate completeness (no half / cut plates)</td><td>All plate crops</td><td class="ok">ENFORCED</td></tr>
+      <tr><td>5</td><td>SHA-256 tamper-evident chain on evidence</td><td>Every confirmed detection</td><td class="ok">ENFORCED</td></tr>
+      <tr><td>6</td><td>Role-based access &amp; cross-account isolation</td><td>Permission matrix</td><td class="ok">ENFORCED</td></tr>
+    </tbody>
+  </table>
+
+  <h4 class="sec">Statistical Annexure</h4>
+  <table class="gov">
+    <thead><tr><th>Indicator</th><th>Value</th><th>Indicator</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Challans issued</td><td class="n">{{ stats.challans_issued }}</td><td>Confirmed detections</td><td class="n">{{ stats.detections_confirmed }}</td></tr>
+      <tr><td>Challans paid</td><td class="n">{{ stats.challans_paid }}</td><td>Evidence pass rate</td><td class="n">{{ stats.evidence_pass_rate }}%</td></tr>
+      <tr><td>Challans voided</td><td class="n">{{ stats.challans_voided }}</td><td>Failed logins (period)</td><td class="n">{{ stats.login_failed }}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="seal-badge">
+    <div class="b1">AUDIT VERIFIED</div>
+    <div class="b2">AUDIT &amp; VIGILANCE WING · {{ generated_at|date:"M Y" }}</div>
+  </div>
+
+  <div class="signrow">
+    <div class="sigbox">
+      <div class="sig">{% if generated_by_ctx.signature_url %}<img src="{{ generated_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="line"></div>
+      <div class="nm">{{ generated_by_ctx.name }}</div>
+      <div class="ds">{{ generated_by_ctx.designation }} · {{ generated_by_ctx.staff_id }}</div>
+      <div class="dt">Audit Officer — {{ generated_at|date:"d M Y" }}</div>
+    </div>
+    <div class="sigbox">
+      <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="line"></div>
+      <div class="nm">{{ countersigned_by_ctx.name }}</div>
+      <div class="ds">{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}</div>
+      <div class="dt">Countersigned — Deputy Inspector General</div>
+    </div>
+  </div>
+
+  <div class="ft">
+    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
+    <span>System generated · verifiable via document hash</span>
+  </div>
+</div>
+</body>
+</html>

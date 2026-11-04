@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  :root { --navy: #0b3a78; --line: #c9d6e8; --red: #a3121f; --ink: #16233a; --muted: #5a6b82; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DejaVu Sans', Arial, sans-serif; color: var(--ink); background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ur { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; }
+
+  .sheet { width: 210mm; min-height: 296mm; padding: 10mm 12mm 8mm; display: flex; flex-direction: column; }
+  .hd { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px double var(--navy); padding-bottom: 4mm; }
+  .hd .lg { width: 20mm; height: 20mm; }
+  .hd .lg img { width: 100%; height: 100%; object-fit: contain; }
+  .hd .ct { text-align: center; }
+  .hd h1 { font-size: 14.5pt; font-weight: 800; color: var(--navy); letter-spacing: .02em; text-transform: uppercase; }
+  .hd h2 { font-size: 10pt; font-weight: 700; color: var(--ink); margin-top: 1.2mm; }
+  .hd .ur-line { font-size: 9.5pt; margin-top: 1mm; color: var(--navy); }
+
+  .refbar { display: flex; justify-content: space-between; font-size: 8pt; border: 1px solid var(--line); border-top: 0; padding: 2mm 4mm; background: #f7fafd; }
+  .refbar b { color: var(--navy); }
+
+  .doctype { text-align: center; margin: 7mm 0 2mm; }
+  .doctype h3 { display: inline-block; font-size: 13pt; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--navy); border: 1.6px solid var(--navy); padding: 2mm 8mm; border-radius: 1mm; }
+
+  .meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; margin: 5mm 0; }
+  .meta .m { border: 1px solid var(--line); border-radius: 1.2mm; padding: 2.4mm 3mm; background: #fbfdff; }
+  .meta .l { font-size: 6.8pt; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+  .meta .v { font-size: 9.5pt; font-weight: 800; margin-top: .8mm; }
+
+  h4.sec { font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--navy); border-bottom: 1.4px solid var(--navy); margin: 5mm 0 2.4mm; padding-bottom: 1mm; }
+
+  table.gov { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  table.gov th { background: var(--navy); color: #fff; padding: 1.8mm 2.4mm; text-align: left; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .04em; }
+  table.gov td { border: .5px solid var(--line); padding: 1.7mm 2.4mm; }
+  table.gov tr:nth-child(even) td { background: #f6f9fd; }
+  table.gov td.n { text-align: right; font-weight: 700; }
+  td.grand { background: #eef4fc !important; font-weight: 800; }
+
+  .note { border-left: 3px solid var(--red); background: #fdf3f4; padding: 2.6mm 3.4mm; margin: 2.4mm 0; font-size: 8pt; line-height: 1.5; }
+  .note b { color: var(--red); }
+
+  .words { font-size: 8.4pt; margin-top: 2.6mm; font-style: italic; color: var(--muted); }
+
+  .signrow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8mm; margin-top: auto; padding-top: 12mm; }
+  .sigbox { text-align: center; }
+  .sigbox .sig { height: 15mm; display: flex; align-items: flex-end; justify-content: center; }
+  .sigbox .sig img { max-height: 14mm; max-width: 45mm; object-fit: contain; }
+  .sigbox .line { border-top: 1.2px solid var(--ink); margin: 1.4mm 6mm 1mm; }
+  .sigbox .nm { font-size: 8.4pt; font-weight: 800; }
+  .sigbox .ds { font-size: 7.2pt; color: var(--muted); }
+
+  .ft { border-top: 1px solid var(--line); margin-top: 6mm; padding-top: 2mm; display: flex; justify-content: space-between; font-size: 6.8pt; color: var(--muted); }
+  .watermark { position: fixed; top: 42%; left: 6%; font-size: 44pt; font-weight: 800; color: rgba(11,58,120,.05); transform: rotate(-18deg); letter-spacing: .06em; z-index: 0; }
+</style>
+</head>
+<body>
+<div class="watermark">FINANCIAL AUDIT</div>
+<div class="sheet">
+
+  <header class="hd">
+    <div class="lg">{% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% endif %}</div>
+    <div class="ct">
+      <h1>{{ branding.authority_name_en }}</h1>
+      <h2>{{ branding.office_name }}</h2>
+      <div class="ur-line ur">مالی آڈٹ اسٹیٹمنٹ</div>
+    </div>
+    <div class="lg">{% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% endif %}</div>
+  </header>
+  <div class="refbar">
+    <span>Statement No: <b>{{ doc_no }}</b></span>
+    <span>Classification: <b>Official — Financial</b></span>
+    <span>Issued: <b>{{ generated_at|date:"d M Y" }}</b></span>
+  </div>
+
+  <div class="doctype"><h3>Financial Audit Statement</h3></div>
+
+  <div class="meta">
+    <div class="m"><div class="l">Financial Period</div><div class="v">{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}</div></div>
+    <div class="m"><div class="l">Head of Account</div><div class="v">IC3 E-Challans</div></div>
+    <div class="m"><div class="l">Statement Of</div><div class="v">E-Challan Fines</div></div>
+  </div>
+
+  <h4 class="sec">A. Revenue Collected</h4>
+  <table class="gov">
+    <thead><tr><th>Description</th><th>Challans</th><th>Amount (PKR)</th></tr></thead>
+    <tbody>
+      <tr><td>Fines paid within due date</td><td class="n">{{ stats.challans_paid }}</td><td class="n">{{ stats.revenue_collected|floatformat:"0" }}</td></tr>
+      <tr><td class="grand">Total collection for period</td><td class="n grand">{{ stats.challans_paid }}</td><td class="n grand">{{ stats.revenue_collected|floatformat:"0" }}</td></tr>
+    </tbody>
+  </table>
+  <div class="words">Amount in words: system-computed from challan records for the stated period.</div>
+
+  <h4 class="sec">B. Revenue Outstanding</h4>
+  <table class="gov">
+    <thead><tr><th>Description</th><th>Challans</th><th>Amount (PKR)</th></tr></thead>
+    <tbody>
+      <tr><td>Unpaid challans within period</td><td class="n">{{ stats.challans_unpaid }}</td><td class="n">{{ stats.revenue_pending|floatformat:"0" }}</td></tr>
+      <tr><td>Voided / cancelled challans (no liability)</td><td class="n">{{ stats.challans_voided }}</td><td class="n">0</td></tr>
+    </tbody>
+  </table>
+
+  <h4 class="sec">C. Generation Base</h4>
+  <table class="gov">
+    <thead><tr><th>Indicator</th><th>Value</th><th>Indicator</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Challans issued in period</td><td class="n">{{ stats.challans_issued }}</td><td>Confirmed detections</td><td class="n">{{ stats.detections_confirmed }}</td></tr>
+      <tr><td>Pending DIG review</td><td class="n">{{ stats.detections_pending }}</td><td>Evidence pass rate</td><td class="n">{{ stats.evidence_pass_rate }}%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note"><b>Auditor's note.</b> Every challan in this statement originated exclusively from the automated enforcement pipeline after passing the five-step evidence verification (Pakistan plate format, 3-frame one-by-one evidence, car-only gate, full-plate check, SHA-256 chain). No manual challan generation path exists in the system of record.</div>
+
+  <div class="signrow">
+    <div class="sigbox">
+      <div class="sig">{% if generated_by_ctx.signature_url %}<img src="{{ generated_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="line"></div>
+      <div class="nm">{{ generated_by_ctx.name }}</div>
+      <div class="ds">{{ generated_by_ctx.designation }}</div>
+      <div class="ds">Audit Officer</div>
+    </div>
+    <div class="sigbox">
+      <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="line"></div>
+      <div class="nm">{{ countersigned_by_ctx.name }}</div>
+      <div class="ds">{{ countersigned_by_ctx.designation }}</div>
+      <div class="ds">Countersigning Authority</div>
+    </div>
+    <div class="sigbox">
+      <div class="sig"></div>
+      <div class="line"></div>
+      <div class="nm">____________________</div>
+      <div class="ds">Accounts Officer</div>
+      <div class="ds">(verification copy)</div>
+    </div>
+  </div>
+
+  <div class="ft">
+    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
+    <span>System generated · verifiable via document hash</span>
+  </div>
+</div>
+</body>
+</html>

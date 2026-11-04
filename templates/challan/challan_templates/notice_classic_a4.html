@@ -1,0 +1,242 @@
+{% load humanize %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>E-Challan {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  @font-face { font-family: 'Noto Naskh Arabic'; src: url('static/fonts/NotoNaskhArabic-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Naskh Arabic'; src: url('static/fonts/NotoNaskhArabic-Bold.ttf'); font-weight: 700; }
+  :root {
+    --navy: #0a3470;
+    --navy-2: #0f4690;
+    --soft: #f1f6fc;
+    --line: #b9cce3;
+    --red: #d3182b;
+    --ink: #172a44;
+    --muted: #5c6d84;
+    --ur: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
+    --sans: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #c5ccd6; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: var(--sans); color: var(--ink); }
+  img { display: block; max-width: 100%; }
+  .ur { font-family: var(--ur); direction: rtl; unicode-bidi: isolate; }
+
+  .sheet { width: 210mm; height: 297mm; margin: 6mm auto; background: #f6f9fd; padding: 3mm 3mm 7mm; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2.6mm; box-shadow: 0 2mm 8mm rgba(0,0,0,.25); }
+  @media print { html, body { background: none; } .sheet { margin: 0; box-shadow: none; } }
+  .demo-strip { position: absolute; left: 0; right: 0; bottom: 0; height: 4.4mm; line-height: 4.4mm; text-align: center; font-size: 5.6pt; letter-spacing: .14em; text-transform: uppercase; color: #6b7a90; background: #e3ebf6; }
+
+  .hd { height: 36mm; background: var(--navy); border-radius: 2.4mm; color: #fff; display: grid; grid-template-columns: 34mm 1fr 32mm 40mm; align-items: center; gap: 2mm; padding: 0 5mm; }
+  .hd .lg { text-align: center; font-size: 6.4pt; font-weight: 800; letter-spacing: .06em; color: #fff; }
+  .hd .lg img { width: 24mm; height: 24mm; margin: 0 auto 1mm; object-fit: contain; }
+  .hd .ct { text-align: center; }
+  .hd .ct h1 { font-size: 15.5pt; line-height: 1.14; font-weight: 800; text-transform: uppercase; }
+  .hd .ct p { margin-top: 3.4mm; font-size: 8.4pt; letter-spacing: .3em; font-weight: 600; word-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .hd .bd img { width: 28mm; height: 28mm; margin: 0 auto; object-fit: contain; }
+  .hd .sl { border-left: .3mm solid rgba(255,255,255,.7); padding-left: 2mm; height: 20mm; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 10.4pt; line-height: 1.8; white-space: nowrap; }
+
+  .tr { display: grid; grid-template-columns: 56mm 1fr 52mm; gap: 3mm; align-items: center; height: 22mm; }
+  .tr .lb { height: 100%; background: var(--navy); border-radius: 2.4mm; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26pt; font-weight: 800; letter-spacing: .01em; }
+  .tr .md { text-align: center; }
+  .tr .md h2 { font-size: 14.5pt; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .005em; }
+  .tr .md .ur { font-size: 15pt; font-weight: 700; color: var(--navy); line-height: 1.8; }
+  .tr .no { height: 100%; background: var(--red); border-radius: 2.4mm; color: #fff; padding: 2.4mm 3mm 2.4mm 4mm; display: flex; flex-direction: column; justify-content: center; }
+  .tr .no .l { font-size: 8.4pt; font-weight: 600; }
+  .tr .no .n { font-size: 12.2pt; font-weight: 800; letter-spacing: .01em; line-height: 1.25; white-space: nowrap; }
+
+  .frame { border: .3mm solid var(--line); border-radius: 1.6mm; background: #fff; padding: 2.4mm; display: flex; flex-direction: column; gap: 2.6mm; flex: 1; min-height: 0; }
+
+  .info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2.4mm; height: 66mm; }
+  .p { border: .3mm solid var(--line); border-radius: 1.6mm; overflow: hidden; display: flex; flex-direction: column; background: #fff; }
+  .p .ph { flex: 0 0 8.6mm; height: 8.6mm; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: flex-start; gap: 1.8mm; padding: 0 2.6mm; font-size: 7.2pt; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+  .p .ph .ur { font-size: 8pt; font-weight: 600; text-transform: none; }
+  .t { flex: 1; display: flex; flex-direction: column; }
+  .t .r { flex: 1; display: grid; grid-template-columns: 24mm 1fr; border-bottom: .22mm solid #e2eaf4; }
+  .t .r:last-child { border-bottom: 0; }
+  .t .r .k { background: var(--soft); padding: 0 2mm; display: flex; flex-direction: column; justify-content: center; border-right: .22mm solid #e2eaf4; font-size: 6.8pt; font-weight: 700; line-height: 1.35; }
+  .t .r .k .ur { display: block; font-size: 6.8pt; font-weight: 500; line-height: 1.7; color: #3c4e69; text-align: left; direction: rtl; }
+  .t .r .v { padding: 0 2.6mm; display: flex; align-items: center; font-size: 8.2pt; line-height: 1.4; }
+  .t .r .v.big { font-size: 10pt; font-weight: 800; }
+  .t .r .v.red { color: var(--red); font-weight: 800; font-size: 10.6pt; }
+
+  .ev { display: grid; grid-template-columns: 1.46fr 1fr 1fr; gap: 2.4mm; height: 64mm; }
+  .cam { position: relative; background: #3a3d42; border: .4mm solid #111; overflow: hidden; }
+  .cam > img { width: 100%; height: 100%; object-fit: cover; }
+  .osd { position: absolute; top: 2mm; left: 2mm; background: var(--red); color: #fff; border-radius: 1mm; padding: 1.2mm 2.4mm 1.4mm; font-size: 9pt; font-weight: 700; line-height: 1.4; }
+  .bx { position: absolute; border: .45mm solid #e22; }
+  .evp .eb { flex: 1; padding: 2mm 3mm; display: flex; flex-direction: column; gap: 2mm; }
+  .evp .it { flex: 1; display: grid; grid-template-columns: 1fr 27mm; gap: 2mm; align-items: center; min-height: 0; }
+  .evp .it .im { height: 100%; background: #222; overflow: hidden; }
+  .evp .it .im img { width: 100%; height: 100%; object-fit: cover; }
+  .evp .it .lb { font-size: 7pt; font-weight: 700; line-height: 1.4; }
+  .evp .it .lb .ur { display: block; font-weight: 500; line-height: 1.7; }
+  .evp .it:first-child .lb { order: 2; }
+  .pay { border: .3mm solid var(--line); border-radius: 1.6mm; background: #fff; padding: 2.4mm 3mm; display: flex; flex-direction: column; align-items: center; }
+  .pay .qr { width: 28mm; height: 28mm; }
+  .pay .qr img { width: 100%; height: 100%; object-fit: contain; }
+  .pay .c1 { margin-top: 1.4mm; font-size: 8.8pt; font-weight: 800; color: var(--navy); }
+  .pay .c2 { font-size: 8.4pt; line-height: 1.7; color: var(--navy); }
+  .pay .amt { font-size: 14pt; font-weight: 900; color: var(--red); }
+  .pay .psid { margin-top: 1mm; font-size: 7.4pt; color: #33465f; text-align: center; }
+
+  .nb { display: grid; grid-template-columns: 1.78fr 1fr; gap: 2.4mm; flex: 1; min-height: 0; }
+  .note { border: .3mm solid #e7a5ab; border-radius: 1.6mm; background: #fff; padding: 2.4mm 3.2mm; display: grid; grid-template-columns: 11mm 1fr; gap: 2mm; }
+  .note .ic { font-size: 9pt; font-weight: 900; color: var(--red); }
+  .note .tx h3 { font-size: 11pt; font-weight: 800; color: var(--red); display: flex; align-items: center; gap: 2mm; text-transform: uppercase; }
+  .note .tx h3 .ur { font-size: 9.6pt; text-transform: none; font-weight: 700; }
+  .note ul { list-style: none; margin-top: 1.4mm; }
+  .note li { position: relative; padding-left: 5mm; margin-bottom: 1.8mm; font-size: 6.8pt; line-height: 1.35; }
+  .note li::before { content: ""; position: absolute; left: .6mm; top: 1.2mm; width: 1.8mm; height: 1.8mm; border-radius: 50%; background: var(--red); }
+  .note li .u { display: block; margin-top: .2mm; font-family: var(--ur); direction: rtl; text-align: right; font-size: 6.6pt; line-height: 1.8; color: #2c3e58; }
+  .off { border: .3mm solid var(--line); border-radius: 1.6mm; background: #fff; padding: 2mm 3mm 2.2mm; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .off .sig { height: 15mm; width: 100%; }
+  .off .sig img { height: 100%; margin: 0 auto; object-fit: contain; }
+  .off .t1 { margin-top: 1.4mm; font-size: 7.8pt; font-weight: 800; line-height: 1.4; }
+  .off .t2 { font-size: 7.6pt; font-weight: 700; }
+  .off .t3 { font-size: 7.6pt; line-height: 1.8; margin-top: 1mm; }
+  .off .bc { margin-top: auto; width: 100%; height: 9.4mm; }
+  .off .bn { font-size: 9.4pt; font-weight: 600; margin-top: .6mm; }
+
+  .ft { height: 14mm; background: var(--navy); border-radius: 2.4mm; color: #fff; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding: 0 3mm; }
+  .ft .c { display: flex; align-items: center; justify-content: center; gap: 2.6mm; height: 11mm; border-left: .25mm solid rgba(255,255,255,.4); font-size: 7.8pt; font-weight: 700; text-transform: uppercase; line-height: 1.35; }
+  .ft .c:first-child { border-left: 0; }
+  .ft .c small { display: block; font-size: 6.2pt; font-weight: 600; letter-spacing: .02em; }
+  .ft .c .ur { display: block; font-size: 7.6pt; text-transform: none; font-weight: 500; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="hd">
+    <div class="lg">
+      {% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% endif %}
+      SAFE CITY
+    </div>
+    <div class="ct">
+      <h1>{{ branding.authority_name_en }}</h1>
+      <p>{{ branding.tagline_part_1 }} &nbsp;|&nbsp; {{ branding.tagline_part_2 }}</p>
+    </div>
+    <div class="bd">{% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% endif %}</div>
+    <div class="sl ur">{{ branding.slogan_ur_line_1 }}<br>{{ branding.slogan_ur_line_2 }}</div>
+  </header>
+
+  <section class="tr">
+    <div class="lb">e-Challan</div>
+    <div class="md">
+      <h2>Traffic Violation Notice</h2>
+      <div class="ur">ٹریفک خلاف ورزی کا چالان</div>
+    </div>
+    <div class="no">
+      <div class="l">Challan No.</div>
+      <div class="n">{{ challan.ticket_no }}</div>
+    </div>
+  </section>
+
+  <section class="frame">
+
+    <div class="info">
+      <div class="p">
+        <div class="ph"><span>Vehicle Information &nbsp;/</span><span class="ur">گاڑی کی تفصیلات</span></div>
+        <div class="t">
+          <div class="r"><span class="k">Registration No.<span class="ur">رجسٹریشن نمبر</span></span><span class="v big">{{ challan.plate_number }}</span></div>
+          <div class="r"><span class="k">Vehicle Type<span class="ur">گاڑی کی قسم</span></span><span class="v">{{ challan.vehicle_type|default:"Car" }}</span></div>
+          <div class="r"><span class="k">Make / Year<span class="ur">ماڈل</span></span><span class="v">{{ challan.make_year|default:"Awaiting Excise" }}</span></div>
+          <div class="r"><span class="k">Color<span class="ur">رنگ</span></span><span class="v">{{ challan.color|default:"Awaiting Excise" }}</span></div>
+          <div class="r"><span class="k">Chassis No.<span class="ur">چیسس نمبر</span></span><span class="v">{{ challan.chassis_no|default:"Awaiting Excise" }}</span></div>
+        </div>
+      </div>
+
+      <div class="p">
+        <div class="ph"><span>Owner Information &nbsp;/</span><span class="ur">مالک کی معلومات</span></div>
+        <div class="t">
+          <div class="r"><span class="k">Name<span class="ur">نام</span></span><span class="v">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
+          <div class="r"><span class="k">CNIC No.<span class="ur">شناختی کارڈ نمبر</span></span><span class="v">{{ challan.cnic|default:"Awaiting Excise Integration" }}</span></div>
+          <div class="r" style="flex:1.9"><span class="k">Address<span class="ur">پتہ</span></span><span class="v">{{ challan.address|default:"Awaiting Excise Integration" }}</span></div>
+        </div>
+      </div>
+
+      <div class="p">
+        <div class="ph"><span>Violation Details &nbsp;/</span><span class="ur">خلاف ورزی کی تفصیلات</span></div>
+        <div class="t">
+          <div class="r"><span class="k">Violation Type<span class="ur">خلاف ورزی کی نوعیت</span></span><span class="v">{{ challan.get_violation_type_display }}</span></div>
+          <div class="r"><span class="k">Location<span class="ur">مقام</span></span><span class="v">{{ challan.location|default:"—" }}</span></div>
+          <div class="r"><span class="k">Date &amp; Time<span class="ur">تاریخ و وقت</span></span><span class="v">{{ camera_meta.timestamp }}</span></div>
+          <div class="r"><span class="k">Fine Amount<span class="ur">جرمانہ رقم</span></span><span class="v red">PKR {{ challan.fine_amount|floatformat:"0" }}/-</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ev">
+      <div class="cam">
+        {% if challan.detection.raw_image %}<img src="file://{{ challan.detection.raw_image.path }}" alt="">{% endif %}
+        <div class="osd">CAM: {{ camera_meta.id }}<br>EVID: {{ frame_evidence|length }}-frame</div>
+        {% if camera_meta.has_bbox %}<div class="bx" style="left:{{ camera_meta.bbox.x }}%; top:{{ camera_meta.bbox.y }}%; width:{{ camera_meta.bbox.w }}%; height:{{ camera_meta.bbox.h }}%;"></div>{% endif %}
+      </div>
+
+      <div class="p evp">
+        <div class="ph"><span>Evidence &nbsp;/</span><span class="ur">ثبوت</span></div>
+        <div class="eb">
+          <div class="it">
+            <div class="im">{% if challan.detection.raw_image %}<img src="file://{{ challan.detection.raw_image.path }}" alt="">{% endif %}</div>
+            <div class="lb">Vehicle Image<span class="ur">گاڑی کی تصویر</span></div>
+          </div>
+          <div class="it">
+            <div class="im">{% if challan.detection.plate_crop_image %}<img src="file://{{ challan.detection.plate_crop_image.path }}" alt="">{% endif %}</div>
+            <div class="lb">Plate Close-up<span class="ur">نمبر پلیٹ کی تصویر</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pay">
+        <div class="qr">{% if qr_code_data_url %}<img src="{{ qr_code_data_url }}" alt="QR">{% endif %}</div>
+        <div class="c1">Scan QR for Payment</div>
+        <div class="c2 ur">ادائیگی کے لیے QR اسکین کریں</div>
+        <div class="amt">PKR {{ challan.fine_amount|floatformat:"0" }}/-</div>
+        <div class="psid">Bank Transfer | Mobile Wallet | ATM<br>PSID: {{ challan.psid }}</div>
+      </div>
+    </div>
+
+    <div class="nb">
+      <div class="note">
+        <div class="ic">&#9888;</div>
+        <div class="tx">
+          <h3>Important Notice &nbsp;/ <span class="ur">اہم ہدایات</span></h3>
+          <ul>
+            <li>This e-Challan is issued under {{ branding.legal_ref_en }} through the automated Safe City enforcement pipeline.<span class="u">یہ چالان {{ branding.legal_ref_ur }} کے تحت جاری کیا گیا ہے۔</span></li>
+            <li>Please pay the fine within <b>{{ due_days }} days</b> of issuance to avoid late fee.<span class="u">براہ کرم چالان جاری ہونے کے {{ due_days }} دن کے اندر جرمانہ ادا کریں۔ بصورت دیگر تاخیر کی فیس عائد ہوگی۔</span></li>
+            <li>Payment can be made through online portals, banks, or designated mobile wallets.<span class="u">ادائیگی آن لائن پورٹلز، بینکوں یا مخصوص موبائل والٹ کے ذریعے کی جا سکتی ہے۔</span></li>
+            <li>For any query, contact {{ branding.authority_name_en_short }} Helpline: <b>{{ branding.helpline }}</b>.<span class="u">کسی بھی معلومات کے لیے {{ branding.helpline }} ہیلپ لائن پر رابطہ کریں۔</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="off">
+        <div class="sig">{% if officer_signature_url %}<img src="{{ officer_signature_url }}" alt="Signature">{% endif %}</div>
+        <div class="t1">{{ branding.officer_title_en }}<br>{{ branding.authority_name_en_short }}</div>
+        <div class="t3 ur">{{ branding.officer_title_ur }}<br>{{ branding.authority_name_ur_short }}</div>
+        <div class="bc">{% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}</div>
+        <div class="bn">{{ challan.ticket_no }}</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ft">
+    <div class="c">
+      <span>{{ branding.footer_1_en }}<span class="ur">{{ branding.footer_1_ur }}</span></span>
+    </div>
+    <div class="c">
+      <span>{{ branding.footer_2_en }}<span class="ur">{{ branding.footer_2_ur }}</span></span>
+    </div>
+    <div class="c">
+      <span>{{ branding.footer_3_en }}<small>{{ branding.footer_3_sub }}</small><span class="ur">{{ branding.footer_3_ur }}</span></span>
+    </div>
+  </footer>
+
+  <div class="demo-strip">Safe City demo sheet &mdash; system generated &mdash; not an official government document</div>
+</div>
+</body>
+</html>

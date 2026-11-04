@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Uploads Audit — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-uploads-log.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-cloud-arrow-up me-2"></i>Uploads Audit</h1>
+    <p class="sc-lead">Every upload into the system — video evidence uploads with tamper-evident SHA-256 digests, challan/audit template changes from the studios, and related artifacts.</p>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-film"></i></div>
+    <div class="sc-kpi-label">Video Uploads</div>
+    <div class="sc-kpi-value">{{ video_count }}</div>
+    <div class="sc-kpi-foot">all time</div>
+  </div>
+  <div class="sc-kpi sc-kpi-info">
+    <div class="sc-kpi-icon"><i class="bi bi-palette"></i></div>
+    <div class="sc-kpi-label">Challan Studio Templates</div>
+    <div class="sc-kpi-value">{{ template_count }}</div>
+    <div class="sc-kpi-foot">database designs</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-braces-asterisk"></i></div>
+    <div class="sc-kpi-label">Entries Listed</div>
+    <div class="sc-kpi-value">{{ uploads|length }}</div>
+    <div class="sc-kpi-foot">latest rows</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-clock-history"></i><span>Upload Ledger</span>
+  </div>
+  <div class="sc-card-body p-0">
+    <div class="table-responsive">
+      <table class="table sc-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Kind</th>
+            <th>Item</th>
+            <th>Uploaded / Performed by</th>
+            <th>Size</th>
+            <th>Details</th>
+            <th>SHA-256 (evidence digest)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in uploads %}
+          <tr>
+            <td class="sc-mono sc-text-xs">{{ u.at|date:"d M Y H:i" }}</td>
+            <td>
+              {% if u.kind == 'video' %}
+              <span class="sc-badge sc-badge-blue"><i class="bi bi-film me-1"></i>Video</span>
+              {% else %}
+              <span class="sc-badge sc-badge-violet"><i class="bi bi-palette me-1"></i>Template</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-xs"><b>{{ u.label }}</b>{% if u.id %} <span class="sc-mono">#{{ u.id }}</span>{% endif %}</td>
+            <td class="sc-text-xs">{{ u.by.username|default:"system" }}</td>
+            <td class="sc-text-xs">{% if u.size_mb %}{{ u.size_mb }} MB{% else %}—{% endif %}</td>
+            <td class="sc-text-xs">{{ u.meta }}{% if u.frames %} · {{ u.frames }} frames{% endif %}{% if u.bursts %} · {{ u.bursts }} 3-frame bursts{% endif %}</td>
+            <td class="sc-mono sc-text-xs">{{ u.sha256|slice:":16" }}{% if u.sha256 != '—' %}…{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No uploads recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

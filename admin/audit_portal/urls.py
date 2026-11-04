@@ -22,6 +22,13 @@ urlpatterns = [
     path('alert-changes/',      views.alert_changes,       name='alert_changes'),
     path('export/',              views.audit_export,         name='audit_export'),
 
+    path('login-events/',        views.login_events,         name='login_events'),
+    path('login-events/export/', views.login_events_export,  name='login_events_export'),
+    path('uploads/',             views.uploads_log,          name='uploads_log'),
+
+    path('generate-document/',        views.generate_document,       name='generate_document'),
+    path('documents/<int:doc_id>/download/', views.audit_document_download, name='audit_document_download'),
+
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),

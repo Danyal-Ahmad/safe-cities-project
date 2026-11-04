@@ -42,6 +42,8 @@
   {% endif %}
   {% if request.user|has_perm:"challan_template_manage" %}
   <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-ruled"></i> <span class="sc-nav-link-text">Challan Templates</span></a>
+  <a href="{% url 'it_support_portal:challan_studio' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-studio/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Challan Studio</span></a>
+  <a href="{% url 'it_support_portal:audit_studio' %}" class="sc-nav-link {% if request.path == '/portal/it/audit-studio/' %}sc-active{% endif %}"><i class="bi bi-journal-rich"></i> <span class="sc-nav-link-text">Audit Studio</span></a>
   <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Template Designer</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_backups" %}

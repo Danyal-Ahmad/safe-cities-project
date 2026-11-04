@@ -19,6 +19,15 @@ from accounts.models import User, PasswordResetToken
 from accounts.backends import find_user_by_identifier
 
 
+def _record_login(request, username, success, portal='admin', user=None, reason=''):
+    try:
+        from admin.dig_portal.models import LoginEvent
+        LoginEvent.record(request, username, success, portal=portal,
+                          user=user, failure_reason=reason)
+    except Exception:
+        pass
+
+
 ADMIN_ROLE_DASHBOARD_URLS = {
     User.DIG:         'dig:dashboard',
     User.SSP:         'ssp_portal:dashboard',
@@ -53,9 +62,13 @@ def admin_login(request):
         if form.is_valid():
             user = form.get_user()
             if user.is_locked:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              reason='account_locked')
                 messages.error(request, "Your account is locked. Please contact your administrator.")
                 return render(request, 'auth/admin/admin_login.html', {'form': form})
             if user.role not in ALLOWED_ADMIN_ROLES:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              reason='wrong_portal')
                 messages.error(request, "Citizens must use the citizen login page.")
                 return render(request, 'auth/admin/admin_login.html', {'form': form})
 
@@ -67,20 +80,25 @@ def admin_login(request):
                 ip = request.META.get('REMOTE_ADDR')
             user.last_login_ip = ip
             user.reset_failed_login()
+            _record_login(request, form.cleaned_data.get('username') or '', True,
+                          user=user)
             messages.success(request, f"Welcome, {user.display_name}.")
             return _login_redirect(request, default='auth_portal:role_redirect')
 
         identifier = (request.POST.get('username') or '').strip()
         candidate = find_user_by_identifier(identifier)
         if candidate and candidate.is_locked:
+            _record_login(request, identifier, False, reason='account_locked')
             messages.error(
                 request,
                 "Your account is temporarily locked due to multiple failed login "
                 "attempts. Please try again later or contact your administrator."
             )
         elif candidate and candidate.role not in ALLOWED_ADMIN_ROLES:
+            _record_login(request, identifier, False, reason='wrong_portal')
             messages.error(request, "Citizens must use the citizen login page.")
         else:
+            _record_login(request, identifier, False, reason='invalid_credentials')
             messages.error(request, "Invalid credentials.")
     else:
         form = LoginForm(request)
@@ -119,26 +137,39 @@ def citizen_login(request):
         if form.is_valid():
             user = form.get_user()
             if user.role != User.USER:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              portal='citizen', reason='wrong_portal')
                 messages.error(request, "Staff must use the staff login page.")
                 return render(request, 'auth/citizen/citizen_login.html', {'form': form})
             if user.is_locked:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              portal='citizen', reason='account_locked')
                 messages.error(request, "Your account is temporarily locked due to multiple failed login attempts. Please try again later.")
                 return render(request, 'auth/citizen/citizen_login.html', {'form': form})
             login(request, user, backend='accounts.backends.PhoneOrEmailBackend')
+            user.last_login_ip = (
+                (request.META.get('HTTP_X_FORWARDED_FOR') or '').split(',')[0].strip()
+                or request.META.get('REMOTE_ADDR'))
+            user.reset_failed_login()
+            _record_login(request, form.cleaned_data.get('username') or '', True,
+                          portal='citizen', user=user)
             messages.success(request, f"Welcome, {user.display_name}.")
             return _login_redirect(request, default='/portal/citizen/')
 
         identifier = (request.POST.get('username') or '').strip()
         candidate = find_user_by_identifier(identifier)
         if candidate and candidate.is_locked:
+            _record_login(request, identifier, False, portal='citizen', reason='account_locked')
             messages.error(
                 request,
                 "Your account is temporarily locked due to multiple failed login "
                 "attempts. Please try again later or contact your administrator."
             )
         elif candidate and candidate.role != User.USER:
+            _record_login(request, identifier, False, portal='citizen', reason='wrong_portal')
             messages.error(request, "Staff must use the staff login page.")
         else:
+            _record_login(request, identifier, False, portal='citizen', reason='invalid_credentials')
             messages.error(request, "Invalid CNIC or password.")
     else:
         form = LoginForm(request)

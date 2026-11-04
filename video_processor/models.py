@@ -27,6 +27,10 @@ class VideoUpload(models.Model):
     auto_challans_created = models.IntegerField(default=0)
     manual_review_created = models.IntegerField(default=0)
     frames_ignored = models.IntegerField(default=0)
+    burst_evidence_collected = models.IntegerField(default=0,
+        help_text="Tracks that collected the required 3-frame evidence via 90fps-density burst sampling.")
+    file_sha256 = models.CharField(max_length=64, null=True, blank=True,
+                                   help_text="Tamper-evident digest of the uploaded video file.")
 
     processing_started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)

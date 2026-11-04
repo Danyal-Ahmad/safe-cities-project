@@ -117,6 +117,10 @@ PERMISSION_SET: frozenset = frozenset(PERMISSIONS)
 
 
 _IT_PERMS = {
+    'challan_studio_manage',
+    'audit_template_manage',
+    'view_login_events',
+    'view_upload_log',
     'add_camera',
     'add_officer_feedback',
     'add_review_note',
@@ -215,6 +219,12 @@ _IT_PERMS = {
 }
 
 _DIG_PERMS = {
+    'challan_template_select',
+    'audit_template_select',
+    'generate_audit_documents',
+    'view_login_events',
+    'view_upload_log',
+    'view_evidence_hashes',
     'add_admin',
     'add_officer_feedback',
     'add_review_note',
@@ -283,6 +293,8 @@ _DIG_PERMS = {
 }
 
 _SSP_PERMS = {
+    'view_login_events',
+    'view_evidence_hashes',
     'add_officer_feedback',
     'add_review_note',
     'add_to_blacklist',
@@ -323,6 +335,7 @@ _SSP_PERMS = {
 }
 
 _SUPERVISOR_PERMS = {
+    'view_evidence_hashes',
     'add_officer_feedback',
     'change_own_password',
     'edit_own_profile',
@@ -374,6 +387,12 @@ _OFFICER_PERMS = {
 }
 
 _AUDIT_PERMS = {
+    'generate_audit_documents',
+    'view_login_events',
+    'view_upload_log',
+    'view_evidence_hashes',
+    'view_detections',
+    'view_regional_command',
     'change_own_password',
     'edit_own_profile',
     'escalate_appeals',

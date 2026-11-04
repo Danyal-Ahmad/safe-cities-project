@@ -1,0 +1,189 @@
+{% load humanize %}<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ای چالان {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu'; src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  @font-face { font-family: 'Noto Naskh Arabic'; src: url('static/fonts/NotoNaskhArabic-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Naskh Arabic'; src: url('static/fonts/NotoNaskhArabic-Bold.ttf'); font-weight: 700; }
+  :root {
+    --navy: #0b3b8c;
+    --bg: #eaf3fc;
+    --red: #d3202a;
+    --grey: #8c9199;
+    --ink: #111;
+    --ur: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
+    --en: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #bfc6cf; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; color: var(--ink); font-family: var(--ur); }
+
+  .sheet { width: 210mm; height: 297mm; margin: 8mm auto; background: var(--bg); border-left: 3.2mm solid var(--navy); border-right: 3.2mm solid var(--navy); border-bottom: 3.2mm solid var(--navy); padding: 4mm 6mm 3mm; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 2mm 8mm rgba(0,0,0,.25); }
+  .sheet::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3.2mm; background: var(--navy); }
+  @media print { html, body { background: none; } .sheet { margin: 0; box-shadow: none; } }
+
+  .en { font-family: var(--en); direction: ltr; unicode-bidi: isolate; }
+
+  .head { display: grid; grid-template-columns: 38mm 1fr 30mm; align-items: center; height: 26mm; margin-top: 3mm; }
+  .logos-l { display: flex; gap: 3mm; direction: ltr; }
+  .logos-l .logo { width: 17mm; height: 17mm; }
+  .logo { border: .3mm solid #6b7480; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--en); font-size: 5.3pt; line-height: 1.25; color: #6b7480; direction: ltr; padding: .8mm; background: #ffffff; }
+  .logo img { width: 100%; height: 100%; object-fit: contain; }
+  .logo.round { border-radius: 50%; }
+  .logos-r { display: flex; justify-content: flex-end; direction: ltr; }
+  .logos-r .logo { width: 20mm; height: 20mm; }
+  .titles { text-align: center; }
+  .titles h1 { font-size: 16pt; font-weight: 700; line-height: 1.9; }
+  .titles h2 { font-size: 13pt; font-weight: 600; line-height: 1.7; }
+
+  .card { border: .5mm solid var(--navy); border-radius: 5mm; padding: 4mm; display: grid; grid-template-columns: 1.55fr 1.1fr 1fr; gap: 3.5mm; margin-top: 3mm; background: #ffffff; }
+  .panel { border: .4mm solid var(--navy); border-radius: 5mm; background: var(--bg); padding: 4mm 3.4mm; min-height: 62mm; }
+  .row { display: flex; align-items: baseline; gap: 2mm; font-size: 8.4pt; line-height: 1.9; margin-bottom: 1.4mm; }
+  .row .k { font-weight: 700; flex: 0 0 auto; min-width: 21mm; }
+  .row .v { flex: 1; font-size: 9.6pt; text-align: right; line-height: 1.6; }
+  .row .v.addr { font-size: 7.4pt; line-height: 2; text-align: center; }
+  .row .v.red { color: var(--red); }
+  .panel.mid .row .v { text-align: right; padding-right: 1mm; }
+  .panel.mid .row .k { min-width: 19mm; }
+  .panel.mid .row .v.sm { font-size: 8.6pt; }
+  .panel.left { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 5mm; }
+  .qr { width: 30mm; height: 30mm; background: #fff; border: .3mm solid #6b7480; display: flex; align-items: center; justify-content: center; }
+  .qr img { width: 100%; height: 100%; object-fit: contain; }
+  .scan { font-size: 8.4pt; font-weight: 700; margin-top: 3mm; line-height: 1.8; }
+  .sign { width: 34mm; height: 12mm; margin-top: 3mm; border-bottom: .25mm dotted #444; display: flex; align-items: center; justify-content: center; }
+  .sign img { max-height: 11mm; object-fit: contain; }
+  .off-k { font-size: 8.2pt; font-weight: 700; margin-top: 2.4mm; line-height: 1.8; }
+  .off-v { font-size: 9pt; line-height: 1.7; min-width: 30mm; }
+  .off-d { font-size: 7pt; color: #444; line-height: 1.6; }
+
+  .evi { position: relative; margin-top: 4mm; height: 66mm; background: #1c1c1c; border: .4mm solid #000; overflow: hidden; direction: ltr; }
+  .evi img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .osd { position: absolute; top: 1mm; left: 1.6mm; color: #fff; font-family: 'DejaVu Sans Mono', monospace; font-size: 8.4pt; line-height: 1.22; text-shadow: 0 0 2px #000, 0 0 2px #000; white-space: pre; }
+  .bbox { position: absolute; border: .35mm solid #e22; }
+
+  .notice { margin-top: 3mm; border: .3mm solid #d9534f; background: #fdeaea; border-radius: 4mm; padding: 2.4mm 5mm; font-size: 7.8pt; line-height: 2.05; text-align: center; }
+
+  .cut { display: flex; align-items: center; gap: 1mm; height: 5mm; margin-top: 1.6mm; direction: ltr; }
+  .cut i { flex: 1; border-top: .35mm dashed #7a8088; }
+  .cut span { font-size: 10pt; color: #444; line-height: 1; font-family: var(--en); }
+
+  .copy { border: .35mm solid var(--grey); border-radius: 5mm; background: #fff; padding: 3.2mm 5mm; display: grid; grid-template-columns: 1.55fr 1.1fr; gap: 2mm 6mm; margin-top: .6mm; position: relative; }
+  .copy .row { font-size: 8pt; line-height: 1.75; margin-bottom: .5mm; }
+  .copy .row .k { min-width: 15mm; }
+  .copy .row .v { font-size: 8.8pt; text-align: center; }
+  .copy .row .v.addr { font-size: 7.2pt; line-height: 1.9; }
+  .copy .ctitle { text-align: center; font-size: 9pt; font-weight: 700; text-decoration: underline; text-underline-offset: 1.6mm; line-height: 2; margin-bottom: 1mm; }
+  .copy .bc { height: 8.5mm; margin: 0 auto 1mm; direction: ltr; text-align: center; }
+  .copy .bc svg { height: 8.5mm; max-width: 38mm; }
+  .sigline { display: inline-block; width: 26mm; border-bottom: .25mm solid #111; height: 4mm; vertical-align: bottom; }
+  .strong { font-weight: 700; }
+  .copy.po { margin-top: .6mm; }
+  .copy.po .pdate { position: absolute; top: 3mm; left: 50%; transform: translateX(-10%); font-size: 8pt; font-weight: 700; }
+  .stamp { position: absolute; left: 5mm; bottom: 3mm; width: 26mm; height: 12mm; border: .3mm dashed #8a8f98; display: flex; align-items: center; justify-content: center; font-family: var(--en); font-size: 5.4pt; letter-spacing: .08em; color: #8a8f98; text-align: center; direction: ltr; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <div class="logos-r">
+      <div class="logo round">{% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% else %}POLICE{% endif %}</div>
+    </div>
+    <div class="titles">
+      <h1>{{ branding.authority_name_ur }}</h1>
+      <h2>ٹریفک ای چالان</h2>
+    </div>
+    <div class="logos-l">
+      <div class="logo">{% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% else %}SAFE CITY{% endif %}</div>
+      <div class="logo round">GOVT<br>PUNJAB</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="panel">
+      <div class="row"><span class="k">نام:</span><span class="v en">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
+      <div class="row"><span class="k">فون نمبر:</span><span class="v en">{{ challan.phone|default:"—" }}</span></div>
+      <div class="row"><span class="k">شہر:</span><span class="v en">{{ challan.location|default:"LAHORE" }}</span></div>
+      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"Awaiting Excise Integration" }}</span></div>
+      <div class="row"><span class="k">رجسٹریشن نمبر:</span><span class="v en">{{ challan.plate_number }}</span></div>
+      <div class="row"><span class="k">گاڑی کی قسم:</span><span class="v en">{{ challan.vehicle_type|default:"Car" }}</span></div>
+      <div class="row"><span class="k">رنگ:</span><span class="v en">{{ challan.color|default:"—" }}</span></div>
+      <div class="row"><span class="k">سابقہ چالان:</span><span class="v en">{{ challan.get_payment_status_display }}</span></div>
+    </div>
+
+    <div class="panel mid">
+      <div class="row"><span class="k">چالان نمبر:</span><span class="v en">{{ challan.ticket_no }}</span></div>
+      <div class="row"><span class="k">خلاف ورزی:</span><span class="v sm en">{{ challan.get_violation_type_display|upper }}</span></div>
+      <div class="row"><span class="k">وقت/تاریخ:</span><span class="v sm en">{{ camera_meta.timestamp }}</span></div>
+      <div class="row"><span class="k">مقام خلاف ورزی:</span><span class="v sm en">{{ challan.location|default:"—" }}</span></div>
+      <div class="row" style="margin-top:5mm"><span class="k">جرمانہ:</span><span class="v en">PKR {{ challan.fine_amount|floatformat:"0" }}/-</span></div>
+      <div class="row"><span class="k">تاریخ اجراء:</span><span class="v en">{{ challan.issue_date|date:"d-M-Y" }}</span></div>
+      <div class="row"><span class="k">ادائیگی کی آخری تاریخ:</span><span class="v en">{{ challan.due_date|date:"d-M-Y" }}</span></div>
+      <div class="row"><span class="k">حیثیت:</span><span class="v red en">{{ challan.payment_status }}</span></div>
+    </div>
+
+    <div class="panel left">
+      <div class="qr">{% if qr_code_data_url %}<img src="{{ qr_code_data_url }}" alt="QR">{% else %}<span class="en">QR</span>{% endif %}</div>
+      <div class="scan">تصدیق/شکایت کے لیے اسکین کریں</div>
+      <div class="sign">{% if officer_signature_url %}<img src="{{ officer_signature_url }}" alt="Signature">{% endif %}</div>
+      <div class="off-k">جاری کنندہ افسر:</div>
+      <div class="off-v en">{{ officer_signature_name|default:"System Generated" }}</div>
+      <div class="off-d en">{{ officer_signature_designation|default:"Traffic Officer" }} · {{ officer_staff_id|default:"—" }}</div>
+    </div>
+  </div>
+
+  <div class="evi">
+    {% if challan.detection.raw_image %}<img src="file://{{ challan.detection.raw_image.path }}" alt="Camera capture">{% endif %}
+    <div class="osd">{{ camera_meta.timestamp }} | CAM: {{ camera_meta.id }}
+VIOLATION: {{ challan.get_violation_type_display|upper }}
+EVIDENCE: {{ frame_evidence|length }}-FRAME VERIFIED
+HASH: {% if evidence_summary %}{{ evidence_summary.hash|slice:":12" }}{% endif %}</div>
+    {% if camera_meta.has_bbox %}<div class="bbox" style="left:{{ camera_meta.bbox.x }}%; top:{{ camera_meta.bbox.y }}%; width:{{ camera_meta.bbox.w }}%; height:{{ camera_meta.bbox.h }}%;"></div>{% endif %}
+  </div>
+
+  <div class="notice">
+    اگر اس ای چالان کے حوالے سے آپ کو کوئی بھی شکایت ہو تو سیف سٹی کی ویب سائٹ <span class="en">{{ branding.website }}</span> پر ٹریفک مجسٹریٹ کی عدالت میں چیلنج کیا جا سکتا ہے اور مزید معلومات کے لیے اس صفحے کے پچھلے حصے کو ملاحظہ فرمائیں۔
+  </div>
+
+  <div class="cut"><span>&#9986;</span><i></i></div>
+  <div class="copy">
+    <div>
+      <div class="row"><span class="k">چالان نمبر:</span><span class="v en">{{ challan.ticket_no }}</span></div>
+      <div class="row"><span class="k">نام:</span><span class="v en">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
+      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"—" }}</span></div>
+      <div class="row" style="margin-top:2mm"><span class="k strong">آخری تاریخ:</span><span class="v en strong">{{ challan.due_date|date:"d-M-Y" }}</span><span class="k" style="min-width:0;margin-right:6mm">جرمانہ:</span><span class="v en">PKR {{ challan.fine_amount|floatformat:"0" }}/-</span></div>
+    </div>
+    <div>
+      <div class="ctitle">کاپی برائے خزانہ</div>
+      <div class="bc">{% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}</div>
+      <div class="row"><span class="k">اکاؤنٹ نمبر:</span><span class="v en">{{ branding.account_number }} (E چالان)</span></div>
+      <div class="row"><span class="k">رجسٹریشن نمبر:</span><span class="v en">{{ challan.plate_number }}</span></div>
+      <div class="row"><span class="k">دستخط:</span><span class="v"><span class="sigline"></span></span></div>
+    </div>
+  </div>
+
+  <div class="cut"><span>&#9986;</span><i></i></div>
+  <div class="copy po">
+    <div class="pdate en">{{ challan.due_date|date:"d-M-Y" }}</div>
+    <div style="padding-top:5mm">
+      <div class="row"><span class="k">نام:</span><span class="v en">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
+      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"—" }}</span></div>
+      <div class="row" style="margin-top:1.5mm"><span class="k">وصول کنندہ کا نام:</span><span class="v"><span class="sigline"></span></span></div>
+    </div>
+    <div>
+      <div class="ctitle">صرف پوسٹ آفس کے استعمال کے لیے</div>
+      <div class="bc">{% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}</div>
+      <div class="row"><span class="k">چالان نمبر:</span><span class="v en">{{ challan.ticket_no }}</span></div>
+      <div class="row"><span class="k">رجسٹریشن نمبر:</span><span class="v en">{{ challan.plate_number }}</span></div>
+    </div>
+    <div class="stamp">POST OFFICE<br>RECEIVED STAMP</div>
+  </div>
+
+</div>
+</body>
+</html>

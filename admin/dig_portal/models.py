@@ -19,10 +19,16 @@ class SystemSettings(models.Model):
         help_text="ONNX model runtime settings (input sizes, thresholds, class filters)")
     pdf_logo = models.ImageField(upload_to='settings/', null=True, blank=True)
     pdf_template = models.CharField(
-        max_length=100, default='safecityfyp_classic', blank=True,
+        max_length=100, default='standard_a4', blank=True,
         help_text="Active PDF template key. File template = filename under "
                    "templates/challan/challan_templates/ without .html. "
                    "DB template = 'db:<ChallanTemplate id>'."
+    )
+    audit_template = models.CharField(
+        max_length=100, default='audit_summary_report', blank=True,
+        help_text="Active audit document template key. File template = filename under "
+                   "templates/audit/audit_templates/ without .html. "
+                   "DB template = 'db:<AuditTemplate id>'."
     )
     excise_api_url = models.CharField(max_length=255, null=True, blank=True)
     excise_api_key = models.CharField(max_length=255, null=True, blank=True)
@@ -144,6 +150,9 @@ class AuditLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     details = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=400, blank=True, default="")
+    device = models.CharField(max_length=120, blank=True, default="",
+                              help_text="Human-readable device summary (browser / OS / type).")
 
     class Meta:
         db_table = 'sc_audit_logs'
@@ -157,21 +166,145 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.timestamp:%Y-%m-%d %H:%M} — {self.actor} — {self.action}"
 
+    @staticmethod
+    def parse_device(user_agent_str):
+        try:
+            import user_agents
+            ua = user_agents.parse(user_agent_str or '')
+            family = getattr(ua.browser, 'family', '') or 'Unknown browser'
+            os_family = getattr(ua.os, 'family', '') or 'Unknown OS'
+            device = getattr(ua.device, 'family', '') or ''
+            brand = getattr(ua.device, 'brand', '') or ''
+            dtype = 'Mobile' if ua.is_mobile else ('Tablet' if ua.is_tablet else
+                                                   ('Bot' if ua.is_bot else 'Desktop'))
+            parts = [dtype]
+            if brand:
+                parts.append(brand)
+            if device and device.lower() != 'other':
+                parts.append(device)
+            summary = ' / '.join(parts[:3])
+            return f"{family} on {os_family}"[:120], summary[:120]
+        except Exception:
+            return ('', '')
+
     @classmethod
     def write(cls, request, action, target_model='', target_id=None, **details):
-        actor = request.user if request.user.is_authenticated else None
+        actor = None
         ip = None
-        if request:
+        ua_str = ''
+        device = ''
+        if request is not None:
+            user = getattr(request, 'user', None)
+            if user is not None and getattr(user, 'is_authenticated', False):
+                actor = user
             ip = request.META.get('HTTP_X_FORWARDED_FOR')
             if ip:
                 ip = ip.split(',')[0].strip()
             else:
                 ip = request.META.get('REMOTE_ADDR')
+            ua_str = (request.META.get('HTTP_USER_AGENT') or '')[:400]
+            if ua_str:
+                device, _ = cls.parse_device(ua_str)
         return cls.objects.create(
             actor=actor, action=action,
             target_model=target_model, target_id=target_id,
             details=details, ip_address=ip,
+            user_agent=ua_str, device=device or '',
         )
+
+
+class LoginEvent(models.Model):
+    """Immutable record of every authentication attempt on the platform.
+
+    Captures the account, portal, outcome, source IP and full device
+    fingerprint (browser / OS / device type) so auditors can reconstruct
+    who accessed the system, from where and with what device.
+    """
+    PORTAL_ADMIN = 'admin'
+    PORTAL_CITIZEN = 'citizen'
+    PORTAL_CHOICES = [(PORTAL_ADMIN, 'Staff Portal'), (PORTAL_CITIZEN, 'Citizen Portal')]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name='login_events')
+    username_attempted = models.CharField(max_length=150)
+    portal = models.CharField(max_length=10, choices=PORTAL_CHOICES, default=PORTAL_ADMIN)
+    success = models.BooleanField(default=False)
+    failure_reason = models.CharField(max_length=120, blank=True, default="")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=400, blank=True, default="")
+    browser = models.CharField(max_length=120, blank=True, default="")
+    os = models.CharField(max_length=120, blank=True, default="")
+    device_type = models.CharField(max_length=30, blank=True, default="")
+    device_brand = models.CharField(max_length=80, blank=True, default="")
+    device_summary = models.CharField(max_length=160, blank=True, default="")
+    session_key = models.CharField(max_length=64, blank=True, default="")
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'sc_login_events'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['success', 'timestamp']),
+            models.Index(fields=['ip_address', 'timestamp']),
+        ]
+
+    def __str__(self):
+        who = self.user.username if self.user else self.username_attempted
+        return f"{self.timestamp:%Y-%m-%d %H:%M} — {who} — {'OK' if self.success else 'FAIL'}"
+
+    @classmethod
+    def record(cls, request, username, success, portal=PORTAL_ADMIN,
+               user=None, failure_reason=''):
+        ip = None
+        ua_str = ''
+        parsed = ('', '', '', '', '')
+        if request is not None:
+            ip = request.META.get('HTTP_X_FORWARDED_FOR')
+            if ip:
+                ip = ip.split(',')[0].strip()
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            ua_str = (request.META.get('HTTP_USER_AGENT') or '')[:400]
+            parsed = cls._parse_ua(ua_str)
+        browser, os_name, device_type, device_brand, device_summary = parsed
+        session_key = ''
+        if success and request is not None and hasattr(request, 'session'):
+            session_key = request.session.session_key or ''
+        try:
+            return cls.objects.create(
+                user=user if (user is not None and getattr(user, 'is_authenticated', False)) else None,
+                username_attempted=(username or '')[:150],
+                portal=portal, success=success,
+                failure_reason=(failure_reason or '')[:120],
+                ip_address=ip, user_agent=ua_str,
+                browser=browser[:120], os=os_name[:120],
+                device_type=device_type[:30], device_brand=device_brand[:80],
+                device_summary=device_summary[:160],
+                session_key=session_key[:64],
+            )
+        except Exception:
+            return None
+
+    @staticmethod
+    def _parse_ua(ua_str):
+        try:
+            import user_agents
+            ua = user_agents.parse(ua_str or '')
+            browser = getattr(ua.browser, 'family', '') or 'Unknown'
+            os_name = getattr(ua.os, 'family', '') or 'Unknown'
+            device_type = ('Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else
+                           'Bot' if ua.is_bot else 'Desktop')
+            brand = getattr(ua.device, 'brand', '') or ''
+            family = getattr(ua.device, 'family', '') or ''
+            summary_parts = [device_type]
+            if brand:
+                summary_parts.append(brand)
+            if family and family.lower() != 'other':
+                summary_parts.append(family)
+            return browser, os_name, device_type, brand, ' / '.join(summary_parts)
+        except Exception:
+            return ('', '', '', '', '')
 
 
 class Alert(models.Model):
@@ -489,11 +622,15 @@ class Shift(models.Model):
 
 class ChallanTemplate(models.Model):
     name = models.CharField(max_length=120)
+    description = models.CharField(max_length=255, blank=True, default="")
     file = models.FileField(upload_to="challan_templates/%Y/%m/", blank=True, null=True)
     html_content = models.TextField(blank=True, default="")
+    design_json = models.TextField(blank=True, default="",
+                                   help_text="Challan Studio structured document (blocks + theme).")
     is_active = models.BooleanField(default=False)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'sc_challan_templates'
@@ -506,6 +643,56 @@ class ChallanTemplate(models.Model):
         if self.is_active:
             ChallanTemplate.objects.exclude(pk=self.pk).update(is_active=False)
         super().save(*args, **kwargs)
+
+
+class AuditTemplate(models.Model):
+    """Government-style audit document template (Audit Studio designs).
+
+    Layouts are rendered by the audit PDF service with period statistics,
+    signatures of the Audit Officer and the countersigning DIG.
+    """
+    name = models.CharField(max_length=120)
+    description = models.CharField(max_length=255, blank=True, default="")
+    html_content = models.TextField(blank=True, default="")
+    design_json = models.TextField(blank=True, default="")
+    is_active = models.BooleanField(default=False)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                   on_delete=models.SET_NULL, related_name='audit_templates_created')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sc_audit_templates'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            AuditTemplate.objects.exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
+
+
+class AuditDocument(models.Model):
+    """A generated, signed audit document over a chosen period."""
+    template_key = models.CharField(max_length=120,
+                                    help_text="File template key or 'db:<AuditTemplate id>'.")
+    title = models.CharField(max_length=200)
+    period_from = models.DateField()
+    period_to = models.DateField()
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                     on_delete=models.SET_NULL, related_name='audit_documents')
+    pdf_file = models.FileField(upload_to='audit/docs/%Y/%m/', null=True, blank=True)
+    sha256 = models.CharField(max_length=64, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'sc_audit_documents'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.period_from} → {self.period_to})"
 
 
 class BlacklistEntry(models.Model):

@@ -13,16 +13,18 @@ DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHA
 1. **Detection** — ONNX plate detector + side classifier run on camera frames
    (live cameras and uploaded videos).
 2. **Frame tracking** — the plate is matched across the camera's recent frames
-   to build a corroborated vehicle track (same plate in ≥ 2 frames, or a
-   single frame with ≥ 0.90 plate confidence).
+   to build a corroborated vehicle track. Videos are processed with a
+   **90fps-density burst sampler**: on a candidate violation frame the
+   processor reads consecutive frames and verifies the plate **one-by-one in
+   at least 3 frames** before evidence is accepted.
 3. **Evidence** — five hard security checks must ALL pass before any challan
    can be issued:
    | # | Check | Requirement |
    |---|-------|-------------|
-   | 1 | `plate_readability` | valid PK plate format + OCR confidence ≥ 0.60 |
-   | 2 | `frame_consistency` | corroborated track (≥ 2 frames) with ≥ 0.60 agreement, or single-frame ≥ 0.90 |
-   | 3 | `violation_logic` | side classification matches the camera's violation side (conf ≥ 0.60) |
-   | 4 | `image_evidence` | full frame + plate crop present, crop height ≥ 18 px |
+   | 1 | `plate_readability` | strict Pakistan plate format `AAA-1234` + HD OCR confidence ≥ 0.60 |
+   | 2 | `frame_consistency` | **3-frame evidence verified one-by-one** (same full plate in every frame), consistency ≥ 0.80 |
+   | 3 | `violation_logic` | side classification matches the camera's violation side (conf ≥ 0.60) + **strict car-only gate** |
+   | 4 | `image_evidence` | full frame + **complete plate crop (no half / edge-cut plates)**, crop height ≥ 18 px |
    | 5 | `chain_integrity` | SHA-256 chain digest over camera/plate/images/checks + no duplicate challan for the same plate on the same camera within 24 h |
 
    Failures never issue a challan: hard failures are rejected, ambiguous cases
@@ -30,8 +32,11 @@ DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHA
    officer annotation anywhere** — every challan is issued exclusively by this
    pipeline. The five check results, track metadata and the chain digest are
    stored on the detection record and printed on the challan PDF.
-4. **Challan** — auto-issued e-challan with PDF (four layouts), PSID payment
-   ID, QR payload, Excise/NADRA owner lookup, email notification, audit log.
+4. **Challan** — auto-issued e-challan with PDF (five government layouts),
+   PSID payment ID, QR payload, Excise/NADRA owner lookup, email notification,
+   audit log. Layouts are controlled by **IT Support in the Challan Studio**
+   (create / edit / duplicate / redesign / activate); the **DIG selects** the
+   active layout for every challan.
 
 ## Roles & Login
 
@@ -44,6 +49,28 @@ DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHA
 - Staff accounts are created by DIG / IT Support via the Staff Directory
 - Bootstrap the first DIG admin: `python manage.py create_dig_admin`
 - Optional demo accounts for development: `python manage.py seed_demo_accounts --yes`
+
+## Challan Studio & Audit Documents
+
+- **Challan Studio** (`/portal/it/challan-studio/`) — Canva-style block editor
+  for challan print layouts. IT Support has full studio access; the DIG portal
+  has a select-only page (`/portal/dig/challan-template-select/`).
+- **Audit Studio** (`/portal/it/audit-studio/`) — same studio engine for audit
+  document layouts (5 built-in government templates: Audit Summary Report,
+  Compliance Certificate, Financial Audit Statement, Security & Authentication
+  Incident Report, Operational Review Letter). DIG selects the active audit
+  layout at `/portal/dig/audit-template-select/`.
+- Auditors generate signed audit documents (auditor signature + DIG
+  countersignature + SHA-256 digest) at `/portal/audit/generate-document/`.
+
+## Audit & Accountability
+
+Every authentication attempt (account, portal, outcome, **IP address and full
+device fingerprint** — browser, OS, device type) is recorded in the login
+events ledger (`/portal/audit/login-events/`). Every upload (videos with
+tamper-evident SHA-256 digests, template changes) is audited at
+`/portal/audit/uploads/`. All staff mutations are written to the audit log
+with actor, IP and device.
 
 ## Quick Start
 

@@ -45,7 +45,13 @@ def upload_video(request):
             return redirect('video_processor:upload_video')
 
         from django.db import transaction
+        import hashlib
         try:
+            digest = hashlib.sha256()
+            for chunk in video_file.chunks():
+                digest.update(chunk)
+            file_sha256 = digest.hexdigest()
+            video_file.seek(0)
             with transaction.atomic():
                 upload = VideoUpload.objects.create(
                     camera=camera,
@@ -53,6 +59,7 @@ def upload_video(request):
                     original_filename=getattr(video_file, 'name', 'upload.mp4'),
                     uploaded_by=user,
                     camera_location=camera.location or '',
+                    file_sha256=file_sha256,
                 )
                 LiveFeed.objects.create(
                     title=f"{camera.camera_id} — upload {upload.id}",
@@ -69,6 +76,17 @@ def upload_video(request):
         except Exception as e:
             messages.error(request, f"Failed to save video: {e}")
             return redirect('video_processor:upload_video')
+
+        try:
+            from admin.dig_portal.models import AuditLog
+            AuditLog.write(
+                request, 'upload.video', 'VideoUpload', upload.id,
+                filename=upload.original_filename, size_mb=round(video_file.size / 1048576, 2),
+                sha256=file_sha256, camera=camera.camera_id,
+                location=camera.location or '',
+            )
+        except Exception:
+            pass
 
         from cameras.video_processing import start_processing_async
         start_processing_async(upload.id)

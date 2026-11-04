@@ -18,6 +18,8 @@
   <div class="sc-nav-title">Enforcement</div>
   {% if request.user|has_perm:"view_challans" %}
   <a href="{% url 'dig:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
+  <a href="{% url 'dig:challan_template_select' %}" class="sc-nav-link {% if request.path == '/portal/dig/challan-template-select/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-check"></i> <span class="sc-nav-link-text">Challan Template</span></a>
+  <a href="{% url 'dig:audit_template_select' %}" class="sc-nav-link {% if request.path == '/portal/dig/audit-template-select/' %}sc-active{% endif %}"><i class="bi bi-journal-check"></i> <span class="sc-nav-link-text">Audit Template</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_blacklist" %}
   <a href="{% url 'dig:blacklist_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/blacklist/' %}sc-active{% endif %}"><i class="bi bi-slash-circle"></i> <span class="sc-nav-link-text">Blacklist</span></a>

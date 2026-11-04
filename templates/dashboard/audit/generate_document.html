@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Generate Audit Document — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-generate-document.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-journal-rich me-2"></i>Generate Audit Document</h1>
+    <p class="sc-lead">Produce a signed, government-style audit document over any period. Documents are signed by you (Audit Officer), countersigned by the DIG and stored with a SHA-256 evidence digest.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-shield-check me-1"></i>5 official layouts</span>
+  </div>
+</div>
+
+{% if messages %}
+<div class="sc-messages">
+  {% for message in messages %}
+  <div class="alert {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="sc-card h-100">
+      <div class="sc-card-header"><i class="bi bi-file-earmark-plus"></i> New Document</div>
+      <div class="sc-card-body">
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="sc-form-group mb-3">
+            <label class="sc-text-xs sc-text-muted d-block mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<div class="text-danger sc-text-xs">{{ error }}</div>{% endfor %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="sc-btn sc-btn-primary w-100"><i class="bi bi-pen-fill me-1"></i>Generate &amp; Sign Document</button>
+        </form>
+        <div class="sc-text-xs sc-text-muted mt-3">
+          <i class="bi bi-info-circle me-1"></i>The active layout is <span class="sc-mono">{{ active_key }}</span>. IT Support controls layouts in the Audit Studio; DIG selects the default.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history"></i> Generated Documents
+        <span class="sc-badge sc-badge-gray ms-auto">{{ documents|length }}</span>
+      </div>
+      <div class="sc-card-body p-0">
+        <div class="table-responsive">
+          <table class="table sc-table">
+            <thead>
+              <tr>
+                <th>Generated</th>
+                <th>Title</th>
+                <th>Period</th>
+                <th>Layout</th>
+                <th>By</th>
+                <th>SHA-256</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in documents %}
+              <tr>
+                <td class="sc-text-xs sc-mono">{{ d.created_at|date:"d M Y H:i" }}</td>
+                <td class="sc-text-xs"><b>{{ d.title }}</b></td>
+                <td class="sc-text-xs">{{ d.period_from|date:"d-m-Y" }} → {{ d.period_to|date:"d-m-Y" }}</td>
+                <td><span class="sc-mono sc-text-xs">{{ d.template_key }}</span></td>
+                <td class="sc-text-xs">{{ d.generated_by.username|default:"—" }}</td>
+                <td class="sc-mono sc-text-xs">{{ d.sha256|slice:":12" }}…</td>
+                <td><a href="{% url 'audit_portal:audit_document_download' d.id %}" class="sc-btn sc-btn-sm" title="Download signed PDF"><i class="bi bi-download"></i></a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No audit documents generated yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

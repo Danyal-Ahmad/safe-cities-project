@@ -10,6 +10,9 @@
 
 <div class="sc-nav-section" data-section="Reports">
   <div class="sc-nav-title">Reports</div>
+  <a href="{% url 'audit_portal:generate_document' %}" class="sc-nav-link {% if request.path == '/portal/audit/generate-document/' %}sc-active{% endif %}"><i class="bi bi-journal-rich"></i> <span class="sc-nav-link-text">Generate Document</span></a>
+  <a href="{% url 'audit_portal:login_events' %}" class="sc-nav-link {% if request.path == '/portal/audit/login-events/' %}sc-active{% endif %}"><i class="bi bi-shield-lock"></i> <span class="sc-nav-link-text">Login Events</span></a>
+  <a href="{% url 'audit_portal:uploads_log' %}" class="sc-nav-link {% if request.path == '/portal/audit/uploads/' %}sc-active{% endif %}"><i class="bi bi-cloud-arrow-up"></i> <span class="sc-nav-link-text">Uploads Audit</span></a>
   {% if request.user|has_perm:"view_financial_audit" %}
   <a href="{% url 'audit_portal:financial_audit' %}" class="sc-nav-link {% if request.path == '/portal/audit/financial/' %}sc-active{% endif %}"><i class="bi bi-currency-dollar"></i> <span class="sc-nav-link-text">Financial Audit</span></a>
   {% endif %}

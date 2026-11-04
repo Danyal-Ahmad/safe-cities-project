@@ -1141,7 +1141,7 @@ def challan_templates_manage(request):
                     messages.success(request, f"Active template set to '{obj.name}'.")
             else:
                 ChallanTemplate.objects.update(is_active=False)
-                sys_settings.pdf_template = 'modern_a4'
+                sys_settings.pdf_template = 'standard_a4'
                 sys_settings.save(update_fields=['pdf_template'])
                 messages.success(request, "Default official template activated.")
             return redirect('it_support_portal:challan_templates')
@@ -1180,49 +1180,45 @@ def challan_templates_manage(request):
             return redirect('it_support_portal:challan_templates')
 
 
-    DEFAULT_TEMPLATES = [
-        ("Safe City E-Challan (A4)", "{% load static %}\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<style>\n    @page { size: A4 portrait; margin: 8mm; }\n    * { box-sizing: border-box; }\n    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 7.5px; color: #333; margin: 0; padding: 0; line-height: 1.25; background: #fff; }\n    .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 6px 4px 6px; background: #fff; border: 1.5px solid #000; border-bottom: 2px solid #000; }\n    .header-title { flex: 1; text-align: left; padding: 0 8px; }\n    .header-title h1 { font-size: 18px; margin: 0; font-weight: 900; color: #000; letter-spacing: 1.5px; text-transform: uppercase; }\n    .header-title h2 { font-size: 8px; font-weight: 700; color: #000; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 1px; }\n    .header-logos { display: flex; gap: 4px; align-items: center; }\n    .logo-box img { height: 42px; width: auto; display: block; object-fit: contain; }\n    .top-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border: 1.5px solid #000; border-top: none; }\n    .tb-cell { padding: 3px 5px; border-right: 1px solid #000; }\n    .tb-cell:last-child { border-right: none; }\n    .tb-label { font-size: 5.5px; color: #444; font-weight: 700; display: block; margin-bottom: 1px; text-transform: uppercase; letter-spacing: 0.4px; }\n    .barcode-ticket svg, .barcode-ticket img { height: 36px; width: auto; max-width: 100%; display:block; margin:0 auto; }\n    .barcode-ticket { text-align:center; }\n    .barcode-ticket svg { height:38px; width:auto; max-width:100%; display:block; margin:0 auto; }\n    .ticket-no-text { font-size:8px; font-weight:700; letter-spacing:1px; margin-top:2px; }\n    .tb-val { font-size: 9px; font-weight: 800; color: #000; display: block; letter-spacing: 0.2px; }\n    .barcode-area { display: flex; align-items: stretch; border: 1.5px solid #000; border-top: none; }\n    .barcode-area > div:first-child { padding: 4px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #000; background: #fff; }\n    .pay-box { background: #f9f9f9; padding: 4px 8px; flex: 1; border-left: none; }\n    .pay-amt { font-size: 13px; font-weight: 900; color: #000; display: block; letter-spacing: 0.8px; margin-top: 1px; }\n    .section-header { background: #e0e0e0; color: #000; padding: 2px 5px; font-weight: 900; font-size: 6.5px; border: 1.5px solid #000; border-top: none; text-align: center; letter-spacing: 1.5px; text-transform: uppercase; }\n    .data-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 1.5px solid #000; border-top: none; }\n    .dg-cell { padding: 2px 4px; border-right: 1px solid #ccc; font-size: 7px; background: #fff; }\n    .dg-cell:last-child { border-right: none; }\n    .dg-label { color: #555; font-size: 5.5px; display: block; margin-bottom: 1px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }\n    .dg-val { font-weight: 700; color: #000; display: block; font-size: 7px; }\n    .dg-val.alert { font-weight: 900; color: #cc0000; }\n    .row-2 { display: grid; grid-template-columns: 3fr 1fr 1fr; border: 1.5px solid #000; border-top: none; }\n    .img-container { padding: 4px; background: #efefef; border: 1.5px solid #000; border-top: none; }\n    .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }\n    .img-box { border: 1px solid #666; background: #fff; position: relative; }\n    .img-box img { width: 100%; height: auto; display: block; }\n    .img-label { position: absolute; top: 2px; left: 2px; background: rgba(0,0,0,0.7); color: #fff; font-size: 5px; padding: 1px 3px; font-weight: 700; }\n    .notice { font-size: 6.5px; color: #000; padding: 5px 6px; border: 1.5px solid #000; border-top: none; background: #fff; text-align: justify; line-height: 1.4; }\n    .cutter { display: flex; align-items: center; gap: 4px; padding: 0; margin: 0 -5px 6px -5px; background: #fff; line-height: 1; height: 10px; }\n    .cutter span { font-size: 20px; font-weight: bold; display: block; margin-top: 4px; }\n    .cutter::after { content: ''; flex: 1; border-top: 1.5px dashed #555; margin-top: 10px; }\n    .po-stamp { float: right; width: 80px; height: 35px; border: 1.5px dashed #888; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 5.5px; color: #666; text-align: center; letter-spacing: 0.3px; text-transform: uppercase; margin-left: 15px; margin-bottom: 3px; line-height: 0.8; }\n    .post-office { margin-top: 6px; border: 1.5px solid #000; padding: 0 5px 5px 5px; }\n    .po-body { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; font-size: 7px; }\n    .po-row { margin-bottom: 2px; display: flex; gap: 3px; align-items: baseline; border-bottom: 1px dotted #bbb; padding-bottom: 1px; }\n    .po-label { font-weight: 700; color: #000; white-space: nowrap; font-size: 6px; text-transform: uppercase; letter-spacing: 0.2px; }\n    .po-cashier-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 6px; border-top: 1px solid #000; padding-top: 4px; }\n</style>\n</head>\n<body>\n\n<div class=\"header\">\n    <div class=\"header-title\">\n        <h1>SAFE CITY</h1>\n        <h2>Traffic Police Electronic-Challan</h2>\n    </div>\n    <div class=\"header-logos\">\n        <div class=\"logo-box\">\n            <img src=\"file://{{ logo_left_path }}\" alt=\"Logo Left\">\n        </div>\n        <div class=\"logo-box\">\n            <img src=\"file://{{ logo_right_path }}\" alt=\"Logo Right\">\n        </div>\n    </div>\n</div>\n\n<div class=\"top-bar\">\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Ticket No.</div>\n        <div class=\"tb-val barcode-ticket\">\n          {% if barcode_svg %}\n            {{ barcode_svg|safe }}\n          {% else %}\n            <svg id=\"ticket-barcode-fallback\" xmlns=\"http://www.w3.org/2000/svg\" width=\"180\" height=\"40\"></svg>\n          {% endif %}\n          <div class=\"ticket-no-text\">{{ challan.ticket_no }}</div>\n        </div>\n        </div>\n    </div>\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Registration No.</div>\n        <div class=\"tb-val\">{{ challan.plate_number }}</div>\n    </div>\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Issue Date</div>\n        <div class=\"tb-val\">{{ challan.issue_date|date:\"d-M-Y\" }}</div>\n    </div>\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Payment Status</div>\n        <div class=\"tb-val\">\n            {% if challan.payment_status == 'PAID' %}<span style=\"color:#00aa00;font-weight:900;\">PAID</span>\n            {% elif challan.payment_status == 'VOIDED' %}<span style=\"color:#0066cc;font-weight:900;\">VOIDED</span>\n            {% else %}<span style=\"color:#cc0000;font-weight:900;\">UNPAID</span>{% endif %}\n        </div>\n    </div>\n</div>\n\n<div class=\"barcode-area\">\n      <div style=\"flex:1;text-align:center;padding:6px 8px;\">\n        {% if barcode_svg %}\n          {{ barcode_svg|safe }}\n        {% else %}\n          <div style=\"font-family:monospace;font-size:12px;letter-spacing:2px;\">{{ challan.ticket_no }}</div>\n        {% endif %}\n        <div style=\"font-size:7px;color:#000;margin-top:2px;letter-spacing:0.5px;\">{{ challan.ticket_no }}</div>\n      </div>\n    </div>\n    <div class=\"pay-box\">\n        <div style=\"font-size:5.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#444;\">Payment Within Due Date</div>\n        <div class=\"pay-amt\">PKR {{ challan.fine_amount|floatformat:0 }}/-</div>\n        <div style=\"font-size:6px;margin-top:2px;\"><b>Due Date:</b> {{ challan.due_date|date:\"d-M-Y\" }}</div>\n        <div style=\"font-size:5px;margin-top:3px;border-top:1px solid #ccc;padding-top:2px;color:#333;letter-spacing:0.2px;\">\n            To be credited under Head <b>\"C0263A\"</b> &mdash; IC3 E-Challans\n        </div>\n    </div>\n</div>\n\n<div class=\"section-header\">Offender Information</div>\n<div class=\"data-grid\" style=\"grid-template-columns: 2fr 1fr 1fr 1fr;\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Name (First, Middle, Last)</span>\n        <span class=\"dg-val\">{{ challan.owner_name|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Father's Name</span>\n        <span class=\"dg-val\">Awaiting Excise Integration</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Violation Type</span>\n        <span class=\"dg-val alert\">{{ challan.get_violation_type_display|upper }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Fine Amount</span>\n        <span class=\"dg-val\">PKR {{ challan.fine_amount|floatformat:0 }}/-</span>\n    </div>\n</div>\n<div class=\"row-2\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Address</span>\n        <span class=\"dg-val\">{{ challan.address|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">City</span>\n        <span class=\"dg-val\">{{ challan.location|default:\"—\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Phone No.</span>\n        <span class=\"dg-val\">{{ challan.phone|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n</div>\n\n<div class=\"section-header\">Vehicle Information</div>\n<div class=\"data-grid\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Vehicle Type</span>\n        <span class=\"dg-val\">{{ challan.vehicle_type|default:\"Car\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Make / Year</span>\n        <span class=\"dg-val\">{{ challan.make_year|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Color</span>\n        <span class=\"dg-val\">{{ challan.color|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Chassis No.</span>\n        <span class=\"dg-val\">{{ challan.chassis_no|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Date &amp; Time</span>\n        <span class=\"dg-val\">{{ challan.issue_date|date:\"Y-m-d\" }} {{ challan.created_at|time:\"H:i\" }}</span>\n    </div>\n</div>\n\n<div class=\"section-header\">Violation Evidence</div>\n<div class=\"data-grid\" style=\"grid-template-columns: repeat(5, 1fr);\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Location</span>\n        <span class=\"dg-val\">{{ challan.location|default:\"—\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Legal Direction</span>\n        <span class=\"dg-val\">{{ challan.legal_direction|default:\"UP\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Moving Direction</span>\n        <span class=\"dg-val alert\">{{ challan.moving_direction|default:\"DOWN\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">AI Confidence</span>\n        <span class=\"dg-val\">{% if challan.ai_confidence %}{{ challan.ai_confidence|floatformat:2 }}{% else %}N/A{% endif %}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Camera ID</span>\n        <span class=\"dg-val\">{{ challan.camera.camera_id|default:\"CAM-FYP-001\" }}</span>\n    </div>\n</div>\n\n<div class=\"img-container\">\n    <div style=\"font-size:6px;font-weight:900;margin-bottom:2px;letter-spacing:1px;text-transform:uppercase;\">\n        Captured Violation Evidence (2K Enhanced)</div>\n    <div class=\"img-grid\">\n        <div class=\"img-box\">\n            <div class=\"img-label\">WIDE ANGLE</div>\n            {% if challan.detection.raw_image %}\n            <img src=\"file://{{ challan.detection.raw_image.path }}\" alt=\"Wide Angle\">\n            {% else %}\n            <div style=\"height:100px;display:flex;align-items:center;justify-content:center;color:#999;font-size:8px;\">[Not Available]</div>\n            {% endif %}\n        </div>\n        <div class=\"img-box\">\n            <div class=\"img-label\">VEHICLE ZOOM</div>\n            {% if challan.detection.raw_image %}\n            <img src=\"file://{{ challan.detection.raw_image.path }}\" alt=\"Vehicle Zoom\">\n            {% else %}\n            <div style=\"height:100px;display:flex;align-items:center;justify-content:center;color:#999;font-size:8px;\">[Not Available]</div>\n            {% endif %}\n        </div>\n        <div class=\"img-box\">\n            <div class=\"img-label\">LICENSE PLATE</div>\n            {% if challan.detection.plate_crop_image %}\n            <img src=\"file://{{ challan.detection.plate_crop_image.path }}\" alt=\"License Plate\">\n            {% else %}\n            <div style=\"height:100px;display:flex;align-items:center;justify-content:center;color:#999;font-size:8px;\">[Not Available]</div>\n            {% endif %}\n        </div>\n        <div class=\"img-box\">\n            <div class=\"img-label\">DIRECTION</div>\n            <div style=\"height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f0f0f0;\">\n                <div style=\"font-size:32px;color:#cc0000;font-weight:bold;\">{{ challan.moving_direction|default:\"\u2193\" }}</div>\n                <div style=\"font-size:6px;color:#333;\">Moving: {{ challan.moving_direction|default:\"DOWN\" }}<br>Legal: {{ challan.legal_direction|default:\"UP\" }}</div>\n            </div>\n        </div>\n    </div>\n</div>\n\n<div class=\"notice\">\n    <b>INSTRUCTIONS:</b> You have been fined for a traffic violation under Section 99-A of the Motor Vehicles\n    Ordinance, 1965. Please pay your fine within <b>10 days</b> of the issuance of this notice. Failure to do so may\n    result in further legal action, and your vehicle may be impounded until the outstanding fine is paid.\n    <div style=\"margin-top:4px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ccc;padding-top:3px;font-size:6px;\">\n        <span><b>Paid Challans:</b> 0 &emsp; <b>Unpaid Challans:</b> 0 &emsp; <b>Issue Date:</b> {{ challan.issue_date|date:\"d-M-Y\" }}\n            &emsp; <b>Penalty Points:</b> 0 out of 20</span>\n    </div>\n</div>\n\n<div class=\"cutter\"><span>\u2702</span></div>\n\n<div class=\"post-office\">\n    <h2 style=\"text-align:center;font-weight:900;\">POST OFFICE COPY</h2>\n    <div class=\"po-stamp\"><span>Post Office</span><br><span>Received Stamp</span></div>\n    <div class=\"po-body\">\n        <div>\n            <div class=\"po-row\"><span class=\"po-label\">Ticket No.:</span> {{ challan.ticket_no }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Name:</span> {{ challan.owner_name|default:\"Awaiting Excise Integration\" }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Address:</span> {{ challan.address|default:\"Awaiting Excise Integration\" }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Violation Type:</span> {{ challan.get_violation_type_display }}</div>\n        </div>\n        <div>\n            <div class=\"po-row\"><span class=\"po-label\">Reg. No.:</span> {{ challan.plate_number }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Amount:</span> PKR {{ challan.fine_amount|floatformat:0 }}/-</div>\n            <div class=\"po-row\"><span class=\"po-label\">Due Date:</span> {{ challan.due_date|date:\"d-M-Y\" }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Account No.:</span> \"C0263A\" E-Challans</div>\n        </div>\n    </div>\n    <div class=\"po-cashier-row\">\n        <span style=\"font-size:5px;color:#444;font-style:italic;\">* This is a system-generated challan. No manual signature or stamp required.</span>\n        <span><b>Cashier / Counter Signature:</b> _______________</span>\n    </div>\n</div>\n\n\n\n<div class=\"barcode-wrap\">{% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}<div class=\"barcode-text\">{{ challan.ticket_no }}</div></div>\n</body>\n</html>\n", "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#333;border:1.5px solid #000;background:#fff;padding:0;max-width:100%\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:2px solid #000\">\n    <div><div style=\"font-size:16px;font-weight:900;letter-spacing:1px\">SAFE CITY</div>\n    <div style=\"font-size:10px;font-weight:700\">Traffic Police Electronic-Challan</div></div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1.5px solid #000\">\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">TICKET NO.</div><b>CH-2026-0001</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">REG. NO.</div><b>LES-1234</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">ISSUE DATE</div><b>15-Aug-2026</b></div>\n    <div style=\"padding:6px\"><div style=\"font-size:8px;color:#444\">STATUS</div><b style=\"color:#cc0000\">UNPAID</b></div>\n  </div>\n  <div style=\"padding:8px;background:#f9f9f9;border-bottom:1.5px solid #000\">\n    <div style=\"font-size:8px\">PAYMENT WITHIN DUE DATE</div>\n    <div style=\"font-size:18px;font-weight:900\">PKR 2,000/-</div>\n    <div style=\"font-size:10px\">Due: 25-Aug-2026 \u00b7 Head C0263A</div>\n  </div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">OFFENDER INFORMATION</div>\n  <div style=\"padding:8px\"><b>Ahmed Khan</b> \u00b7 Wrong Way \u00b7 PKR 2,000<br>Location: Main Boulevard</div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">EVIDENCE</div>\n  <div style=\"padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px\">\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">WIDE ANGLE</div>\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">PLATE CROP</div>\n  </div>\n</div>"),
-        ("Safe City Compact", "<div style=\"font-family:Inter,Arial,sans-serif;border:2px solid #1d4f7c;border-radius:8px;overflow:hidden;background:#fff\">\n  <div style=\"background:#1d4f7c;color:#fff;padding:12px;font-weight:800\">SAFE CITY \u00b7 E-CHALLAN</div>\n  <div style=\"padding:12px;font-size:12px;line-height:1.6\">\n    <div><b>CH-2026-0002</b> \u00b7 LES-5678</div>\n    <div style=\"font-size:20px;font-weight:900;margin:8px 0\">PKR 2,000</div>\n    <div>Wrong-way driving \u00b7 Mall Road</div>\n    <div style=\"margin-top:8px;padding:8px;background:#f3f6fb;border-radius:6px;text-align:center\">[ QR / JazzCash ]</div>\n  </div>\n</div>", "<div style=\"font-family:Inter,Arial,sans-serif;border:2px solid #1d4f7c;border-radius:8px;overflow:hidden;background:#fff\">\n  <div style=\"background:#1d4f7c;color:#fff;padding:12px;font-weight:800\">SAFE CITY \u00b7 E-CHALLAN</div>\n  <div style=\"padding:12px;font-size:12px;line-height:1.6\">\n    <div><b>CH-2026-0002</b> \u00b7 LES-5678</div>\n    <div style=\"font-size:20px;font-weight:900;margin:8px 0\">PKR 2,000</div>\n    <div>Wrong-way driving \u00b7 Mall Road</div>\n    <div style=\"margin-top:8px;padding:8px;background:#f3f6fb;border-radius:6px;text-align:center\">[ QR / JazzCash ]</div>\n  </div>\n</div>"),
-        ("Legal Notice 99-A", "<div style=\"font-family:Georgia,serif;border:1px solid #000;padding:14px;background:#fff\">\n  <div style=\"text-align:center;font-weight:900;font-size:14px\">Section 99-A \u00b7 Motor Vehicles Ordinance, 1965</div>\n  <hr>\n  <p style=\"font-size:12px\">Ticket <b>CH-2026-0003</b> against vehicle <b>LES-9999</b> for <b>WRONG WAY</b> at Mall Road on 15-Aug-2026.</p>\n  <p style=\"font-size:12px\">Fine <b>PKR 2,000</b> payable before <b>25-Aug-2026</b> under head C0263A.</p>\n  <div style=\"border:1px dashed #888;padding:8px;text-align:center;font-size:11px;margin-top:8px\">POST OFFICE COPY</div>\n</div>", "<div style=\"font-family:Georgia,serif;border:1px solid #000;padding:14px;background:#fff\">\n  <div style=\"text-align:center;font-weight:900;font-size:14px\">Section 99-A \u00b7 Motor Vehicles Ordinance, 1965</div>\n  <hr>\n  <p style=\"font-size:12px\">Ticket <b>CH-2026-0003</b> against vehicle <b>LES-9999</b> for <b>WRONG WAY</b> at Mall Road on 15-Aug-2026.</p>\n  <p style=\"font-size:12px\">Fine <b>PKR 2,000</b> payable before <b>25-Aug-2026</b> under head C0263A.</p>\n  <div style=\"border:1px dashed #888;padding:8px;text-align:center;font-size:11px;margin-top:8px\">POST OFFICE COPY</div>\n</div>"),
-        ("Digital Slip", "<div style=\"font-family:Arial;background:#0a1628;color:#fff;padding:14px;border-radius:10px\">\n  <div style=\"font-size:11px;opacity:.8\">DIGITAL SLIP</div>\n  <div style=\"font-size:18px;font-weight:800;margin:4px 0\">CH-2026-0004</div>\n  <div style=\"font-size:13px\">LES-4321 \u00b7 Wrong Way</div>\n  <div style=\"font-size:22px;font-weight:900;margin:10px 0;color:#7dd3fc\">PKR 2,000</div>\n  <div style=\"font-size:11px;opacity:.85\">Due 25-Aug-2026 \u00b7 Pay via app / bank / post office</div>\n</div>", "<div style=\"font-family:Arial;background:#0a1628;color:#fff;padding:14px;border-radius:10px\">\n  <div style=\"font-size:11px;opacity:.8\">DIGITAL SLIP</div>\n  <div style=\"font-size:18px;font-weight:800;margin:4px 0\">CH-2026-0004</div>\n  <div style=\"font-size:13px\">LES-4321 \u00b7 Wrong Way</div>\n  <div style=\"font-size:22px;font-weight:900;margin:10px 0;color:#7dd3fc\">PKR 2,000</div>\n  <div style=\"font-size:11px;opacity:.85\">Due 25-Aug-2026 \u00b7 Pay via app / bank / post office</div>\n</div>"),
-    ]
+    from challans.pdf_service import FILE_TEMPLATE_MAP, DEFAULT_TEMPLATE_KEY, LEGACY_TEMPLATE_ALIASES
+
+    TEMPLATE_META = {
+        'standard_a4': ('Standard A4 E-Challan', 'Official bilingual A4 layout with header band, evidence grid and payment panel'),
+        'bilingual_a4': ('Bilingual Panel A4', 'English + Urdu panels: vehicle, owner, violation, payment methods and instructions'),
+        'notice_classic_a4': ('Classic Traffic Notice', 'Classic government traffic-violation notice with red challan-number plate'),
+        'psca_urdu_a4': ('PSCA Urdu A4 (RTL)', 'Urdu right-to-left layout with treasury and post-office copies'),
+        'government_grid_a4': ('Government Grid A4', 'Black-and-white government grid layout with post-office copy'),
+    }
+
     templates = list(ChallanTemplate.objects.all().order_by('-created_at')[:50])
-    if not templates:
-        for name, html, preview in DEFAULT_TEMPLATES:
-            obj = ChallanTemplate.objects.create(name=name, html_content=html, uploaded_by=request.user)
-        templates = list(ChallanTemplate.objects.all().order_by('-created_at')[:50])
     for obj in templates:
-        raw = obj.html_content or ''
-        if 'SAFE CITY' in raw and 'Traffic Police Electronic-Challan' in raw and len(raw) > 2000:
-            obj.preview_html = "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#333;border:1.5px solid #000;background:#fff;padding:0;max-width:100%\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:2px solid #000\">\n    <div><div style=\"font-size:16px;font-weight:900;letter-spacing:1px\">SAFE CITY</div>\n    <div style=\"font-size:10px;font-weight:700\">Traffic Police Electronic-Challan</div></div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1.5px solid #000\">\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">TICKET NO.</div><b>CH-2026-0001</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">REG. NO.</div><b>LES-1234</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">ISSUE DATE</div><b>15-Aug-2026</b></div>\n    <div style=\"padding:6px\"><div style=\"font-size:8px;color:#444\">STATUS</div><b style=\"color:#cc0000\">UNPAID</b></div>\n  </div>\n  <div style=\"padding:8px;background:#f9f9f9;border-bottom:1.5px solid #000\">\n    <div style=\"font-size:8px\">PAYMENT WITHIN DUE DATE</div>\n    <div style=\"font-size:18px;font-weight:900\">PKR 2,000/-</div>\n    <div style=\"font-size:10px\">Due: 25-Aug-2026 \u00b7 Head C0263A</div>\n  </div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">OFFENDER INFORMATION</div>\n  <div style=\"padding:8px\"><b>Ahmed Khan</b> \u00b7 Wrong Way \u00b7 PKR 2,000<br>Location: Main Boulevard</div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">EVIDENCE</div>\n  <div style=\"padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px\">\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">WIDE ANGLE</div>\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">PLATE CROP</div>\n  </div>\n</div>"
-        else:
-            obj.preview_html = raw
+        obj.preview_html = (obj.html_content or '')[:4000]
     any_custom_active = any(getattr(t, 'is_active', False) for t in templates)
 
-    active_key = sys_settings.pdf_template or 'modern_a4'
+    active_key = sys_settings.pdf_template or DEFAULT_TEMPLATE_KEY
+    if active_key in LEGACY_TEMPLATE_ALIASES:
+        active_key = LEGACY_TEMPLATE_ALIASES[active_key]
+        sys_settings.pdf_template = active_key
+        sys_settings.save(update_fields=['pdf_template'])
 
     from django.conf import settings as dj_settings
     from pathlib import Path
     file_templates = []
     fs_dir = Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
     if fs_dir.is_dir():
-        for fp in sorted(fs_dir.glob('*.html')):
-            if fp.name.lower() == 'readme.md':
+        for key in FILE_TEMPLATE_MAP:
+            fp = fs_dir / f'{key}.html'
+            if not fp.is_file():
                 continue
-            key = fp.stem
             try:
                 raw_html = fp.read_text(encoding='utf-8', errors='ignore')
             except OSError:
                 raw_html = ''
+            meta_name, blurb = TEMPLATE_META.get(key, (key.replace('_', ' ').title(), 'Built-in layout file'))
             file_templates.append({
                 'key': key,
-                'name': {
-                    'modern_a4': 'Modern A4 — Official Safe City E-Challan',
-                    'classic_a4': 'Classic A4 — Government E-Challan with Post Office Copy',
-                    'legal_notice_99a': 'Legal Notice 99-A — Motor Vehicles Ordinance 1965',
-                    'digital_slip': 'Digital Slip — Modern Compact E-Challan',
-                }.get(key, key.replace('_', ' ').title()),
-                'blurb': 'Built-in layout file',
+                'name': meta_name,
+                'blurb': blurb,
                 'is_active': (key == active_key),
                 'is_file': True,
                 'preview_html': raw_html[:4000],
@@ -3874,4 +3870,145 @@ def admin_reset_password(request, token):
         'page_title': 'Reset Admin Password',
         'req': req,
         'target': target,
+    })
+
+
+@dig_required
+def challan_template_select(request):
+    """DIG template selection page — pick the active challan layout only.
+
+    DIG can select which template is active for every challan, but cannot
+    create, edit or delete templates (Challan Studio is IT Support exclusive).
+    """
+    from .models import ChallanTemplate
+    from challans.pdf_service import FILE_TEMPLATE_MAP
+    import pathlib
+    from django.conf import settings as dj_settings
+    from django.template import Template, Context
+    from admin.it_support_portal.views import _studio_sample_context
+
+    sys_settings = SystemSettings.get()
+    active_key = sys_settings.pdf_template or 'standard_a4'
+
+    if request.method == 'POST':
+        action = request.POST.get('action') or ''
+        if action == 'set_active':
+            tid = (request.POST.get('template_key') or '').strip()
+            if tid.startswith('db:'):
+                obj = ChallanTemplate.objects.filter(pk=tid[3:]).first()
+                if obj:
+                    ChallanTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                    obj.is_active = True
+                    obj.save()
+                    sys_settings.pdf_template = f'db:{obj.id}'
+                    sys_settings.save(update_fields=['pdf_template'])
+                    AuditLog.write(request, 'challan_template.select', 'ChallanTemplate', obj.id, name=obj.name)
+                    messages.success(request, f"Active challan template set to '{obj.name}'.")
+            elif tid in FILE_TEMPLATE_MAP:
+                ChallanTemplate.objects.update(is_active=False)
+                sys_settings.pdf_template = tid
+                sys_settings.save(update_fields=['pdf_template'])
+                AuditLog.write(request, 'challan_template.select_file', 'ChallanTemplateFile', 0, key=tid)
+                messages.success(request, f"Active challan template set to '{tid}'.")
+            else:
+                messages.error(request, "Unknown template.")
+            return redirect('dig:challan_template_select')
+
+    sample_ctx = Context(_studio_sample_context())
+    TEMPLATE_META = {
+        'standard_a4': ('Standard A4 E-Challan', 'Official bilingual A4 layout with evidence grid and payment panel'),
+        'bilingual_a4': ('Bilingual Panel A4', 'English + Urdu panels: vehicle, owner, violation, payment methods'),
+        'notice_classic_a4': ('Classic Traffic Notice', 'Classic government notice with red challan-number plate'),
+        'psca_urdu_a4': ('PSCA Urdu A4 (RTL)', 'Urdu right-to-left layout with treasury and post-office copies'),
+        'government_grid_a4': ('Government Grid A4', 'Black-and-white government grid with post-office copy'),
+    }
+    layouts = []
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
+    for key in FILE_TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if not fp.is_file():
+            continue
+        try:
+            preview = Template(fp.read_text(encoding='utf-8', errors='ignore')).render(sample_ctx)
+        except Exception:
+            preview = ''
+        name, blurb = TEMPLATE_META.get(key, (key, ''))
+        layouts.append({'key': key, 'name': name, 'blurb': blurb,
+                        'is_active': (key == active_key), 'preview_html': preview})
+    for t in ChallanTemplate.objects.order_by('-created_at'):
+        try:
+            preview = Template(t.html_content or '').render(sample_ctx) if t.html_content else ''
+        except Exception:
+            preview = ''
+        layouts.append({'key': f'db:{t.id}', 'name': t.name,
+                        'blurb': 'Studio design by IT Support', 'is_active': (active_key == f'db:{t.id}'),
+                        'preview_html': preview})
+    return render(request, 'dashboard/dig/challan_template_select.html', {
+        'layouts': layouts,
+        'active_key': active_key,
+    })
+
+
+@dig_required
+def audit_template_select(request):
+    """DIG audit template selection — pick the active audit document layout only."""
+    from .models import AuditTemplate
+    from admin.audit_portal.pdf_service import FILE_TEMPLATE_MAP, AUDIT_TEMPLATE_META
+    import pathlib
+    from django.conf import settings as dj_settings
+    from django.template import Template, Context
+    from admin.it_support_portal.views import _audit_studio_sample_context
+
+    sys_settings = SystemSettings.get()
+    active_key = sys_settings.audit_template or 'audit_summary_report'
+
+    if request.method == 'POST':
+        action = request.POST.get('action') or ''
+        if action == 'set_active':
+            tid = (request.POST.get('template_key') or '').strip()
+            if tid.startswith('db:'):
+                obj = AuditTemplate.objects.filter(pk=tid[3:]).first()
+                if obj:
+                    AuditTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                    obj.is_active = True
+                    obj.save()
+                    sys_settings.audit_template = f'db:{obj.id}'
+                    sys_settings.save(update_fields=['audit_template'])
+                    AuditLog.write(request, 'audit_template.select', 'AuditTemplate', obj.id, name=obj.name)
+                    messages.success(request, f"Active audit template set to '{obj.name}'.")
+            elif tid in FILE_TEMPLATE_MAP:
+                AuditTemplate.objects.update(is_active=False)
+                sys_settings.audit_template = tid
+                sys_settings.save(update_fields=['audit_template'])
+                AuditLog.write(request, 'audit_template.select_file', 'AuditTemplateFile', 0, key=tid)
+                messages.success(request, f"Active audit template set to '{tid}'.")
+            else:
+                messages.error(request, "Unknown template.")
+            return redirect('dig:audit_template_select')
+
+    sample_ctx = Context(_audit_studio_sample_context())
+    layouts = []
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'audit' / 'audit_templates'
+    for key in FILE_TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if not fp.is_file():
+            continue
+        try:
+            preview = Template(fp.read_text(encoding='utf-8', errors='ignore')).render(sample_ctx)
+        except Exception:
+            preview = ''
+        name, blurb = AUDIT_TEMPLATE_META.get(key, (key, ''))
+        layouts.append({'key': key, 'name': name, 'blurb': blurb,
+                        'is_active': (key == active_key), 'preview_html': preview})
+    for t in AuditTemplate.objects.order_by('-created_at'):
+        try:
+            preview = Template(t.html_content or '').render(sample_ctx) if t.html_content else ''
+        except Exception:
+            preview = ''
+        layouts.append({'key': f'db:{t.id}', 'name': t.name,
+                        'blurb': 'Audit Studio design by IT Support',
+                        'is_active': (active_key == f'db:{t.id}'), 'preview_html': preview})
+    return render(request, 'dashboard/dig/audit_template_select.html', {
+        'layouts': layouts,
+        'active_key': active_key,
     })

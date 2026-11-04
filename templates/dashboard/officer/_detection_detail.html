@@ -1,0 +1,170 @@
+{% load static %}
+{% load humanize %}
+
+{% if detection %}
+<div class="md-detail-container">
+  <!-- Target Header -->
+  <div class="sc-flex sc-items-center sc-justify-between sc-mb-3" style="border-bottom: 1px solid var(--md-border); padding-bottom: 0.75rem;">
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <span class="md-badge md-badge-dark" style="font-family: monospace; font-size: 0.85rem;">TARGET #{{ detection.id }}</span>
+      <span class="md-badge {% if detection.status == 'confirmed' %}md-badge-success{% elif detection.status == 'rejected' %}md-badge-danger{% elif detection.status == 'flagged_for_dig' %}md-badge-warning{% else %}md-badge-info{% endif %}">
+        {{ detection.get_status_display|upper }}
+      </span>
+      {% if detection.ai_confidence %}
+        <span class="md-badge {% if detection.ai_confidence >= 0.85 %}md-badge-success{% elif detection.ai_confidence >= 0.60 %}md-badge-warning{% else %}md-badge-danger{% endif %}">
+          <i class="bi bi-cpu"></i> AI Conf: {{ detection.ai_confidence|floatformat:2 }}
+        </span>
+      {% endif %}
+    </div>
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <a href="{% url 'officer_portal:manual_annotation' %}?camera_id={{ detection.camera.id }}&focus={{ detection.id }}" class="md-btn md-btn-secondary md-btn-sm" title="Open in manual annotation studio (Key: A)">
+        <i class="bi bi-bounding-box"></i> Studio <span class="md-action-key">A</span>
+      </a>
+      <a href="{% url 'officer_portal:detection_detail' detection.id %}" class="md-btn md-btn-outline md-btn-sm" title="Full audit detail page">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- 2-Column Split: Big Image Preview | AI Metadata & Verification -->
+  <div style="display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start;">
+
+    <!-- LEFT: Image Viewport with Bounding Box Overlay -->
+    <div style="background: #0f172a; border-radius: var(--md-radius-md); overflow: hidden; border: 1px solid #1e293b; position: relative;">
+      <div style="position: relative; min-height: 320px; display: flex; align-items: center; justify-content: center; background: #000;">
+        {% if detection.raw_image %}
+          <img src="{% if detection.raw_image %}{{ detection.raw_image.url }}{% endif %}" alt="Violation Target #{{ detection.id }}" id="detailTargetImage" style="max-width: 100%; max-height: 420px; object-fit: contain; display: block; background:#0A0E14;" onerror="this.style.opacity='0.15';">
+        {% else %}
+          <div style="padding: 3rem; text-align: center; color: #64748b;">
+            <i class="bi bi-camera-video-off" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;"></i>
+            No Raw Frame Available
+          </div>
+        {% endif %}
+
+        <!-- Overlaid HUD Information -->
+        <div style="position: absolute; top: 10px; left: 10px; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 4px; border-left: 3px solid #38bdf8; font-family: monospace; font-size: 0.72rem; color: #f8fafc; pointer-events: none;">
+          CAM: {{ detection.camera.camera_id|default:"FEED" }} · {{ detection.created_at|date:"Y-m-d H:i:s" }}
+        </div>
+
+        {% if detection.ai_side_classification %}
+          <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(15,23,42,0.8); padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; color: #94a3b8; pointer-events: none;">
+            Side: <b style="color:#f8fafc;">{{ detection.ai_side_classification|upper }}</b>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Zoom & Tool Ribbon -->
+      <div style="padding: 0.6rem 1rem; background: #1e293b; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #94a3b8;">
+        <span><i class="bi bi-geo-alt-fill" style="color: #38bdf8;"></i> {{ detection.camera.location|default:"Street Junction" }}</span>
+        <span>Resolution: 1080p · Auto-Captured</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: AI Extraction & Officer Action Card -->
+    <div>
+      <!-- Registration Plate Box (Pakistani Format) -->
+      <div style="background: linear-gradient(135deg, #0b192c 0%, #172554 100%); border-radius: var(--md-radius-md); padding: 1rem; color: #ffffff; text-align: center; margin-bottom: 1rem; border: 1px solid #1e3a8a; box-shadow: var(--md-shadow-sm);">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #93c5fd; margin-bottom: 0.25rem;">
+          Detected Registration Plate
+        </div>
+        <div style="font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: 800; letter-spacing: 0.12em; color: #ffffff; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);">
+          {{ detection.effective_plate|default:"UNREAD" }}
+        </div>
+        <div class="sc-flex sc-items-center sc-justify-between" style="margin-top: 0.5rem; font-size: 0.75rem;">
+          <span style="color: #94a3b8;">Violation:</span>
+          <span class="md-badge md-badge-amber" style="font-size: 0.7rem;">
+            {{ detection.effective_violation_type|default:"wrong_way"|upper }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Decision Form (With Pre-filled values and instant hotkeys) -->
+      <form method="post" id="triageActionForm" style="background: #ffffff; border: 1px solid var(--md-border); border-radius: var(--md-radius-md); padding: 1rem;">
+        {% csrf_token %}
+        <input type="hidden" name="detection_id" value="{{ detection.id }}">
+
+        <!-- Editable Plate Override (Minimal effort needed: pre-populated) -->
+        <div class="md-form-group" style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.72rem;">Plate Correction (if AI was off)</label>
+          <input type="text" name="manual_plate_text" id="manualPlateInput" value="{{ detection.effective_plate|default:'' }}"
+                 placeholder="LEA-1234"
+                 style="font-family: monospace; font-weight: 700; text-transform: uppercase;"
+                 class="md-input">
+        </div>
+
+        <!-- Quick Reject Presets to avoid typing 20 chars manually -->
+        <div class="md-form-group" style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.72rem;">Review Observations / Quick Reason</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('Plate obscured by mud or tow hook')">Blurry Plate</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('Authorized emergency response vehicle on duty')">Emergency Unit</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('False positive: Vehicle was executing a legal U-turn')">Legal Turn</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('Plate number mismatch: character misclassified by OCR')">OCR Mismatch</button>
+          </div>
+          <textarea name="notes" id="reviewNotesInput" rows="2" class="md-textarea" placeholder="Optional for confirm; auto-filled above for reject/flag" style="font-size: 0.8rem;">{{ detection.review_notes|default:'' }}</textarea>
+        </div>
+
+        <!-- Zero-Friction Action Buttons with Keyboard Shortcut Tags -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <!-- Confirm Button (Key: C) -->
+          <button type="submit" id="btnConfirmTriage" formaction="{% url 'officer_portal:confirm_detection' detection.id %}"
+                  class="md-btn md-btn-success" style="width: 100%; justify-content: space-between; font-size: 0.875rem; padding: 0.65rem 1rem;">
+            <span><i class="bi bi-check-circle-fill"></i> Confirm & Issue Challan</span>
+            <span class="md-action-key" style="background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.3);">C</span>
+          </button>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <!-- Reject Button (Key: R) -->
+            <button type="submit" id="btnRejectTriage" formaction="{% url 'officer_portal:reject_detection' detection.id %}"
+                    class="md-btn md-btn-danger md-btn-sm" style="justify-content: space-between;"
+                    onclick="return validateRejectNotes()">
+              <span><i class="bi bi-x-circle"></i> Reject</span>
+              <span class="md-action-key" style="background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.3);">R</span>
+            </button>
+
+            <!-- Flag Button (Key: F) -->
+            <button type="submit" id="btnFlagTriage" formaction="{% url 'officer_portal:flag_detection' detection.id %}"
+                    class="md-btn md-btn-secondary md-btn-sm" style="justify-content: space-between; color: #b45309 !important; border-color: #f59e0b;"
+                    onclick="return validateFlagNotes()">
+              <span><i class="bi bi-flag-fill" style="color: #f59e0b;"></i> Escalate</span>
+              <span class="md-action-key" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;">F</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function applyQuickNote(text) {
+  const noteField = document.getElementById('reviewNotesInput');
+  if (noteField) {
+    noteField.value = text;
+    noteField.focus();
+  }
+}
+
+function validateRejectNotes() {
+  const noteField = document.getElementById('reviewNotesInput');
+  if (!noteField || noteField.value.trim().length < 5) {
+    applyQuickNote('False positive: Vehicle was executing a legal maneuver');
+  }
+  return true;
+}
+
+function validateFlagNotes() {
+  const noteField = document.getElementById('reviewNotesInput');
+  if (!noteField || noteField.value.trim().length < 5) {
+    applyQuickNote('Escalated for senior review due to ambiguous plate lighting');
+  }
+  return true;
+}
+</script>
+{% else %}
+<div style="padding: 4rem 2rem; text-align: center; color: var(--md-text-muted);">
+  <i class="bi bi-hand-index-thumb" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.75rem;"></i>
+  <div style="font-size: 1rem; font-weight: 600; color: var(--md-text-title);">Select a Detection from the Queue</div>
+  <p style="font-size: 0.85rem; max-width: 320px; margin: 0.35rem auto 0;">Use arrow keys or click any row on the left to triage frames.</p>
+</div>
+{% endif %}

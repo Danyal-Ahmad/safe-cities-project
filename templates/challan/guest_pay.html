@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Pay E-Challan{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Pay Challan</b>{% endblock %}
+{% block content %}
+<div class="sc-public-main">
+<div class="sc-public-card" style="max-width:520px;">
+<div class="sc-public-head">
+<img src="{% static 'img/project_logo.png' %}" alt="SAFE CITY FYP">
+<h1>Pay E-Challan</h1>
+<p class="sc-lead">{{ challan.ticket_no }} · {{ challan.plate_number }} · PKR {{ challan.fine_amount|floatformat:0|intcomma }}</p>
+</div>
+{% if has_active %}<div class="sc-banner sc-banner-warn"><i class="bi bi-exclamation-triangle"></i> You have an active appeal. Payment is still required.</div>{% endif %}
+<div class="sc-psid-box">
+<div class="sc-psid-info">
+<div class="sc-psid-label">Payment System ID (PSID)</div>
+<div class="sc-psid-code">{{ challan.psid }}</div>
+</div>
+</div>
+<form method="post" class="sc-search-form">
+{% csrf_token %}
+<div class="sc-form-group">
+<label>Payment method *</label>
+<select name="payment_method" required class="w-full">
+<option value="">-- Select payment method --</option>
+{% for pm in payment_methods %}
+<option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
+{% endfor %}
+</select>
+</div>
+<div class="sc-form-group">
+<label>Transaction reference (optional)</label>
+<input type="text" name="txn_ref" placeholder="Transaction ID from your payment receipt">
+</div>
+<button type="submit" name="action" value="initiate" class="sc-btn sc-btn-primary sc-btn-block">Pay via gateway</button>
+<a href="{% url 'challans:challan_detail' challan.id %}" class="sc-btn sc-btn-block">Back to challan</a>
+</form>
+</div>
+</div>
+{% endblock %}

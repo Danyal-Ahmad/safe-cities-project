@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}My Appeals{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>My Appeals</b>{% endblock %}
+{% block content %}
+<div class="sc-card">
+{% if appeals %}
+<div class="sc-table-wrap">
+<table class="sc-table sc-data-table" data-table-id="my-appeals">
+<thead><tr><th>Appeal</th><th>Challan</th><th>Plate</th><th>Stage</th><th>Status</th><th>Created</th><th></th></tr></thead>
+<tbody>
+{% for a in appeals %}
+<tr>
+<td class="sc-mono">#{{ a.id }}</td>
+<td class="sc-mono"><a href="{% url 'challans:challan_detail' a.challan.id %}">{{ a.challan.ticket_no }}</a></td>
+<td class="sc-mono">{{ a.challan.plate_number }}</td>
+<td><span class="sc-badge sc-badge-amber">{{ a.get_current_stage_display }}</span></td>
+<td><span class="sc-badge sc-badge-blue">{{ a.get_status_display }}</span></td>
+<td class="sc-text-sm">{{ a.created_at|date:'d M Y H:i' }}</td>
+<td>
+{% if a.current_stage == 'officer' and a.status == 'pending' %}
+<a href="{% url 'citizen_portal:escalate_appeal' a.id %}" class="sc-btn sc-btn-sm">Escalate to SSP</a>
+{% endif %}
+</td>
+</tr>
+{% empty %}
+<tr><td colspan="7" class="sc-empty">No appeals filed yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="sc-empty">
+<p>You have not filed any appeals yet.</p>
+<a href="{% url 'citizen_portal:home' %}" class="sc-btn sc-btn-primary" style="margin-top:12px;">View my challans</a>
+</div>
+{% endif %}
+</div>
+{% endblock %}

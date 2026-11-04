@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+
+{% block title %}SSP District Command — SafeCity Police Portal{% endblock %}
+
+{% block crumb %}
+<a href="/">Home</a>
+<span class="sc-crumb-sep">/</span>
+<b>SSP District Command</b>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Modern Hero Banner -->
+<div class="md-hero">
+  <div>
+    <div class="md-hero-title">
+      <i class="bi bi-bank" style="color: #38bdf8;"></i>
+      <span>SSP District Oversight Command</span>
+      <span class="md-badge md-badge-cyan">REGIONAL COMMAND</span>
+    </div>
+    <p class="md-hero-subtitle">
+      District-Wide Enforcement Oversight · Appeal Adjudication · Revenue & High-Value Challan Approvals
+    </p>
+  </div>
+  <div class="md-hero-actions">
+    <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.6); padding: 0.4rem 0.75rem; border-radius: var(--md-radius-md); border: 1px solid rgba(255,255,255,0.1);">
+      {% now "D, d M Y · H:i:s" %}
+    </div>
+    <a href="{% url 'ssp_portal:dashboard' %}" class="md-btn md-btn-secondary md-btn-sm">
+      <i class="bi bi-arrow-repeat"></i> Refresh Station
+    </a>
+  </div>
+</div>
+
+<!-- District KPI Strip -->
+<div class="md-kpi-grid">
+  <!-- Total Challans -->
+  {% if request.user|has_perm:"view_challans" %}
+    <div class="md-kpi-card">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-receipt"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Total Challans</div>
+        <div class="md-kpi-value" id="kpi-total-challans" data-key="total_challans">{{ total_challans|default:0|intcomma }}</div>
+        <div class="md-kpi-foot">District-wide all time</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Revenue Collected -->
+  {% if request.user|has_perm:"view_revenue_dashboard" %}
+    <div class="md-kpi-card kpi-success">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Revenue Collected</div>
+        <div class="md-kpi-value" id="kpi-revenue-collected" data-key="revenue_collected" data-format="pkr" style="font-size: 1.45rem; color: #10b981;">
+          PKR {{ total_revenue|floatformat:0|intcomma|default:0 }}
+        </div>
+        <div class="md-kpi-foot">Verified collections</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- High-Value Challans -->
+  {% if request.user|has_perm:"view_challans" %}
+    <div class="md-kpi-card kpi-warning">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-exclamation-diamond-fill"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">High-Value Violations</div>
+        <div class="md-kpi-value" id="kpi-high-value-count" data-key="high_value_count" style="color: #f59e0b;">{{ high_value_count|default:0|intcomma }}</div>
+        <div class="md-kpi-foot">PKR {{ high_value_revenue|floatformat:0|intcomma|default:0 }} pending</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Pending Appeals -->
+  {% if request.user|has_perm:"view_appeals" %}
+    <div class="md-kpi-card kpi-danger">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-hourglass-bottom"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Pending Appeals</div>
+        <div class="md-kpi-value" id="kpi-pending-appeals" data-key="pending_appeals" style="color: #ef4444;">{{ pending_appeals|length|default:0 }}</div>
+        <div class="md-kpi-foot">Awaiting decision</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Escalated to DIG -->
+  {% if request.user|has_perm:"escalate_appeal" %}
+    <div class="md-kpi-card kpi-purple">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-arrow-up-circle-fill"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Escalated to DIG</div>
+        <div class="md-kpi-value" id="kpi-escalated" data-key="escalated">{{ escalated|default:0 }}</div>
+        <div class="md-kpi-foot">Higher authority review</div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- District Visualizations (2 Charts) -->
+{% if request.user|has_perm:"view_analytics" %}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+    <div class="md-card" style="margin-bottom: 0;">
+      <div class="md-card-head">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <i class="bi bi-graph-up" style="color: var(--md-brand-cyan);"></i>
+          <h3>Appeals Trend (Last 7 Days)</h3>
+        </div>
+        <span class="md-badge md-badge-secondary">Weekly Inflow</span>
+      </div>
+      <div class="md-card-body" style="height: 240px; position: relative;">
+        <canvas id="appealsTrendChart" data-api-url="{% url 'dig:api_chart_activity_trend' %}" data-chart-type="bar"></canvas>
+      </div>
+    </div>
+
+    <div class="md-card" style="margin-bottom: 0;">
+      <div class="md-card-head">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <i class="bi bi-pie-chart-fill" style="color: var(--md-purple);"></i>
+          <h3>Violation Distribution</h3>
+        </div>
+        <span class="md-badge md-badge-secondary">All Violations</span>
+      </div>
+      <div class="md-card-body" style="height: 240px; position: relative;">
+        <canvas id="violDistChart" data-api-url="{% url 'dig:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Pending Appeals Table (Decision Workbench) -->
+{% if request.user|has_perm:"view_appeals" %}
+  <div class="md-card">
+    <div class="md-card-head">
+      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+        <i class="bi bi-hourglass-split" style="color: var(--md-warning);"></i>
+        <h3>Appeals Awaiting SSP Adjudication ({{ pending_appeals|length|default:0 }})</h3>
+      </div>
+      <span class="md-badge md-badge-amber">Immediate Action Required</span>
+    </div>
+
+    {% if pending_appeals %}
+      <div style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ticket #</th>
+              <th>Plate</th>
+              <th>Amount</th>
+              <th>Appellant</th>
+              <th>Submitted Date</th>
+              <th>Citizen Statement</th>
+              <th style="text-align: right;">SSP Decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in pending_appeals %}
+              <tr>
+                <td style="font-family: monospace; font-weight: 700;">#{{ a.id }}</td>
+                <td style="font-family: monospace;">
+                  <a href="{% url 'challans:challan_detail' a.challan.id %}" style="color: var(--md-brand-primary); text-decoration: none;">
+                    {{ a.challan.ticket_no }}
+                  </a>
+                </td>
+                <td>
+                  <span class="md-badge md-badge-dark" style="font-family: monospace;">{{ a.challan.plate_number }}</span>
+                </td>
+                <td style="font-weight: 700;">PKR {{ a.challan.fine_amount|floatformat:0|intcomma }}</td>
+                <td>{{ a.submitted_by.display_name|default:a.submitted_by.username }}</td>
+                <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ a.created_at|date:"d M Y" }}</td>
+                <td style="font-size: 0.8rem; max-width: 200px; color: var(--md-text-body);">{{ a.reason|truncatechars:90 }}</td>
+                <td style="text-align: right;">
+                  <div class="sc-flex sc-items-center sc-justify-end" style="gap: 0.35rem;">
+                    {% if request.user|has_perm:"approve_appeal" %}
+                      <form method="post" action="{% url 'ssp_portal:decide_appeal' a.id %}" style="display: inline-flex; gap: 4px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="decision" value="APPROVED">
+                        <input type="text" name="reason" placeholder="Note (optional)" class="md-input" style="padding: 2px 6px; font-size: 0.72rem; width: 100px;">
+                        <button type="submit" class="md-btn md-btn-success md-btn-sm" style="font-size: 0.72rem; padding: 2px 8px;">
+                          <i class="bi bi-check"></i> Approve
+                        </button>
+                      </form>
+                    {% endif %}
+                    {% if request.user|has_perm:"reject_appeal" %}
+                      <form method="post" action="{% url 'ssp_portal:decide_appeal' a.id %}" style="display: inline-flex;">
+                        {% csrf_token %}
+                        <input type="hidden" name="decision" value="REJECTED">
+                        <button type="submit" class="md-btn md-btn-danger md-btn-sm" style="font-size: 0.72rem; padding: 2px 8px;">
+                          <i class="bi bi-x"></i> Reject
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="padding: 3.5rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-check2-all" style="font-size: 3rem; color: #10b981; display: block; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--md-text-title);">All Appeals Processed</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">There are currently no citizen disputes awaiting SSP decision.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+<!-- Escalated Cases to DIG -->
+{% if request.user|has_perm:"escalate_appeal" and escalations %}
+  <div class="md-card">
+    <div class="md-card-head">
+      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+        <i class="bi bi-arrow-up-circle-fill" style="color: var(--md-purple);"></i>
+        <h3>Escalated to DIG Supreme Office ({{ escalated }})</h3>
+      </div>
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="md-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Ticket</th>
+            <th>Plate</th>
+            <th>Amount</th>
+            <th>Appellant</th>
+            <th>Escalation Timestamp</th>
+            <th>Escalation Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in escalations %}
+            <tr>
+              <td style="font-family: monospace; font-weight: 700;">#{{ a.id }}</td>
+              <td style="font-family: monospace;">{{ a.challan.ticket_no }}</td>
+              <td><span class="md-badge md-badge-dark" style="font-family: monospace;">{{ a.challan.plate_number }}</span></td>
+              <td style="font-weight: 700;">PKR {{ a.challan.fine_amount|floatformat:0|intcomma }}</td>
+              <td>{{ a.submitted_by.display_name|default:a.submitted_by.username }}</td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ a.escalated_at|date:"d M Y H:i" }}</td>
+              <td style="font-size: 0.8rem; color: var(--md-text-body);">{{ a.escalation_reason|truncatechars:90 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Quick Command Actions -->
+<div class="md-card">
+  <div class="md-card-head">
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <i class="bi bi-lightning-fill" style="color: var(--md-warning);"></i>
+      <h3>District Quick Actions</h3>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1.25rem;">
+    {% if request.user|has_perm:"view_challans" %}
+      <a href="{% url 'dig:challan_list' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);"><i class="bi bi-receipt"></i></div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.85rem;">All Challans</div>
+          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Search & filter</div>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_analytics" %}
+      <a href="{% url 'dig:reports' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);"><i class="bi bi-file-earmark-bar-graph"></i></div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.85rem;">District Reports</div>
+          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Generate analytics</div>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_officer_kpi" %}
+      <a href="{% url 'dig:officer_kpi' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);"><i class="bi bi-trophy"></i></div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.85rem;">Officer Performance</div>
+          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Triage & accuracy</div>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_blacklist" %}
+      <a href="{% url 'dig:blacklist_list' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-danger-bg); color: var(--md-danger);"><i class="bi bi-slash-circle"></i></div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.85rem;">Vehicle Blacklist</div>
+          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Stolen & wanted list</div>
+        </div>
+      </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live clock
+function updateClock(){
+  const el = document.getElementById('live-clock');
+  if(el) {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    el.textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
+      ' · ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Generic Chart.js from API
+async function initChartFromAPI(canvas){
+  if(typeof Chart === 'undefined') return;
+  try {
+    const apiUrl   = canvas.dataset.apiUrl;
+    const chartType = canvas.dataset.chartType || 'bar';
+    const json = await (await fetch(apiUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })).json();
+
+    new Chart(canvas, {
+      type: chartType,
+      data: json,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: chartType === 'doughnut' } },
+        scales: chartType === 'doughnut' ? {} : {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  } catch(e) {
+    console.warn('Chart init failed:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('canvas[data-api-url]').forEach(canvas => initChartFromAPI(canvas));
+});
+</script>
+{% endblock %}

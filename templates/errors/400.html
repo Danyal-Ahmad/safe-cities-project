@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}400 Error{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>400 Error</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>400 Error</h1>
+<p class="sc-lead">400 error.</p>
+</div>
+</div>
+<div class="sc-card"><div class="text-center"><div class="text-5xl mb-3" style="color:var(--sc-danger);"><i class="bi bi-shield-exclamation"></i></div><h1>400 Error</h1><p class="sc-lead">An error occurred while processing your request.</p><a href="/" class="sc-btn sc-btn-primary">Go home</a></div></div>{% endblock %}

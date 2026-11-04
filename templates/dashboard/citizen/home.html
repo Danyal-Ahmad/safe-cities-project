@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+
+{% block title %}Citizen Portal — My E-Challans · SafeCity{% endblock %}
+
+{% block crumb %}
+<a href="/">Home</a>
+<span class="sc-crumb-sep">/</span>
+<b>Citizen Portal</b>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Modern Hero Banner -->
+<div class="md-hero">
+  <div>
+    <div class="md-hero-title">
+      <i class="bi bi-shield-fill-check"></i>
+      <span>Citizen E-Challan Portal</span>
+      <span class="md-badge md-badge-cyan">VERIFIED CITIZEN</span>
+    </div>
+    <p class="md-hero-subtitle">
+      Your One-Stop Solution for Traffic Fines &amp; Services
+      {% if user_cnic %} &middot; Linked CNIC: <b>{{ user_cnic }}</b>{% endif %}
+    </p>
+    {% if user_plates %}
+    <p class="md-hero-subtitle" style="margin-top: 6px;">
+      Registered Plates:
+      {% for p in user_plates %}
+        <span class="md-badge md-badge-dark md-plate-tag" style="font-family: monospace; font-size: 0.75rem;">{{ p }}</span>
+      {% endfor %}
+    </p>
+    {% endif %}
+    <div class="md-hero-actions">
+      <span class="md-hero-location"><i class="bi bi-geo-alt-fill"></i> Safe City</span>
+      <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.35); padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); color: #C9DAF5;">
+        {% now "D, d M Y · H:i" %}
+      </div>
+    </div>
+  </div>
+  <div class="md-hero-art">
+    <img src="{% static 'img/hero_illustration.jpg' %}" alt="Safe City traffic enforcement">
+  </div>
+</div>
+
+<!-- Outstanding Balance Card (High Visibility) -->
+{% if request.user|has_perm:"view_own_challans" %}
+  <div class="md-balance-card">
+    <div class="sc-flex sc-items-center sc-justify-between" style="flex-wrap: wrap; gap: 1rem; position: relative; z-index: 2;">
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 0.35rem; font-weight: 600;">
+          Outstanding Payable Balance
+        </div>
+        <div class="md-balance-amount {% if not outstanding_amount or outstanding_amount == 0 %}clear{% endif %}">
+          PKR {{ outstanding_amount|floatformat:0|intcomma|default:"0" }}
+        </div>
+        <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0.4rem;">
+          {% if unpaid_count > 0 %}
+            You have <b style="color: #fca5a5;">{{ unpaid_count }}</b> unpaid violation ticket{{ unpaid_count|pluralize }} requiring settlement.
+          {% else %}
+            <i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Excellent! You have no outstanding traffic fines on record.
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="sc-flex sc-items-center" style="gap: 0.75rem;">
+        {% if unpaid_count > 0 and request.user|has_perm:"pay_own_challans" %}
+          <a href="{% url 'citizen_portal:pay_challan' challans.0.id %}" class="md-btn md-btn-cyan" style="font-size: 0.95rem; padding: 0.75rem 1.5rem; box-shadow: 0 0 20px rgba(14,165,233,0.4);">
+            <i class="bi bi-credit-card-2-front-fill"></i> Pay Active Challan Now
+          </a>
+        {% endif %}
+        {% if request.user|has_perm:"submit_appeals" %}
+          <a href="{% url 'citizen_portal:appeal_tracker' %}" class="md-btn md-btn-secondary" style="font-size: 0.85rem;">
+            <i class="bi bi-shield-exclamation"></i> Appeals Center
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Dynamic KPI Row (Permission Gated) -->
+<div class="md-kpi-grid">
+  <!-- Total Challans -->
+  <div class="md-kpi-card">
+    <div class="md-kpi-icon-box">
+      <i class="bi bi-receipt-cutoff"></i>
+    </div>
+    <div class="md-kpi-body">
+      <div class="md-kpi-label">Total E-Challans</div>
+      <div class="md-kpi-value" data-key="total_challans">{{ total_challans|default:0 }}</div>
+      <div class="md-kpi-foot">Lifetime record</div>
+    </div>
+  </div>
+
+  <!-- Unpaid Challans -->
+  {% if request.user|has_perm:"view_own_challans" %}
+    <div class="md-kpi-card kpi-warning">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Unpaid / Due</div>
+        <div class="md-kpi-value" data-key="unpaid_count" style="color: #f59e0b;">{{ unpaid_count|default:0 }}</div>
+        <div class="md-kpi-foot">PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }}</div>
+      </div>
+    </div>
+
+    <!-- Paid Challans -->
+    <div class="md-kpi-card kpi-success">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Paid & Settled</div>
+        <div class="md-kpi-value" data-key="paid_count" style="color: #10b981;">{{ paid_count|default:0 }}</div>
+        <div class="md-kpi-foot">PKR {{ paid_amount|floatformat:0|intcomma|default:0 }} cleared</div>
+      </div>
+    </div>
+
+    <!-- Overdue Challans -->
+    <div class="md-kpi-card kpi-danger">
+      <div class="md-kpi-icon-box">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <div class="md-kpi-body">
+        <div class="md-kpi-label">Overdue Tickets</div>
+        <div class="md-kpi-value" data-key="overdue_count" style="color: #ef4444;">{{ overdue_count|default:0 }}</div>
+        <div class="md-kpi-foot">May incur surcharge</div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Charts Section (Only shown if history exists) -->
+{% if request.user|has_perm:"view_own_challans" and challans %}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+    <!-- 6-Month Velocity -->
+    <div class="md-card" style="margin-bottom: 0;">
+      <div class="md-card-head">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <i class="bi bi-bar-chart-line-fill" style="color: var(--md-brand-cyan);"></i>
+          <h3>6-Month Challan Activity</h3>
+        </div>
+        <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">Monthly Trend</span>
+      </div>
+      <div class="md-card-body" style="height: 220px; position: relative;">
+        <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"></canvas>
+      </div>
+    </div>
+
+    <!-- Violation Types Breakdown -->
+    <div class="md-card" style="margin-bottom: 0;">
+      <div class="md-card-head">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <i class="bi bi-pie-chart-fill" style="color: var(--md-purple);"></i>
+          <h3>Infraction Breakdown</h3>
+        </div>
+        <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">Category Share</span>
+      </div>
+      <div class="md-card-body" style="height: 220px; position: relative;">
+        <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"></canvas>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- E-Challans Ledger Table -->
+<div class="md-card">
+  <div class="md-card-head">
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <i class="bi bi-card-checklist" style="color: var(--md-brand-cyan);"></i>
+      <h3>My E-Challans Ledger ({{ total_challans|default:0 }})</h3>
+    </div>
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <a href="{% url 'challans:home' %}" class="md-btn md-btn-secondary md-btn-sm">
+        <i class="bi bi-search"></i> Search Any Ticket
+      </a>
+    </div>
+  </div>
+
+  {% if challans %}
+    <div style="overflow-x: auto;">
+      <table class="md-table">
+        <thead>
+          <tr>
+            <th>Ticket No</th>
+            <th>Plate</th>
+            <th>Violation Type</th>
+            <th>Date & Time</th>
+            <th>Legal Fine</th>
+            <th>Status</th>
+            <th>Due Date</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in challans %}
+            <tr>
+              <td style="font-family: monospace; font-weight: 700;">
+                <a href="{% url 'challans:challan_detail' c.id %}" style="color: var(--md-brand-primary); text-decoration: none;">
+                  #{{ c.ticket_no }}
+                </a>
+              </td>
+              <td>
+                <span class="md-badge md-badge-dark" style="font-family: monospace; font-size: 0.8rem;">
+                  {{ c.plate_number }}
+                </span>
+              </td>
+              <td>
+                {% if c.violation_type == 'wrong_way' %}
+                  <span class="md-badge md-badge-danger"><i class="bi bi-arrow-left-right"></i> Wrong Way</span>
+                {% elif c.violation_type == 'signal_break' %}
+                  <span class="md-badge md-badge-warning"><i class="bi bi-traffic-light"></i> Red Light</span>
+                {% elif c.violation_type == 'over_speed' %}
+                  <span class="md-badge md-badge-purple"><i class="bi bi-speedometer"></i> Speeding</span>
+                {% elif c.violation_type == 'no_helmet' %}
+                  <span class="md-badge md-badge-info"><i class="bi bi-shield-slash"></i> No Helmet</span>
+                {% else %}
+                  <span class="md-badge md-badge-secondary">{{ c.get_violation_type_display }}</span>
+                {% endif %}
+              </td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">
+                {{ c.issue_date|date:"d M Y" }}
+              </td>
+              <td style="font-weight: 700; color: #0b192c;">
+                PKR {{ c.fine_amount|floatformat:0|intcomma }}
+              </td>
+              <td>
+                {% if c.payment_status == 'PAID' %}
+                  <span class="md-badge md-badge-success"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                {% elif c.payment_status == 'VOIDED' %}
+                  <span class="md-badge md-badge-secondary"><i class="bi bi-slash-circle"></i> Voided</span>
+                {% elif c.is_overdue %}
+                  <span class="md-badge md-badge-danger"><i class="bi bi-clock-history"></i> Overdue</span>
+                {% else %}
+                  <span class="md-badge md-badge-warning"><i class="bi bi-exclamation-circle"></i> Unpaid</span>
+                {% endif %}
+              </td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">
+                {{ c.due_date|date:"d M Y" }}
+              </td>
+              <td style="text-align: right;">
+                <div class="sc-flex sc-items-center sc-justify-end" style="gap: 0.35rem;">
+                  {% if c.payment_status == 'UNPAID' and request.user|has_perm:"pay_own_challans" %}
+                    <a href="{% url 'citizen_portal:pay_challan' c.id %}" class="md-btn md-btn-primary md-btn-sm">
+                      <i class="bi bi-credit-card-fill"></i> Pay
+                    </a>
+                  {% endif %}
+                  <a href="{% url 'challans:challan_detail' c.id %}" class="md-btn md-btn-secondary md-btn-sm" title="View details & evidence">
+                    <i class="bi bi-eye"></i> View
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="padding: 4rem 2rem; text-align: center; color: var(--md-text-muted);">
+      <i class="bi bi-shield-check" style="font-size: 3.5rem; color: #10b981; display: block; margin-bottom: 0.75rem;"></i>
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--md-text-title); margin: 0 0 0.5rem 0;">All Clear! No Violations Found</h3>
+      <p style="font-size: 0.875rem; max-width: 420px; margin: 0 auto 1.25rem;">There are no traffic tickets issued against your registered CNIC or license plates. Safe driving is appreciated!</p>
+      <a href="{% url 'challans:home' %}" class="md-btn md-btn-primary md-btn-sm">
+        <i class="bi bi-search"></i> Search Any Public Challan
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Quick Action Shortcuts -->
+<div class="md-card">
+  <div class="md-card-head">
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <i class="bi bi-lightning-charge-fill" style="color: var(--md-warning);"></i>
+      <h3>Citizen Self-Service Actions</h3>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; padding: 1.25rem;">
+    {% if request.user|has_perm:"view_own_challans" %}
+      <a href="{% url 'challans:home' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);">
+          <i class="bi bi-search"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Public Search</div>
+          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Lookup ticket by number</div>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if request.user|has_perm:"submit_appeals" %}
+      <a href="{% url 'citizen_portal:appeal_tracker' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-warning-bg); color: var(--md-warning);">
+          <i class="bi bi-chat-left-text-fill"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">File Dispute / Appeal</div>
+          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Submit evidence for review</div>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if request.user|has_perm:"edit_own_profile" %}
+      <a href="{% url 'citizen_portal:profile_edit' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);">
+          <i class="bi bi-person-lines-fill"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Edit Profile</div>
+          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Update mobile & address</div>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if request.user|has_perm:"change_own_password" %}
+      <a href="{% url 'citizen_portal:password_change' %}" class="md-quick-action">
+        <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Security Settings</div>
+          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Change portal password</div>
+        </div>
+      </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live clock
+function updateClock(){
+  const el = document.getElementById('live-clock');
+  if(el) {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    el.textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
+      ' · ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Fetch helper (CSRF-safe)
+async function scFetch(url, options={}){
+  const resp = await fetch(url, {
+    ...options,
+    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json', ...(options.headers||{}) },
+  });
+  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+// KPI real-time loading
+async function loadKPIs(){
+  const apiBase = "{% url 'citizen_portal:api_citizen_kpis' %}";
+  try {
+    const data = (await scFetch(apiBase)).kpis || {};
+    document.querySelectorAll('[data-key]').forEach(el => {
+      const key = el.dataset.key;
+      const fmt = el.dataset.format;
+      if(!(key in data)) return;
+      const val = data[key];
+      if(fmt === 'pkr') {
+        el.textContent = 'PKR ' + Number(val).toLocaleString('en-PK');
+      } else {
+        el.textContent = Number(val).toLocaleString('en-PK');
+      }
+    });
+  } catch(e) { console.warn('KPI load failed:', e); }
+}
+
+// Static Chart Initializer
+function initStaticCharts(){
+  if(typeof Chart === 'undefined') return;
+
+  const trend = document.getElementById('chart-citizen-trend');
+  if(trend && !trend.dataset.apiUrl) {
+    const labels = [{% for m in month_labels %}'{{ m }}',{% endfor %}];
+    const counts = [{% for m in month_counts %}{{ m }},{% endfor %}];
+    if(labels.length > 0) {
+      new Chart(trend, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Challans',
+            data: counts,
+            backgroundColor: 'rgba(2, 132, 199, 0.75)',
+            borderColor: '#0284c7',
+            borderWidth: 1,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+  }
+
+  const types = document.getElementById('chart-citizen-types');
+  if(types && !types.dataset.apiUrl) {
+    const labels = [{% for v in violation_labels %}'{{ v }}',{% endfor %}];
+    const counts = [{% for v in violation_counts %}{{ v }},{% endfor %}];
+    if(labels.length > 0) {
+      new Chart(types, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: counts,
+            backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#10b981', '#0284c7'],
+            borderColor: '#fff',
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } }
+        }
+      });
+    }
+  }
+}
+
+// API Chart Initializer
+async function initChartFromAPI(canvas){
+  if(typeof Chart === 'undefined') return;
+  try {
+    const apiUrl = canvas.dataset.apiUrl;
+    const chartType = canvas.dataset.chartType || 'bar';
+    const json = await scFetch(apiUrl);
+    new Chart(canvas, {
+      type: chartType,
+      data: json,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: chartType === 'doughnut' } },
+        scales: chartType === 'doughnut' ? {} : {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  } catch(e) {
+    console.warn('API chart init failed:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  loadKPIs();
+  initStaticCharts();
+  document.querySelectorAll('canvas[data-api-url]').forEach(canvas => initChartFromAPI(canvas));
+});
+</script>
+{% endblock %}

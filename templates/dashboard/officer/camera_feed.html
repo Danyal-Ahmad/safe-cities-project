@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Camera Feed{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Camera feed</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Camera feed</h1>
+<p class="sc-lead">Latest frames from assigned cameras.</p>
+</div>
+</div>
+<div class="sc-card"><h2>Camera Feed</h2><p class="sc-empty">Latest frames from assigned cameras.</p></div>{% endblock %}

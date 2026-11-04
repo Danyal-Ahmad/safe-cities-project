@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Team Performance — Supervisor Portal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Team Performance</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-people me-2" style="color:#0369A1;"></i>Team Performance</h1>
+    <p class="sc-lead">Review velocity, decision distribution, and accuracy metrics for all field officers.</p>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-person-lines-fill"></i>
+      <span>Officer Performance Ledger</span>
+    </div>
+    <span class="sc-badge sc-badge-purple">{{ stats|length }} Officers</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if stats %}
+    <div class="table-responsive">
+      <table class="table sc-table mb-0">
+        <thead>
+          <tr>
+            <th>Officer</th>
+            <th>Total Reviewed</th>
+            <th>Confirmed</th>
+            <th>Rejected</th>
+            <th>Flagged</th>
+            <th>Appeals</th>
+            <th>Confirmation %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in stats %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:32px;height:32px;border-radius:50%;background:{{ s.officer.avatar_color|default:'#0EA5E9' }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">
+                  {{ s.officer.display_name|slice:":1"|upper }}
+                </div>
+                <div>
+                  <strong>{{ s.officer.display_name|default:s.officer.username }}</strong>
+                  {% if s.officer.staff_id %}<div class="sc-text-xs sc-text-muted">{{ s.officer.staff_id }}</div>{% endif %}
+                </div>
+              </div>
+            </td>
+            <td><strong>{{ s.reviewed|intcomma }}</strong></td>
+            <td><span class="sc-badge sc-badge-ok">{{ s.confirmed|intcomma }}</span></td>
+            <td><span class="sc-badge sc-badge-danger">{{ s.rejected|intcomma }}</span></td>
+            <td><span class="sc-badge sc-badge-amber">{{ s.flagged|intcomma }}</span></td>
+            <td>{{ s.appeals|intcomma }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1" style="height:6px;min-width:60px;">
+                  <div class="progress-bar bg-success" style="width: {{ s.accuracy|floatformat:0 }}%;"></div>
+                </div>
+                <span class="sc-text-sm sc-text-muted">{{ s.accuracy|floatformat:1 }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty p-5 text-center">
+      <i class="bi bi-people fs-1 opacity-25 d-block mb-3"></i>
+      No officer review data recorded yet.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

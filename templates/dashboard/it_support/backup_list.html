@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Backups{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>System backups</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>System backups</h1>
+<p class="sc-lead">Database snapshot backups.</p>
+</div>
+</div>
+<div class="sc-card">{% if backups %}<table class="sc-table sc-data-table"><thead><tr><th>Filename</th><th>Size</th><th>Created</th><th>Action</th></tr></thead><tbody>{% for b in backups %}<tr><td class="sc-mono sc-text-sm">{{ b.filename }}</td><td>{{ b.size_kb }} KB</td><td class="sc-text-sm">{{ b.mtime|date:"d M Y H:i" }}</td><td><a class="sc-btn sc-btn-sm" href="{% url 'it_support_portal:backup_download' b.filename %}"><i class="bi bi-download"></i> Download</a></td></tr>{% empty %}<tr><td colspan="4" class="sc-empty">No backups yet.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No backups yet.</div>{% endif %}</div>{% endblock %}

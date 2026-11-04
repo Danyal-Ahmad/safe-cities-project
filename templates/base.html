@@ -1,0 +1,195 @@
+{% load static %}
+{% load perm_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Safe City{% endblock %} &mdash; Safe City</title>
+  <meta name="theme-color" content="#1E4E9C">
+  <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
+
+  {# ===== Google Fonts: Inter (English) + Noto Nastaliq Urdu (Urdu) ===== #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  {# ===== Bootstrap 5.3 + Bootstrap Icons 1.11 + FontAwesome 6.5 ===== #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  {# ===== Animate.css 4.1 (CSS animations) ===== #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+
+  {# ===== Custom design system (must load after Bootstrap) ===== #}
+  <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
+  <link rel="stylesheet" href="{% static 'css/safe-city-public.css' %}">
+  <link rel="stylesheet" href="{% static 'css/safe-city-modern.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}sc-app{% endblock %}">
+
+<div class="sc-app">
+
+  {% if user.is_authenticated %}
+  <aside class="sc-sidebar">
+    <a href="{% url 'challans:home' %}" class="sc-brand">
+      <img src="{% static 'img/project_logo.png' %}" alt="Safe City">
+      <div class="sc-brand-text">
+        <span class="sc-brand-title">SAFE CITY</span>
+        <span class="sc-brand-sub">{{ user.role_label }}</span>
+      </div>
+    </a>
+    <nav class="sc-nav">
+      {% with user_role=user.role|lower %}
+        {% if user_role == 'dig' %}{% include "_sidebar/_dig.html" %}
+        {% elif user_role == 'it' or user_role == 'it_support' %}{% include "_sidebar/_it_support.html" %}
+        {% elif user_role == 'officer' %}{% include "_sidebar/_officer.html" %}
+        {% elif user_role == 'ssp' %}{% include "_sidebar/_ssp.html" %}
+        {% elif user_role == 'supv' or user_role == 'supervisor' %}{% include "_sidebar/_supervisor.html" %}
+        {% elif user_role == 'audit' %}{% include "_sidebar/_audit.html" %}
+        {% elif user_role == 'user' or user_role == 'citizen' %}{% include "_sidebar/_citizen.html" %}
+        {% endif %}
+      {% endwith %}
+    </nav>
+  </aside>
+  {% endif %}
+
+  <div class="sc-main">
+
+    {% if user.is_authenticated %}
+    <header class="sc-topbar">
+      <div class="sc-topbar-left">
+        <button type="button" class="sc-sidebar-toggle" id="scSidebarToggle" aria-label="Toggle sidebar">
+          <i class="bi bi-list"></i>
+        </button>
+        <nav class="sc-crumb" aria-label="breadcrumb">
+          <a href="{% url 'challans:home' %}"><i class="bi bi-house-door"></i> Home</a>
+          <span class="sc-crumb-sep"><i class="bi bi-chevron-right"></i></span>
+          <span class="sc-crumb-current">{% if page_title %}{{ page_title }}{% else %}Dashboard{% endif %}</span>
+        </nav>
+        <form class="sc-search" method="get" action="{% url 'challans:home' %}" role="search">
+          <i class="bi bi-search"></i>
+          <input type="search" name="q" placeholder="Search ticket, plate or CNIC…" aria-label="Search" autocomplete="off">
+        </form>
+      </div>
+      <div class="sc-topbar-right">
+        <div class="sc-clock" id="scClock">&mdash;&mdash;:&mdash;&mdash;:&mdash;&mdash;</div>
+        <div class="sc-user-menu">
+          <button type="button" class="sc-user-btn" id="scUserBtn" aria-haspopup="true" aria-expanded="false">
+            <div class="sc-user-info">
+              <div class="sc-user-name">{{ user.display_name|default:user.username }}</div>
+              <div class="sc-user-role">{{ user.role_label }}</div>
+            </div>
+            <i class="bi bi-person-circle sc-user-avatar-icon"></i>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="sc-user-dropdown" id="scUserMenu" role="menu">
+            <div class="sc-user-dropdown-header">
+              <div class="sc-user-dropdown-name">{{ user.display_name|default:user.username }}</div>
+              <div class="sc-user-dropdown-email">{{ user.email|default:user.username }}</div>
+            </div>
+            {% if user.role == 'USER' %}
+            <a href="{% url 'citizen_portal:profile_edit' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% else %}
+            <a href="{% url 'dig:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% endif %}
+            {% if user.role == 'USER' %}
+            <a href="{% url 'citizen_portal:password_change' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% else %}
+            <a href="{% url 'dig:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% endif %}
+            <div class="sc-user-dropdown-divider"></div>
+            <form method="post" action="{% url 'auth_portal:logout' %}" style="display:inline; width:100%;">
+              {% csrf_token %}
+              <button type="submit" class="sc-user-dropdown-item logout" role="menuitem" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font-family:inherit;">
+                <i class="bi bi-box-arrow-right"></i> Sign Out
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </header>
+    {% endif %}
+
+    {% if messages %}
+    <div class="sc-messages">
+      {% for m in messages %}
+      <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
+        <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+        <div class="sc-msg-body">{{ m }}</div>
+        <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="sc-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% if user.is_authenticated %}
+    <footer class="sc-footer">
+      <span>&copy; 2026 Safe City FYP &middot; All Rights Reserved</span>
+      <span>v1.0 &middot; SafeCity</span>
+    </footer>
+    {% endif %}
+  </div>
+</div>
+
+{# ===== jQuery 3.7 (sync) + DataTables core (sync) — must load BEFORE buttons/select extensions ===== #}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables@1.13.8/media/js/jquery.dataTables.min.js"></script>
+
+{# ===== Bootstrap 5.3 JS Bundle (with Popper) ===== #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+
+{# ===== Chart.js 4.4 + datalabels plugin ===== #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
+
+{# ===== Day.js 1.11 + relativeTime plugin ===== #}
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/relativeTime.js" defer></script>
+
+{# ===== SweetAlert2 11 ===== #}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js" defer></script>
+
+{# ===== DataTables extensions (depend on core above) ===== #}
+<script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.2/js/dataTables.buttons.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables.net-select@1.7.0/js/dataTables.select.min.js" defer></script>
+
+{# ===== Select2 4.1 (requires jQuery) ===== #}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
+
+{# ===== Cleave.js 1.6 (input formatting) ===== #}
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js" defer></script>
+
+{# ===== html5-qrcode 2.3 (QR code scan + generate) ===== #}
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
+
+{# ===== JsBarcode 3.11 (barcode generation) ===== #}
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" defer></script>
+
+{# ===== Application JS bundles ===== #}
+<script src="{% static 'js/safe-city.js' %}" defer></script>
+<script src="{% static 'js/safe-city-charts.js' %}" defer></script>
+<script src="{% static 'js/safe-city-tables.js' %}" defer></script>
+<script src="{% static 'js/safe-city-forms.js' %}" defer></script>
+<script src="{% static 'js/safe-city-live.js' %}" defer></script>
+<script src="{% static 'js/safe-city-print.js' %}" defer></script>
+<script src="{% static 'js/safe-city-charts-data.js' %}" defer></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

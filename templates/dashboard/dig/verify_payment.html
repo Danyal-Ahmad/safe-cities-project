@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Verify Payment — SafeCity{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-credit-card me-2"></i>Verify Payment</h1>
+ <p class=" opacity-75">Verify payment status for a challan</p>
+ </div>
+</div>
+
+<div>
+ <div>
+ <div>
+ <div class="card-header">
+ <span><i class="bi bi-circle me-2"></i>Verify Payment</span>
+ </div>
+ <div class="card-body">
+ <form method="post">
+ {% csrf_token %}
+ <div>
+ <div>
+ <label>Challan Ticket No. *</label>
+ <input type="text" name="ticket_no" required placeholder="e.g., 2024-01-15-LRN001">
+ </div>
+ <div>
+ <label>Transaction Reference</label>
+ <input type="text" name="txn_ref" placeholder="TXN123456789">
+ </div>
+ </div>
+ <div>
+ <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Verify</button>
+ <a href="{% url 'dig:payment_list' %}" class="sc-btn sc-btn-primary">Cancel</a>
+ </div>
+ </form>
+ {% if verification_result %}
+ <div class=" p-3 {% if verified %} bg-opacity-10{% else %} bg-opacity-10{% endif %} ">
+ <h5 class="{% if verified %}{% else %}{% endif %}">
+ <i class=" -{% if verified %}circle-check{% else %}circle-xmark{% endif %} me-2"></i>
+ {% if verified %}Payment Verified{% else %}Payment Not Found{% endif %}
+ </h5>
+ <div>
+ {% if verified %}
+ <p><strong>Ticket:</strong> {{ result.ticket_no }}</p>
+ <p><strong>Amount:</strong> PKR {{ result.amount }}</p>
+ <p><strong>Date:</strong> {{ result.paid_at|date:"d M Y H:i" }}</p>
+ <p><strong>Method:</strong> {{ result.method }}</p>
+ {% else %}
+ <p>No matching payment found for the provided details.</p>
+ {% endif %}
+ </div>
+ </div>
+ {% endif %}
+ </div>
+ </div>
+ </div>
+</div>
+{% endblock %}

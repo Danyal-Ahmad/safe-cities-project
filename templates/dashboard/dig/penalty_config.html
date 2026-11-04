@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Penalty Configuration — Safe City{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-arrow-right-circle me-2"></i>Penalty Configuration</h1>
+ <p class=" opacity-75">Fines · points · enable/disable per violation type</p>
+ </div>
+ <div>
+ <span class="badge bg-secondary">{{ active_count|default:0 }} / {{ total_count|default:0 }} active</span>
+ <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+ </div>
+</div>
+
+<div class="alert alert-info small ">
+ <i class="bi bi-arrow-right-circle me-1"></i>
+ Project scope is <strong>Wrong-Way Driving</strong> only. Amounts are in PKR. 12+ points in a year may lead to license suspension.
+</div>
+
+<form method="post">
+ {% csrf_token %}
+ <div>
+ {% for v in violations %}
+ <div>
+ <div class=" h-100 {% if not v.enabled %}opacity-75{% endif %}" id="section-{{ v.key }}">
+ <div class="card-header ">
+ <span><i class=" {{ v.icon|default:'' }} me-2"></i>{{ v.label }}</span>
+ <span class="badge bg-secondary">{{ forloop.counter }}</span>
+ </div>
+ <div class="card-body">
+ <p class="small ">{{ v.desc }}</p>
+ <div>
+ <div>
+ <label>Fine (PKR) *</label>
+ <input type="number" name="amount_{{ v.key }}" value="{{ v.amount }}" min="0" step="50" required>
+ </div>
+ <div>
+ <label>Points *</label>
+ <input type="number" name="points_{{ v.key }}" value="{{ v.points }}" min="0" max="20" required>
+ </div>
+ </div>
+ <div>
+ <input class="-input" type="checkbox" role="switch" name="enabled_{{ v.key }}" id="enabled_{{ v.key }}" {% if v.enabled %}checked{% endif %}
+ onchange="onToggle('{{ v.key }}', this)">
+ <label class="-label" for="enabled_{{ v.key }}">Enable detection</label>
+ </div>
+ <div class="small fw-semibold" id="status-{{ v.key }}">
+ {% if v.enabled %}ACTIVE — will detect and challan{% else %}DISABLED{% endif %}
+ </div>
+ </div>
+ </div>
+ </div>
+ {% empty %}
+ <div><div class="empty-state"><i class=" violation types configured.</div></div>
+ {% endfor %}
+ </div>
+
+ <div class="form-actions ">
+ <button type="reset" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Reset</button>
+ <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Configuration</button>
+ </div>
+</form>
+
+{% endblock %}

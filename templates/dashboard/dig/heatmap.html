@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Violation Heatmap — SafeCity{% endblock %}
+{% block body_class %}page-dig{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<style>
+  #heatmap-map { height: 520px; width: 100%; border-radius: 0 0 8px 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-map me-2" style="color:#6D28D9;"></i>Violation Heatmap</h1>
+    <p class="sc-lead">Live geographic density of challans across camera locations.</p>
+  </div>
+  <div class="d-flex gap-3">
+    <span class="sc-badge sc-badge-muted">
+      <i class="bi bi-geo-alt me-1"></i>{{ total_points|default:0 }} map points
+    </span>
+    <span class="sc-badge sc-badge-amber">
+      <i class="bi bi-thermometer-high me-1"></i>Peak: {{ max_count|default:0 }}
+    </span>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <!-- Map -->
+  <div class="col-lg-9">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-map"></i>
+        <span>Challan Density Map</span>
+      </div>
+      <div class="p-0">
+        <div id="heatmap-map"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-3 d-flex flex-column gap-4">
+    <div class="sc-card">
+      <div class="sc-card-header"><i class="bi bi-list-ol me-1"></i>Top Locations</div>
+      <div class="sc-card-body p-2">
+        {% if locations %}
+        <ul class="list-unstyled mb-0">
+          {% for loc in locations|slice:":12" %}
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span class="sc-text-sm text-truncate me-2" title="{{ loc.location }}">{{ loc.location|default:"—" }}</span>
+            <span class="sc-badge sc-badge-purple">{{ loc.c }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="sc-empty sc-text-sm p-2">No challan location data yet. Issue challans or seed cameras with locations / GPS.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="sc-card">
+      <div class="sc-card-header"><i class="bi bi-info-circle me-1"></i>Accuracy Tips</div>
+      <div class="sc-card-body sc-text-sm sc-text-muted">
+        Set <strong>latitude / longitude</strong> on each camera in DIG → Cameras for precise pins.<br><br>
+        Without GPS, the map uses city landmark matching from the location text.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" crossorigin="anonymous"></script>
+<script>
+(function() {
+  const heatPoints = {{ heat_points|default:"[]"|safe }};
+  const map = L.map('heatmap-map').setView([31.5497, 74.3436], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  if (heatPoints.length && window.L.heatLayer) {
+    L.heatLayer(heatPoints, {
+      radius: 28, blur: 18, maxZoom: 16,
+      gradient: { 0.2: '#4ade80', 0.5: '#fbbf24', 0.8: '#f87171', 1.0: '#dc2626' }
+    }).addTo(map);
+  } else if (!heatPoints.length) {
+    const noData = document.createElement('div');
+    noData.className = 'sc-empty p-4 text-center';
+    noData.innerHTML = '<i class="bi bi-map" style="font-size:2rem;"></i><br>No GPS data yet. Add lat/lng to cameras.';
+    document.getElementById('heatmap-map').replaceWith(noData);
+  }
+})();
+</script>
+{% endblock %}

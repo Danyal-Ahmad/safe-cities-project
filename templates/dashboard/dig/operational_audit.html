@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Operational Audit — DIG Portal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Operational Audit</b>{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-shield-lock me-2" style="color:#6D28D9;"></i>Operational Audit</h1>
+    <p class="sc-lead">Directorate audit log records, administrative events, and officer review summary.</p>
+  </div>
+  <div>
+    <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-outline">
+      <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Recent Audit Log Entries -->
+<div class="sc-card mb-4">
+  <div class="sc-card-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-journal-text"></i>
+      <span>Recent Audit Log Entries</span>
+    </div>
+    <span class="sc-badge sc-badge-purple">{{ recent_audit|length }} Entries</span>
+  </div>
+  <div class="sc-card-body p-0">
+    <div class="table-responsive">
+      <table class="table sc-table mb-0">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Actor</th>
+            <th>Action</th>
+            <th>Target Model</th>
+            <th>Target ID</th>
+            <th>IP Address</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in recent_audit %}
+          <tr>
+            <td class="sc-text-sm sc-text-muted">{{ entry.timestamp|date:"d/m/Y H:i:s" }}</td>
+            <td><strong>{% if entry.actor %}{{ entry.actor.display_name|default:entry.actor.username }}{% else %}System{% endif %}</strong></td>
+            <td>
+              <span class="sc-badge {% if 'create' in entry.action or 'confirm' in entry.action %}sc-badge-ok{% elif 'delete' in entry.action or 'reject' in entry.action %}sc-badge-danger{% elif 'update' in entry.action or 'edit' in entry.action %}sc-badge-amber{% else %}sc-badge-muted{% endif %}">
+                {{ entry.action }}
+              </span>
+            </td>
+            <td>{{ entry.target_model|default:"—" }}</td>
+            <td class="sc-mono">{{ entry.target_id|default:"—" }}</td>
+            <td class="sc-mono sc-text-sm sc-text-muted">{{ entry.ip_address|default:"—" }}</td>
+            <td class="sc-text-sm">{{ entry.details|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="sc-empty p-5 text-center">
+              <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-3"></i>
+              No audit entries recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Officer Activity Summary -->
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-person-workspace"></i>
+    <span>Officer Review Activity Summary</span>
+  </div>
+  <div class="sc-card-body">
+    {% if officer_activity %}
+    <div class="row g-3">
+      {% for officer in officer_activity %}
+      <div class="col-md-4 col-lg-3">
+        <div class="sc-card h-100 p-3 d-flex align-items-center gap-3">
+          <div style="width:42px;height:42px;border-radius:50%;background:{{ officer.avatar_color|default:'#1E40AF' }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">
+            {% if officer.display_name %}{{ officer.display_name|make_list|first|upper }}{% else %}?{% endif %}
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold text-truncate">{{ officer.display_name|default:officer.username }}</div>
+            <div class="sc-text-xs sc-text-muted">{{ officer.role }}</div>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold fs-5 text-primary">{{ officer.review_count|default:0 }}</div>
+            <div class="sc-text-xs sc-text-muted">reviews</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="sc-empty p-4 text-center">
+      <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
+      No officer activity data available.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

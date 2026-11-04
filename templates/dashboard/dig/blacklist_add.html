@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Add to Blacklist{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Add to blacklist</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Add to blacklist</h1>
+<p class="sc-lead">Block a vehicle or individual.</p>
+</div>
+</div>
+<div class="sc-page-hero"><div><h1>Add to Blacklist</h1><p class="sc-lead">Block a vehicle or individual.</p></div></div><div class="sc-card" style="max-width:640px;"><form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="sc-grid sc-grid-2"><div class="sc-form-group"><label>Type *</label><select name="type" required class="w-full"><option value="plate">Vehicle plate</option><option value="cnic">CNIC</option><option value="phone">Phone</option><option value="chassis">Chassis</option></select></div><div class="sc-form-group"><label>Value *</label><input type="text" name="value" required class="w-full" placeholder="LEA-1100 or 35202-..."></div></div><div class="sc-form-group"><label>Reason *</label><textarea name="reason" rows="3" required class="w-full"></textarea></div><div class="sc-form-group"><label>Notes</label><textarea name="notes" rows="2" class="w-full"></textarea></div><div class="sc-flex sc-gap-2"><button type="submit" class="sc-btn sc-btn-danger">Add to blacklist</button><a class="sc-btn" href="{% url 'dig:blacklist_list' %}">Cancel</a></div></form></div>{% endblock %}

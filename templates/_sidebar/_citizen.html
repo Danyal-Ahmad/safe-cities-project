@@ -1,0 +1,40 @@
+{% load perm_tags %}
+{% comment %} ============================================================
+   Citizen — minimal sidebar
+   ============================================================ {% endcomment %}
+
+<div class="sc-nav-section" data-section="My Account">
+  <div class="sc-nav-title">My Account</div>
+  <a href="{% url 'citizen_portal:home' %}" class="sc-nav-link {% if request.path == '/portal/citizen/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
+  {% if request.user|has_perm:"view_own_challans" %}
+  <a href="{% url 'challans:home' %}" class="sc-nav-link {% if request.path == '/portal/challan/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">My Challans</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"submit_appeals" %}
+  <a href="{% url 'citizen_portal:submit_appeal' 0 %}" class="sc-nav-link"><i class="bi bi-chat-left-text"></i> <span class="sc-nav-link-text">Submit Appeal</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"escalate_appeals" %}
+  <a href="{% url 'citizen_portal:appeal_tracker' %}" class="sc-nav-link {% if request.path == '/portal/citizen/appeals/' %}sc-active{% endif %}"><i class="bi bi-search"></i> <span class="sc-nav-link-text">Appeal Tracker</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"pay_own_challans" %}
+  <a href="{% url 'citizen_portal:pay_challan' 0 %}" class="sc-nav-link"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Pay Challan</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Profile">
+  <div class="sc-nav-title">Profile</div>
+  {% if request.user|has_perm:"edit_own_profile" %}
+  <a href="{% url 'citizen_portal:profile_edit' %}" class="sc-nav-link {% if request.path == '/portal/citizen/profile/' %}sc-active{% endif %}"><i class="bi bi-pencil-square"></i> <span class="sc-nav-link-text">Edit Profile</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"change_own_password" %}
+  <a href="{% url 'citizen_portal:password_change' %}" class="sc-nav-link {% if request.path == '/portal/citizen/password/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Change Password</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-bottom">
+  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
+    {% csrf_token %}
+    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
+      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
+    </button>
+  </form>
+</div>

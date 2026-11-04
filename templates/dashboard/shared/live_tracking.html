@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Live Tracking Radar Workstation — Safe City{% endblock %}
+{% block crumb %}<a href="/">Home</a><span class="sc-crumb-sep">/</span><b>Live Tracking Radar</b>{% endblock %}
+
+{% block content %}
+<!-- Modern Hero Banner -->
+<div class="md-hero">
+  <div>
+    <div class="md-hero-title">
+      <i class="bi bi-radar"></i>
+      <span>Live Tracking Workstation</span>
+    </div>
+    <p class="md-hero-subtitle">
+      Real-time CCTV video ingestion, AI canvas overlays, and live violation stream
+    </p>
+  </div>
+  <div class="md-hero-actions">
+    <div class="md-live-badge">
+      <span class="md-live-dot"></span>
+      <span id="radarStatusText">Radar Active</span>
+    </div>
+    <a href="{% url 'officer_portal:manual_annotation' %}" class="md-btn md-btn-cyan md-btn-sm">
+      <i class="bi bi-pencil-square me-1"></i>Annotation Studio
+    </a>
+  </div>
+</div>
+
+<!-- Controls Bar -->
+<div class="md-card mb-3 p-3">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-4">
+      <label class="sc-text-xs sc-text-muted fw-bold text-uppercase mb-1 d-block">Active Camera Source</label>
+      <select name="camera_id" class="md-select form-select-sm" onchange="this.form.submit()">
+        {% for c in cameras %}
+        <option value="{{ c.id }}" {% if c.id|stringformat:"s" == selected_camera_id %}selected{% endif %}>
+          {{ c.camera_id }} &middot; {{ c.location|default:"Command Grid"|truncatechars:35 }}
+        </option>
+        {% empty %}
+        <option value="">No cameras registered</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="sc-text-xs sc-text-muted fw-bold text-uppercase mb-1 d-block">Filter Plate</label>
+      <input type="text" name="plate" value="{{ plate_q|default:'' }}" placeholder="Search plate..." class="md-input form-control-sm">
+    </div>
+    <div class="col-md-3">
+      <label class="sc-text-xs sc-text-muted fw-bold text-uppercase mb-1 d-block">Status Filter</label>
+      <select name="status" class="md-select form-select-sm">
+        <option value="">All statuses</option>
+        <option value="pending" {% if status_q == 'pending' %}selected{% endif %}>Pending Review</option>
+        <option value="confirmed" {% if status_q == 'confirmed' %}selected{% endif %}>Confirmed Violations</option>
+        <option value="flagged" {% if status_q == 'flagged' %}selected{% endif %}>Flagged for DIG</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end gap-2">
+      <button type="submit" class="md-btn md-btn-primary md-btn-sm w-100"><i class="bi bi-funnel"></i> Apply</button>
+      <a href="{% url 'officer_portal:live_tracking' %}" class="md-btn md-btn-outline md-btn-sm" title="Reset filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </div>
+  </form>
+</div>
+
+<!-- Main Two-Column Workstation Layout -->
+<div class="md-workstation">
+  <!-- Left Column: Video Stage & Interactive Overlay -->
+  <div class="md-workstation-main">
+    <div class="md-ws-header">
+      <div class="md-ws-title">
+        <i class="bi bi-camera-video text-danger"></i>
+        <span>{{ selected_camera.camera_id|default:"Live Feed" }}</span>
+        <span class="sc-text-xs sc-text-muted fw-normal">({{ selected_camera.location|default:"Command Center Feed" }})</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="md-hud-tag"><i class="bi bi-speedometer2 me-1"></i>30 FPS</span>
+        <button type="button" class="md-btn md-btn-outline md-btn-sm" id="btnToggleBBox" title="Toggle AI Bounding Boxes">
+          <i class="bi bi-bounding-box me-1"></i>Boxes: <strong id="bboxStateText">ON</strong>
+        </button>
+      </div>
+    </div>
+
+    <div class="md-video-stage" id="stageContainer">
+      {% if stream_url %}
+        {% if '.mp4' in stream_url or '.webm' in stream_url or '.mov' in stream_url or '/media/' in stream_url %}
+        <video id="liveVideoPlayer" muted autoplay loop playsinline>
+          <source src="{{ stream_url }}" type="video/mp4">
+        </video>
+        {% else %}
+        <img id="liveVideoPlayer" src="{{ stream_url }}" alt="Camera Stream" onerror="this.src='/static/img/no_signal.png'">
+        {% endif %}
+      {% elif selected_camera %}
+        <img id="liveVideoPlayer" src="{% url portal_ns|add:':camera_snapshot' selected_camera.id %}" alt="Camera Snapshot" onerror="this.style.display='none'; document.getElementById('noSignalState').style.display='flex';">
+      {% else %}
+        <div class="text-center text-light opacity-50 p-5" id="noSignalState">
+          <i class="bi bi-camera-video-off fs-1 d-block mb-2"></i>
+          <div>No active video feed configured for this camera.</div>
+          <div class="sc-text-xs mt-1">Upload a demo video or configure RTSP endpoint in IT Portal.</div>
+        </div>
+      {% endif %}
+
+      <!-- Canvas layer where AI bounding boxes are drawn in real-time -->
+      <canvas id="trackingCanvas" class="md-canvas-overlay"></canvas>
+
+      <!-- Heads-Up Display Overlay -->
+      <div class="md-stage-hud">
+        <div class="d-flex gap-2">
+          <span class="md-hud-badge-live"><i class="bi bi-circle-fill me-1" style="font-size:7px;"></i>LIVE SURVEILLANCE</span>
+          <span class="md-hud-tag" id="hudDetectionCount">AI Targets: 0</span>
+        </div>
+        <div>
+          <span class="md-hud-tag" id="hudTimestamp">{% now "H:i:s" %}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline of Recent Frames below the stage -->
+    <div class="p-3 border-top bg-light">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="sc-text-xs fw-bold text-uppercase text-muted">
+          <i class="bi bi-film me-1"></i>Recent Capture Timeline ({{ recent_detections|length }} frames)
+        </span>
+        <span class="sc-text-xs text-muted">Click thumbnail to inspect target</span>
+      </div>
+      <div class="d-flex gap-2 overflow-auto py-1" style="scrollbar-width: thin;" id="timelineGallery">
+        {% for d in recent_detections %}
+        <div class="border rounded p-1 bg-white cursor-pointer timeline-thumb-card {% if latest_detection and latest_detection.id == d.id %}border-primary shadow-sm{% endif %}"
+             style="min-width: 90px; cursor: pointer;"
+             onclick="selectDetection({{ d.id }}, '{{ d.effective_plate|default:'' }}', '{{ d.ai_confidence|floatformat:2|default:'0.00' }}', '{{ d.camera.camera_id|default:'' }}', '{{ d.get_status_display }}', '{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}')">
+          {% if d.raw_image %}
+          <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Thumb" style="width: 82px; height: 50px; object-fit: cover; border-radius: 4px; background:#0A0E14;" onerror="this.style.visibility='hidden';">
+          {% else %}
+          <div style="width: 82px; height: 50px; background: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #64748b;">No Img</div>
+          {% endif %}
+          <div class="sc-mono sc-text-xs fw-bold text-truncate mt-1">{{ d.effective_plate|default:"UNREADABLE" }}</div>
+          <div class="sc-text-xs text-muted" style="font-size: 10px;">{{ d.created_at|date:"H:i:s" }}</div>
+        </div>
+        {% empty %}
+        <div class="sc-text-xs text-muted py-2">No capture frames recorded for this camera yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Live Detection Feed & Target Inspector -->
+  <div class="md-workstation-side">
+    <!-- Active Target Inspection Card -->
+    <div class="md-card mb-0" id="targetInspectorCard">
+      <div class="md-card-head">
+        <h2><i class="bi bi-search text-primary"></i> Target Inspector</h2>
+        <span class="md-badge md-badge-amber" id="targetStatusBadge">{{ latest_detection.get_status_display|default:"PENDING" }}</span>
+      </div>
+      <div class="md-card-body">
+        {% if latest_detection %}
+        <div class="d-flex gap-3 align-items-center mb-3">
+          {% if latest_detection.raw_image %}
+          <img id="inspectorImage" src="{% if latest_detection.raw_image %}{{ latest_detection.raw_image.url }}{% endif %}" alt="Snapshot" style="width:110px;height:75px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;background:#0A0E14;" onerror="this.style.visibility='hidden';">
+          {% else %}
+          <div id="inspectorImagePlaceholder" style="width:110px;height:75px;background:#0f172a;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#64748b;">
+            <i class="bi bi-image fs-4"></i>
+          </div>
+          {% endif %}
+          <div class="flex-grow-1 min-w-0">
+            <div class="sc-text-xs text-muted text-uppercase">Detected License Plate</div>
+            <div class="sc-mono fs-5 fw-bold text-primary" id="inspectorPlate">
+              {{ latest_detection.effective_plate|default:"UNREADABLE" }}
+            </div>
+            <div class="sc-text-xs text-muted mt-1">
+              AI Confidence: <strong class="text-dark" id="inspectorConfidence">{{ latest_detection.ai_confidence|floatformat:2|default:"0.00" }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2 bg-light rounded mb-3 sc-text-xs">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Detection ID:</span>
+            <strong id="inspectorId">#{{ latest_detection.id }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Camera:</span>
+            <strong id="inspectorCamera">{{ latest_detection.camera.camera_id|default:"CAM-001" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Violation Flag:</span>
+            <strong class="text-danger" id="inspectorViolation">{{ latest_detection.get_violation_type_display|default:latest_detection.effective_violation_type|default:"Wrong Way" }}</strong>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <a id="btnSendToStudio" href="{% url 'officer_portal:manual_annotation' %}?camera_id={{ selected_camera_id }}&focus={{ latest_detection.id }}" class="md-btn md-btn-primary">
+            <i class="bi bi-pencil-square me-1"></i>Open in Annotation Studio
+          </a>
+          <a id="btnDetailLink" href="{% url 'officer_portal:detection_detail' latest_detection.id %}" class="md-btn md-btn-outline md-btn-sm">
+            <i class="bi bi-info-circle me-1"></i>Full Audit Ledger
+          </a>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-bullseye fs-1 opacity-25 d-block mb-2"></i>
+          <p class="sc-text-sm">No target currently selected. Click a vehicle on the live video or recent detections below.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Real-time Live Detections Feed -->
+    <div class="md-card mb-0 flex-grow-1">
+      <div class="md-card-head">
+        <h2><i class="bi bi-activity text-info"></i> Real-Time AI Stream</h2>
+        <span class="sc-text-xs sc-text-muted" id="pollIndicator">Polling every 2s</span>
+      </div>
+      <div class="md-feed-list" id="realtimeFeedList">
+        {% for d in recent_detections|slice:":10" %}
+        <div class="md-feed-item {% if forloop.first %}active{% endif %}"
+             onclick="selectDetection({{ d.id }}, '{{ d.effective_plate|default:'' }}', '{{ d.ai_confidence|floatformat:2|default:'0.00' }}', '{{ d.camera.camera_id|default:'' }}', '{{ d.get_status_display }}', '{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}')">
+          {% if d.raw_image %}
+          <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Target" class="md-feed-thumb" onerror="this.style.visibility='hidden';">
+          {% else %}
+          <div class="md-feed-thumb d-flex align-items-center justify-content-center text-white sc-text-xs">
+            <i class="bi bi-car-front"></i>
+          </div>
+          {% endif %}
+          <div class="md-feed-meta">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="md-plate-tag">{{ d.effective_plate|default:"UNREADABLE" }}</span>
+              <span class="sc-text-xs text-muted">{{ d.created_at|date:"H:i:s" }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="sc-text-xs text-muted">{{ d.camera.camera_id|default:"Camera" }}</span>
+              <span class="sc-text-xs text-success fw-semibold">{{ d.ai_confidence|floatformat:2|default:"0.00" }} conf</span>
+            </div>
+            <div class="md-conf-bar">
+              <div class="md-conf-fill" style="width: {{ d.ai_confidence|default:0.7|stringformat:'.2f'|slice:'2:' }}%;"></div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-4 text-center text-muted sc-text-xs" id="emptyFeedText">
+          No detections streamed yet. Video processor is running.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let showBBoxes = true;
+const canvas = document.getElementById('trackingCanvas');
+const ctx = canvas ? canvas.getContext('2d') : null;
+const stageContainer = document.getElementById('stageContainer');
+const videoPlayer = document.getElementById('liveVideoPlayer');
+let simulatedDetections = [];
+
+function resizeCanvas() {
+  if (!canvas || !stageContainer) return;
+  canvas.width = stageContainer.clientWidth;
+  canvas.height = stageContainer.clientHeight;
+  drawBoxes();
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Toggle Bounding Boxes Button
+document.getElementById('btnToggleBBox')?.addEventListener('click', function() {
+  showBBoxes = !showBBoxes;
+  document.getElementById('bboxStateText').textContent = showBBoxes ? 'ON' : 'OFF';
+  drawBoxes();
+});
+
+function drawBoxes() {
+  if (!ctx || !canvas) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!showBBoxes) return;
+
+  const w = canvas.width;
+  const h = canvas.height;
+
+  simulatedDetections.forEach((det, idx) => {
+    // Relative coordinates or randomized demo boxes if coordinates not strictly bounded
+    let bx = (det.bbox && det.bbox[0]) ? (det.bbox[0] * w) : (w * 0.25 + (idx * 60) % (w * 0.5));
+    let by = (det.bbox && det.bbox[1]) ? (det.bbox[1] * h) : (h * 0.35 + (idx * 40) % (h * 0.3));
+    let bw = (det.bbox && det.bbox[2]) ? (det.bbox[2] * w) : 180;
+    let bh = (det.bbox && det.bbox[3]) ? (det.bbox[3] * h) : 120;
+
+    // Draw vehicle bounding box (Cyan / Emerald)
+    ctx.strokeStyle = '#00F0FF';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(bx, by, bw, bh);
+
+    // Corner targeting brackets
+    const cLen = 14;
+    ctx.strokeStyle = '#10B981';
+    ctx.lineWidth = 3.5;
+    // Top-left
+    ctx.beginPath(); ctx.moveTo(bx, by + cLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cLen, by); ctx.stroke();
+    // Top-right
+    ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cLen); ctx.stroke();
+    // Bottom-left
+    ctx.beginPath(); ctx.moveTo(bx, by + bh - cLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cLen, by + bh); ctx.stroke();
+    // Bottom-right
+    ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cLen); ctx.stroke();
+
+    // Plate Tag Label
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillRect(bx, by - 24, Math.max(120, bw * 0.7), 24);
+    ctx.fillStyle = '#00F0FF';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText(`${det.plate || 'TARGET'} (${Math.round((det.confidence || 0.85) * 100)}%)`, bx + 6, by - 7);
+  });
+}
+
+// Select Target in Inspector
+function selectDetection(id, plate, conf, camera, status, imgUrl) {
+  const inspectorId = document.getElementById('inspectorId');
+  const inspectorPlate = document.getElementById('inspectorPlate');
+  const inspectorConf = document.getElementById('inspectorConfidence');
+  const inspectorCamera = document.getElementById('inspectorCamera');
+  const inspectorImage = document.getElementById('inspectorImage');
+  const targetBadge = document.getElementById('targetStatusBadge');
+  const btnStudio = document.getElementById('btnSendToStudio');
+  const btnDetail = document.getElementById('btnDetailLink');
+
+  if (inspectorId) inspectorId.textContent = '#' + id;
+  if (inspectorPlate) inspectorPlate.textContent = plate || 'UNREADABLE';
+  if (inspectorConf) inspectorConf.textContent = conf;
+  if (inspectorCamera) inspectorCamera.textContent = camera || 'Camera';
+  if (targetBadge) targetBadge.textContent = status || 'PENDING';
+  if (inspectorImage && imgUrl) inspectorImage.src = imgUrl;
+
+  const camId = "{{ selected_camera_id }}";
+  if (btnStudio) btnStudio.href = `/portal/officer/manual/?camera_id=${camId}&focus=${id}`;
+  if (btnDetail) btnDetail.href = `/portal/officer/detection/${id}/`;
+
+  // Highlight selected target in feed
+  document.querySelectorAll('.md-feed-item').forEach(el => el.classList.remove('active'));
+}
+
+// Real-Time Polling: Connects HTML -> CSS -> JS -> Python API
+function pollRealtimeStream() {
+  const camId = "{{ selected_camera.camera_id|default:'' }}";
+  fetch(`/realtime/api/live/recent-detections/?camera_id=${encodeURIComponent(camId)}&limit=15`)
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.items && data.items.length) {
+        simulatedDetections = data.items;
+        document.getElementById('hudDetectionCount').textContent = `AI Targets: ${data.items.length}`;
+        drawBoxes();
+      }
+    })
+    .catch(() => {});
+}
+
+// Initial draw and schedule periodic real-time sync
+setTimeout(resizeCanvas, 500);
+setInterval(pollRealtimeStream, 2000);
+pollRealtimeStream();
+</script>
+{% endblock %}

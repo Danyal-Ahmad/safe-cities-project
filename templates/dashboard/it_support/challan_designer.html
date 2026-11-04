@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Template Designer{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>A4 challan template designer</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>A4 challan template designer</h1>
+<p class="sc-lead">Drag-and-drop A4 layout designer.</p>
+</div>
+</div>
+<div class="sc-card"><div class="sc-grid sc-grid-2"><div><h3>Blocks</h3><div class="sc-grid sc-grid-2"><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-accent-soft);"><i class="bi bi-card-text"></i><br>Header</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-info-soft);"><i class="bi bi-upc-scan"></i><br>QR</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-success-soft);"><i class="bi bi-table"></i><br>Table</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-warning-soft);"><i class="bi bi-person"></i><br>Owner</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-danger-soft);"><i class="bi bi-receipt"></i><br>Payment</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:#f3e8ff;"><i class="bi bi-vector-pen"></i><br>Sign</div></div></div><div style="border:2px dashed var(--sc-border);border-radius:6px;min-height:500px;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:14px;">A4 canvas — drop blocks here</div></div></div>{% endblock %}

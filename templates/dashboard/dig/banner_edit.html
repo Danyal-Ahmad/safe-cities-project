@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Edit Banner — SafeCity{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-badge-ad me-2"></i>Edit Banner</h1>
+ <p class=" opacity-75">Update banner details and settings</p>
+ </div>
+</div>
+
+<div>
+ <div>
+ <div>
+ <div class="card-header">
+ <span><i class="bi bi-circle me-2"></i>Edit Banner</span>
+ </div>
+ <div class="card-body">
+ <form method="post" enctype="multipart/form-data">
+ {% csrf_token %}
+ <div>
+ <label>Title</label>
+ <input type="text" name="title" value="{{ banner.title }}" required placeholder="Public service announcement">
+ </div>
+ <div>
+ <label>HTML Content</label>
+ <textarea name="html_content" rows="4" placeholder="<p>Announcement text</p>">{{ banner.html_content|default:'' }}</textarea>
+ </div>
+ <div>
+ <label>Replace Image (optional)</label>
+ <input type="file" name="image" accept="image/*">
+ {% if banner.image %}
+ <div>Current image will be replaced if new file uploaded</div>
+ {% endif %}
+ </div>
+ <div>
+ <div>
+ <label>Placement</label>
+ <select name="placement" required>
+ <option value="popup" {% if banner.placement == 'popup' %}selected{% endif %}>Popup</option>
+ <option value="top" {% if banner.placement == 'top' %}selected{% endif %}>Top bar</option>
+ <option value="bottom" {% if banner.placement == 'bottom' %}selected{% endif %}>Bottom of page</option>
+ <option value="ad" {% if banner.placement == 'ad' %}selected{% endif %}>Banner — Public Service Announcement Space</option>
+ </select>
+ </div>
+ <div>
+ <label>Audience</label>
+ <select name="audience" required>
+ <option value="all" {% if banner.audience == 'all' %}selected{% endif %}>All</option>
+ <option value="citizens" {% if banner.audience == 'citizens' %}selected{% endif %}>Citizens</option>
+ <option value="staff" {% if banner.audience == 'staff' %}selected{% endif %}>Staff</option>
+ </select>
+ </div>
+ <div>
+ <label>Type</label>
+ <select name="banner_type" required>
+ <option value="html" {% if banner.banner_type == 'html' %}selected{% endif %}>HTML</option>
+ <option value="image" {% if banner.banner_type == 'image' %}selected{% endif %}>Image</option>
+ </select>
+ </div>
+ </div>
+ <div>
+ <input class="-input" type="checkbox" name="show_on_home_only" id="homeOnly" {% if banner.show_on_home_only %}checked{% endif %}>
+ <label class="-label" for="homeOnly">Show on public home only</label>
+ </div>
+ <div>
+ <input class="-input" type="checkbox" name="is_active" id="isActive" {% if banner.is_active %}checked{% endif %}>
+ <label class="-label" for="isActive">Active</label>
+ </div>
+ <div>
+ <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+ <a href="{% url 'dig:banner_list' %}" class="sc-btn sc-btn-primary">Cancel</a>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+{% endblock %}

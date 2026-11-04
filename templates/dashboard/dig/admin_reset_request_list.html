@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Password Resets — DIG{% endblock %}
+{% block extra_head %}
+<style>
+  .reset-token { font-family: monospace; font-size: 11px; color: #93C5FD; }
+  .badge-pending  { background: #92400e; color: #FDE68A; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .badge-resolved { background: #064e3b; color: #6EE7B7; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .badge-cancelled { background: #450a0a; color: #FCA5A5; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .section-title { font-size: 13px; font-weight: 700; color: rgba(232,240,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; margin-top: 28px; }
+  .section-title:first-child { margin-top: 0; }
+  .info-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(232,240,255,0.6); background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.15); border-radius: 6px; padding: 4px 10px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1>Admin Password Resets</h1>
+    <p class="lead">DIG-mediated password reset requests from staff accounts.</p>
+  </div>
+</div>
+
+{# ---- Pending Requests ---- #}
+<div class="section-title"><i class="bi bi-hourglass-split"></i> Pending Approval</div>
+{% if pending %}
+  <div class="card">
+    <div class="overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Requested by</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>IP Address</th>
+            <th>Submitted</th>
+            <th>Token</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for req in pending %}
+          <tr>
+            <td><strong>{{ req.target_user.display_name }}</strong></td>
+            <td>{{ req.target_user.email }}</td>
+            <td><span class="badge badge-blue">{{ req.target_user.role_label }}</span></td>
+            <td><code>{{ req.ip_address|default:"—" }}</code></td>
+            <td class="small">{{ req.created_at|date:"d M Y H:i" }}</td>
+            <td><span class="reset-token">{{ req.token|slice:":12" }}…</span></td>
+            <td>
+              <a href="{% url 'dig:admin_reset_password' req.token %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-key"></i> Reset Password
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="empty-state">
+      <i class="bi bi-check-circle" style="font-size:40px;opacity:.3;display:block;margin-bottom:12px"></i>
+      No pending reset requests.
+    </div>
+  </div>
+{% endif %}
+
+{# ---- Resolved / Cancelled ---- #}
+<div class="section-title"><i class="bi bi-check2-all"></i> History</div>
+{% if resolved %}
+  <div class="card">
+    <div class="overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Requested by</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Resolved by</th>
+            <th>Resolved at</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for req in resolved %}
+          <tr>
+            <td><strong>{{ req.target_user.display_name }}</strong></td>
+            <td><span class="badge badge-blue">{{ req.target_user.role_label }}</span></td>
+            <td>
+              {% if req.status == 'RESOLVED' %}
+                <span class="badge-resolved"><i class="bi bi-check-circle"></i> Resolved</span>
+              {% else %}
+                <span class="badge-cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>
+              {% endif %}
+            </td>
+            <td>{{ req.resolved_by.display_name|default:"—" }}</td>
+            <td class="small">{{ req.resolved_at|date:"d M Y H:i"|default:"—" }}</td>
+            <td><code>{{ req.ip_address|default:"—" }}</code></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="empty-state">No resolved requests yet.</div>
+  </div>
+{% endif %}
+{% endblock %}

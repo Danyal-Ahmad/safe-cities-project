@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Regional Access — DIG Portal{% endblock %}
+
+{% block extra_head %}{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-circle"></i> Regional Access</h1>
+ <p>Which SSP/Supervisor accounts oversee which regions</p>
+ </div>
+ <div>
+ <a href="{% url 'dig:admin_list' %}" class="sc-btn sc-btn-primary">
+ <i class="bi bi-circle"></i> Manage Staff
+ </a>
+ </div>
+</div>
+
+<div>
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> SSP Officers</div>
+ <span class="badge bg-secondary">{{ ssp_users|length }}</span>
+ </div>
+ <div class="-b p-0 table-responsive">
+ {% if ssp_users %}
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr>
+ <th>Name</th>
+ <th>Username</th>
+ <th>Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for u in ssp_users %}
+ <tr>
+ <td>{{ u.display_name|default:u.username }}</td>
+ <td class="form-control font-monospace">{{ u.username }}</td>
+ <td>{% if u.is_active %}<span class="badge ">Active</span>{% else %}<span class="badge ">Disabled</span>{% endif %}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <div class="empty-state"><i class=" SSP accounts yet.</p></div>
+ {% endif %}
+ </div>
+</div>
+
+<div>
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> Supervisors</div>
+ <span class="badge bg-secondary">{{ supervisor_users|length }}</span>
+ </div>
+ <div class="-b p-0 table-responsive">
+ {% if supervisor_users %}
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr>
+ <th>Name</th>
+ <th>Username</th>
+ <th>Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for u in supervisor_users %}
+ <tr>
+ <td>{{ u.display_name|default:u.username }}</td>
+ <td class="form-control font-monospace">{{ u.username }}</td>
+ <td>{% if u.is_active %}<span class="badge ">Active</span>{% else %}<span class="badge ">Disabled</span>{% endif %}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <div class="empty-state"><i class=" Supervisor accounts yet.</p></div>
+ {% endif %}
+ </div>
+</div>
+
+<p class="hint">
+ Note: this page currently lists SSP/Supervisor accounts only — there is no per-region
+ assignment field on the User model yet, so it cannot show which specific region each
+ account is responsible for. See the audit notes for the regional-data-model gap.
+</p>
+{% endblock %}

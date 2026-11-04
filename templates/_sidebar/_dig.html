@@ -1,0 +1,113 @@
+{% load perm_tags %}
+{% comment %} ============================================================
+   DIG (Deputy Inspector General) — full-privilege sidebar
+   ============================================================ {% endcomment %}
+
+<div class="sc-nav-section" data-section="Command &amp; Control">
+  <div class="sc-nav-title">Command &amp; Control</div>
+  <a href="{% url 'dig:dashboard' %}" class="sc-nav-link {% if request.path == '/portal/dig/' or request.path == '/portal/dig/dashboard/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
+  {% if request.user|has_perm:"view_appeals" %}
+  <a href="{% url 'dig:escalation_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/escalations/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Escalations</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"manage_alerts" %}
+  <a href="{% url 'dig:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone"></i> <span class="sc-nav-link-text">Alerts Hub</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Enforcement">
+  <div class="sc-nav-title">Enforcement</div>
+  {% if request.user|has_perm:"view_challans" %}
+  <a href="{% url 'dig:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_blacklist" %}
+  <a href="{% url 'dig:blacklist_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/blacklist/' %}sc-active{% endif %}"><i class="bi bi-slash-circle"></i> <span class="sc-nav-link-text">Blacklist</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_cameras" %}
+  <a href="{% url 'dig:camera_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/cameras/' or request.path == '/portal/dig/cameras/list/' %}sc-active{% endif %}"><i class="bi bi-camera-video"></i> <span class="sc-nav-link-text">Camera Network</span></a>
+  <a href="{% url 'dig:heatmap' %}" class="sc-nav-link {% if request.path == '/portal/dig/heatmap/' %}sc-active{% endif %}"><i class="bi bi-geo-alt"></i> <span class="sc-nav-link-text">Heat Map</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Intelligence">
+  <div class="sc-nav-title">Intelligence</div>
+  {% if request.user|has_perm:"view_ai_reports" %}
+  <a href="{% url 'dig:violation_stats' %}" class="sc-nav-link {% if request.path == '/portal/dig/violations/' %}sc-active{% endif %}"><i class="bi bi-bar-chart"></i> <span class="sc-nav-link-text">Violation Stats</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_analytics" %}
+  <a href="{% url 'dig:analytics' %}" class="sc-nav-link {% if request.path == '/portal/dig/analytics/' %}sc-active{% endif %}"><i class="bi bi-graph-up-arrow"></i> <span class="sc-nav-link-text">Analytics</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_flagged_detections" %}
+  <a href="{% url 'dig:flagged_detections' %}" class="sc-nav-link {% if request.path == '/portal/dig/flagged-detections/' %}sc-active{% endif %}"><i class="bi bi-flag"></i> <span class="sc-nav-link-text">Flagged Detections</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_reports" %}
+  <a href="{% url 'dig:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-text"></i> <span class="sc-nav-link-text">Reports</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Operations">
+  <div class="sc-nav-title">Operations</div>
+  {% if request.user|has_perm:"view_revenue_dashboard" %}
+  <a href="{% url 'dig:revenue_dashboard' %}" class="sc-nav-link {% if request.path == '/portal/dig/revenue/' %}sc-active{% endif %}"><i class="bi bi-currency-dollar"></i> <span class="sc-nav-link-text">Revenue Dashboard</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"edit_penalty_config" %}
+  <a href="{% url 'dig:penalty_config' %}" class="sc-nav-link {% if request.path == '/portal/dig/penalty-config/' %}sc-active{% endif %}"><i class="bi bi-gear"></i> <span class="sc-nav-link-text">Penalty Config</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_shifts" %}
+  <a href="{% url 'dig:shift_management' %}" class="sc-nav-link {% if request.path == '/portal/dig/shifts/' %}sc-active{% endif %}"><i class="bi bi-calendar-week"></i> <span class="sc-nav-link-text">Shift Management</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"manage_regional_access" %}
+  <a href="{% url 'dig:regional_command' %}" class="sc-nav-link {% if '/regional' in request.path %}sc-active{% endif %}"><i class="bi bi-map"></i> <span class="sc-nav-link-text">Regional Command</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="People">
+  <div class="sc-nav-title">People</div>
+  {% if request.user|has_perm:"view_admins" %}
+  <a href="{% url 'dig:admin_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/admins/' %}sc-active{% endif %}"><i class="bi bi-people"></i> <span class="sc-nav-link-text">Admin List</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_users" %}
+  <a href="{% url 'it_support_portal:staff_list' %}" class="sc-nav-link {% if request.path == '/portal/it-support/staff/' %}sc-active{% endif %}"><i class="bi bi-person-badge"></i> <span class="sc-nav-link-text">Staff List</span></a>
+  <a href="{% url 'dig:citizen_users_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/users/' %}sc-active{% endif %}"><i class="bi bi-person"></i> <span class="sc-nav-link-text">Citizens</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_officer_kpi" %}
+  <a href="{% url 'dig:officer_kpi' %}" class="sc-nav-link {% if request.path == '/portal/dig/officer-kpi/' %}sc-active{% endif %}"><i class="bi bi-trophy"></i> <span class="sc-nav-link-text">Officer KPI</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_officer_activity" %}
+  <a href="{% url 'dig:officer_activity' 0 %}" class="sc-nav-link"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Officer Activity</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"officer_pki" %}
+  <a href="{% url 'dig:officer_signatures' %}" class="sc-nav-link {% if request.path == '/portal/dig/officer-signatures/' %}sc-active{% endif %}"><i class="bi bi-vector-pen"></i> <span class="sc-nav-link-text">Officer Signatures</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Financial">
+  <div class="sc-nav-title">Financial</div>
+  {% if request.user|has_perm:"view_revenue_dashboard" %}
+  <a href="{% url 'dig:payment_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/payments/' %}sc-active{% endif %}"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Payments</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Settings">
+  <div class="sc-nav-title">Settings</div>
+  {% if request.user|has_perm:"edit_system_settings" %}
+  <a href="{% url 'dig:settings_edit' %}" class="sc-nav-link {% if request.path == '/portal/dig/settings/' %}sc-active{% endif %}"><i class="bi bi-sliders"></i> <span class="sc-nav-link-text">System Settings</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_audit_log" %}
+  <a href="{% url 'dig:audit_log' %}" class="sc-nav-link {% if request.path == '/portal/dig/audit/' %}sc-active{% endif %}"><i class="bi bi-clock-history"></i> <span class="sc-nav-link-text">Audit Log</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_compliance" %}
+  <a href="{% url 'dig:compliance' %}" class="sc-nav-link {% if request.path == '/portal/dig/compliance/' %}sc-active{% endif %}"><i class="bi bi-shield-check"></i> <span class="sc-nav-link-text">Compliance</span></a>
+  {% endif %}
+  <a href="{% url 'dig:admin_reset_request_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/admin-resets/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Password Resets</span></a>
+</div>
+
+<div class="sc-nav-bottom">
+  <a href="{% url 'dig:self_profile' %}" class="sc-nav-bottom-link {% if request.path == '/portal/dig/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-bottom-text">Profile</span></a>
+  <a href="{% url 'dig:staff_change_password' %}" class="sc-nav-bottom-link"><i class="bi bi-key"></i> <span class="sc-nav-bottom-text">Change Password</span></a>
+  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
+    {% csrf_token %}
+    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
+      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
+    </button>
+  </form>
+</div>

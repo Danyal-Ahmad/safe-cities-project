@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Upload Video{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Upload video</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Upload video</h1>
+<p class="sc-lead">Process a video for AI violation detection.</p>
+</div>
+</div>
+<div class="sc-card" style="max-width:640px;"><form method="post" enctype="multipart/form-data" class="sc-search-form">{% csrf_token %}<div class="sc-form-group"><label>Camera *</label><select name="camera_id" required class="w-full">{% for c in cameras %}<option value="{{ c.id }}">{{ c.camera_id }} — {{ c.location|truncatechars:30 }}</option>{% endfor %}</select></div><div class="sc-form-group"><label>Video file *</label><input type="file" name="video_file" accept="video/*" required><div class="sc-hint">MP4, AVI, MKV up to 200MB</div></div><button type="submit" class="sc-btn sc-btn-primary sc-btn-block"><i class="bi bi-cloud-upload"></i> Upload &amp; Process</button></form></div>{% endblock %}

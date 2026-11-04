@@ -1,0 +1,50 @@
+{% load perm_tags %}
+{% comment %} ============================================================
+   Audit sidebar
+   ============================================================ {% endcomment %}
+
+<div class="sc-nav-section" data-section="Overview">
+  <div class="sc-nav-title">Overview</div>
+  <a href="{% url 'audit_portal:dashboard' %}" class="sc-nav-link {% if request.path == '/portal/audit/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
+</div>
+
+<div class="sc-nav-section" data-section="Reports">
+  <div class="sc-nav-title">Reports</div>
+  {% if request.user|has_perm:"view_financial_audit" %}
+  <a href="{% url 'audit_portal:financial_audit' %}" class="sc-nav-link {% if request.path == '/portal/audit/financial/' %}sc-active{% endif %}"><i class="bi bi-currency-dollar"></i> <span class="sc-nav-link-text">Financial Audit</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_operational_audit" %}
+  <a href="{% url 'audit_portal:operational_audit' %}" class="sc-nav-link {% if request.path == '/portal/audit/operational/' %}sc-active{% endif %}"><i class="bi bi-clipboard-data"></i> <span class="sc-nav-link-text">Operational Audit</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_compliance" %}
+  <a href="{% url 'audit_portal:compliance_reports' %}" class="sc-nav-link {% if request.path == '/portal/audit/compliance/' %}sc-active{% endif %}"><i class="bi bi-shield-check"></i> <span class="sc-nav-link-text">Compliance</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_anomaly_alerts" %}
+  <a href="{% url 'audit_portal:anomaly_alerts' %}" class="sc-nav-link {% if request.path == '/portal/audit/anomalies/' %}sc-active{% endif %}"><i class="bi bi-exclamation-triangle"></i> <span class="sc-nav-link-text">Anomaly Alerts</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-section" data-section="Change Tracking">
+  <div class="sc-nav-title">Change Tracking</div>
+  {% if request.user|has_perm:"view_audit_log" %}
+  <a href="{% url 'audit_portal:user_activity' %}" class="sc-nav-link {% if request.path == '/portal/audit/user-activity/' %}sc-active{% endif %}"><i class="bi bi-person"></i> <span class="sc-nav-link-text">User Activity</span></a>
+  <a href="{% url 'audit_portal:permission_changes' %}" class="sc-nav-link {% if request.path == '/portal/audit/permission-changes/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Permission Changes</span></a>
+  <a href="{% url 'audit_portal:camera_changes' %}" class="sc-nav-link {% if request.path == '/portal/audit/camera-changes/' %}sc-active{% endif %}"><i class="bi bi-camera"></i> <span class="sc-nav-link-text">Camera Changes</span></a>
+  <a href="{% url 'audit_portal:challan_changes' %}" class="sc-nav-link {% if request.path == '/portal/audit/challan-changes/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challan Changes</span></a>
+  <a href="{% url 'audit_portal:payment_changes' %}" class="sc-nav-link {% if request.path == '/portal/audit/payment-changes/' %}sc-active{% endif %}"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Payment Changes</span></a>
+  <a href="{% url 'audit_portal:banner_changes' %}" class="sc-nav-link {% if request.path == '/portal/audit/banner-changes/' %}sc-active{% endif %}"><i class="bi bi-megaphone"></i> <span class="sc-nav-link-text">Banner Changes</span></a>
+  <a href="{% url 'audit_portal:alert_changes' %}" class="sc-nav-link {% if request.path == '/portal/audit/alert-changes/' %}sc-active{% endif %}"><i class="bi bi-bell"></i> <span class="sc-nav-link-text">Alert Changes</span></a>
+  <a href="{% url 'audit_portal:auth_events' %}" class="sc-nav-link {% if request.path == '/portal/audit/auth-events/' %}sc-active{% endif %}"><i class="bi bi-shield-lock"></i> <span class="sc-nav-link-text">Auth Events</span></a>
+  {% endif %}
+</div>
+
+<div class="sc-nav-bottom">
+  <a href="{% url 'audit_portal:self_profile' %}" class="sc-nav-bottom-link {% if request.path == '/portal/audit/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-bottom-text">Profile</span></a>
+  <a href="{% url 'citizen_portal:password_change' %}" class="sc-nav-bottom-link"><i class="bi bi-key"></i> <span class="sc-nav-bottom-text">Change Password</span></a>
+  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
+    {% csrf_token %}
+    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
+      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
+    </button>
+  </form>
+</div>

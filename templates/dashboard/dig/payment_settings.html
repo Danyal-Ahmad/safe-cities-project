@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Payment Settings{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-credit-card me-2"></i>Payment settings</h1>
+ <p class=" opacity-75">Enable channels and set merchant credentials</p>
+ </div>
+ <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-btn sc-btn-primary">
+ Method catalogue
+ </a>
+</div>
+
+<form method="post">
+ {% csrf_token %}
+ <div>
+ {% for key, cfg in payment_methods.items %}
+ <div>
+ <div class=" h-100">
+ <div class="card-header ">
+ <span>{{ cfg.label }}</span>
+ <div>
+ <input class="-input" type="checkbox" name="{{ key }}_enabled" id="en_{{ key }}"
+ {% if cfg.enabled %}checked{% endif %}>
+ <label class="-label small" for="en_{{ key }}">Enabled</label>
+ </div>
+ </div>
+ <div class="card-body">
+ {% if key == 'jazzcash' or key == 'easypaisa' %}
+ <div>
+ <label class=" small">Merchant / Store ID</label>
+ <input class="form-control form-control-sm" name="{{ key }}_merchant_id"
+ value="{{ cfg.merchant_id|default:'' }}">
+ </div>
+ <div>
+ <label class=" small">Password / PIN</label>
+ <input class="form-control form-control-sm" name="{{ key }}_password"
+ value="{{ cfg.password|default:'' }}" autocomplete="off">
+ </div>
+ <div>
+ <label class=" small">Integrity / Hash key</label>
+ <input class="form-control form-control-sm" name="{{ key }}_integrity_salt"
+ value="{{ cfg.integrity_salt|default:'' }}">
+ </div>
+ <div>
+ <label class=" small">Return URL</label>
+ <input class="form-control form-control-sm" name="{{ key }}_return_url"
+ value="{{ cfg.return_url|default:'' }}" placeholder="https://...">
+ </div>
+ <div>
+ <label class=" small">Environment</label>
+ <select class="form-control form-control-sm" name="{{ key }}_environment">
+ <option value="sandbox" {% if cfg.environment == 'sandbox' %}selected{% endif %}>Sandbox</option>
+ <option value="live" {% if cfg.environment == 'live' %}selected{% endif %}>Live</option>
+ </select>
+ </div>
+ {% elif key == 'bank_transfer' %}
+ <div>
+ <label class=" small">Bank name</label>
+ <input class="form-control form-control-sm" name="{{ key }}_bank_name" value="{{ cfg.bank_name|default:'' }}">
+ </div>
+ <div>
+ <label class=" small">Account title</label>
+ <input class="form-control form-control-sm" name="{{ key }}_account_title" value="{{ cfg.account_title|default:'' }}">
+ </div>
+ <div>
+ <label class=" small">Account number</label>
+ <input class="form-control form-control-sm" name="{{ key }}_account_number" value="{{ cfg.account_number|default:'' }}">
+ </div>
+ <div>
+ <label class=" small">IBAN</label>
+ <input class=" -sm font-monospace" name="{{ key }}_iban" value="{{ cfg.iban|default:'' }}">
+ </div>
+ {% else %}
+ <div>
+ <label class=" small">Publishable key</label>
+ <input class="form-control form-control-sm" name="{{ key }}_publishable_key" value="{{ cfg.publishable_key|default:'' }}">
+ </div>
+ <div>
+ <label class=" small">Secret key</label>
+ <input class="form-control form-control-sm" name="{{ key }}_secret_key" value="{{ cfg.secret_key|default:'' }}">
+ </div>
+ {% endif %}
+ </div>
+ </div>
+ </div>
+ {% endfor %}
+ </div>
+ <div>
+ <button type="submit" class="btn btn-primary "><i class="bi bi-credit-card me-1"></i>Save payment settings</button>
+ </div>
+</form>
+{% endblock %}

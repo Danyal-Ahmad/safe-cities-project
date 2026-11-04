@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Add Camera — IT Support{% endblock %}
+
+{% block body_class %}page-it{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-camera-video me-2"></i>Add camera</h1>
+ <p class=" opacity-75">Register RTSP / HTTP stream or upload a demo video for live tracking</p>
+ </div>
+ <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-list-ul me-1"></i>List</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+ {% csrf_token %}
+ <div>
+ <div>
+ <div class="card-header">Identity</div>
+ <div class="card-body">
+ <div>
+ <div>
+ <label>Camera ID *</label>
+ <input type="text" name="camera_id" class="form-control font-monospace" required placeholder="CAM-001">
+ </div>
+ <div>
+ <label>Location *</label>
+ <input type="text" name="location" required placeholder="Main Boulevard, Sector A">
+ </div>
+ <div>
+ <label>Latitude (map)</label>
+ <input type="number" step="any" name="latitude" placeholder="31.5204">
+ </div>
+ <div>
+ <label>Longitude (map)</label>
+ <input type="number" step="any" name="longitude" placeholder="74.3587">
+ </div>
+ <div>
+ <label>Legal direction</label>
+ <select name="legal_direction" required>
+ <option value="N">North</option>
+ <option value="S">South</option>
+ <option value="E">East</option>
+ <option value="W">West</option>
+ </select>
+ </div>
+ <div>
+ <label>Violation side</label>
+ <select name="violation_side" required>
+ <option value="back">Back side = violation</option>
+ <option value="front">Front side = violation</option>
+ </select>
+ </div>
+ <div>
+ <label>Auto-confirm threshold</label>
+ <input type="number" name="auto_confirm_threshold" value="0.85" min="0.5" max="0.99" step="0.01">
+ </div>
+ <div>
+ <label>Notes</label>
+ <textarea name="notes" rows="2" placeholder="Optional internal notes"></textarea>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <div class="card-header">Stream source</div>
+ <div class="card-body">
+ <div>
+ <label class=" fw-semibold">Source type *</label>
+ <div class="btn-group w-100" role="group">
+ <input type="radio" class="btn-check" name="source_type" id="srcRtsp" value="rtsp" checked onchange="toggleSource()">
+ <label class="sc-btn sc-btn-primary" for="srcRtsp"><i class="bi bi-arrow-right-circle me-1"></i>RTSP / HTTP</label>
+ <input type="radio" class="btn-check" name="source_type" id="srcVideo" value="video" onchange="toggleSource()">
+ <label class="sc-btn sc-btn-primary" for="srcVideo"><i class="bi bi-arrow-right-circle me-1"></i>Upload video</label>
+ </div>
+ </div>
+
+ <div id="boxRtsp">
+ <div>
+ <label>RTSP URL</label>
+ <input type="text" name="rtsp_url" class="form-control font-monospace" placeholder="rtsp://user:pass@192.168.1.100:554/stream">
+ </div>
+ <div>
+ <label>HTTP snapshot / MJPEG URL</label>
+ <input type="text" name="http_snapshot_url" class="form-control font-monospace" placeholder="http://192.168.1.100/cgi-bin/snapshot.cgi">
+ <div>Used by Live Tracking & Live Monitor when RTSP is unavailable in-browser.</div>
+ </div>
+ </div>
+
+ <div id="boxVideo">
+ <div class="alert alert-info py-2 small ">
+ <i class="bi bi-arrow-right-circle me-1"></i>
+ Uploaded MP4/WebM is stored as this camera’s stream source and linked to <strong>Live Feed</strong> + optional AI video processing. Ideal for offline / demo testing of Live Tracking & Live Monitor.
+ </div>
+ <label>Video file *</label>
+ <input type="file" name="video_file" accept="video/mp4,video/webm,video/avi,video/quicktime">
+ <div>Max size depends on server limits. Prefer short clips (30–120s) looping on the monitor.</div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <div>
+ <div class="card-header">Status</div>
+ <div class="card-body">
+ <div>
+ <input class="-input" type="checkbox" name="is_streaming" id="isStreaming" checked>
+ <label class="-label" for="isStreaming">Streaming enabled</label>
+ </div>
+ <div>
+ <input class="-input" type="checkbox" name="is_active" id="isActive" checked>
+ <label class="-label" for="isActive">Camera active</label>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class="card-header">After save</div>
+ <div class="-b small ">
+ <ul class=" ps-3">
+ <li>Camera appears on <strong>Live Tracking</strong> and <strong>Live Monitor</strong>.</li>
+ <li>Assign to one officer from <strong>Camera Assignments</strong> (limit 1).</li>
+ <li>Video source loops as a live feed for detection demos.</li>
+ </ul>
+ </div>
+ </div>
+ <div>
+ <button type="submit" class="btn btn-primary "><i class="bi bi-camera-video me-1"></i>Add camera</button>
+ <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary">Cancel</a>
+ </div>
+ </div>
+</form>
+
+{% endblock %}

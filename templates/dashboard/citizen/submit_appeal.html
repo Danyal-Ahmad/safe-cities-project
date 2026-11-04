@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Submit Appeal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Submit Appeal</b>{% endblock %}
+{% block content %}
+{% if challan.payment_status == 'PAID' %}<div class="sc-banner sc-banner-info">This challan is paid. You may still appeal for a refund.</div>{% endif %}
+{% if has_active %}<div class="sc-banner sc-banner-warn">You already have an active appeal. Wait for it to be decided before filing another.</div>{% else %}
+<div class="sc-card" style="max-width:640px;">
+<div class="sc-card-head">Appeal form</div>
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<div class="sc-form-group">
+<label>CNIC *</label>
+<input type="text" name="guest_cnic" placeholder="35202-1234567-1" required>
+</div>
+<div class="sc-form-group">
+<label>Your name</label>
+<input type="text" name="guest_name">
+</div>
+<div class="sc-form-group">
+<label>Reason for appeal *</label>
+<textarea name="reason" rows="4" required placeholder="Explain why you are appealing this challan..."></textarea>
+</div>
+<div class="sc-form-group">
+<label>Evidence (optional)</label>
+<input type="file" name="evidence_file" accept="image/*,.pdf">
+<div class="sc-hint">Image or PDF, max 10 MB</div>
+</div>
+<div class="sc-check">
+<input type="checkbox" name="declaration" id="decl" required>
+<label for="decl">I confirm the information above is true and accurate.</label>
+</div>
+<div class="sc-flex sc-gap-2">
+<button type="submit" class="sc-btn sc-btn-primary">Submit appeal</button>
+<a href="{% url 'challans:challan_detail' challan.id %}" class="sc-btn">Cancel</a>
+</div>
+</form>
+</div>
+{% endif %}
+{% endblock %}

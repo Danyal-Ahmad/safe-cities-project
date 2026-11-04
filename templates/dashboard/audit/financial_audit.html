@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Financial Audit — SAFE CITY FYP{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Financial audit</b>{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-cash-coin"></i> Financial Audit</h1>
+    <p class="sc-lead">Payment trail + challan revenue verification</p>
+  </div>
+  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-label"><i class="bi bi-cash-stack"></i> Total collected</div>
+    <div class="sc-kpi-value" style="font-size:20px;">PKR {{ total_collected|floatformat:0|intcomma|default:0 }}</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-files"></i> Paid challans</div>
+    <div class="sc-kpi-value">{{ payments|length|default:0 }}</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-head"><i class="bi bi-receipt"></i> Payment audit trail</div>
+  {% if payments %}
+  <div class="sc-table-wrap">
+    <table class="sc-table sc-data-table" data-table-id="audit-financial">
+      <thead>
+        <tr>
+          <th>Paid at</th><th>Ticket</th><th>Plate</th>
+          <th>Amount</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td class="sc-text-sm">{{ p.paid_at|date:"d M Y H:i"|default:"—" }}</td>
+          <td class="sc-mono">{% if p.id %}<a href="{% url 'challans:challan_detail' p.id %}">{{ p.ticket_no }}</a>{% else %}{{ p.ticket_no|default:"—" }}{% endif %}</td>
+          <td class="sc-mono sc-text-sm">{{ p.plate_number|default:"—" }}</td>
+          <td><b>PKR {{ p.fine_amount|floatformat:0|intcomma|default:0 }}</b></td>
+          <td><span class="sc-badge sc-badge-green">Paid</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="sc-empty">No payments to audit.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="sc-empty" style="padding:60px 24px;text-align:center;">
+    <i class="bi bi-inbox" style="font-size:48px;color:#94a3b8;display:block;margin-bottom:12px;"></i>
+    <p class="sc-text-muted">No payments to audit.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

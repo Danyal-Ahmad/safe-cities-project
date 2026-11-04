@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Payment Methods{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Payment methods</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Payment methods</h1>
+<p class="sc-lead">Configure JazzCash, EasyPaisa, bank, card options.</p>
+</div>
+</div>
+<div class="sc-flex sc-justify-end sc-mb-3"><a class="sc-btn sc-btn-primary" href="{% url 'it_support_portal:payment_method_add' %}"><i class="bi bi-plus-circle"></i> Add method</a></div><div class="sc-card">{% if methods %}<table class="sc-table sc-data-table"><thead><tr><th>Name</th><th>Provider</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for m in methods %}<tr><td><strong>{{ m.name }}</strong></td><td>{{ m.provider|default:"-" }}</td><td><span class="sc-badge sc-badge-gray">{{ m.type }}</span></td><td>{% if m.status == 'active' %}<span class="sc-badge sc-badge-ok">Active</span>{% else %}<span class="sc-badge sc-badge-gray">Disabled</span>{% endif %}</td><td><form method="post" action="{% url 'it_support_portal:payment_method_toggle' m.id %}" class="d-inline">{% csrf_token %}<button type="submit" class="sc-btn sc-btn-sm">Toggle</button></form> <a class="sc-btn sc-btn-sm" href="{% url 'it_support_portal:payment_method_edit' m.id %}">Edit</a></td></tr>{% empty %}<tr><td colspan="5" class="sc-empty">No methods.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No payment methods.</div>{% endif %}</div>{% endblock %}

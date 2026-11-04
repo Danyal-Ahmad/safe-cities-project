@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% comment %}V9.0-REBUILT · Graphite+Emerald+Rose · page-hero+page-nav+quick-actions · business logic preserved{% endcomment %}
+{% block title %}Officer KPIs — DIG Portal{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-circle"></i> Officer KPIs</h1>
+ <p>Key performance indicators for each officer</p>
+ </div>
+ <div>
+<a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary">
+ <i class="bi bi-circle"></i> Dashboard
+ </a>
+ </div>
+</div>
+
+<div>
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> Officer Performance</div>
+ <span class="badge bg-secondary">{{ kpis|length }}</span>
+ </div>
+ <div class="-b p-0 table-responsive">
+ {% if kpis %}
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr>
+ <th>Officer</th>
+ <th>Reviewed</th>
+ <th>Confirmed</th>
+ <th>Rejected</th>
+ <th>Accuracy</th>
+ <th>Appeals Handled</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for k in kpis %}
+ <tr>
+ <td>
+ <div class="flex ">
+ <div class="avatar avatar-sm">{{ k.officer.initials }}</div>
+ <span>{{ k.officer.display_name|default:"—" }}</span>
+ </div>
+ </td>
+ <td>{{ k.reviewed }}</td>
+ <td>{{ k.confirmed }}</td>
+ <td>{{ k.rejected }}</td>
+ <td>
+ {% if k.accuracy >= 80 %}<span class="badge ">{{ k.accuracy }}%</span>
+ {% elif k.accuracy >= 60 %}<span class="badge ">{{ k.accuracy }}%</span>
+ {% else %}<span class="badge ">{{ k.accuracy }}%</span>{% endif %}
+ </td>
+ <td>{{ k.appeals }}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <div class="empty-state"><i class=" data</h3><p>No officer activity recorded yet.</p></div>
+ {% endif %}
+ </div>
+</div>
+{% endblock %}

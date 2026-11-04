@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{% comment %}V9.0-REBUILT · Graphite+Emerald+Rose · page-hero+page-nav+quick-actions · business logic preserved{% endcomment %}
+{% block title %}Officer Feedback — DIG Portal{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-circle"></i> Officer Performance Feedback</h1>
+ <p>Feedback &amp; permission flags per officer</p>
+ </div>
+ <div>
+<a href="{% url 'dig:officer_feedback_add' %}" class="btn btn-primary ">
+ <i class="bi bi-circle"></i> Add Feedback
+ </a>
+ </div>
+</div>
+
+<div>
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> All Feedback</div>
+ <span class="badge bg-secondary">{{ feedback|length }}</span>
+ </div>
+ <div class="-b p-0 table-responsive">
+ {% if feedback %}
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr>
+ <th>Officer</th>
+ <th>Created By</th>
+ <th>Last Updated</th>
+ <th>Permissions</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for f in feedback %}
+ <tr>
+ <td>{{ f.officer.display_name|default:"—" }}</td>
+ <td class="small ">{{ f.created_by.display_name|default:"—" }}</td>
+ <td class="small ">{{ f.updated_at|date:"d-M-Y H:i" }}</td>
+ <td class="small ">
+ {% if f.can_review_detections %}<span class="badge ">RD</span>{% endif %}
+ {% if f.can_review_appeals %}<span class="badge ">RA</span>{% endif %}
+ {% if f.can_flag_for_dig %}<span class="badge ">FD</span>{% endif %}
+ {% if f.can_add_manual_challan %}<span class="badge ">MC</span>{% endif %}
+ {% if f.can_view_own_performance %}<span class="badge ">VP</span>{% endif %}
+ {% if f.can_add_internal_notes %}<span class="badge ">IN</span>{% endif %}
+ </td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <div class="empty-state">
+ <i class="bi bi-circle"></i>
+ <h3>No feedback</h3>
+ <p>No feedback recorded yet. <a href="{% url 'dig:officer_feedback_add' %}">Add the first entry</a>.</p>
+ </div>
+ {% endif %}
+ </div>
+</div>
+{% endblock %}

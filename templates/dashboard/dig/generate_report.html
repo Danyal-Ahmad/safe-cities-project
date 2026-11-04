@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Generate Report — SafeCity{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-file-earmark-bar-chart me-2"></i>Generate Report</h1>
+ <p class=" opacity-75">Create a custom report with your selected parameters</p>
+ </div>
+</div>
+
+<div>
+ <div>
+ <div>
+ <div class="card-header">
+ <span><i class="bi bi-circle me-2"></i>Generate Report</span>
+ </div>
+ <div class="card-body">
+ <form method="post">
+ {% csrf_token %}
+ <div>
+ <div>
+ <label>Report Title *</label>
+ <input type="text" name="title" required placeholder="Monthly Violation Report - January 2024">
+ </div>
+ <div>
+ <label>Report Type *</label>
+ <select name="type" required>
+ <option value="violations">Violation Statistics</option>
+ <option value="revenue">Revenue Collection</option>
+ <option value="camera_performance">Camera Performance</option>
+ <option value="officer_performance">Officer Performance</option>
+ <option value="appeals">Appeal Statistics</option>
+ <option value="compliance">Compliance Report</option>
+ </select>
+ </div>
+ </div>
+ <div>
+ <div>
+ <label>Date Range *</label>
+ <div>
+ <input type="date" name="start_date" required>
+ <span>to</span>
+ <input type="date" name="end_date" required>
+ </div>
+ </div>
+ <div>
+ <label>Format</label>
+ <select name="format">
+ <option value="pdf">PDF</option>
+ <option value="excel">Excel</option>
+ <option value="csv">CSV</option>
+ </select>
+ </div>
+ </div>
+ <div>
+ <div>
+ <label>Camera</label>
+ <select name="camera_id"><option value="">All Cameras</option></select>
+ </div>
+ <div>
+ <label>Violation Type</label>
+ <select name="violation_type"><option value="">All Violations</option></select>
+ </div>
+ <div>
+ <label>Officer</label>
+ <select name="officer_id"><option value="">All Officers</option></select>
+ </div>
+ </div>
+ <div>
+ <input class="-input" type="checkbox" name="include_charts" id="includeCharts" checked>
+ <label class="-label" for="includeCharts">Include Charts</label>
+ </div>
+ <div>
+ <button type="submit" class="btn btn-primary"><i class="bi bi-file-earmark-bar-chart me-1"></i>Generate Report</button>
+ <a href="{% url 'dig:reports' %}" class="sc-btn sc-btn-primary">Cancel</a>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+{% endblock %}

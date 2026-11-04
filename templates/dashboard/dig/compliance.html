@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Compliance — Safe City{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-clipboard-check me-2"></i>Compliance Overview</h1>
+ <p class=" opacity-75">System compliance posture · audit trail</p>
+ </div>
+ <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+</div>
+
+<div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Pending Reviews</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ pending_reviews|default:0 }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Total Challans</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ total_challans|default:0 }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Total Appeals</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ total_appeals|default:0 }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Audit Entries</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ audit_entries|default:0 }}</div>
+ </div>
+ </div>
+</div>
+
+<div>
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>System Compliance Status</span></div>
+ <div class="card-body">
+ <p class=" small ">All staff actions are logged in the audit trail. Pending detections are tracked for timely review.</p>
+ <div class="list-group list-group-flush">
+ <div class="list-group-item px-0">
+ <span class=" small">Pending detections awaiting review</span>
+ <strong>{{ pending_reviews|default:0 }}</strong>
+ </div>
+ <div class="list-group-item px-0">
+ <span class=" small">Total challans issued</span>
+ <strong>{{ total_challans|default:0 }}</strong>
+ </div>
+ <div class="list-group-item px-0">
+ <span class=" small">Total appeals filed</span>
+ <strong>{{ total_appeals|default:0 }}</strong>
+ </div>
+ <div class="list-group-item px-0">
+ <span class=" small">Total audit log entries</span>
+ <strong>{{ audit_entries|default:0 }}</strong>
+ </div>
+ </div>
+ <div>
+ <a href="{% url 'dig:audit_log' %}" class="sc-btn sc-btn-primary"><i class="bi bi-shield-lock me-1"></i>Audit Log</a>
+ <a href="{% url 'dig:flagged_detections' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Flagged</a>
+ </div>
+ </div>
+</div>
+{% endblock %}

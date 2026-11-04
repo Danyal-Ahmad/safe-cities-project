@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Login — SAFE CITY FYP</title>
+  <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Autofill fix — keep dark bg, never show yellow ===== */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      -webkit-text-fill-color: #F0F4F8 !important;
+      -webkit-box-shadow: 0 0 0 1000px rgba(15,28,68,0.85) inset !important;
+      box-shadow: 0 0 0 1000px rgba(15,28,68,0.85) inset !important;
+      caret-color: #93c5fd;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+    input:-webkit-autofill::first-line { color: #F0F4F8 !important; font-family: 'Inter', sans-serif !important; font-size: 14px !important; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    html { -webkit-text-size-adjust: none; text-size-adjust: none; }
+    body { min-height: 100vh; display: grid; place-content: center; background: #0a1a3a; position: relative; overflow-y: auto; overflow-x: hidden; padding: 40px 20px; -webkit-font-smoothing: antialiased; }
+    .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+    .bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+    .bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(10,26,58,0.88), rgba(20,60,140,0.78)); }
+    .card { position: relative; z-index: 1; display: flex; width: 100%; max-width: 760px; min-height: 480px; border-radius: 8px; overflow: hidden; background: rgba(15,28,68,0.92); backdrop-filter: blur(20px); border: 1px solid rgba(96,165,250,0.18); box-shadow: 0 20px 80px rgba(0,0,0,0.6); }
+    .left { flex: 0.85; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px; background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(37,99,235,0.05), rgba(96,165,250,0.04), rgba(147,197,253,0.06)); border-right: 1px solid rgba(96,165,250,0.10); position: relative; overflow: hidden; }
+    .logos{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .logos img{width:52px;height:52px;object-fit:contain}
+    .sep { width: 1px; height: 44px; background: linear-gradient(180deg, transparent, rgba(96,165,250,0.35), transparent); }
+    .title { text-align: center; position: relative; z-index: 1; }
+    .title h1 { font-size: 22px; font-weight: 900; letter-spacing: 2px; background: linear-gradient(90deg, #60a5fa, #1e40af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .title p { font-size: 10px; letter-spacing: 4px; color: rgba(232,240,255,0.45); text-transform: uppercase; font-weight: 600; margin-top: 4px; }
+    .right { flex: 1.2; display: flex; flex-direction: column; justify-content: center; padding: 36px 48px; }
+    .form-title { font-size: 20px; font-weight: 700; color: #F0F4F8; margin-bottom: 6px; }
+    .form-sub { font-size: 11px; color: rgba(232,240,255,0.55); margin-bottom: 24px; }
+    .fg { margin-bottom: 16px; }
+    .fg label { display: block; font-size: 13px; font-weight: 600; color: rgba(232,240,255,0.7); margin-bottom: 6px; }
+    .fg label .req { color: #EF4444; margin-left: 3px; }
+    .iw { position: relative; }
+    .iw .il { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(96,165,250,0.5); font-size: 13px; }
+    .iw input { width: 100%; padding: 12px 40px 12px 40px; border: 1px solid rgba(96,165,250,0.15); border-radius: 12px; font-size: 14px; color: #F0F4F8; background: rgba(8,18,46,0.7); outline: none; transition: all .2s; caret-color: #60a5fa; }
+    .iw input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.15); }
+    .iw input::placeholder { color: rgba(232,240,255,0.3); }
+    .iw .tp { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: rgba(232,240,255,0.3); cursor: pointer; font-size: 13px; background: none; border: none; padding: 4px; }
+    .iw .tp:hover { color: #60a5fa; }
+    .btn{width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s ease;color:#fff;background:linear-gradient(135deg,#3b82f6,#1e3a8a);margin-top:6px}
+    .btn:hover{background:linear-gradient(135deg,#1e3a8a,#3b82f6)}
+    .msg { padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .msg.error { background: rgba(239,68,68,0.1); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.2); }
+    .msg.success { background: rgba(59,130,246,0.15); color: #93C5FD; border: 1px solid rgba(59,130,246,0.3); }
+    .msg.info { background: rgba(96,165,250,0.1); color: #93C5FD; border: 1px solid rgba(96,165,250,0.2); }
+    .cd { text-align: center; margin-top: 16px; font-size: 11px; color: rgba(232,240,255,0.45); }
+    .cd a { color: #93C5FD; text-decoration: none; font-weight: 600; }
+    .cd a:hover { text-decoration: underline; }
+    .footer-links { text-align: center; margin-top: 16px; font-size: 11px; color: rgba(232,240,255,0.45); }
+    .footer-links a { color: #93C5FD; text-decoration: none; font-weight: 600; }
+    .footer-links a:hover { text-decoration: underline; }
+    .hint { font-size: 10px; color: rgba(232,240,255,0.4); margin-top: 4px; font-weight: 400; }
+    .loader { display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; flex-direction: column; background: rgba(10,26,58,0.92); backdrop-filter: blur(10px); gap: 18px; }
+    .loader.show { display: flex; }
+    .loader-logo { width: 64px; height: 64px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+    .loader-logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; border-radius: 14px; }
+    .loader-text { font-size: 13px; font-weight: 600; color: rgba(232,240,255,0.85); letter-spacing: 1.5px; text-transform: uppercase; }
+    @media (max-width: 700px) { .card { flex-direction: column; min-height: auto; } .left { border-right: none; border-bottom: 1px solid rgba(96,165,250,0.10); padding: 24px; } .right { padding: 24px; } }
+  </style>
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="loader-logo">
+      <img src="{% static 'img/project_logo.png' %}" alt="Logo">
+    </div>
+    <div class="loader-text">Signing you in...</div>
+  </div>
+  <div class="bg"><img src="{% static 'img/login_background.jpg' %}" alt=""></div>
+  <div class="card">
+    <div class="left">
+      <div class="logos">
+        <img src="{% static 'img/project_logo.png' %}" style="width:56px;height:56px;border-radius:12px" alt="">
+        <div class="sep"></div>
+        <img src="{% static 'img/university_logo.png' %}" style="width:44px;height:44px;border-radius:10px" alt="">
+      </div>
+      <div class="title"><h1>SAFE CITY FYP</h1><p>STAFF PORTAL</p></div>
+    </div>
+    <div class="right">
+      <div class="form-title">Staff Sign In</div>
+      <div class="form-sub">Authorized personnel only. Login with your official email and password to manage the system.</div>
+      {% if messages %}{% for m in messages %}<div class="msg {{ m.tags }}"><i class="fa-solid {% if m.tags == 'error' %}fa-circle-exclamation{% elif m.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>{{ m }}</div>{% endfor %}{% endif %}
+      <form method="post" id="loginForm" autocomplete="off">
+        {% csrf_token %}
+        <div class="fg">
+          <label>Email Address<span class="req">*</span></label>
+          <div class="iw">
+            <span class="il"><i class="fa-solid fa-envelope"></i></span>
+            <input type="email" name="username" placeholder="staff@safecity.gov" required>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Password<span class="req">*</span></label>
+          <div class="iw">
+            <span class="il"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" name="password" placeholder="Enter your password" required>
+            <button type="button" class="tp" onclick="var p=this.previousElementSibling; p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'\u{1F441}':'\u{1F576}'"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="sc-btn sc-btn-primary">Sign In</button>
+        <div class="cd">
+          <a href="{% url 'auth_portal:admin_forgot_password' %}">Forgot Password?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>document.getElementById('loginForm').addEventListener('submit',function(e){document.getElementById('loader').classList.add('show')});</script>
+</body>
+</html>

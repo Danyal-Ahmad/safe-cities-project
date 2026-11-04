@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Staff Directory{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Staff directory</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Staff directory</h1>
+<p class="sc-lead">All non-citizen staff accounts.</p>
+</div>
+</div>
+<div class="sc-card">{% if staff %}<table class="sc-table sc-data-table"><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Department</th><th>Status</th><th>Last login</th></tr></thead><tbody>{% for s in staff %}<tr><td class="sc-mono">{{ s.username }}</td><td>{{ s.display_name }}</td><td><span class="sc-badge sc-badge-blue">{{ s.role_label }}</span></td><td>{{ s.department|default:"-" }}</td><td>{% if s.is_active %}<span class="sc-badge sc-badge-ok">Active</span>{% else %}<span class="sc-badge sc-badge-gray">Disabled</span>{% endif %}</td><td class="sc-text-sm">{{ s.last_login|date:"d M H:i"|default:"-" }}</td></tr>{% empty %}<tr><td colspan="6" class="sc-empty">No staff.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No staff.</div>{% endif %}</div>{% endblock %}

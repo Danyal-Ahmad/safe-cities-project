@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}AI Review Queue — SafeCity Officer Command{% endblock %}
+
+{% block crumb %}
+<a href="{% url 'officer_portal:dashboard' %}">Officer Portal</a>
+<span class="sc-crumb-sep">/</span>
+<b>AI Review Queue</b>
+{% endblock %}
+
+{% block content %}
+<div class="md-hero">
+  <div>
+    <div class="md-hero-title">
+      <i class="bi bi-inbox-fill"></i>
+      <span>AI Violation Triage & Review Queue</span>
+      <span class="md-badge md-badge-amber" id="queueCountBadge">
+        {{ detections|length }} PENDING
+      </span>
+    </div>
+    <p class="md-hero-subtitle">
+      Rapid-Action Decision Hub · Verified AI Inferences · Hotkey-Enabled Verification
+    </p>
+  </div>
+  <div class="md-hero-actions">
+    <div class="sc-flex sc-items-center" style="gap: 0.4rem; background: rgba(15,23,42,0.35); padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.22); color: #C9DAF5;">
+      <span style="color: #94a3b8;">Hotkeys:</span>
+      <span class="md-action-key" style="background:#0284c7;color:#fff;">C</span> Confirm
+      <span class="md-action-key" style="background:#ef4444;color:#fff;">R</span> Reject
+      <span class="md-action-key" style="background:#f59e0b;color:#fff;">F</span> Flag
+      <span class="md-action-key">A</span> Studio
+    </div>
+    <a href="{% url 'officer_portal:live_tracking' %}" class="md-btn md-btn-secondary md-btn-sm">
+      <i class="bi bi-radar"></i> Live Radar
+    </a>
+  </div>
+</div>
+
+<!-- Main Split Triage Grid (Left Queue | Right Interactive Detail) -->
+<div class="md-triage-grid">
+
+  <!-- LEFT PANEL: Detection Items Queue -->
+  <div class="md-card" style="padding: 0; overflow: hidden;">
+    <div class="md-card-head" style="padding: 0.875rem 1rem;">
+      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+        <i class="bi bi-list-task" style="color: var(--md-brand-cyan);"></i>
+        <h3 style="font-size: 0.9rem; margin: 0;">Review Backlog</h3>
+      </div>
+      <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">
+        {{ detections|length }} Items
+      </span>
+    </div>
+
+    <!-- Scrollable Queue Stream -->
+    <div style="max-height: calc(100vh - 240px); overflow-y: auto;" id="queueItemsList">
+      {% for d in detections %}
+        <a href="?detection_id={{ d.id }}"
+           class="md-queue-item {% if selected and selected.id == d.id %}active{% endif %}"
+           data-det-id="{{ d.id }}"
+           style="border-left: 3px solid {% if selected and selected.id == d.id %}#0284c7{% else %}transparent{% endif %};">
+          <!-- Frame Thumbnail -->
+          <div style="width: 58px; height: 42px; background: #0f172a; border-radius: var(--md-radius-sm); overflow: hidden; flex-shrink: 0; position: relative;">
+            {% if d.raw_image %}
+              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Frame" style="width: 100%; height: 100%; object-fit: cover; background:#0A0E14;" onerror="this.style.opacity='0.15';">
+            {% else %}
+              <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.65rem;">No Img</div>
+            {% endif %}
+          </div>
+
+          <!-- Meta Information -->
+          <div style="flex-grow: 1; min-width: 0;">
+            <div class="sc-flex sc-items-center sc-justify-between">
+              <span class="md-plate-tag" style="font-size: 0.85rem; color: #0b192c;">
+                {{ d.effective_plate|default:"UNREAD" }}
+              </span>
+              <span class="md-badge md-badge-amber" style="font-size: 0.65rem; padding: 1px 5px;">
+                {{ d.effective_violation_type|default:"wrong_way"|truncatechars:12 }}
+              </span>
+            </div>
+            <div class="sc-flex sc-items-center sc-justify-between" style="font-size: 0.72rem; color: var(--md-text-muted); margin-top: 2px;">
+              <span>#{{ d.id }} · {{ d.camera.camera_id|default:"CAM" }}</span>
+              <span>{{ d.created_at|date:"H:i:s" }}</span>
+            </div>
+
+            {% if d.ai_confidence %}
+              <div class="md-conf-bar" style="margin-top: 4px;">
+                <div class="md-conf-fill" style="width: {% widthratio d.ai_confidence 1 100 %}%;"></div>
+              </div>
+            {% endif %}
+          </div>
+        </a>
+      {% empty %}
+        <div style="padding: 3rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+          <i class="bi bi-check2-all" style="font-size: 2.5rem; color: #10b981; display: block; margin-bottom: 0.5rem;"></i>
+          <div style="font-weight: 600; color: var(--md-text-title);">Queue is Clear!</div>
+          <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">All pending AI violation frames have been triaged by officers.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Full Detection Detail & Decision Station -->
+  <div class="md-card" style="padding: 1.25rem;">
+    {% if selected %}
+      {% include "dashboard/officer/_detection_detail.html" with detection=selected %}
+    {% else %}
+      <div style="padding: 5rem 2rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-shield-check" style="font-size: 3.5rem; color: #0284c7; display: block; margin-bottom: 0.75rem;"></i>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--md-text-title); margin: 0;">Officer Decision Station</h3>
+        <p style="font-size: 0.9rem; max-width: 360px; margin: 0.5rem auto 1.5rem;">Select any item from the left queue to inspect the violation frame, verify license plate numbers, or issue legal e-challans.</p>
+        {% if detections %}
+          <a href="?detection_id={{ detections.0.id }}" class="md-btn md-btn-primary">
+            <i class="bi bi-play-fill"></i> Start Reviewing First Detection
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Real-time Keyboard Shortcuts to Drastically Reduce Officer Effort -->
+<script>
+document.addEventListener('keydown', function(e) {
+  // If user is focused on an input or textarea, do not trigger single-key hotkeys
+  const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+  if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+    return;
+  }
+
+  const key = e.key.toUpperCase();
+
+  // 'C' -> Confirm & Issue Challan
+  if (key === 'C') {
+    const btn = document.getElementById('btnConfirmTriage');
+    if (btn) {
+      e.preventDefault();
+      btn.click();
+    }
+  }
+  // 'R' -> Reject False Positive
+  else if (key === 'R') {
+    const btn = document.getElementById('btnRejectTriage');
+    if (btn) {
+      e.preventDefault();
+      btn.click();
+    }
+  }
+  // 'F' -> Flag for DIG Escalation
+  else if (key === 'F') {
+    const btn = document.getElementById('btnFlagTriage');
+    if (btn) {
+      e.preventDefault();
+      btn.click();
+    }
+  }
+  // 'A' -> Open Annotation Studio
+  else if (key === 'A') {
+    {% if selected %}
+      e.preventDefault();
+      window.location.href = "{% url 'officer_portal:manual_annotation' %}?camera_id={{ selected.camera.id }}&focus={{ selected.id }}";
+    {% endif %}
+  }
+  // Arrow Down / Arrow Up to navigate items in the queue
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const queueLinks = Array.from(document.querySelectorAll('.md-queue-item'));
+    if (queueLinks.length === 0) return;
+
+    let currentIndex = queueLinks.findIndex(l => l.classList.contains('active'));
+    if (e.key === 'ArrowDown') {
+      const nextIndex = currentIndex < queueLinks.length - 1 ? currentIndex + 1 : 0;
+      queueLinks[nextIndex].click();
+      e.preventDefault();
+    } else if (e.key === 'ArrowUp') {
+      const prevIndex = currentIndex > 0 ? currentIndex - 1 : queueLinks.length - 1;
+      queueLinks[prevIndex].click();
+      e.preventDefault();
+    }
+  }
+});
+</script>
+{% endblock %}

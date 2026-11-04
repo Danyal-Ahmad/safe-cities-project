@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Challan Templates{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Challan templates</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Challan templates</h1>
+<p class="sc-lead">SAFE CITY FYP print templates gallery.</p>
+</div>
+</div>
+<div class="sc-flex sc-gap-2 sc-mb-3"><a class="sc-btn sc-btn-success" href="#"><i class="bi bi-upload"></i> Upload PDF</a><a class="sc-btn sc-btn-primary" href="{% url 'it_support_portal:challan_template_designer' %}"><i class="bi bi-palette"></i> A4 Designer</a></div><div class="sc-card">{% if templates %}<div class="sc-grid sc-grid-3">{% for t in templates %}<div class="sc-card"><div class="sc-flex sc-justify-between sc-items-center sc-mb-2"><strong>{{ t.name }}</strong>{% if t.is_active %}<span class="sc-badge sc-badge-ok">Active</span>{% else %}<span></span>{% endif %}</div><div style="min-height:100px;background:#0A0E14;border-radius:8px;padding:10px;color:#8BE9C8;font-size:9.5px;overflow:hidden;position:relative;"><div style="position:absolute;top:6px;right:8px;font-size:8px;color:#5B6B85;text-transform:uppercase;letter-spacing:0.1em;">Template source</div><pre style="margin:0;white-space:pre-wrap;word-break:break-all;max-height:140px;overflow:hidden;font-family:ui-monospace,monospace;color:#8BE9C8;">{{ t.preview_html|default:t.name|truncatechars:400 }}</pre></div><form method="post" class="sc-mt-2">{% csrf_token %}<input type="hidden" name="action" value="set_challan_template"><input type="hidden" name="active_template" value="{{ t.key }}"><button type="submit" class="sc-btn sc-btn-sm sc-btn-primary" style="width:100%;justify-content:center;">Set as active</button></form></div>{% endfor %}</div>{% else %}<div class="sc-empty">No templates.</div>{% endif %}</div>{% endblock %}

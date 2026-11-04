@@ -1,0 +1,243 @@
+{# Unified modern challan print template (A4) - supports English and Urdu #}
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="{{ challan.locale|default:'en' }}">
+<head>
+  <meta charset="UTF-8">
+  <title>E-Challan {{ challan.ticket_no }}</title>
+  <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  {% if challan.locale == 'ur' %}
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700;800&display=swap" rel="stylesheet">
+  {% else %}
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  {% endif %}
+  <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
+
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" defer></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+
+  <style>
+    body { font-family: {% if challan.locale == 'ur' %}'Noto Nastaliq Urdu', serif{% else %}'Inter', sans-serif{% endif %}; color: #111; background: #f1f3f5; padding: 20px; }
+    .sc-print-sheet {
+      width: 210mm; min-height: 297mm; margin: 0 auto; padding: 14mm;
+      background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.15);
+      font-size: 12.5px; line-height: 1.45;
+    }
+    .sc-print-header {
+      display: flex; align-items: center; gap: 16px;
+      padding-bottom: 12px; border-bottom: 3px double #1d4f7c; margin-bottom: 14px;
+    }
+    .sc-print-header img { width: 64px; height: 64px; }
+    .sc-print-header .sc-print-titles { flex: 1; }
+    .sc-print-header h1 { font-size: 19px; color: #1d4f7c; margin: 0; font-weight: 800; }
+    .sc-print-header .sc-print-sub { font-size: 11px; color: #6b7280; margin-top: 3px; }
+    .sc-print-header .sc-print-stamp {
+      display: inline-block; padding: 6px 14px; border: 2px solid #15803d;
+      color: #15803d; font-weight: 800; transform: rotate(-6deg);
+      border-radius: 4px; font-size: 14px; letter-spacing: .1em;
+    }
+    .sc-print-qr { width: 84px; height: 84px; }
+    .sc-print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin: 14px 0; }
+    .sc-print-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #d1d5db; font-size: 12px; }
+    .sc-print-row .sc-print-k { color: #6b7280; }
+    .sc-print-row .sc-print-v { font-weight: 600; }
+    .sc-print-row .sc-print-v.sc-mono { font-family: 'Courier New', monospace; }
+    .sc-print-section { margin-top: 18px; }
+    .sc-print-section h2 {
+      font-size: 12px; color: #1d4f7c; font-weight: 700;
+      border-bottom: 1px solid #1d4f7c; padding-bottom: 4px; margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .sc-print-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .sc-print-box {
+      border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px;
+      background: #f8fafc; text-align: center;
+    }
+    .sc-print-box .sc-print-box-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: .03em; }
+    .sc-print-box .sc-print-box-value { font-size: 18px; font-weight: 800; color: #1d4f7c; margin-top: 4px; }
+    .sc-print-box img { max-width: 100%; max-height: 80px; display: block; margin: 4px auto 0; }
+    .sc-print-evidence { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .sc-print-evidence .sc-print-evidence-item { border: 1px solid #e5e7eb; border-radius: 4px; padding: 4px; }
+    .sc-print-evidence .sc-print-evidence-item img { width: 100%; height: 120px; object-fit: cover; }
+    .sc-print-evidence .sc-print-evidence-item .sc-print-evidence-label {
+      font-size: 10px; color: #6b7280; text-align: center; padding: 4px; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .sc-print-signature { display: flex; justify-content: space-between; margin-top: 28px; }
+    .sc-print-signature .sc-print-sig { text-align: center; }
+    .sc-print-signature .sc-print-sig .sc-print-sig-line {
+      border-top: 1px solid #1d4f7c; width: 180px; margin: 0 auto 4px; padding-top: 4px;
+      font-size: 11px; color: #6b7280;
+    }
+    .sc-print-footer { margin-top: 24px; border-top: 1px solid #d1d5db; padding-top: 10px; font-size: 10px; color: #6b7280; display: flex; justify-content: space-between; }
+    .sc-print-instructions { background: #fffbeb; border-left: 3px solid #b45309; padding: 10px 14px; font-size: 11.5px; color: #78350f; margin-top: 12px; }
+    .sc-print-urdu { direction: rtl; text-align: right; }
+  </style>
+</head>
+<body class="{% if challan.locale == 'ur' %}sc-print-urdu{% endif %}">
+
+<div class="sc-print-sheet" style="position:relative;">
+
+  {% if officer_signature_name and officer_signature_name != '—' %}
+  <div style="position:absolute;top:48%;left:18%;font-size:42px;font-weight:800;color:rgba(31,59,115,0.06);transform:rotate(-22deg);pointer-events:none;white-space:nowrap;z-index:0;letter-spacing:.05em;">
+    {% if challan.locale == 'ur' %}تصدیق شدہ · {{ officer_signature_name|upper }}{% else %}VERIFIED · {{ officer_signature_name|upper }}{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="sc-print-header">
+    <img src="{% static 'img/project_logo.png' %}" alt="SAFE CITY FYP">
+    <div class="sc-print-titles">
+      <h1>{% if challan.locale == 'ur' %}محکمہ ٹریفک پولیس{% else %}SAFE CITY — TRAFFIC POLICE E-CHALLAN{% endif %}</h1>
+      <div class="sc-print-sub">{% if challan.locale == 'ur' %}سیف سٹی{% else %}Safe City · Computer-generated e-challan{% endif %}</div>
+    </div>
+    {% if challan.payment_status == 'PAID' %}
+    <div class="sc-print-stamp">PAID</div>
+    {% elif challan.is_overdue %}
+    <div class="sc-print-stamp" style="border-color: #b91c1c; color: #b91c1c;">OVERDUE</div>
+    {% endif %}
+    <div class="sc-print-qr">
+      <div id="scQr" data-text="{{ challan.ticket_no }}|PSID:{{ challan.psid }}|PKR:{{ challan.fine_amount }}" style="width:84px;height:84px;background:#fff;border:1px solid #e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#6b7280;text-align:center;padding:4px;">{{ challan.psid }}</div>
+    </div>
+  </div>
+
+  <div class="sc-print-grid-3">
+    <div class="sc-print-box">
+      <div class="sc-print-box-label">Ticket</div>
+      <div class="sc-print-box-value sc-mono">{{ challan.ticket_no }}</div>
+    </div>
+    <div class="sc-print-box">
+      <div class="sc-print-box-label">Vehicle</div>
+      <div class="sc-print-box-value sc-mono">{{ challan.plate_number }}</div>
+    </div>
+    <div class="sc-print-box">
+      <div class="sc-print-box-label">Fine</div>
+      <div class="sc-print-box-value">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</div>
+    </div>
+  </div>
+
+  <div class="sc-print-grid">
+    <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}جرم{% else %}Violation{% endif %}</span><span class="sc-print-v">{{ challan.get_violation_type_display|default:challan.violation_type }}</span></div>
+    <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}مقام{% else %}Location{% endif %}</span><span class="sc-print-v">{{ challan.location|default:'—' }}</span></div>
+    <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}تاریخ اجراء{% else %}Issue date{% endif %}</span><span class="sc-print-v">{{ challan.issue_date|date:'d M Y' }}</span></div>
+    <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}آخری تاریخ{% else %}Due date{% endif %}</span><span class="sc-print-v">{{ challan.due_date|date:'d M Y' }}</span></div>
+    <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}کیمرہ{% else %}Camera{% endif %}</span><span class="sc-print-v">{{ challan.camera.camera_id|default:'—' }}</span></div>
+    <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}سٹیٹس{% else %}Status{% endif %}</span><span class="sc-print-v">{{ challan.get_payment_status_display|default:challan.payment_status }}</span></div>
+  </div>
+
+  <div class="sc-print-section">
+    <h2>{% if challan.locale == 'ur' %}گاڑی کی معلومات{% else %}Vehicle Information{% endif %}</h2>
+    <div class="sc-print-grid">
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}قسم{% else %}Type{% endif %}</span><span class="sc-print-v">{{ challan.vehicle_type|default:'Car' }}</span></div>
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}سال{% else %}Year{% endif %}</span><span class="sc-print-v">{{ challan.make_year|default:'—' }}</span></div>
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}رنگ{% else %}Color{% endif %}</span><span class="sc-print-v">{{ challan.color|default:'—' }}</span></div>
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}چیسس نمبر{% else %}Chassis{% endif %}</span><span class="sc-print-v">{{ challan.chassis_no|default:'—' }}</span></div>
+    </div>
+  </div>
+
+  <div class="sc-print-section">
+    <h2>{% if challan.locale == 'ur' %}مالک کی معلومات{% else %}Owner Information{% endif %}</h2>
+    <div class="sc-print-grid">
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}نام{% else %}Name{% endif %}</span><span class="sc-print-v">{{ challan.owner_name|default:'—' }}</span></div>
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}شناختی کارڈ نمبر{% else %}CNIC{% endif %}</span><span class="sc-print-v sc-mono">{{ challan.cnic|default:'—' }}</span></div>
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}فون{% else %}Phone{% endif %}</span><span class="sc-print-v">{{ challan.phone|default:'—' }}</span></div>
+      <div class="sc-print-row"><span class="sc-print-k">{% if challan.locale == 'ur' %}پتہ{% else %}Address{% endif %}</span><span class="sc-print-v">{{ challan.address|default:'—' }}</span></div>
+    </div>
+  </div>
+
+  <div class="sc-print-section">
+    <h2>{% if challan.locale == 'ur' %}ادائیگی کی معلومات{% else %}Payment Information{% endif %}</h2>
+    <div class="sc-print-grid-3">
+      <div class="sc-print-box">
+        <div class="sc-print-box-label">PSID</div>
+        <div class="sc-print-box-value sc-mono" style="font-size:14px;">{{ challan.psid }}</div>
+      </div>
+      <div class="sc-print-box">
+        <div class="sc-print-box-label">Amount Due</div>
+        <div class="sc-print-box-value">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</div>
+      </div>
+      <div class="sc-print-box">
+        <div class="sc-print-box-label">Status</div>
+        <div class="sc-print-box-value" style="font-size:14px;">{{ challan.get_payment_status_display }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% if challan.detection and challan.detection.raw_image %}
+  <div class="sc-print-section">
+    <h2>{% if challan.locale == 'ur' %}شواہد{% else %}Violation Evidence{% endif %}</h2>
+    <div class="sc-print-evidence-single">
+      <div class="sc-print-evidence-frame">
+        <img src="{{ challan.detection.raw_image.url }}" alt="Detection frame — violation evidence">
+        <div class="sc-print-evidence-overlay">
+          <div class="sc-print-evidence-meta">
+            <div><b>{% if challan.locale == 'ur' %}کیمرہ{% else %}Camera{% endif %}:</b> {{ challan.detection.camera.camera_id|default:'—' }}</div>
+            <div><b>{% if challan.locale == 'ur' %}وقت{% else %}Captured{% endif %}:</b> {{ challan.detection.created_at|date:'d M Y H:i:s' }}</div>
+            <div><b>{% if challan.locale == 'ur' %}پلیٹ{% else %}Plate{% endif %}:</b> <span class="sc-mono">{{ challan.detection.effective_plate|default:'—' }}</span></div>
+            <div><b>{% if challan.locale == 'ur' %}اعتماد{% else %}AI Conf.{% endif %}:</b> {{ challan.detection.ai_confidence|floatformat:2|default:'—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="sc-print-instructions">
+    <strong>{% if challan.locale == 'ur' %}ہدایات:{% else %}Instructions:{% endif %}</strong>
+    {% if challan.locale == 'ur' %}
+    ای چالان 10 دن کے اندر ادا کریں۔ ادائیگی کے لیے JazzCash، EasyPaisa یا بینک ٹرانسفر استعمال کریں۔ PSID نمبر درکار ہے۔
+    {% else %}
+    Pay this challan within 10 days using JazzCash, EasyPaisa, or bank transfer with the PSID number above.
+    {% endif %}
+  </div>
+
+  <div class="sc-print-signature">
+    <div class="sc-print-sig">
+      <div class="sc-print-sig-line">{% if challan.locale == 'ur' %}جاری کنندہ{% else %}Issuing officer{% endif %}</div>
+      {% if officer_signature_url %}
+        <div style="position:relative;display:inline-block;min-height:54px;min-width:160px;">
+          <img src="{{ officer_signature_url }}" alt="signature" style="max-height:54px;max-width:180px;position:relative;z-index:1;">
+          {% if officer_signature_stamp_url %}
+          <img src="{{ officer_signature_stamp_url }}" alt="stamp" style="position:absolute;right:-10px;top:-10px;height:64px;width:64px;opacity:.65;z-index:0;">
+          {% endif %}
+        </div>
+      {% else %}
+        <div style="height:54px;"></div>
+      {% endif %}
+      <div style="font-weight: 700; margin-top: 2px;">{{ officer_signature_name|default:'—' }}</div>
+      <div style="font-size:11px; color:#475569;">{{ officer_signature_designation|default:'' }}</div>
+      <div style="font-size:10px; color:#64748b;">ID: {{ officer_staff_id|default:'—' }} {% if officer_region and officer_region != '—' %}· {{ officer_region }}{% endif %}</div>
+    </div>
+    <div class="sc-print-sig">
+      <div class="sc-print-sig-line">{% if challan.locale == 'ur' %}تاریخ{% else %}Date{% endif %}</div>
+      <div style="font-weight: 600;">{{ challan.issue_date|date:'d M Y' }}</div>
+    </div>
+  </div>
+
+  <div class="sc-print-footer">
+    <span>{% if challan.locale == 'ur' %}محکمہ ٹریفک پولیس · پنجاب سیف سٹیز اتھارٹی — سیف سٹی ایف وائی پی{% else %}Traffic Police · Safe City{% endif %}</span>
+    <span>{% if challan.locale == 'ur' %}مہربند{% else %}Confidential{% endif %} · {% if challan.locale == 'ur' %}کمپیوٹر سے تیار{% else %}Computer-generated{% endif %}</span>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Render barcode if available
+  if (typeof JsBarcode !== 'undefined' && document.getElementById('scBarcode')) {
+    try {
+      JsBarcode('#scBarcode', '{{ challan.ticket_no }}', {format: 'CODE128', displayValue: true, fontSize: 10});
+    } catch (e) {}
+  }
+  // Render QR if available
+  if (typeof qrcode !== 'undefined' && document.getElementById('scQr')) {
+    try {
+      // Fallback: leave text inside the div
+    } catch (e) {}
+  }
+});
+</script>
+</body>
+</html>

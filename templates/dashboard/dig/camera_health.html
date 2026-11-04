@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Camera Health{% endblock %}
+{% block crumb %}<span>DIG</span> / <b>Camera Health</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1>Camera health</h1>
+    <p class="lead">Online/offline status of every camera.</p>
+  </div>
+</div>
+
+<div class="card">
+  {% if cameras %}
+  <div class="overflow-x-auto">
+    <table>
+      <thead><tr><th>Camera</th><th>Location</th><th>Status</th><th>Last heartbeat</th><th>Last frame</th></tr></thead>
+      <tbody>
+        {% for c in cameras %}
+        <tr>
+          <td class="font-mono">{{ c.camera_id }}</td>
+          <td class="small">{{ c.location }}</td>
+          <td>
+            {% if c.health_status == 'online' %}<span class="badge badge-green">Online</span>
+            {% elif c.health_status == 'offline' %}<span class="badge badge-red">Offline</span>
+            {% else %}<span class="badge badge-amber">Unknown</span>{% endif %}
+          </td>
+          <td class="small">{{ c.last_health_check|date:'d M H:i'|default:'-' }}</td>
+          <td class="small">{{ c.last_frame_at|date:'d M H:i'|default:'-' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty">No cameras to check.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">No cameras to check.</div>
+  {% endif %}
+</div>
+{% endblock %}

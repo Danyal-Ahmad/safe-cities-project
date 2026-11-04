@@ -1,0 +1,696 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Manual Annotation Studio — SafeCity Officer Portal{% endblock %}
+
+{% block crumb %}
+<a href="{% url 'officer_portal:dashboard' %}">Officer Portal</a>
+<span class="sc-crumb-sep">/</span>
+<a href="{% url 'officer_portal:live_tracking' %}">Live Tracking</a>
+<span class="sc-crumb-sep">/</span>
+<b>Manual Annotation Studio</b>
+{% endblock %}
+
+{% block content %}
+<div class="md-hero">
+  <div>
+    <div class="md-hero-title">
+      <i class="bi bi-bounding-box-circles"></i>
+      <span>Manual Annotation & AI Inspection Studio</span>
+      <span class="md-badge md-badge-cyan">INTERACTIVE CANVAS</span>
+    </div>
+    <p class="md-hero-subtitle">
+      AI-Assisted Optical Bounding Box · Real-time OCR · Registry Cross-Match · Instant Challan Generation
+    </p>
+  </div>
+  <div class="md-hero-actions">
+    <a href="{% url 'officer_portal:live_tracking' %}{% if selected_camera_id %}?camera_id={{ selected_camera_id }}{% endif %}" class="md-btn md-btn-secondary">
+      <i class="bi bi-radar"></i> Live Radar
+    </a>
+    <a href="{% url 'officer_portal:review_queue' %}" class="md-btn md-btn-secondary">
+      <i class="bi bi-inbox-fill"></i> AI Review Queue
+    </a>
+  </div>
+</div>
+
+<!-- Studio Control Bar -->
+<div class="md-card" style="margin-bottom: 1.25rem; padding: 0.875rem 1.25rem;">
+  <form method="get" class="sc-flex sc-items-center sc-justify-between" style="gap: 1rem; flex-wrap: wrap;">
+    <div class="sc-flex sc-items-center" style="gap: 0.75rem; flex-grow: 1;">
+      <label style="font-weight: 600; font-size: 0.85rem; color: var(--md-text-muted); display: flex; align-items: center; gap: 0.35rem;">
+        <i class="bi bi-camera-video"></i> Camera Stream:
+      </label>
+      <select name="camera_id" class="sc-form-control" style="max-width: 320px;" onchange="this.form.submit()">
+        {% for c in cameras %}
+          <option value="{{ c.id }}" {% if c.id|stringformat:"s" == selected_camera_id %}selected{% endif %}>
+            {{ c.camera_id }} — {{ c.location|truncatechars:35 }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="md-btn md-btn-secondary md-btn-sm">
+        <i class="bi bi-arrow-repeat"></i> Switch Feed
+      </button>
+    </div>
+
+    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+      <span class="md-badge md-badge-success">
+        <span class="md-pulse-dot" style="width: 7px; height: 7px; background: #10b981;"></span>
+        Hardware Ready
+      </span>
+      <span class="md-badge md-badge-info">
+        <i class="bi bi-cpu"></i> PyTesseract / ONNX OCR
+      </span>
+    </div>
+  </form>
+</div>
+
+<!-- Main Studio Layout: 2 Columns (Canvas Stage | Verification Form) -->
+<div class="md-ws-grid">
+
+  <!-- LEFT: Interactive Canvas Stage -->
+  <div class="md-ws-stage">
+    <div class="md-card" style="margin-bottom: 1rem; background: #0b1320; border-color: #1e293b;">
+      <div class="md-card-head" style="background: #0f172a; border-bottom: 1px solid #1e293b; color: #f8fafc;">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <i class="bi bi-aspect-ratio" style="color: #38bdf8;"></i>
+          <span style="font-weight: 600; font-size: 0.9rem;">Viewport: {{ selected_camera.camera_id|default:"Active Stream" }}</span>
+          {% if latest_detection %}
+            <span class="md-badge md-badge-info" style="font-size: 0.72rem;">Target #{{ latest_detection.id }}</span>
+          {% endif %}
+        </div>
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <span id="boxDimBadge" class="md-badge md-badge-secondary" style="font-family: monospace; font-size: 0.75rem;">
+            No Area Selected
+          </span>
+          <span class="md-badge md-badge-danger" style="animation: md-pulse 2s infinite;">
+            <i class="bi bi-record-fill"></i> REC
+          </span>
+        </div>
+      </div>
+
+      <!-- Canvas Viewport Stage -->
+      <div style="position: relative; width: 100%; min-height: 480px; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center;" id="canvasContainer">
+        {% if latest_detection and latest_detection.raw_image %}
+          <img id="studioImage" src="{{ latest_detection.raw_image.url }}" alt="Violation Frame"
+               style="max-width: 100%; max-height: 520px; display: block; object-fit: contain; user-select: none;"
+               crossorigin="anonymous">
+        {% elif stream_url %}
+          <img id="studioImage" src="{{ stream_url }}" alt="Live Camera Feed"
+               style="max-width: 100%; max-height: 520px; display: block; object-fit: contain; user-select: none;"
+               crossorigin="anonymous"
+               onerror="this.style.display='none'; document.getElementById('studioPlaceholder').style.display='flex';">
+        {% else %}
+          <div id="studioPlaceholder" style="padding: 4rem 2rem; text-align: center; color: #64748b; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+            <i class="bi bi-camera-video-off" style="font-size: 3rem; color: #475569;"></i>
+            <div style="font-size: 1.1rem; font-weight: 600; color: #94a3b8;">No Image or Stream Selected</div>
+            <p style="max-width: 400px; font-size: 0.85rem;">Select a detection frame from the timeline below, or pick another live camera to inspect real-time frames.</p>
+          </div>
+        {% endif %}
+
+        <!-- Interactive HTML5 Bounding Box Overlay Canvas -->
+        <canvas id="annotationCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10;"></canvas>
+
+        <!-- HUD Corner Overlay Elements -->
+        <div style="position: absolute; top: 12px; left: 12px; pointer-events: none; z-index: 12; background: rgba(15,23,42,0.75); padding: 4px 10px; border-radius: 4px; border-left: 3px solid #38bdf8; font-family: monospace; font-size: 0.75rem; color: #f8fafc;">
+          CAM: {{ selected_camera.camera_id|default:"FEED" }} · <span id="hudTimestamp">LIVE</span>
+        </div>
+      </div>
+
+      <!-- Studio Interactive Toolbar -->
+      <div style="padding: 0.875rem 1.25rem; background: #0f172a; border-top: 1px solid #1e293b; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <button type="button" class="md-btn md-btn-secondary md-btn-sm" id="btnDrawMode" style="border-color: #38bdf8; color: #38bdf8;">
+            <i class="bi bi-pencil-square"></i> Draw Box
+          </button>
+          <button type="button" class="md-btn md-btn-secondary md-btn-sm" id="btnClearBox">
+            <i class="bi bi-x-circle"></i> Clear Selection
+          </button>
+          <button type="button" class="md-btn md-btn-secondary md-btn-sm" id="btnResetAI">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset to AI Detection
+          </button>
+        </div>
+
+        <div>
+          <!-- REAL-TIME AI ASSIST OCR BUTTON -->
+          <button type="button" class="md-btn md-btn-primary md-btn-sm" id="btnAiScan" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; box-shadow: 0 0 12px rgba(14,165,233,0.4);">
+            <i class="bi bi-lightning-charge-fill" style="color: #facc15;"></i>
+            <span id="aiScanText">Auto-Scan Crop with AI (OCR)</span>
+            <span id="aiScanSpinner" class="spinner-border spinner-border-sm" style="display: none; width: 14px; height: 14px;" role="status"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline & Recent Frames Strip -->
+    <div class="md-card">
+      <div class="md-card-head">
+        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
+          <i class="bi bi-film" style="color: var(--md-brand-cyan);"></i>
+          <span style="font-weight: 600; font-size: 0.9rem;">Recent Camera Detection Frames</span>
+          <span class="md-badge md-badge-secondary" style="font-size: 0.75rem;">{{ recent_detections|length }} Captured</span>
+        </div>
+        <span style="font-size: 0.8rem; color: var(--md-text-muted);">Click a frame to load into studio</span>
+      </div>
+
+      <div class="md-feed-list" style="display: flex; gap: 0.75rem; padding: 1rem; overflow-x: auto; background: #f8fafc;">
+        {% for d in recent_detections %}
+          <div class="md-frame-card {% if latest_detection and latest_detection.id == d.id %}active-frame{% endif %}"
+               data-detection-id="{{ d.id }}"
+               data-plate="{{ d.effective_plate|default:'' }}"
+               data-violation="{{ d.effective_violation_type|default:'wrong_way' }}"
+               data-confidence="{{ d.plate_confidence|default:0 }}"
+               data-image-url="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}"
+               data-bbox="{% if d.bbox %}{{ d.bbox|join:',' }}{% endif %}"
+               style="flex: 0 0 130px; border: 1px solid var(--md-border); border-radius: var(--md-radius-md); background: #fff; overflow: hidden; cursor: pointer; transition: var(--md-trans); text-align: center; padding-bottom: 0.5rem;"
+               onclick="loadFrameToStudio(this)">
+            <div style="height: 75px; background: #0f172a; position: relative;">
+              {% if d.raw_image %}
+                <img src="{{ d.raw_image.url }}" alt="Frame #{{ d.id }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem;">No Image</div>
+              {% endif %}
+              <span class="md-badge md-badge-dark" style="position: absolute; bottom: 4px; right: 4px; font-size: 0.65rem; padding: 1px 4px;">
+                #{{ d.id }}
+              </span>
+            </div>
+            <div style="padding: 0.4rem 0.5rem 0.2rem 0.5rem;">
+              <div style="font-family: monospace; font-weight: 700; font-size: 0.8rem; color: #0f172a;">
+                {{ d.effective_plate|default:"UNREAD" }}
+              </div>
+              <div style="font-size: 0.7rem; color: var(--md-text-muted); margin-top: 2px;">
+                {{ d.created_at|date:"H:i:s" }}
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div style="padding: 1.5rem; text-align: center; color: var(--md-text-muted); width: 100%; font-size: 0.875rem;">
+            No recent detections recorded for this camera stream.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Verification Form & Challan Issuance -->
+  <div class="md-ws-sidebar">
+    <div class="md-card" style="position: sticky; top: 80px; box-shadow: var(--md-shadow-md);">
+      <div class="md-card-head" style="background: linear-gradient(135deg, #0b192c 0%, #1e293b 100%); color: #fff;">
+        <div>
+          <div style="font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="bi bi-file-earmark-check" style="color: #38bdf8;"></i>
+            <span>Challan Verification & Issuance</span>
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">
+            Target: <span id="targetIdDisplay">{% if latest_detection %}Detection #{{ latest_detection.id }}{% else %}Manual Entry{% endif %}</span>
+          </div>
+        </div>
+        <span class="md-badge md-badge-warning" id="statusBadgeDisplay">
+          {% if latest_detection %}{{ latest_detection.status|upper }}{% else %}PENDING{% endif %}
+        </span>
+      </div>
+
+      <form method="post" action="{% url 'officer_portal:submit_annotation' %}" id="annotationForm" style="padding: 1.25rem;">
+        {% csrf_token %}
+        <input type="hidden" name="camera_id" id="formCameraId" value="{{ selected_camera.id|default:selected_camera_id }}">
+        <input type="hidden" name="action_mode" id="formActionMode" value="detection_challan">
+        <input type="hidden" name="detection_id" id="formDetectionId" value="{{ latest_detection.id|default:'' }}">
+        <input type="hidden" name="frame_url" id="formFrameUrl" value="{% if latest_detection and latest_detection.raw_image %}{{ latest_detection.raw_image.url }}{% elif stream_url %}{{ stream_url }}{% endif %}">
+        <input type="hidden" name="ai_assist_used" id="formAiUsed" value="0">
+        <input type="hidden" name="ai_confidence" id="formAiConfidence" value="">
+
+        <!-- Notification / Status Banner -->
+        <div id="studioAlert" style="display: none; padding: 0.6rem 0.8rem; border-radius: var(--md-radius-md); font-size: 0.8rem; margin-bottom: 1rem;"></div>
+
+        <!-- SECTION 1: Plate Verification -->
+        <div style="margin-bottom: 1.25rem; background: #f8fafc; padding: 1rem; border-radius: var(--md-radius-md); border: 1px solid var(--md-border);">
+          <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--md-text-muted); display: block; margin-bottom: 0.35rem;">
+            Registration Plate Number *
+          </label>
+          <div style="position: relative;">
+            <input type="text" name="plate_text" id="id_plate_text"
+                   value="{{ latest_detection.effective_plate|default:'' }}"
+                   placeholder="LEA-1234"
+                   required
+                   style="font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; border: 2px solid #0284c7; background: #ffffff; color: #0b192c; padding: 0.5rem; border-radius: var(--md-radius-sm); width: 100%;">
+          </div>
+          <div class="sc-flex sc-items-center sc-justify-between" style="margin-top: 0.5rem;">
+            <span class="md-badge md-badge-info" id="aiConfidenceBadge" style="font-size: 0.72rem;">
+              AI Conf: <strong id="aiConfidenceVal">{% if latest_detection and latest_detection.plate_confidence %}{{ latest_detection.plate_confidence|floatformat:1 }}%{% else %}N/A{% endif %}</strong>
+            </span>
+            <button type="button" class="md-btn md-btn-secondary md-btn-sm" style="font-size: 0.72rem; padding: 2px 8px;" onclick="triggerExciseLookup()">
+              <i class="bi bi-search"></i> Excise Lookup
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION 2: Violation Classification & Fine -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--md-text-muted); display: block; margin-bottom: 0.25rem;">
+              Violation Type *
+            </label>
+            <select name="violation_type" id="id_violation_type" class="sc-form-control" required style="font-size: 0.85rem; width: 100%;" onchange="updateFinePreset(this.value)">
+              <option value="wrong_way" {% if latest_detection.effective_violation_type == 'wrong_way' %}selected{% endif %}>Wrong Way (One-Way)</option>
+              <option value="signal_break" {% if latest_detection.effective_violation_type == 'signal_break' %}selected{% endif %}>Red Light Violation</option>
+              <option value="over_speed" {% if latest_detection.effective_violation_type == 'over_speed' %}selected{% endif %}>Over Speeding</option>
+              <option value="no_helmet" {% if latest_detection.effective_violation_type == 'no_helmet' %}selected{% endif %}>No Helmet (2-Wheeler)</option>
+              <option value="other" {% if latest_detection.effective_violation_type == 'other' %}selected{% endif %}>Other Infraction</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--md-text-muted); display: block; margin-bottom: 0.25rem;">
+              Legal Fine (PKR) *
+            </label>
+            <input type="number" name="fine_amount" id="id_fine_amount" value="2000" class="sc-form-control" style="font-weight: 700; font-size: 0.85rem; width: 100%;" required>
+          </div>
+        </div>
+
+        <!-- SECTION 3: NADRA / Vehicle Registry Cross-Match -->
+        <div style="margin-bottom: 1rem; border: 1px solid var(--md-border); border-radius: var(--md-radius-md); padding: 0.75rem; background: #ffffff;">
+          <div class="sc-flex sc-items-center sc-justify-between" style="margin-bottom: 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--md-text-muted);">
+              Vehicle Registry Profile
+            </span>
+            <span class="md-badge md-badge-success" id="registryStatusBadge" style="font-size: 0.68rem;">
+              Database Ready
+            </span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div>
+              <label style="font-size: 0.7rem; color: var(--md-text-muted);">Registered Owner</label>
+              <input type="text" name="owner_name" id="id_owner_name" placeholder="Owner Name" class="sc-form-control" style="font-size: 0.8rem; width: 100%;">
+            </div>
+            <div>
+              <label style="font-size: 0.7rem; color: var(--md-text-muted);">CNIC</label>
+              <input type="text" name="cnic" id="id_cnic" placeholder="35202-xxxxxxx-x" class="sc-form-control" style="font-size: 0.8rem; width: 100%;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div>
+              <label style="font-size: 0.7rem; color: var(--md-text-muted);">Phone Number</label>
+              <input type="tel" name="phone" id="id_phone" placeholder="03xx-xxxxxxx" class="sc-form-control" style="font-size: 0.8rem; width: 100%;">
+            </div>
+            <div>
+              <label style="font-size: 0.7rem; color: var(--md-text-muted);">Registered Address</label>
+              <input type="text" name="address" id="id_address" placeholder="City / Street" class="sc-form-control" style="font-size: 0.8rem; width: 100%;">
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: Officer Observations -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--md-text-muted); display: block; margin-bottom: 0.25rem;">
+            Officer Observation Notes
+          </label>
+          <textarea name="officer_note" id="id_officer_note" rows="2" class="sc-form-control" placeholder="E.g., Vehicle turned illegally into oncoming traffic at junction..." style="font-size: 0.82rem; width: 100%;"></textarea>
+        </div>
+
+        <!-- Submission Controls -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <button type="submit" class="md-btn md-btn-primary" style="width: 100%; justify-content: center; font-size: 0.95rem; padding: 0.75rem;" onclick="setActionMode('detection_challan')">
+            <i class="bi bi-shield-check"></i> Save & Issue Legal Challan
+          </button>
+          <button type="submit" class="md-btn md-btn-secondary md-btn-sm" style="width: 100%; justify-content: center;" onclick="setActionMode('annotation_only')">
+            <i class="bi bi-bookmark-check"></i> Save Annotation Only (No Challan)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Drawing & Realtime AI Assist Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('annotationCanvas');
+  const ctx = canvas.getContext('2d');
+  const img = document.getElementById('studioImage');
+  const boxDimBadge = document.getElementById('boxDimBadge');
+  const btnDrawMode = document.getElementById('btnDrawMode');
+  const btnClearBox = document.getElementById('btnClearBox');
+  const btnResetAI = document.getElementById('btnResetAI');
+  const btnAiScan = document.getElementById('btnAiScan');
+  const aiScanSpinner = document.getElementById('aiScanSpinner');
+  const aiScanText = document.getElementById('aiScanText');
+  const studioAlert = document.getElementById('studioAlert');
+
+  // Drawing state
+  let isDrawing = false;
+  let startX = 0, startY = 0;
+  let currentBox = null; // { x, y, w, h } normalized (0 to 1)
+
+  function updateCanvasDimensions() {
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    renderCanvas();
+  }
+
+  window.addEventListener('resize', updateCanvasDimensions);
+  if (img) {
+    if (img.complete) {
+      updateCanvasDimensions();
+      initDefaultBox();
+    } else {
+      img.onload = () => {
+        updateCanvasDimensions();
+        initDefaultBox();
+      };
+    }
+  }
+
+  function initDefaultBox() {
+    {% if latest_detection and latest_detection.bbox %}
+      try {
+        const rawBbox = {{ latest_detection.bbox|safe }};
+        if (Array.isArray(rawBbox) && rawBbox.length >= 4) {
+          // Bbox could be normalized % (0-100) or 0-1
+          let [bx, by, bw, bh] = rawBbox;
+          if (bw > 1 || bh > 1) {
+            bx /= 100; by /= 100; bw /= 100; bh /= 100;
+          }
+          currentBox = { x: bx, y: by, w: bw, h: bh };
+          renderCanvas();
+          updateDimBadge();
+        }
+      } catch (e) {
+        console.warn("Could not parse default bbox", e);
+      }
+    {% endif %}
+  }
+
+  function renderCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!currentBox) return;
+
+    const px = currentBox.x * canvas.width;
+    const py = currentBox.y * canvas.height;
+    const pw = currentBox.w * canvas.width;
+    const ph = currentBox.h * canvas.height;
+
+    // Dim background outside selection
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(0, 0, canvas.width, py);
+    ctx.fillRect(0, py + ph, canvas.width, canvas.height - (py + ph));
+    ctx.fillRect(0, py, px, ph);
+    ctx.fillRect(px + pw, py, canvas.width - (px + pw), ph);
+
+    // Box stroke
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([6, 3]);
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.setLineDash([]);
+
+    // Corner brackets
+    const bracketSize = Math.min(14, pw / 3, ph / 3);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(px, py + bracketSize); ctx.lineTo(px, py); ctx.lineTo(px + bracketSize, py);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(px + pw - bracketSize, py); ctx.lineTo(px + pw, py); ctx.lineTo(px + pw, py + bracketSize);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(px, py + ph - bracketSize); ctx.lineTo(px, py + ph); ctx.lineTo(px + bracketSize, py + ph);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(px + pw - bracketSize, py + ph); ctx.lineTo(px + pw, py + ph); ctx.lineTo(px + pw, py + ph - bracketSize);
+    ctx.stroke();
+
+    // Plate Tag Label
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(px, Math.max(0, py - 20), Math.min(pw, 120), 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText('PLATE CROP', px + 6, Math.max(14, py - 6));
+  }
+
+  function updateDimBadge() {
+    if (!currentBox) {
+      boxDimBadge.textContent = 'No Area Selected';
+      return;
+    }
+    const pctW = (currentBox.w * 100).toFixed(1);
+    const pctH = (currentBox.h * 100).toFixed(1);
+    boxDimBadge.textContent = `Crop: ${pctW}% × ${pctH}%`;
+  }
+
+  // Mouse / Touch drawing handlers
+  canvas.addEventListener('mousedown', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+    isDrawing = true;
+  });
+
+  canvas.addEventListener('mousemove', function(e) {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const currX = e.clientX - rect.left;
+    const currY = e.clientY - rect.top;
+
+    const x = Math.min(startX, currX);
+    const y = Math.min(startY, currY);
+    const w = Math.abs(currX - startX);
+    const h = Math.abs(currY - startY);
+
+    currentBox = {
+      x: Math.max(0, x / canvas.width),
+      y: Math.max(0, y / canvas.height),
+      w: Math.min(1, w / canvas.width),
+      h: Math.min(1, h / canvas.height)
+    };
+
+    renderCanvas();
+    updateDimBadge();
+  });
+
+  canvas.addEventListener('mouseup', function() {
+    if (isDrawing) {
+      isDrawing = false;
+      if (currentBox && (currentBox.w < 0.02 || currentBox.h < 0.02)) {
+        currentBox = null;
+        renderCanvas();
+        updateDimBadge();
+      }
+    }
+  });
+
+  btnClearBox.addEventListener('click', function() {
+    currentBox = null;
+    renderCanvas();
+    updateDimBadge();
+  });
+
+  btnResetAI.addEventListener('click', function() {
+    initDefaultBox();
+  });
+
+  // REAL-TIME AI SCAN (OCR & NADRA Cross-match)
+  btnAiScan.addEventListener('click', function() {
+    const frameUrl = document.getElementById('formFrameUrl').value;
+    if (!frameUrl) {
+      showAlert('No image frame loaded in studio to analyze.', 'danger');
+      return;
+    }
+
+    aiScanSpinner.style.display = 'inline-block';
+    aiScanText.textContent = 'Scanning with AI OCR...';
+    btnAiScan.disabled = true;
+
+    // Crop coordinates (normalized)
+    const box = currentBox || { x: 0, y: 0, w: 1, h: 1 };
+
+    fetch('{% url "officer_portal:ocr_plate_crop" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        frame_url: frameUrl,
+        x: box.x,
+        y: box.y,
+        w: box.w,
+        h: box.h
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      aiScanSpinner.style.display = 'none';
+      aiScanText.textContent = 'Auto-Scan Crop with AI (OCR)';
+      btnAiScan.disabled = false;
+
+      if (data.ok && data.plate_text) {
+        document.getElementById('id_plate_text').value = data.plate_text;
+        document.getElementById('formAiUsed').value = '1';
+        document.getElementById('formAiConfidence').value = data.ocr_confidence || '';
+
+        const confPct = Math.round((data.ocr_confidence || 0) * 100);
+        document.getElementById('aiConfidenceVal').textContent = `${confPct}%`;
+        document.getElementById('aiConfidenceBadge').className = confPct >= 80 ? 'md-badge md-badge-success' : 'md-badge md-badge-warning';
+
+        // Fill Owner & Registry details if resolved
+        if (data.owner_name) document.getElementById('id_owner_name').value = data.owner_name;
+        if (data.cnic) document.getElementById('id_cnic').value = data.cnic;
+        if (data.phone) document.getElementById('id_phone').value = data.phone;
+        if (data.address) document.getElementById('id_address').value = data.address;
+
+        if (data.owner_name || data.cnic) {
+          document.getElementById('registryStatusBadge').className = 'md-badge md-badge-success';
+          document.getElementById('registryStatusBadge').textContent = 'Match Found';
+        }
+
+        showAlert(`AI Successfully recognized plate: ${data.plate_text} (${confPct}% confidence)`, 'success');
+      } else {
+        showAlert(data.error || 'Plate character sequence unreadable. Please adjust bounding box or type manually.', 'warning');
+      }
+    })
+    .catch(err => {
+      aiScanSpinner.style.display = 'none';
+      aiScanText.textContent = 'Auto-Scan Crop with AI (OCR)';
+      btnAiScan.disabled = false;
+      showAlert('OCR scan request failed. Please check network connection.', 'danger');
+    });
+  });
+
+  // Fine Presets Map
+  window.updateFinePreset = function(violationType) {
+    const fines = {
+      'wrong_way': 2000,
+      'signal_break': 1500,
+      'over_speed': 2500,
+      'no_helmet': 1000,
+      'other': 1000
+    };
+    const fineInput = document.getElementById('id_fine_amount');
+    if (fines[violationType]) {
+      fineInput.value = fines[violationType];
+    }
+  };
+
+  window.setActionMode = function(mode) {
+    document.getElementById('formActionMode').value = mode;
+  };
+
+  window.triggerExciseLookup = function() {
+    const plate = document.getElementById('id_plate_text').value.trim();
+    if (!plate) {
+      showAlert('Enter a plate number to search registry.', 'warning');
+      return;
+    }
+    showAlert(`Querying Motor Vehicle Registration Database for ${plate}...`, 'info');
+    fetch(`/citizen/api/verify-plate/?plate=${encodeURIComponent(plate)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.owner_name) {
+          document.getElementById('id_owner_name').value = d.owner_name;
+          if (d.cnic) document.getElementById('id_cnic').value = d.cnic;
+          showAlert(`Registry record located for ${plate}: ${d.owner_name}`, 'success');
+        } else {
+          showAlert(`No excise record found for ${plate}. You may enter details manually.`, 'warning');
+        }
+      })
+      .catch(() => {
+        showAlert(`Excise registry lookup failed.`, 'warning');
+      });
+  };
+
+  window.loadFrameToStudio = function(elem) {
+    const detId = elem.getAttribute('data-detection-id');
+    const plate = elem.getAttribute('data-plate');
+    const violation = elem.getAttribute('data-violation');
+    const imgUrl = elem.getAttribute('data-image-url');
+    const bboxStr = elem.getAttribute('data-bbox');
+
+    // Highlight active card
+    document.querySelectorAll('.md-frame-card').forEach(c => c.classList.remove('active-frame'));
+    elem.classList.add('active-frame');
+
+    // Update target displays
+    document.getElementById('targetIdDisplay').textContent = `Detection #${detId}`;
+    document.getElementById('formDetectionId').value = detId;
+    document.getElementById('formFrameUrl').value = imgUrl;
+
+    if (plate) {
+      document.getElementById('id_plate_text').value = plate;
+    }
+    if (violation) {
+      document.getElementById('id_violation_type').value = violation;
+      updateFinePreset(violation);
+    }
+
+    if (imgUrl && img) {
+      img.src = imgUrl;
+      img.onload = () => {
+        updateCanvasDimensions();
+        if (bboxStr) {
+          const parts = bboxStr.split(',').map(Number);
+          if (parts.length >= 4) {
+            let [x, y, w, h] = parts;
+            if (w > 1 || h > 1) { x /= 100; y /= 100; w /= 100; h /= 100; }
+            currentBox = { x, y, w, h };
+            renderCanvas();
+            updateDimBadge();
+          }
+        }
+      };
+    }
+  };
+
+  function showAlert(msg, type) {
+    studioAlert.style.display = 'block';
+    studioAlert.textContent = msg;
+    if (type === 'success') {
+      studioAlert.style.background = 'rgba(16, 185, 129, 0.15)';
+      studioAlert.style.color = '#065f46';
+      studioAlert.style.border = '1px solid #10b981';
+    } else if (type === 'warning') {
+      studioAlert.style.background = 'rgba(245, 158, 11, 0.15)';
+      studioAlert.style.color = '#92400e';
+      studioAlert.style.border = '1px solid #f59e0b';
+    } else {
+      studioAlert.style.background = 'rgba(239, 68, 68, 0.15)';
+      studioAlert.style.color = '#991b1b';
+      studioAlert.style.border = '1px solid #ef4444';
+    }
+    setTimeout(() => {
+      studioAlert.style.display = 'none';
+    }, 6000);
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+
+<style>
+.active-frame {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.4);
+}
+</style>
+{% endblock %}

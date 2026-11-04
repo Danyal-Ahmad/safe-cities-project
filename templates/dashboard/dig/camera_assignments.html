@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Camera Assignments — IT{% endblock %}
+
+{% block body_class %}page-it{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-camera-video me-2"></i>Camera assignments</h1>
+ <p class=" opacity-75">Hard limit: <strong>1 active camera per officer</strong> · linked to Live Tracking</p>
+ </div>
+ <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-camera-video me-1"></i>Cameras</a>
+</div>
+
+<div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-label">Officers</div>
+ <div class="metric-value">{{ officers|length }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-label">Cameras</div>
+ <div class="metric-value">{{ cameras|length }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-label">Active assignments</div>
+ <div class="metric-value">{{ assignments|length }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-label">Limit</div>
+ <div class="metric-value">1 / officer</div>
+ </div>
+ </div>
+</div>
+
+<div>
+ <div>
+ <div>
+ <div class="card-header"><i class="bi bi-arrow-right-circle me-1"></i> New assignment</div>
+ <div class="card-body">
+ <form method="post">
+ {% csrf_token %}
+ <input type="hidden" name="action" value="assign">
+ <div>
+ <label>Officer *</label>
+ <select name="officer_id" required>
+ <option value="">— Select officer —</option>
+ {% for o in officers %}
+ <option value="{{ o.id }}">{{ o.display_name }}{% if o.staff_id %} · {{ o.staff_id }}{% endif %}</option>
+ {% endfor %}
+ </select>
+ </div>
+ <div>
+ <label>Camera *</label>
+ <select name="camera_id" required>
+ <option value="">— Select camera —</option>
+ {% for c in cameras %}
+ <option value="{{ c.id }}">{{ c.camera_id }} — {{ c.location|truncatechars:36 }}</option>
+ {% endfor %}
+ </select>
+ </div>
+ <div>
+ <label>Notes</label>
+ <input type="text" name="notes" maxlength="200" placeholder="Optional">
+ </div>
+ <button type="submit" class="btn btn-primary w-100"><i class="bi bi-arrow-right-circle me-1"></i>Assign</button>
+ </form>
+ <p class="small ">If the officer already has a camera, the previous assignment is released automatically (limit = 1).</p>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div>
+ <div class="card-header ">
+ <span><i class="bi bi-arrow-right-circle me-1"></i> Active assignments</span>
+ </div>
+ <div class="-b p-0">
+ <div class="table-responsive">
+ <table class="portal-table ">
+ <thead>
+ <tr>
+ <th>Officer</th>
+ <th>Camera</th>
+ <th>Location</th>
+ <th>Since</th>
+ <th></th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for a in assignments %}
+ <tr>
+ <td>
+ <div class="fw-semibold">{{ a.officer.display_name }}</div>
+ <div class="small ">{{ a.officer.staff_id|default:a.officer.username }}</div>
+ </td>
+ <td class="form-control font-monospace">{{ a.camera.camera_id }}</td>
+ <td class="small">{{ a.camera.location|truncatechars:40 }}</td>
+ <td class="small">{{ a.assigned_at|date:"d M Y H:i" }}</td>
+ <td>
+ <form method="post" class="d-inline" onsubmit="return false;" data-bs-toggle="modal" data-bs-target="#confirmReleaseModal" onclick="document.getElementById('releaseAssignmentId').value=this.querySelector('[name=assignment_id]').value; return false;">
+ {% csrf_token %}
+ <input type="hidden" name="action" value="release">
+ <input type="hidden" name="assignment_id" value="{{ a.id }}">
+ <button class="sc-btn sc-btn-primary" type="submit"><i class="bi bi-circle"></i>
+ </form>
+ <a class="sc-btn sc-btn-primary" href="{% url portal_ns|add:':live_tracking' %}?camera_id={{ a.camera_id }}" title="Open live tracking">
+ <i class="bi bi-circle"></i>
+ </a>
+ </td>
+ </tr>
+ {% empty %}
+ <tr>
+ <td colspan="5" class=" py-5">
+ <i class=" opacity-50"></i>
+ No active assignments. Assign a camera to an officer to enable their Live Tracking feed.
+ </td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+{% endblock %}

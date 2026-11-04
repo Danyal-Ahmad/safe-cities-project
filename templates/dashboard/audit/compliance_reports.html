@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Compliance Reports{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Compliance reports</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Compliance reports</h1>
+<p class="sc-lead">SAFE CITY FYP compliance metrics.</p>
+</div>
+</div>
+<div class="sc-page-hero"><div><h1>Compliance Reports</h1><p class="sc-lead">SAFE CITY FYP compliance metrics.</p></div></div><div class="sc-card">{% if by_type %}<h2>By violation type</h2><table class="sc-table"><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>{% for k, v in by_type.items %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</tbody></table>{% endif %}{% if by_status %}<h2 class="sc-mt-3">By status</h2><table class="sc-table"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>{% for k, v in by_status.items %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</tbody></table>{% endif %}{% if not by_type and not by_status %}<div class="sc-empty">No compliance data yet.</div>{% endif %}</div>{% endblock %}

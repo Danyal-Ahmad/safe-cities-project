@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}E-Challans{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>E-Challans</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>E-Challans</h1>
+<p class="sc-lead">All challans issued by the system.</p>
+</div>
+</div>
+<form method="get" class="sc-flex sc-flex-wrap sc-gap-2 sc-mb-3"><input type="text" name="plate" value="{{ plate_filter|default:"" }}" placeholder="Filter by plate..." class="sc-text-sm" style="border:1px solid var(--sc-border-strong);border-radius:4px;padding:6px 10px;flex:1;min-width:200px;"><select name="status" class="sc-text-sm" style="border:1px solid var(--sc-border-strong);border-radius:4px;padding:6px 10px;"><option value="">All status</option><option value="UNPAID">Unpaid</option><option value="PAID">Paid</option><option value="VOIDED">Voided</option></select><button type="submit" class="sc-btn sc-btn-sm">Filter</button><a class="sc-btn sc-btn-sm" href="{% url 'dig:challan_list' %}">Reset</a></form><div class="sc-card">{% if challans %}<div class="sc-table-wrap"><table class="sc-table sc-data-table"><thead><tr><th>Ticket</th><th>Plate</th><th>Owner</th><th>CNIC</th><th>Fine</th><th>Status</th><th>Issued</th><th>Due</th><th>Camera</th><th>Action</th></tr></thead><tbody>{% for c in challans %}<tr><td class="sc-mono"><a href="{% url 'challans:challan_detail' c.id %}">{{ c.ticket_no }}</a></td><td class="sc-mono">{{ c.plate_number }}</td><td class="sc-text-sm">{{ c.owner_name|default:"-" }}</td><td class="sc-mono sc-text-sm">{{ c.cnic|default:"-" }}</td><td>PKR {{ c.fine_amount|floatformat:0|intcomma }}</td><td>{% if c.payment_status == 'PAID' %}<span class="sc-badge sc-badge-ok">Paid</span>{% elif c.is_overdue %}<span class="sc-badge sc-badge-red">Overdue</span>{% else %}<span class="sc-badge sc-badge-amber">Unpaid</span>{% endif %}</td><td class="sc-text-sm">{{ c.issue_date|date:"d M Y" }}</td><td class="sc-text-sm">{{ c.due_date|date:"d M Y" }}</td><td class="sc-text-sm">{{ c.camera.camera_id|default:"-" }}</td><td><a class="sc-btn sc-btn-sm" href="{% url 'dig:mark_challan_paid' c.id %}">Mark paid</a> <a class="sc-btn sc-btn-sm" href="{% url 'dig:edit_challan_fine' c.id %}">Edit</a></td></tr>{% empty %}<tr><td colspan="9" class="sc-empty">No challans.</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="sc-empty">No challans found.</div>{% endif %}</div>{% endblock %}

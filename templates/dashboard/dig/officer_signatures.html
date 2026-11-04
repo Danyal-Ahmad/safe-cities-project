@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Officer Signatures — SAFE CITY FYP{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Officer signatures</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1><i class="bi bi-vector-pen"></i> Officer signatures</h1>
+<p class="sc-lead">Upload and manage the e-signatures of every officer. These auto-appear on every challan the officer issues.</p>
+</div>
+<div class="sc-text-sm sc-text-muted">{{ has_signature }} of {{ page_obj.paginator.count }} officers have signatures on file.</div>
+</div>
+
+{% if messages %}
+<div class="sc-card sc-mb-3">
+  {% for m in messages %}<div class="sc-alert sc-alert-{{ m.tags|default:'info' }}"><i class="bi bi-info-circle"></i> {{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<form method="get" class="sc-card sc-mb-3 sc-flex sc-gap-2" style="align-items:end;">
+  <div class="sc-form-group" style="flex:1;margin:0;">
+    <label>Search</label>
+    <input type="text" name="q" value="{{ search }}" placeholder="name, email, staff ID…" class="w-full">
+  </div>
+  <div class="sc-form-group" style="width:180px;margin:0;">
+    <label>Role</label>
+    <select name="role" class="w-full">
+      <option value="">All officers</option>
+      <option value="OFFICER" {% if role_filter == 'OFFICER' %}selected{% endif %}>Officer</option>
+      <option value="SUPV" {% if role_filter == 'SUPV' %}selected{% endif %}>Supervisor</option>
+      <option value="SSP" {% if role_filter == 'SSP' %}selected{% endif %}>SSP</option>
+      <option value="DIG" {% if role_filter == 'DIG' %}selected{% endif %}>DIG</option>
+    </select>
+  </div>
+  <button type="submit" class="sc-btn sc-btn-primary">Filter</button>
+</form>
+
+<div class="sc-card">
+{% if officers %}
+<div class="sc-grid sc-grid-2" style="gap:14px;">
+{% for o in officers %}
+<div class="sc-card" style="border:1px solid var(--sc-border-soft);">
+  <div class="sc-flex sc-gap-2 sc-items-center sc-mb-2">
+    {% if o.avatar %}<img src="{{ o.avatar.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">{% else %}
+    <div style="width:40px;height:40px;border-radius:50%;background:{{ o.avatar_color }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">{{ o.first_name|slice:":1"|upper|default:o.username|slice:":1"|upper }}</div>{% endif %}
+    <div style="flex:1;">
+      <div style="font-weight:700;">{{ o.get_full_name|default:o.first_name|default:o.username }}</div>
+      <div class="sc-text-xs sc-text-muted">{{ o.get_role_display }} · {{ o.email }}</div>
+      {% if o.staff_id %}<div class="sc-text-xs sc-text-muted">ID: {{ o.staff_id }}</div>{% endif %}
+    </div>
+    {% if o.signature %}<span class="sc-badge sc-badge-ok">Signed</span>{% else %}<span class="sc-badge sc-badge-amber">No sig</span>{% endif %}
+  </div>
+
+  <details>
+    <summary style="cursor:pointer;font-size:13px;color:var(--sc-accent);">Upload / change signature</summary>
+    <form method="post" enctype="multipart/form-data" class="sc-mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="officer_id" value="{{ o.id }}">
+      <input type="hidden" name="action" value="signature">
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>Printed name</label><input type="text" name="signature_name" value="{{ o.signature_name|default:o.get_full_name|default:o.first_name }}" class="w-full"></div>
+        <div class="sc-form-group"><label>Designation</label><input type="text" name="signature_designation" value="{{ o.signature_designation|default:o.designation }}" class="w-full"></div>
+      </div>
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group">
+          <label>Signature image (PNG with transparent background)</label>
+          <input type="file" name="signature" accept="image/*" class="w-full">
+          {% if o.signature %}<div class="sc-mt-2 sc-text-xs">Current: <img src="{{ o.signature.url }}" style="max-height:32px;max-width:120px;background:#fff;padding:2px;border:1px solid #ddd;"></div>{% endif %}
+        </div>
+        <div class="sc-form-group">
+          <label>Stamp (optional)</label>
+          <input type="file" name="stamp" accept="image/*" class="w-full">
+          {% if o.signature_stamp %}<div class="sc-mt-2 sc-text-xs">Current: <img src="{{ o.signature_stamp.url }}" style="max-height:32px;max-width:120px;"></div>{% endif %}
+        </div>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm">Save</button>
+    </form>
+  </details>
+
+  <details class="sc-mt-2">
+    <summary style="cursor:pointer;font-size:13px;color:var(--sc-accent);">Edit profile</summary>
+    <form method="post" enctype="multipart/form-data" class="sc-mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="officer_id" value="{{ o.id }}">
+      <input type="hidden" name="action" value="profile">
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>First name</label><input type="text" name="first_name" value="{{ o.first_name }}" class="w-full"></div>
+        <div class="sc-form-group"><label>Last name</label><input type="text" name="last_name" value="{{ o.last_name }}" class="w-full"></div>
+      </div>
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>Staff ID</label><input type="text" name="staff_id" value="{{ o.staff_id|default:'' }}" class="w-full"></div>
+        <div class="sc-form-group"><label>Designation</label><input type="text" name="designation" value="{{ o.designation|default:'' }}" class="w-full"></div>
+      </div>
+      <div class="sc-form-group"><label>Region</label><input type="text" name="region" value="{{ o.region|default:'' }}" class="w-full"></div>
+      <button type="submit" class="sc-btn sc-btn-sm">Save profile</button>
+    </form>
+  </details>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="sc-empty">No officers found.</div>
+{% endif %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="sc-flex sc-gap-2 sc-justify-center sc-mt-3">
+{% if page_obj.has_previous %}<a class="sc-btn sc-btn-sm" href="?role={{ role_filter }}&q={{ search }}&page={{ page_obj.previous_page_number }}">Prev</a>{% endif %}
+<span class="sc-text-sm sc-text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+{% if page_obj.has_next %}<a class="sc-btn sc-btn-sm" href="?role={{ role_filter }}&q={{ search }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Citizens{% endblock %}
+{% block crumb %}<span>DIG</span> / <b>Citizens</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero"><div><h1>Registered citizens</h1><p class="lead">All citizen accounts.</p></div></div>
+<div class="card">
+  <div class="overflow-x-auto">
+  <table>
+    <thead><tr><th>Username</th><th>Display name</th><th>CNIC</th><th>Phone</th><th>Vehicles</th><th>Status</th><th>Joined</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td class="font-mono">{{ u.username }}</td>
+        <td>{{ u.display_name }}</td>
+        <td class="font-mono">{{ u.cnic|default:"-" }}</td>
+        <td>{{ u.phone|default:"-" }}</td>
+        <td>{{ u.vehicle_count|default:0 }}</td>
+        <td>{% if u.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Disabled</span>{% endif %}</td>
+        <td class="small">{{ u.date_joined|date:"d M Y" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No citizen accounts.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+{% block title %}Officer Command Center — Safe City{% endblock %}
+{% block crumb %}<a href="/">Home</a><span class="sc-crumb-sep">/</span><b>Officer Dashboard</b>{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Modern Hero Banner -->
+<div class="md-hero">
+  <div>
+    <div class="md-hero-title">
+      <i class="bi bi-shield-shaded"></i>
+      <span>Officer Command Center</span>
+    </div>
+    <p class="md-hero-subtitle">
+      AI Detection Triage &middot; Live Surveillance Tracking &middot; Manual Forensic Annotation
+    </p>
+  </div>
+  <div class="md-hero-actions">
+    <div class="md-live-badge">
+      <span class="md-live-dot"></span>
+      <span>System Live</span>
+    </div>
+    <div class="sc-text-xs text-light opacity-75 font-monospace" id="liveClock">
+      {% now "D, d M Y · H:i:s" %}
+    </div>
+  </div>
+</div>
+
+<!-- Quick Workstation Launchers -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <a href="{% url 'officer_portal:live_tracking' %}" class="md-quick-action">
+      <div class="md-quick-icon" style="background:#e0f2fe;color:#0284c7;">
+        <i class="bi bi-broadcast"></i>
+      </div>
+      <div>
+        <div class="fw-bold fs-6">Live Tracking Workstation</div>
+        <div class="sc-text-xs sc-text-muted">Real-time CCTV canvas radar & vehicle bounding boxes</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'officer_portal:review_queue' %}" class="md-quick-action">
+      <div class="md-quick-icon" style="background:#fef3c7;color:#d97706;">
+        <i class="bi bi-inbox-fill"></i>
+      </div>
+      <div>
+        <div class="fw-bold fs-6">AI Detection Queue</div>
+        <div class="sc-text-xs sc-text-muted"><span class="badge bg-warning text-dark me-1" id="kpiQueuePill">{{ queue_count|default:0 }}</span> Pending violations awaiting sign-off</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'officer_portal:manual_annotation' %}" class="md-quick-action">
+      <div class="md-quick-icon" style="background:#f3e8ff;color:#9333ea;">
+        <i class="bi bi-pencil-square"></i>
+      </div>
+      <div>
+        <div class="fw-bold fs-6">Manual Annotation Studio</div>
+        <div class="sc-text-xs sc-text-muted">Draw plate boxes, OCR assist & issue verified challan</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Modern KPI Grid -->
+<div class="md-kpi-grid">
+  <!-- Queue Count -->
+  <div class="md-kpi-card kpi-amber">
+    <div class="md-kpi-top">
+      <span class="md-kpi-label">Review Queue</span>
+      <div class="md-kpi-icon-wrap"><i class="bi bi-clock-history"></i></div>
+    </div>
+    <div class="md-kpi-val" id="queueVal">{{ queue_count|default:0|intcomma }}</div>
+    <div class="md-kpi-foot">
+      <a href="{% url 'officer_portal:review_queue' %}" class="text-warning fw-semibold text-decoration-none">
+        <i class="bi bi-arrow-right-circle me-1"></i>Open queue
+      </a>
+    </div>
+  </div>
+
+  <!-- Confirmed -->
+  <div class="md-kpi-card kpi-green">
+    <div class="md-kpi-top">
+      <span class="md-kpi-label">Confirmed by Me</span>
+      <div class="md-kpi-icon-wrap"><i class="bi bi-check-circle"></i></div>
+    </div>
+    <div class="md-kpi-val">{{ confirmed_total|default:0|intcomma }}</div>
+    <div class="md-kpi-foot">
+      <span class="text-success"><i class="bi bi-arrow-up-short"></i>+{{ week_confirmed|default:0 }}</span> this week
+    </div>
+  </div>
+
+  <!-- Rejected -->
+  <div class="md-kpi-card kpi-red">
+    <div class="md-kpi-top">
+      <span class="md-kpi-label">Rejected (False Positives)</span>
+      <div class="md-kpi-icon-wrap"><i class="bi bi-x-circle"></i></div>
+    </div>
+    <div class="md-kpi-val">{{ rejected_total|default:0|intcomma }}</div>
+    <div class="md-kpi-foot">
+      <span>+{{ week_rejected|default:0 }} this week</span>
+    </div>
+  </div>
+
+  <!-- Challans Issued -->
+  <div class="md-kpi-card kpi-blue">
+    <div class="md-kpi-top">
+      <span class="md-kpi-label">Challans Issued</span>
+      <div class="md-kpi-icon-wrap"><i class="bi bi-receipt"></i></div>
+    </div>
+    <div class="md-kpi-val">{{ my_challans_total|default:0|intcomma }}</div>
+    <div class="md-kpi-foot">
+      <span class="text-success fw-semibold">{{ my_challans_paid|default:0 }} paid</span> &middot; {{ my_challans_unpaid|default:0 }} unpaid
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="md-card h-100">
+      <div class="md-card-head">
+        <h2><i class="bi bi-graph-up-arrow text-primary"></i> 7-Day Review Activity Velocity</h2>
+        <span class="md-badge md-badge-info">Daily Throughput</span>
+      </div>
+      <div class="md-card-body">
+        <div style="height:260px;position:relative;">
+          <canvas id="officerActivityChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="md-card h-100">
+      <div class="md-card-head">
+        <h2><i class="bi bi-pie-chart text-info"></i> Decision Distribution</h2>
+      </div>
+      <div class="md-card-body d-flex flex-column align-items-center justify-content-center">
+        <div style="height:210px;width:100%;position:relative;">
+          <canvas id="officerDoughnutChart"></canvas>
+        </div>
+        <div class="d-flex justify-content-center gap-3 mt-3 sc-text-xs">
+          <span><i class="bi bi-circle-fill text-success me-1"></i>Confirmed ({{ confirmed_total }})</span>
+          <span><i class="bi bi-circle-fill text-danger me-1"></i>Rejected ({{ rejected_total }})</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Reviews Ledger -->
+<div class="md-card">
+  <div class="md-card-head">
+    <h2><i class="bi bi-list-check text-primary"></i> My Recent Violation Reviews</h2>
+    <a href="{% url 'officer_portal:review_history' %}" class="md-btn md-btn-outline md-btn-sm">
+      <span>View All History</span><i class="bi bi-chevron-right"></i>
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table sc-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Frame / Detection</th>
+          <th>Camera Source</th>
+          <th>License Plate</th>
+          <th>Violation</th>
+          <th>Decision</th>
+          <th>Timestamp</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in recent_reviews %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              {% if d.raw_image %}
+              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Snapshot" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;background:#0A0E14;" onerror="this.style.opacity='0.15';">
+              {% else %}
+              <div style="width:48px;height:32px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;">
+                <i class="bi bi-image"></i>
+              </div>
+              {% endif %}
+              <span class="sc-mono sc-text-sm">#{{ d.id }}</span>
+            </div>
+          </td>
+          <td>
+            <div><strong>{{ d.camera.camera_id|default:"Camera" }}</strong></div>
+            <div class="sc-text-xs sc-text-muted">{{ d.camera.location|default:"Field Sector"|truncatechars:25 }}</div>
+          </td>
+          <td>
+            <span class="sc-mono fw-bold fs-6">{{ d.effective_plate|default:"UNREADABLE" }}</span>
+          </td>
+          <td>
+            <span class="md-badge md-badge-purple">{{ d.get_violation_type_display|default:d.effective_violation_type|default:"Violation" }}</span>
+          </td>
+          <td>
+            {% if d.status == 'confirmed' %}
+            <span class="md-badge md-badge-ok"><i class="bi bi-check2"></i> Confirmed</span>
+            {% elif d.status == 'rejected' %}
+            <span class="md-badge md-badge-danger"><i class="bi bi-x"></i> Rejected</span>
+            {% elif d.status == 'flagged_for_dig' %}
+            <span class="md-badge md-badge-amber"><i class="bi bi-flag"></i> Flagged</span>
+            {% else %}
+            <span class="md-badge md-badge-gray">{{ d.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="sc-text-sm sc-text-muted">
+            {{ d.reviewed_at|date:"d M H:i"|default:d.created_at|date:"d M H:i" }}
+          </td>
+          <td>
+            <a href="{% url 'officer_portal:detection_detail' d.id %}" class="md-btn md-btn-outline md-btn-sm" title="View details">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="sc-empty p-5 text-center">
+            <i class="bi bi-inbox fs-2 opacity-25 d-block mb-2"></i>
+            No reviews completed yet. Open the queue to begin.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. Live Clock
+  setInterval(function() {
+    const el = document.getElementById('liveClock');
+    if (el) {
+      const now = new Date();
+      el.textContent = now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + now.toLocaleTimeString();
+    }
+  }, 1000);
+
+  // 2. Real-time Queue Polling
+  function pollQueue() {
+    fetch("{% url 'realtime:queue_count' %}")
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.count !== 'undefined') {
+          const valEl = document.getElementById('queueVal');
+          const pillEl = document.getElementById('kpiQueuePill');
+          if (valEl) valEl.textContent = data.count;
+          if (pillEl) pillEl.textContent = data.count;
+        }
+      })
+      .catch(() => {});
+  }
+  setInterval(pollQueue, 5000);
+
+  // 3. Activity Line Chart
+  const daysLabels = [{% for d in days_data %}"{{ d.label }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+  const daysCounts = [{% for d in days_data %}{{ d.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+  const ctxActivity = document.getElementById('officerActivityChart');
+  if (ctxActivity && window.Chart) {
+    new Chart(ctxActivity, {
+      type: 'line',
+      data: {
+        labels: daysLabels.length ? daysLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Reviewed Violations',
+          data: daysCounts.length ? daysCounts : [0, 0, 0, 0, 0, 0, 0],
+          borderColor: '#1d4ed8',
+          backgroundColor: 'rgba(29, 78, 216, 0.08)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointBackgroundColor: '#1d4ed8',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 10,
+            cornerRadius: 8,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+            grid: { color: 'rgba(226, 232, 240, 0.6)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. Decision Distribution Doughnut
+  const ctxDoughnut = document.getElementById('officerDoughnutChart');
+  if (ctxDoughnut && window.Chart) {
+    const confCount = {{ confirmed_total|default:0 }};
+    const rejcCount = {{ rejected_total|default:0 }};
+    new Chart(ctxDoughnut, {
+      type: 'doughnut',
+      data: {
+        labels: ['Confirmed', 'Rejected'],
+        datasets: [{
+          data: [confCount || (rejcCount ? 0 : 1), rejcCount],
+          backgroundColor: ['#10b981', '#ef4444'],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 10,
+            cornerRadius: 8,
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

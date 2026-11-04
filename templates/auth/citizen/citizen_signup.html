@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citizen Signup — Safe City FYP</title>
+  <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #F0F4F8 !important;
+      -webkit-box-shadow: 0 0 0 1000px rgba(15,28,68,0.85) inset !important;
+      box-shadow: 0 0 0 1000px rgba(15,28,68,0.85) inset !important;
+      caret-color: #F0F4F8;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { min-height: 100vh; display: grid; place-content: center; background: #0a1a3a; position: relative; overflow-y: auto; overflow-x: hidden; padding: 40px 20px; -webkit-font-smoothing: antialiased; }
+    .bg { position: fixed; inset: 0; z-index: 0; }
+    .bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.25; }
+    .bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(10,26,58,0.85), rgba(20,60,140,0.75)); }
+    .card { position: relative; z-index: 1; display: flex; width: 100%; max-width: 760px; min-height: 520px; border-radius: 8px; overflow: hidden; background: rgba(15,28,68,0.92); backdrop-filter: blur(20px); border: 1px solid rgba(96,165,250,0.18); box-shadow: 0 20px 80px rgba(0,0,0,0.5); }
+    .left { flex: 0.85; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px; background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(37,99,235,0.05), rgba(96,165,250,0.04), rgba(147,197,253,0.06)); border-right: 1px solid rgba(96,165,250,0.10); position: relative; overflow: hidden; }
+    .logos{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .logos img{width:52px;height:52px;object-fit:contain}
+    .sep { width: 1px; height: 44px; background: linear-gradient(180deg, transparent, rgba(96,165,250,0.35), transparent); }
+    .title { text-align: center; position: relative; z-index: 1; }
+    .title h1 { font-size: 22px; font-weight: 900; letter-spacing: 2px; background: linear-gradient(90deg, #60a5fa, #1e40af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .title p { font-size: 10px; letter-spacing: 4px; color: rgba(232,240,255,0.45); text-transform: uppercase; font-weight: 600; margin-top: 4px; }
+    .right { flex: 1.2; padding: 32px 40px; overflow-y: auto; }
+    .form-title { font-size: 20px; font-weight: 700; color: #F0F4F8; margin-bottom: 6px; }
+    .form-sub { font-size: 11px; color: rgba(232,240,255,0.55); margin-bottom: 20px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fg { margin-bottom: 12px; }
+    .fg label { display: block; font-size: 12px; font-weight: 600; color: rgba(232,240,255,0.7); margin-bottom: 5px; }
+    .fg label .req { color: #EF4444; }
+    .iw { position: relative; }
+    .iw input { width: 100%; padding: 11px 12px 11px 38px; border: 1px solid rgba(96,165,250,0.15); border-radius: 10px; font-size: 14px; color: #F0F4F8; background: rgba(15,28,68,0.85); outline: none; transition: all .2s; caret-color: #60a5fa; }
+    .iw input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+    .iw input::placeholder { color: rgba(232,240,255,0.25); }
+    .iw .il { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(16,185,129,0.5); }
+    .hint { font-size: 10px; color: rgba(232,240,255,0.35); margin-top: 3px; }
+    .check { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+    .check input { width: auto; margin-top: 3px; }
+    .check label { font-size: 12px; color: rgba(232,240,255,0.7); line-height: 1.4; }
+ .btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s ease;color:#fff;background:linear-gradient(135deg,#10B981,#059669);margin-top:6px}.btn:hover{background:linear-gradient(135deg,#1e3a8a,#3b82f6)}
+    .msg { padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+    .msg.error { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
+    .cd { text-align: center; margin-top: 14px; font-size: 11px; color: rgba(232,240,255,0.45); }
+    .cd a { color: #93C5FD; text-decoration: none; font-weight: 600; }
+    .cd a:hover { text-decoration: underline; }
+    .errlist { list-style: none; padding: 10px 14px; border-radius: 10px; background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); margin-bottom: 14px; font-size: 12px; }
+    .errlist li { padding: 2px 0; }
+    @media (max-width: 700px) { .card { flex-direction: column; min-height: auto; } .left { border-right: none; border-bottom: 1px solid rgba(96,165,250,0.10); padding: 24px; } .right { padding: 24px; } .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="bg"><img src="{% static 'img/login_background.jpg' %}" alt=""></div>
+  <div class="card">
+    <div class="left">
+      <div class="logos">
+        <img src="{% static 'img/project_logo.png' %}" style="width:56px;height:56px;border-radius:12px" alt="">
+        <div class="sep"></div>
+        <img src="{% static 'img/university_logo.png' %}" style="width:44px;height:44px;border-radius:10px" alt="">
+      </div>
+      <div class="title"><h1>SAFE CITY FYP</h1><p>CITIZEN PORTAL</p></div>
+    </div>
+    <div class="right">
+      <div class="form-title">Create New Account</div>
+      <div class="form-sub">Register as a citizen to view and pay your traffic challans</div>
+      {% if form.errors %}<ul class="errlist">{% for field, errors in form.errors.items %}{% for e in errors %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>{% endif %}
+      {% if messages %}{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}{% endif %}
+      <form method="post" autocomplete="off">
+        {% csrf_token %}
+        <div class="fg">
+          <label>Full Name<span class="req">*</span></label>
+          <input type="text" name="first_name" placeholder="Ahmad Khan" required>
+        </div>
+        <div class="row">
+          <div class="fg">
+            <label>CNIC<span class="req">*</span></label>
+            <input type="text" name="cnic" placeholder="35202-1234567-1" required>
+            <div class="hint">13 digits, with or without dashes</div>
+          </div>
+          <div class="fg">
+            <label>Phone<span class="req">*</span></label>
+            <input type="text" name="phone" placeholder="+92-300-1234567" required>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Email (optional)</label>
+          <input type="email" name="email" placeholder="you@example.com">
+        </div>
+        <div class="row">
+          <div class="fg">
+            <label>Password<span class="req">*</span></label>
+            <input type="password" name="password1" placeholder="12+ characters" required>
+          </div>
+          <div class="fg">
+            <label>Confirm Password<span class="req">*</span></label>
+            <input type="password" name="password2" placeholder="Repeat password" required>
+          </div>
+        </div>
+        <div class="check">
+          <input type="checkbox" name="terms" id="terms" required>
+          <label for="terms">I have read and agree to the Terms of Service and Privacy Policy.</label>
+        </div>
+        <button type="submit" class="sc-btn sc-btn-primary">Create Account</button>
+        <div class="cd">
+          Already have an account? <a href="{% url 'auth_portal:citizen_login' %}">Sign in</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

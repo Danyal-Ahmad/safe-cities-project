@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Officer Profile{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Officer profile</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Officer profile</h1>
+<p class="sc-lead">Your account details and preferences.</p>
+</div>
+</div>
+<div class="sc-card"><h2>Officer Profile</h2><form method="post"><div class="sc-flex sc-gap-2"><button type="submit" class="sc-btn sc-btn-primary">Save profile</button></div></form><p class="sc-empty">Your account details and preferences.</p></div>{% endblock %}

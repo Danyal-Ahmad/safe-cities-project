@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}My Performance — Officer Portal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>My Performance</b>{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-award me-2" style="color:#1E40AF;"></i>My Performance</h1>
+    <p class="sc-lead">Your review activity, accuracy, and response times over time.</p>
+  </div>
+</div>
+
+<!-- KPI strip -->
+<div class="sc-kpi-grid mb-4">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-eye"></i></div>
+    <div class="sc-kpi-label">Total Reviewed</div>
+    <div class="sc-kpi-value">{{ total_reviewed|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">all time</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check-circle"></i></div>
+    <div class="sc-kpi-label">Confirmed</div>
+    <div class="sc-kpi-value">{{ confirmed_count|default:0|intcomma }}</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-x-circle"></i></div>
+    <div class="sc-kpi-label">Rejected</div>
+    <div class="sc-kpi-value">{{ rejected_count|default:0|intcomma }}</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
+    <div class="sc-kpi-label">Avg Response</div>
+    <div class="sc-kpi-value">{{ avg_review_hours|default:"—" }}{% if avg_review_hours %}<small class="fs-6">h</small>{% endif %}</div>
+    <div class="sc-kpi-foot">hours per review</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Activity Chart -->
+  <div class="col-lg-8">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-bar-chart"></i>
+        <span>Reviews This Month</span>
+      </div>
+      <div class="sc-card-body">
+        <canvas id="activityChart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action breakdown -->
+  <div class="col-lg-4">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-pie-chart"></i>
+        <span>Decision Breakdown</span>
+      </div>
+      <div class="sc-card-body d-flex flex-column align-items-center justify-content-center">
+        <canvas id="decisionChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent activity table -->
+<div class="sc-card mt-4">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-clock-history"></i>
+    <span>Recent Reviews</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if recent_reviews %}
+    <div class="table-responsive">
+      <table class="table sc-table mb-0">
+        <thead>
+          <tr>
+            <th>Detection</th>
+            <th>Plate</th>
+            <th>Action</th>
+            <th>Confidence</th>
+            <th>Reviewed At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for det in recent_reviews %}
+          <tr>
+            <td><a href="{% url 'officer_portal:detection_detail' det.id %}">#{{ det.id }}</a></td>
+            <td>{{ det.effective_plate|default:"—" }}</td>
+            <td>
+              {% if det.status == 'confirmed' %}
+              <span class="sc-badge sc-badge-ok">Confirmed</span>
+              {% elif det.status == 'rejected' %}
+              <span class="sc-badge sc-badge-danger">Rejected</span>
+              {% elif det.status == 'flagged_for_dig' %}
+              <span class="sc-badge sc-badge-amber">Flagged</span>
+              {% else %}
+              <span class="sc-badge sc-badge-muted">{{ det.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if det.ai_confidence %}
+              <div class="progress" style="height:6px; width:80px;">
+                <div class="progress-bar bg-primary" style="width:{% widthratio det.ai_confidence 1 100 %}%"></div>
+              </div>
+              <small class="sc-text-muted">{{ det.ai_confidence|floatformat:0 }}%</small>
+              {% else %}—{% endif %}
+            </td>
+            <td class="sc-text-sm sc-text-muted">{{ det.reviewed_at|date:"d M Y H:i"|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty p-5 text-center">
+      <i class="bi bi-clock-history fs-1 opacity-25 d-block mb-3"></i>
+      No review history yet. Start reviewing detections from the queue.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const actLabels  = {{ activity_labels|default:"[]"|safe }};
+  const actData    = {{ activity_data|default:"[]"|safe }};
+  const confirmed  = {{ confirmed_count|default:0 }};
+  const rejected   = {{ rejected_count|default:0 }};
+  const flagged    = {{ flagged_count|default:0 }};
+
+  if (document.getElementById('activityChart')) {
+    new Chart(document.getElementById('activityChart'), {
+      type: 'bar',
+      data: {
+        labels: actLabels.length ? actLabels : ['No data'],
+        datasets: [{
+          label: 'Reviews',
+          data: actData.length ? actData : [0],
+          backgroundColor: 'rgba(30,64,175,0.7)',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+  }
+
+  if (document.getElementById('decisionChart') && (confirmed || rejected || flagged)) {
+    new Chart(document.getElementById('decisionChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Confirmed', 'Rejected', 'Flagged'],
+        datasets: [{
+          data: [confirmed, rejected, flagged],
+          backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  } else if (document.getElementById('decisionChart')) {
+    document.getElementById('decisionChart').closest('.sc-card-body').innerHTML =
+      '<p class="sc-empty">No review data yet.</p>';
+  }
+})();
+</script>
+{% endblock %}

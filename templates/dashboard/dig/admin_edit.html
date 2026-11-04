@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit Staff{% endblock %}
+
+{% block body_class %}page-dig-admin-edit{% if request.GET.embed == '1' %} embed-mode{% endif %}{% endblock %}
+{% block extra_head %}
+{% if request.GET.embed == '1' %}
+
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-circle"></i> Edit staff</h1>
+ <p class=" opacity-75">{{ target.display_name }} · {{ target.get_role_display|default:target.role }} · {{ target.public_id }}</p>
+ </div>
+ <div>
+ <a href="{% url 'dig:admin_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-circle"></i> Staff list</a>
+ <button type="button" class="sc-btn sc-btn-primary" data-bs-toggle="modal" data-bs-target="#pwdEditModal"><i class="bi bi-circle"></i> Password</button>
+ </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card">
+ {% csrf_token %}
+ {% if request.GET.embed == '1' %}<input type="hidden" name="embed" value="1">{% endif %}
+ <h2>Account details</h2>
+ <div>
+ <div>
+ <label>Full name *</label>
+ <input type="text" name="first_name" value="{{ target.first_name|default:'' }}" required>
+ </div>
+ <div>
+ <label>Email</label>
+ <input type="email" name="email" value="{{ target.email|default:'' }}">
+ </div>
+ <div>
+ <label>Phone</label>
+ <input type="text" name="phone" value="{{ target.phone|default:'' }}">
+ </div>
+ <div>
+ <label>Staff ID</label>
+ <input type="text" name="staff_id" value="{{ target.staff_id|default:'' }}">
+ </div>
+ <div>
+ <label>Region</label>
+ <input type="text" name="region" value="{{ target.region|default:'' }}">
+ </div>
+ <div>
+ <label>Department</label>
+ <input type="text" name="department" value="{{ target.department|default:'' }}">
+ </div>
+ <div>
+ <label>Role</label>
+ <select name="role">
+ {% for r in roles %}
+ <option value="{{ r.0 }}" {% if target.role == r.0 %}selected{% endif %}>{{ r.1 }}</option>
+ {% empty %}
+ <option value="{{ target.role }}" selected>{{ target.get_role_display|default:target.role }}</option>
+ {% endfor %}
+ </select>
+ <div>Permissions are managed only via the Permissions modal on the staff list.</div>
+ </div>
+ <div>
+ <label>Status</label>
+ <select name="is_active">
+ <option value="1" {% if target.is_active %}selected{% endif %}>Active</option>
+ <option value="0" {% if not target.is_active %}selected{% endif %}>Blocked</option>
+ </select>
+ </div>
+ </div>
+ <div>
+ <button type="submit" class="btn btn-primary"><i class="bi bi-circle"></i> Save details</button>
+ <a href="{% url 'dig:admin_list' %}" class="btn btn-ghost">Cancel</a>
+ </div>
+</form>
+
+{# Bootstrap password modal on edit page #}
+<div class="modal fade" id="pwdEditModal" tabindex="-1" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-centered">
+ <div class="modal-content">
+ <form method="post" action="{% url 'dig:staff_set_password' %}">
+ {% csrf_token %}
+ <input type="hidden" name="user_id" value="{{ target.id }}">
+ <div class="modal-header">
+ <h5 class="modal-title">Set password</h5>
+ <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+ </div>
+ <div class="modal-body">
+ <div><label>New password</label>
+ <input type="password" name="password1" required minlength="8"></div>
+ <div><label>Confirm</label>
+ <input type="password" name="password2" required minlength="8"></div>
+ </div>
+ <div class="modal-footer">
+ <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+ <button type="submit" class="btn btn-primary">Update password</button>
+ </div>
+ </form>
+ </div>
+ </div>
+</div>
+{% endblock %}

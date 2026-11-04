@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Uploaded Videos{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Video processing</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Video processing</h1>
+<p class="sc-lead">Track video processing jobs.</p>
+</div>
+</div>
+<div class="sc-card">{% if uploads %}<div class="sc-table-wrap"><table class="sc-table sc-data-table"><thead><tr><th>Filename</th><th>Camera</th><th>Frames</th><th>Status</th><th>Uploaded</th><th>Action</th></tr></thead><tbody>{% for u in uploads %}<tr><td class="sc-mono sc-text-sm">{{ u.original_filename }}</td><td>{{ u.camera.camera_id|default:"-" }}</td><td>{{ u.total_frames_extracted|default:0 }} / {{ u.frames_with_plates|default:0 }}</td><td><span class="sc-badge sc-badge-{% if u.status == 'completed' %}ok{% elif u.status == 'failed' %}err{% else %}amber{% endif %}">{{ u.get_status_display }}</td><td class="sc-text-sm">{{ u.created_at|date:"d M Y H:i" }}</td><td><a class="sc-btn sc-btn-sm" href="{% url 'officer_portal:detection_detail' u.id %}">View</a></td></tr>{% empty %}<tr><td colspan="6" class="sc-empty">No uploads.</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="sc-empty">No videos uploaded yet.</div>{% endif %}</div>{% endblock %}

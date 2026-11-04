@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+{% comment %}V37: shift assignment is now auto-only (round-robin/least-busy)
+ — DIG picks a start/end time and the system assigns whichever eligible
+ officer has the fewest shifts in the trailing 7 days. No manual officer
+ picker anymore.{% endcomment %}
+{% block title %}Shift Roster{% endblock %}
+
+{% block extra_head %}{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-circle"></i> Officer Shift Roster</h1>
+ <p class=" opacity-75">Shifts are auto-assigned to whichever eligible officer has the fewest shifts this week</p>
+ </div>
+</div>
+
+{% if user.role == 'DIG' or user.is_dig %}
+<div class="card">
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> Assign Shift</div>
+ </div>
+ <div>
+ <form method="post" action="{% url 'dig:shift_add' %}" class="flex ">
+ {% csrf_token %}
+ <div>
+ <label>Shift Slot <span class="req">*</span></label>
+ <select class="form-control form-control-sm" name="slot" required onchange="applySlot(this)">
+ <option value="">Select slot…</option>
+ <option value="morning">Morning (06:00 – 14:00)</option>
+ <option value="evening">Evening (14:00 – 22:00)</option>
+ <option value="night">Night (22:00 – 06:00)</option>
+ <option value="custom">Custom</option>
+ </select>
+ </div>
+ <div>
+ <label>Date <span class="req">*</span></label>
+ <input class="form-control form-control-sm" type="date" name="shift_date" id="shiftDate" required onchange="applySlot(document.querySelector('[name=slot]'))">
+ </div>
+ <div>
+ <label>Officer <span class="req">*</span></label>
+ <select class="form-control form-control-sm" name="officer_id" required>
+ <option value="">Select officer…</option>
+ {% for o in officers %}
+ <option value="{{ o.id }}">{{ o.get_full_name|default:o.username }} ({{ o.email }})</option>
+ {% empty %}
+ {% endfor %}
+ </select>
+ </div>
+ <div>
+ <label>Start</label>
+ <input class="form-control form-control-sm" type="datetime-local" name="start_time" id="startTime" required>
+ </div>
+ <div>
+ <label>End</label>
+ <input class="form-control form-control-sm" type="datetime-local" name="end_time" id="endTime" required>
+ </div>
+ <button type="submit" class="btn btn-primary"><i class="bi bi-circle"></i> Assign</button>
+ </form>
+ </div>
+</div>
+
+{% endif %}
+
+<div>
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> Recent Shifts</div>
+ <span class="badge bg-secondary">{{ shifts|length }}</span>
+ </div>
+ <div class="-b p-0 table-responsive">
+ {% if shifts %}
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr>
+ <th>Officer</th>
+ <th>Start</th>
+ <th>End</th>
+ <th>Assigned By</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for s in shifts %}
+ <tr>
+ <td>
+ <div class="flex ">
+ <div class="avatar avatar-sm">{{ s.officer.initials }}</div>
+ <span>{{ s.officer.display_name }}</span>
+ </div>
+ </td>
+ <td class="small ">{{ s.start_time|date:"d-M-Y H:i" }}</td>
+ <td class="small ">{{ s.end_time|date:"d-M-Y H:i" }}</td>
+ <td class="small ">{{ s.assigned_by.display_name|default:"—" }}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <div class="empty-state"><i class=" shifts yet</h3><p>Use auto-assign above to schedule the first shift.</p></div>
+ {% endif %}
+ </div>
+</div>
+
+<div>
+ <div class="card-header ">
+ <div><i class="bi bi-circle"></i> Officers</div>
+ <span class="badge bg-secondary">{{ officers|length }}</span>
+ </div>
+ <div class="-b p-0 table-responsive">
+ {% if officers %}
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr>
+ <th>Officer</th>
+ <th>Staff ID</th>
+ <th>Region</th>
+ <th>Last Login</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for o in officers %}
+ <tr>
+ <td>
+ <div class="flex ">
+ <div class="avatar avatar-sm">{{ o.initials }}</div>
+ <span>{{ o.display_name }}</span>
+ </div>
+ </td>
+ <td class="text-mono text-small">{{ o.staff_id|default:"—" }}</td>
+ <td class="small ">{{ o.region|default:"—" }}</td>
+ <td class="small ">{{ o.last_login|date:"d-M-Y H:i"|default:"Never" }}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <div class="empty-state"><i class=" officers</h3><p>No officer accounts exist yet.</p></div>
+ {% endif %}
+ </div>
+</div>
+{% endblock %}

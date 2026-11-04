@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Pay E-Challan{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Pay Challan</b>{% endblock %}
+{% block content %}
+<div class="sc-grid sc-grid-2">
+<div>
+<div class="sc-card">
+<div class="sc-card-head">Challan summary</div>
+<div class="sc-dl">
+<div class="sc-dl-row"><span class="sc-print-k">Ticket</span><span class="sc-print-v sc-mono">{{ challan.ticket_no }}</span></div>
+<div class="sc-dl-row"><span class="sc-print-k">Plate</span><span class="sc-print-v sc-mono">{{ challan.plate_number }}</span></div>
+<div class="sc-dl-row"><span class="sc-print-k">Violation</span><span class="sc-print-v">{{ challan.get_violation_type_display }}</span></div>
+<div class="sc-dl-row"><span class="sc-print-k">Issue date</span><span class="sc-print-v">{{ challan.issue_date|date:'d M Y' }}</span></div>
+<div class="sc-dl-row"><span class="sc-print-k">Due date</span><span class="sc-print-v">{{ challan.due_date|date:'d M Y' }}</span></div>
+<div class="sc-dl-row"><span class="sc-print-k">Status</span><span class="sc-print-v">{% if challan.payment_status == 'PAID' %}<span class="sc-badge sc-badge-green">Paid</span>{% elif challan.is_overdue %}<span class="sc-badge sc-badge-red">Overdue</span>{% else %}<span class="sc-badge sc-badge-amber">Unpaid</span>{% endif %}</span></div>
+<div class="sc-dl-row"><span class="sc-print-k">Amount due</span><span class="sc-print-v" style="font-size:18px;color:var(--sc-danger);">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</span></div>
+</div>
+</div>
+<div class="sc-psid-box">
+<div class="sc-psid-info">
+<div class="sc-psid-label">Payment System ID (PSID)</div>
+<div class="sc-psid-code">{{ psid }}</div>
+</div>
+</div>
+</div>
+<div>
+<div class="sc-card">
+<div class="sc-card-head">Choose payment method</div>
+{% if has_active %}<div class="sc-banner sc-banner-warn"><i class="bi bi-info-circle"></i> You have an active appeal. Payment is still required.</div>{% endif %}
+<form method="post" class="sc-search-form">
+{% csrf_token %}
+<div class="sc-form-group">
+<label>Payment method *</label>
+<select name="payment_method" required class="w-full">
+<option value="">-- Select payment method --</option>
+{% for pm in payment_methods %}
+<option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
+{% endfor %}
+</select>
+</div>
+<div class="sc-form-group">
+<label>Transaction reference (optional)</label>
+<input type="text" name="txn_ref" placeholder="Transaction ID from your payment receipt">
+</div>
+<button type="submit" name="action" value="initiate" class="sc-btn sc-btn-primary sc-btn-block">Pay via gateway</button>
+<button type="submit" name="action" value="manual" class="sc-btn sc-btn-block">Submit for verification</button>
+<a href="{% url 'citizen_portal:home' %}" class="sc-btn sc-btn-block">Cancel</a>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

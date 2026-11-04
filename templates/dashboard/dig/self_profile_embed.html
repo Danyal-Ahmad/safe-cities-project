@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security &amp; Account</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #E8EEF7; margin: 0; padding: 16px; color: #33415C; font-size: 14px; }
+  .sec-card { background: #FFFFFF; border: 1px solid #E4E8EF; border-radius: 14px; box-shadow: 0 4px 16px rgba(15,37,87,0.06); padding: 18px; margin-bottom: 14px; }
+  .sec-title { font-size: 1rem; font-weight: 700; color: #0F2557; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid #E4E8EF; display: flex; align-items: center; gap: 8px; }
+  .sec-title i { color: #2563EB; }
+  .sec-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #E4E8EF; font-size: 0.85rem; }
+  .sec-row:last-child { border-bottom: none; }
+  .sec-k { color: #5B6B85; }
+  .sec-v { font-weight: 700; color: #0F2557; }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22A45D; margin-right: 6px; }
+  .status-dot.locked { background: #E23B4E; }
+  .sec-card form input.form-control { border-radius: 10px; border-color: #D3DAE7; margin-bottom: 9px; }
+  .sec-card form input.form-control:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+  .btn-primary { background: #16294E !important; border-color: #16294E !important; border-radius: 999px; font-weight: 600; }
+  .btn-primary:hover { background: #1E3763 !important; border-color: #1E3763 !important; }
+</style>
+</head>
+<body>
+  <div class="sec-card">
+    <div class="sec-title"><i class="bi bi-shield-lock"></i> Account security</div>
+    <div class="sec-row"><span class="sec-k">Account status</span>
+      <span class="sec-v">{% if is_locked %}<span class="status-dot locked"></span>Locked{% else %}<span class="status-dot"></span>Active{% endif %}</span>
+    </div>
+    <div class="sec-row"><span class="sec-k">Last login</span><span class="sec-v">{{ last_login|default:"—" }}</span></div>
+    <div class="sec-row"><span class="sec-k">Joined</span><span class="sec-v">{{ date_joined|default:"—" }}</span></div>
+    <div class="sec-row"><span class="sec-k">Session portal</span><span class="sec-v">{{ own_namespace }}</span></div>
+  </div>
+
+  <div class="sec-card">
+    <div class="sec-title"><i class="bi bi-key"></i> Change password</div>
+    <form method="post" action="?embed=1" target="_parent">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="password">
+      <input type="password" name="old_password" class="form-control form-control-sm" placeholder="Current password" required autocomplete="current-password">
+      <input type="password" name="new_password" class="form-control form-control-sm" placeholder="New password (min 12 chars)" required minlength="12" autocomplete="new-password">
+      <input type="password" name="confirm_password" class="form-control form-control-sm" placeholder="Confirm new password" required minlength="12" autocomplete="new-password">
+      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-arrow-repeat me-1"></i>Update password</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Appeal Review — Safe City{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-arrow-right-circle me-2"></i>Appeal Review — {{ stage_display }}</h1>
+ <p class=" opacity-75">Appeal #{{ appeal.id }} · {{ appeal.challan.ticket_no }}</p>
+ </div>
+ <a href="{% url 'dig:escalation_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="alert alert-info small ">
+ <i class="bi bi-arrow-right-circle me-1"></i>
+ <strong>Review chain:</strong> Officer → SSP → DIG (final).
+ {% if current_stage == 'officer' %}Officer can approve/reject or route to SSP.{% endif %}
+ {% if current_stage == 'ssp' %}SSP can approve/reject or escalate to DIG.{% endif %}
+ {% if current_stage == 'dig' %}DIG makes the final decision.{% endif %}
+</div>
+
+<div>
+ <div>
+ <div class=" h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Challan Detail</span></div>
+ <div class="card-body">
+ <div class="kv-"><span class="k">Ticket</span><span class="v font-monospace">{{ appeal.challan.ticket_no }}</span></div>
+ <div class="kv-"><span class="k">Plate</span><span class="v font-monospace">{{ appeal.challan.plate_number }}</span></div>
+ <div class="kv-"><span class="k">Violation</span><span class="v">{{ appeal.challan.get_violation_type_display }}</span></div>
+ <div class="kv-"><span class="k">Fine</span><span class="v">{{ appeal.challan.fine_amount|intcomma }}</span></div>
+ <div class="kv-"><span class="k">Issue Date</span><span class="v small ">{{ appeal.challan.issue_date|date:"Y-m-d" }}</span></div>
+ <div class="kv-"><span class="k">Due Date</span><span class="v small ">{{ appeal.challan.due_date|date:"Y-m-d" }}</span></div>
+ <div class="kv-"><span class="k">Location</span><span class="v">{{ appeal.challan.location|default:"—" }}</span></div>
+ <div class="kv-"><span class="k">Owner</span><span class="v">{{ appeal.challan.owner_name|default:"—" }}</span></div>
+ <div class="kv-"><span class="k">CNIC</span><span class="v font-monospace small">{{ appeal.challan.cnic|default:"—" }}</span></div>
+ <div class="kv-"><span class="k">Payment</span><span class="v">
+ {% if appeal.challan.payment_status == 'PAID' %}<span class="badge ">PAID</span>
+ {% elif appeal.challan.payment_status == 'VOIDED' %}<span class="badge ">VOIDED</span>
+ {% else %}<span class="badge ">UNPAID</span>{% endif %}
+ </span></div>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class=" h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Comments</span></div>
+ <div class="card-body">
+ <div class="small fw-semibold ">Citizen's reason</div>
+ <div class="comment-box warning ">{{ appeal.reason|linebreaksbr }}</div>
+ {% if appeal.officer_comment %}
+ <div class="small fw-semibold ">Officer</div>
+ <div class="comment-box ">{{ appeal.officer_comment|linebreaksbr }}</div>
+ {% endif %}
+ {% if appeal.ssp_comment %}
+ <div class="small fw-semibold ">SSP</div>
+ <div class="comment-box success ">{{ appeal.ssp_comment|linebreaksbr }}</div>
+ {% endif %}
+ {% if appeal.evidence_file %}
+ <div class="small fw-semibold ">Evidence</div>
+ <img src="{{ appeal.evidence_file.url }}" class="img-fluid " alt="Evidence">
+ {% endif %}
+ </div>
+ </div>
+ </div>
+</div>
+
+<div>
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Decision — {{ stage_display }}</span></div>
+ <div class="card-body">
+ <p class="small ">Your decision is sent to the citizen and any next-stage reviewer.</p>
+ <form method="post">{% csrf_token %}
+ <div>
+ <label>Comment * <span>(min 30 chars)</span></label>
+ <textarea name="comment" required minlength="30" rows="4"
+ placeholder="Explain your decision. This message will be sent to the citizen and (if routing) the next reviewer."></textarea>
+ </div>
+ <input type="hidden" name="action" value="">
+ <div class="form-actions ">
+ {% if can_finalize %}
+ <button type="submit" class="btn btn-success" onclick="this.form.action.value='approve'">
+ <i class="bi bi-arrow-right-circle me-1"></i>Approve (Void Challan)
+ </button>
+ <button type="submit" class="btn btn-danger" onclick="this.form.action.value='reject'">
+ <i class="bi bi-arrow-right-circle me-1"></i>Reject (Challan Stands)
+ </button>
+ {% endif %}
+ {% if can_route_to_ssp %}
+ <button type="submit" class="btn btn-primary" onclick="this.form.action.value='route_to_ssp'">
+ <i class="bi bi-arrow-right-circle me-1"></i>Route to SSP
+ </button>
+ {% endif %}
+ {% if can_route_to_dig %}
+ <button type="submit" class="btn btn-primary" onclick="this.form.action.value='route_to_dig'">
+ <i class="bi bi-arrow-right-circle me-1"></i>Escalate to DIG
+ </button>
+ {% endif %}
+ </div>
+ </form>
+ </div>
+</div>
+{% endblock %}

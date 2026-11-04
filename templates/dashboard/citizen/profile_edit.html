@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}My Profile{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Profile</b>{% endblock %}
+{% block content %}
+<div class="sc-card" style="max-width:640px;">
+<div class="sc-card-head">Personal information</div>
+<form method="post">
+{% csrf_token %}
+<div class="sc-form-group">
+<label>Display name *</label>
+<input type="text" name="first_name" value="{{ user.first_name }}" required>
+</div>
+<div class="sc-form-group">
+<label>Phone</label>
+<input type="tel" name="phone" value="{{ user.phone }}" placeholder="+92-300-1234567">
+</div>
+<div class="sc-form-group">
+<label>Email</label>
+<input type="email" name="email" value="{{ user.email }}">
+</div>
+<div class="sc-form-group">
+<label>Address</label>
+<textarea name="address" rows="3">{{ user.address|default:'' }}</textarea>
+</div>
+<div class="sc-flex sc-gap-2">
+<button type="submit" class="sc-btn sc-btn-primary">Save changes</button>
+<a href="{% url 'citizen_portal:home' %}" class="sc-btn">Cancel</a>
+</div>
+</form>
+</div>
+{% endblock %}

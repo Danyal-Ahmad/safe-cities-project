@@ -1,0 +1,211 @@
+import datetime
+import json
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db.models import Count, Sum
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+
+from accounts.decorators import officer_or_dig_required, dig_required
+from cameras.models import Camera
+from detections.models import Detection
+from challans.models import Challan
+from appeals.models import ChallanAppeal
+from .models import LiveFeed
+
+
+@officer_or_dig_required
+def realtime_stats(request):
+    today = timezone.localdate()
+    return JsonResponse({
+        'total_today': Detection.objects.filter(created_at__date=today).count(),
+        'pending': Detection.objects.filter(status=Detection.PENDING).count(),
+        'flagged': Detection.objects.filter(status=Detection.FLAGGED).count(),
+        'online_cameras': Camera.objects.filter(health_status='online', is_active=True).count(),
+        'active_cameras': Camera.objects.filter(is_active=True, is_streaming=True).count(),
+        'unpaid_challans': Challan.objects.filter(payment_status=Challan.UNPAID).count(),
+        'ts': timezone.now().isoformat(),
+    })
+
+
+@officer_or_dig_required
+def cameras_status_json(request):
+    qs = Camera.objects.filter(is_active=True).order_by('camera_id')
+    return JsonResponse({
+        'cameras': [{
+            'id': c.id, 'camera_id': c.camera_id, 'location': c.location,
+            'health': c.health_status, 'streaming': c.is_streaming,
+            'last_frame_at': c.last_frame_at.isoformat() if c.last_frame_at else None,
+        } for c in qs[:50]],
+    })
+
+
+@officer_or_dig_required
+def queue_count(request):
+    return JsonResponse({
+        'count': Detection.objects.filter(status=Detection.PENDING).count(),
+    })
+
+
+# ===== New API endpoints for JS-driven dashboards =====
+
+@require_GET
+@login_required
+def api_dashboard_kpis(request):
+    """Return KPIs for the current user's role dashboard."""
+    role = getattr(request.user, 'role', 'USER')
+    today = timezone.localdate()
+    if role == 'DIG':
+        return JsonResponse({
+            'role': 'DIG',
+            'kpis': [
+                {'label': 'Challans today', 'value': Challan.objects.filter(issue_date=today).count(), 'icon': 'bi-receipt'},
+                {'label': 'Paid today', 'value': Challan.objects.filter(issue_date=today, payment_status=Challan.PAID).count(), 'icon': 'bi-check-circle', 'color': 'ok'},
+                {'label': 'Revenue collected', 'value': float(Challan.objects.filter(payment_status=Challan.PAID).aggregate(t=Sum('fine_amount'))['t'] or 0), 'icon': 'bi-cash-stack', 'color': 'ok', 'prefix': 'PKR '},
+                {'label': 'Revenue pending', 'value': float(Challan.objects.filter(payment_status=Challan.UNPAID).aggregate(t=Sum('fine_amount'))['t'] or 0), 'icon': 'bi-hourglass-split', 'color': 'warn', 'prefix': 'PKR '},
+                {'label': 'Active cameras', 'value': Camera.objects.filter(is_active=True, is_streaming=True).count(), 'icon': 'bi-camera-video'},
+                {'label': 'Online cameras', 'value': Camera.objects.filter(health_status='online').count(), 'icon': 'bi-broadcast', 'color': 'ok'},
+                {'label': 'Pending detections', 'value': Detection.objects.filter(status=Detection.PENDING).count(), 'icon': 'bi-hourglass-split', 'color': 'warn'},
+                {'label': 'Flagged', 'value': Detection.objects.filter(status=Detection.FLAGGED).count(), 'icon': 'bi-flag-fill', 'color': 'err'},
+            ],
+        })
+    elif role in ('IT', 'IT_SUPPORT'):
+        return JsonResponse({
+            'role': 'IT',
+            'kpis': [
+                {'label': 'Cameras', 'value': Camera.objects.count(), 'icon': 'bi-camera-fill'},
+                {'label': 'Online', 'value': Camera.objects.filter(health_status='online').count(), 'icon': 'bi-broadcast', 'color': 'ok'},
+                {'label': 'Active Streams', 'value': Camera.objects.filter(is_streaming=True).count(), 'icon': 'bi-broadcast-pin', 'color': 'ok'},
+                {'label': 'Detections', 'value': Detection.objects.count(), 'icon': 'bi-eye'},
+                {'label': 'Pending', 'value': Detection.objects.filter(status=Detection.PENDING).count(), 'icon': 'bi-hourglass-split', 'color': 'warn'},
+                {'label': 'Challans', 'value': Challan.objects.count(), 'icon': 'bi-receipt'},
+            ],
+        })
+    elif role == 'OFFICER':
+        return JsonResponse({
+            'role': 'OFFICER',
+            'kpis': [
+                {'label': 'Queue', 'value': Detection.objects.filter(status=Detection.PENDING).count(), 'icon': 'bi-inbox', 'color': 'warn'},
+                {'label': 'Confirmed by you', 'value': Detection.objects.filter(status=Detection.CONFIRMED, reviewed_by=request.user).count(), 'icon': 'bi-check2-circle', 'color': 'ok'},
+                {'label': 'Flagged', 'value': Detection.objects.filter(status=Detection.FLAGGED).count(), 'icon': 'bi-flag-fill', 'color': 'err'},
+                {'label': 'My appeals', 'value': ChallanAppeal.objects.filter(challan__created_by=request.user).count(), 'icon': 'bi-shield-fill'},
+            ],
+        })
+    else:  # USER / SSP / SUPV / AUDIT
+        return JsonResponse({'role': role, 'kpis': []})
+
+
+@require_GET
+@dig_required
+def api_charts_violation_distribution(request):
+    """Return Chart.js data for violation type distribution."""
+    days = int(request.GET.get('days', 30))
+    since = timezone.now() - datetime.timedelta(days=days)
+    qs = (Detection.objects
+          .filter(created_at__gte=since, status=Detection.CONFIRMED)[:1000])
+    counts = {}
+    for d in qs:
+        v = d.effective_violation_type or 'other'
+        counts[v] = counts.get(v, 0) + 1
+    ordered = sorted(counts.items(), key=lambda kv: -kv[1])
+    return JsonResponse({
+        'labels': [v for v, _ in ordered],
+        'counts': [c for _, c in ordered],
+    })
+
+
+@require_GET
+@dig_required
+def api_charts_revenue(request):
+    """Return Chart.js data for daily revenue (last N days)."""
+    days = int(request.GET.get('days', 14))
+    out = []
+    for d in range(days - 1, -1, -1):
+        day = timezone.localdate() - datetime.timedelta(days=d)
+        amount = Challan.objects.filter(issue_date=day, payment_status=Challan.PAID).aggregate(t=Sum('fine_amount'))['t'] or 0
+        out.append({'date': day.isoformat(), 'amount': float(amount)})
+    return JsonResponse({
+        'series': out,
+        'labels': [x['date'] for x in out],
+        'revenues': [x['amount'] for x in out],
+    })
+
+
+@require_GET
+@dig_required
+def api_tables_detections(request):
+    """DataTables server-side data endpoint."""
+    qs = Detection.objects.select_related('camera').order_by('-created_at')
+    plate = request.GET.get('plate', '').strip().upper()
+    status = request.GET.get('status', '').strip()
+    if plate:
+        from django.db.models import Q
+        qs = qs.filter(Q(ai_plate_text__icontains=plate) | Q(manual_plate_text__icontains=plate))
+    if status:
+        qs = qs.filter(status=status)
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 25))
+    total = qs.count()
+    rows = qs[start:start + length]
+    return JsonResponse({
+        'draw': int(request.GET.get('draw', 1)),
+        'recordsTotal': Detection.objects.count(),
+        'recordsFiltered': total,
+        'data': [{
+            'id': d.id,
+            'plate': d.effective_plate or '',
+            'camera': d.camera.camera_id if d.camera else '',
+            'status': d.get_status_display(),
+            'violation': d.effective_violation_type or '',
+            'confidence': round(d.ai_confidence or 0, 2),
+            'created_at': d.created_at.isoformat(),
+        } for d in rows],
+    })
+
+
+@require_GET
+@login_required
+def api_live_recent_detections(request):
+    """Return recent detections for live tracking (polled by JS)."""
+    camera_id = request.GET.get('camera_id', '').strip()
+    limit = int(request.GET.get('limit', 30))
+    qs = Detection.objects.order_by('-created_at')
+    if camera_id:
+        qs = qs.filter(camera__camera_id=camera_id)
+    qs = qs[:limit]
+    return JsonResponse({
+        'items': [{
+            'id': d.id,
+            'plate': d.effective_plate or '',
+            'camera': d.camera.camera_id if d.camera else '',
+            'status': d.status,
+            'confidence': round(d.ai_confidence or 0, 2),
+            'bbox': None,
+            'created_at': d.created_at.isoformat(),
+            'thumb_url': d.raw_image.url if d.raw_image else None,
+        } for d in qs],
+        'ts': timezone.now().isoformat(),
+    })
+
+
+@require_GET
+@login_required
+def api_citizen_challans(request):
+    """Citizen's own challans as JSON."""
+    from django.db.models import Q
+    user = request.user
+    qs = Challan.objects.filter(
+        Q(cnic=user.cnic) | Q(phone=user.phone)
+    ).order_by('-issue_date')
+    return JsonResponse({
+        'items': [{
+            'id': c.id,
+            'ticket_no': c.ticket_no,
+            'plate': c.plate_number,
+            'fine': float(c.fine_amount or 0),
+            'status': c.get_payment_status_display(),
+            'paid': c.payment_status == Challan.PAID,
+            'issue_date': c.issue_date.isoformat(),
+            'due_date': c.due_date.isoformat(),
+        } for c in qs],
+    })

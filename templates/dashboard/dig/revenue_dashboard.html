@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Revenue Dashboard — Safe City{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-cash-stack me-2"></i>Revenue Dashboard</h1>
+ <p class=" opacity-75">Financial overview and revenue tracking</p>
+ </div>
+ <a href="{% url 'dig:reports' %}" class="sc-btn sc-btn-primary">View Reports</a>
+</div>
+
+<div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Collected</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ collected|default:0|intcomma }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Pending</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ pending|default:0|intcomma }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Overdue</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ overdue|default:0|intcomma }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">This Month</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ this_month|default:0|intcomma }}</div>
+ </div>
+ </div>
+</div>
+
+<div>
+ <div>
+ <div class=" h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Revenue Trend</span></div>
+ <div class="card-body">
+ <canvas id="revenueChart" height="280"></canvas>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class=" h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Revenue by Type</span></div>
+ <div class="card-body">
+ <canvas id="typeChart" height="280"></canvas>
+ </div>
+ </div>
+ </div>
+</div>
+
+{% endblock %}

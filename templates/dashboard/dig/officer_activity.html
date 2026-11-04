@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Officer Activity — Safe City{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-person-badge me-2"></i>Officer Activity</h1>
+ <p class=" opacity-75">{{ officer.display_name|default:"Officer" }} · recent oversight</p>
+ </div>
+ <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+</div>
+
+<div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Detections Reviewed</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ stats.total_reviewed|default:0 }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Appeals Handled</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ stats.total_appeals|default:0 }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Notes Added</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ stats.total_notes|default:0 }}</div>
+ </div>
+ </div>
+</div>
+
+<div>
+ <div>
+ <div class=" h-100">
+ <div class="card-header ">
+ <span><i class="bi bi-circle me-2"></i>Recent Reviews</span>
+ <span class="badge bg-secondary">{{ recent_actions|length }}</span>
+ </div>
+ <div class="-b p-0">
+ <div class="table-responsive">
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr><th>Detection</th><th>Plate</th><th>Action</th><th>Reviewed</th></tr>
+ </thead>
+ <tbody>
+ {% for d in recent_actions %}
+ <tr>
+ <td class="form-control font-monospace">#{{ d.id }}</td>
+ <td class="form-control font-monospace">{{ d.effective_plate|default:"—" }}</td>
+ <td>{{ d.get_status_display }}</td>
+ <td class="small ">{{ d.reviewed_at|date:"d M H:i" }}</td>
+ </tr>
+ {% empty %}
+ <tr><td colspan="4" class=" py-4">No reviews yet</td></tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class=" h-100">
+ <div class="card-header ">
+ <span><i class="bi bi-circle me-2"></i>Appeals Handled</span>
+ <span class="badge bg-secondary">{{ appeals_handled|length }}</span>
+ </div>
+ <div class="-b p-0">
+ <div class="table-responsive">
+ <table class="table table-hover table-sm align-middle">
+ <thead>
+ <tr><th>Challan</th><th>Status</th><th>Reviewed</th></tr>
+ </thead>
+ <tbody>
+ {% for a in appeals_handled %}
+ <tr>
+ <td class="form-control font-monospace">{{ a.challan.ticket_no }}</td>
+ <td>{{ a.get_status_display }}</td>
+ <td class="small ">{{ a.reviewed_at|date:"d M H:i" }}</td>
+ </tr>
+ {% empty %}
+ <tr><td colspan="3" class=" py-4">No appeals handled</td></tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+{% endblock %}

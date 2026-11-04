@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}My Profile — SAFE CITY FYP{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>My profile</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>My profile</h1>
+<p class="sc-lead">Account, signature and password.</p>
+</div>
+</div>
+
+{% if messages %}
+<div class="sc-card sc-mb-3">
+  {% for m in messages %}<div class="sc-alert sc-alert-{{ m.tags|default:'info' }}"><i class="bi bi-info-circle"></i> {{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<div class="sc-grid sc-grid-3" style="gap:16px;align-items:start;">
+  <div class="sc-card" style="grid-column:span 1;">
+    <div style="text-align:center;">
+      {% if profile_user.avatar %}
+        <img src="{{ profile_user.avatar.url }}" alt="avatar" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--sc-accent);">
+      {% else %}
+        <div style="width:120px;height:120px;border-radius:50%;background:{{ profile_user.avatar_color }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:800;margin:0 auto;border:3px solid var(--sc-accent);">
+          {{ profile_user.first_name|slice:":1"|upper|default:profile_user.username|slice:":1"|upper }}
+        </div>
+      {% endif %}
+      <h2 style="margin:10px 0 0;font-size:18px;">{{ profile_user.get_full_name|default:profile_user.first_name|default:profile_user.username }}</h2>
+      <div class="sc-text-sm sc-text-muted">{{ profile_user.get_role_display }}</div>
+      <div class="sc-text-sm sc-text-muted">{{ profile_user.email }}</div>
+      {% if profile_user.staff_id %}<div class="sc-text-sm sc-text-muted">ID: {{ profile_user.staff_id }}</div>{% endif %}
+      {% if profile_user.designation %}<div class="sc-text-sm sc-text-muted">{{ profile_user.designation }}</div>{% endif %}
+      {% if profile_user.region %}<div class="sc-text-sm sc-text-muted">{{ profile_user.region }}</div>{% endif %}
+    </div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid var(--sc-border-soft);">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="avatar">
+      <div class="sc-form-group">
+        <label>Profile photo</label>
+        <input type="file" name="avatar" accept="image/*" class="w-full">
+        <div class="sc-text-xs sc-text-muted">Square JPG/PNG, max 2 MB.</div>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-primary" style="width:100%;">Upload photo</button>
+    </form>
+  </div>
+
+  <div class="sc-card" style="grid-column:span 2;">
+    <h2><i class="bi bi-pencil-square"></i> Account details</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="profile">
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>First name *</label><input type="text" name="first_name" value="{{ profile_user.first_name }}" required class="w-full"></div>
+        <div class="sc-form-group"><label>Last name</label><input type="text" name="last_name" value="{{ profile_user.last_name }}" class="w-full"></div>
+      </div>
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>Email *</label><input type="email" name="email" value="{{ profile_user.email }}" required class="w-full"></div>
+        <div class="sc-form-group"><label>Phone</label><input type="tel" name="phone" value="{{ profile_user.phone|default:'' }}" class="w-full" placeholder="+923001234567"></div>
+      </div>
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>Staff ID</label><input type="text" name="staff_id" value="{{ profile_user.staff_id|default:'' }}" class="w-full" placeholder="PSC-2026-OFFR-001"></div>
+        <div class="sc-form-group"><label>Designation</label><input type="text" name="designation" value="{{ profile_user.designation|default:'' }}" class="w-full" placeholder="Traffic Officer"></div>
+      </div>
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>Department</label><input type="text" name="department" value="{{ profile_user.department|default:'' }}" class="w-full" placeholder="Traffic Police"></div>
+        <div class="sc-form-group"><label>Region</label><input type="text" name="region" value="{{ profile_user.region|default:'' }}" class="w-full" placeholder="Central Region"></div>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-primary">Save details</button>
+    </form>
+
+    <hr style="margin:20px 0;border:none;border-top:1px solid var(--sc-border-soft);">
+    <h2><i class="bi bi-vector-pen"></i> E-Signature & stamp (used on challan PDF)</h2>
+    <p class="sc-text-sm sc-text-muted">Upload your signature once. It will be auto-applied to every challan you issue, with your name, designation and an optional rubber stamp.</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="signature">
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group"><label>Signature name (printed)</label><input type="text" name="signature_name" value="{{ profile_user.signature_name|default:profile_user.get_full_name|default:profile_user.first_name }}" class="w-full" placeholder="{{ profile_user.get_full_name|default:profile_user.first_name }}"></div>
+        <div class="sc-form-group"><label>Designation (printed)</label><input type="text" name="signature_designation" value="{{ profile_user.signature_designation|default:profile_user.designation }}" class="w-full" placeholder="{{ profile_user.designation|default:'Officer' }}"></div>
+      </div>
+      <div class="sc-grid sc-grid-2">
+        <div class="sc-form-group">
+          <label>Signature image (PNG with transparent background)</label>
+          <input type="file" name="signature" accept="image/*" class="w-full">
+          {% if profile_user.signature %}<div class="sc-mt-2"><img src="{{ profile_user.signature.url }}" alt="signature" style="max-height:60px;max-width:200px;background:#fff;padding:4px;border:1px solid var(--sc-border-soft);border-radius:3px;"></div>{% endif %}
+        </div>
+        <div class="sc-form-group">
+          <label>Official stamp (optional)</label>
+          <input type="file" name="signature_stamp" accept="image/*" class="w-full">
+          {% if profile_user.signature_stamp %}<div class="sc-mt-2"><img src="{{ profile_user.signature_stamp.url }}" alt="stamp" style="max-height:60px;max-width:200px;"></div>{% endif %}
+        </div>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-upload"></i> Save signature</button>
+    </form>
+
+    <hr style="margin:20px 0;border:none;border-top:1px solid var(--sc-border-soft);">
+    <h2><i class="bi bi-shield-lock"></i> Change password</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="password">
+      <div class="sc-grid sc-grid-3">
+        <div class="sc-form-group"><label>Current password</label><input type="password" name="old_password" required class="w-full"></div>
+        <div class="sc-form-group"><label>New password (min 12)</label><input type="password" name="new_password" minlength="12" required class="w-full"></div>
+        <div class="sc-form-group"><label>Confirm new password</label><input type="password" name="confirm_password" minlength="12" required class="w-full"></div>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-danger">Change password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

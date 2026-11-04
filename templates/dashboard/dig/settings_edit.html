@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}System Settings{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>System settings</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>System settings</h1>
+<p class="sc-lead">Tune thresholds, fines.</p>
+</div>
+</div>
+<div class="sc-page-hero"><div><h1>System Settings</h1><p class="sc-lead">Tune thresholds, fines.</p></div></div><div class="sc-card" style="max-width:720px;"><form method="post" class="sc-form-group">{% csrf_token %}<div class="sc-form-group"><label>AI confidence threshold (0-1)</label><input type="number" name="ai_confidence_threshold" step="0.01" min="0" max="1" value="{{ settings.ai_confidence_threshold|default:0.75 }}" class="w-full"></div><div class="sc-form-group"><label>Default fine (PKR)</label><input type="number" name="default_fine" value="{{ settings.default_fine|default:2000 }}" class="w-full"></div><div class="sc-form-group"><label>Due days</label><input type="number" name="due_date_days" value="{{ settings.due_date_days|default:14 }}" class="w-full"></div><div class="sc-form-group"><label>Integration mode</label><select name="integration_mode" class="w-full"><option value="demo">Demo</option><option value="real">Real</option></select></div><div class="sc-form-group"><label>PSA</label><textarea name="psa_text" rows="2" class="w-full">{{ settings.psa_text|default:"" }}</textarea></div><button type="submit" class="sc-btn sc-btn-primary">Save settings</button></form></div>{% endblock %}

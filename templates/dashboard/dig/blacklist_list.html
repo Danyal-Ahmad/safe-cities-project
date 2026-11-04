@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Vehicle Blacklist — DIG Portal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Blacklist</b>{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-shield-x me-2" style="color:#BE123C;"></i>Vehicle & Plate Blacklist</h1>
+    <p class="sc-lead">Manage high-priority wanted vehicles, stolen alerts, and automated plate interception rules.</p>
+  </div>
+  <div>
+    <a class="sc-btn sc-btn-primary" href="{% url 'dig:blacklist_add' %}">
+      <i class="bi bi-plus-circle me-1"></i>Add to Blacklist
+    </a>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-list-check"></i>
+      <span>Blacklisted Registrations</span>
+    </div>
+    <span class="sc-badge sc-badge-danger">{{ entries|length }} Active Rules</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if entries %}
+    <div class="table-responsive">
+      <table class="table sc-table mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Plate / ID</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Logged Date</th>
+            <th>Added By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in entries %}
+          <tr>
+            <td>
+              <span class="sc-badge sc-badge-muted text-uppercase">{{ b.type|default:"plate" }}</span>
+            </td>
+            <td class="sc-mono">
+              <strong>{{ b.value|default:b.plate }}</strong>
+            </td>
+            <td class="sc-text-sm">{{ b.reason|truncatechars:80 }}</td>
+            <td>
+              {% if b.is_active %}
+              <span class="sc-badge sc-badge-danger">Active</span>
+              {% else %}
+              <span class="sc-badge sc-badge-muted">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-sm sc-text-muted">{{ b.when|default:b.created_at|date:"d M Y" }}</td>
+            <td class="sc-text-sm">{{ b.actor|default:"System" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty p-5 text-center">
+      <i class="bi bi-shield-check fs-1 opacity-25 d-block mb-3"></i>
+      No blacklisted vehicles found. All clear.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

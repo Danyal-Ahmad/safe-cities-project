@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}Payments{% endblock %}
+{% block crumb %}<span>DIG</span> / <b>Payments</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero"><div><h1>Recorded payments</h1><p class="lead">All payments processed.</p></div></div>
+<div class="card">
+  <div class="overflow-x-auto">
+  <table>
+    <thead><tr><th>#</th><th>Date</th><th>Method</th><th>Txn ref</th><th>Amount</th><th>Challan</th><th>Actor</th></tr></thead>
+    <tbody>
+    {% for p in payments %}
+      <tr>
+        <td class="font-mono">{{ p.id }}</td>
+        <td class="small">{{ p.created_at|date:"d M H:i" }}</td>
+        <td>{{ p.method|default:"-" }}</td>
+        <td class="font-mono text-xs">{{ p.txn_ref|default:"-" }}</td>
+        <td>PKR {{ p.amount|floatformat:0|intcomma|default:0 }}</td>
+        <td class="font-mono">{% if p.challan %}<a href="{% url 'challans:challan_detail' p.challan.id %}">{{ p.challan.ticket_no }}</a>{% else %}-{% endif %}</td>
+        <td class="small">{% if p.actor %}{{ p.actor }}{% else %}-{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No payments yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

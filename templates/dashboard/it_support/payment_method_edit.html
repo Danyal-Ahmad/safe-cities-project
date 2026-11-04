@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Payment Method{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Edit payment method</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Edit payment method</h1>
+<p class="sc-lead">Edit gateway configuration.</p>
+</div>
+</div>
+<div class="sc-card" style="max-width:720px;"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="save"><div class="sc-grid sc-grid-2"><div class="sc-form-group"><label>Name *</label><input type="text" name="name" value="{{ pm.name }}" required class="w-full"></div><div class="sc-form-group"><label>Provider *</label><input type="text" name="provider" value="{{ pm.provider }}" required class="w-full"></div></div><div class="sc-grid sc-grid-2"><div class="sc-form-group"><label>Type</label><select name="type" class="w-full"><option value="wallet">Wallet</option><option value="card">Card</option><option value="bank">Bank</option><option value="gateway">Gateway</option></select></div><div class="sc-form-group"><label>Status</label><select name="status" class="w-full"><option value="active">Active</option><option value="disabled">Disabled</option><option value="maintenance">Maintenance</option></select></div></div><div class="sc-form-group"><label>Merchant ID</label><input type="text" name="config_merchant_id" value="{{ pm.config.merchant_id|default:"" }}" class="w-full"></div><div class="sc-form-group"><label>Password / API secret</label><input type="password" name="config_password" class="w-full" autocomplete="new-password"></div><div class="sc-form-group"><label>Integrity salt / Hash key</label><input type="text" name="config_integrity_salt" value="{{ pm.config.integrity_salt|default:"" }}" class="w-full"></div><div class="sc-form-group"><label>Publishable key (cards)</label><input type="text" name="config_publishable_key" value="{{ pm.config.publishable_key|default:"" }}" class="w-full"></div><div class="sc-form-group"><label>Secret key (cards)</label><input type="password" name="config_secret_key" class="w-full" autocomplete="new-password"></div><div class="sc-form-group"><label>Environment</label><select name="tx_environment" class="w-full"><option value="sandbox">Sandbox</option><option value="live">Live</option></select></div><div class="sc-flex sc-gap-2"><button type="submit" class="sc-btn sc-btn-primary">Save</button><a class="sc-btn" href="{% url 'it_support_portal:payment_method_list' %}">Cancel</a></div></form></div>{% endblock %}

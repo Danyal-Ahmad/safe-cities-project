@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Notifications — Staff Inbox{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+ <div>
+ <h1><i class="bi bi-bell-fill me-2"></i>Notifications</h1>
+ <p class=" opacity-75">Inbox · payments · appeals · system alerts</p>
+ </div>
+ <div>
+ {% if unread_count %}
+ <span class="badge bg-secondary">{{ unread_count }} unread</span>
+ {% endif %}
+ {% if not user.is_officer %}
+ <a href="{% url portal_ns|add:':alerts_hub' %}" class="sc-btn sc-btn-primary">
+ <i class="bi bi-circle"></i> Alerts Hub
+ </a>
+ {% endif %}
+ </div>
+</div>
+
+{% if payment_pending %}
+<div class="alert alert-warning ">
+ <i class="bi bi-circle"></i>
+ <div>
+ <strong>{{ payment_pending|length }} payment verification(s)</strong> waiting for your action.
+ Open a below and confirm or reject the citizen submission.
+ </div>
+</div>
+{% endif %}
+
+<div>
+ <div class="card-header ">
+ <span><i class="bi bi-circle"></i> Inbox</span>
+ <span class="badge bg-secondary">{{ inbox|length }}</span>
+ </div>
+ <div class="-b p-0">
+ {% if inbox %}
+ <div class="table-responsive">
+ <table class="table table-hover align-middle">
+ <thead>
+ <tr>
+ <th></th>
+ <th>Title</th>
+ <th>Category</th>
+ <th>Message</th>
+ <th>When</th>
+ <th></th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for n in inbox %}
+ <tr class="{% if not n.is_read %}table-warning{% endif %}">
+ <td>
+ {% if not n.is_read %}<span class="badge bg-secondary" title="Unread">•</span>{% endif %}
+ </td>
+ <td><strong>{{ n.title }}</strong></td>
+ <td>
+ {% if n.category == 'payment_verification' %}
+ <span class="badge bg-secondary">Payment</span>
+ {% elif 'appeal' in n.category %}
+ <span class="badge bg-secondary">Appeal</span>
+ {% else %}
+ <span class="badge bg-secondary">{{ n.get_category_display }}</span>
+ {% endif %}
+ </td>
+ <td class="small ">{{ n.message|truncatechars:120 }}</td>
+ <td class="small ">{{ n.created_at|date:"d M Y H:i" }}</td>
+ <td>
+ {% if n.category == 'payment_verification' and n.target_url %}
+ <a class="btn btn-success" href="{{ n.target_url }}">Verify</a>
+ {% elif n.target_url %}
+ <a class="sc-btn sc-btn-primary" href="{% url portal_ns|add:':notification_read' n.id %}">Open</a>
+ {% else %}
+ <a class="sc-btn sc-btn-primary" href="{% url portal_ns|add:':notification_read' n.id %}">Mark read</a>
+ {% endif %}
+ </td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ </div>
+ {% else %}
+ <div class=" py-5">
+ <i></i>
+ <p>No notifications yet.</p>
+ </div>
+ {% endif %}
+ </div>
+</div>
+
+<div>
+ <div class="card-header">
+ <i class="bi bi-circle"></i> Active system alerts
+ <span class="badge text- ms-2">{{ alerts|length }}</span>
+ </div>
+ <div class="-b p-0">
+ {% if alerts %}
+ <table class="table table-sm ">
+ <thead><tr><th>Message</th><th>Severity</th><th>Created</th></tr></thead>
+ <tbody>
+ {% for a in alerts %}
+ <tr>
+ <td>{{ a.message|default:a.title }}</td>
+ <td>
+ {% if a.severity == 'critical' %}<span class="badge bg-secondary">{{ a.get_severity_display }}</span>
+ {% elif a.severity == 'warning' %}<span class="badge bg-secondary">{{ a.get_severity_display }}</span>
+ {% else %}<span class="badge bg-secondary">{{ a.get_severity_display }}</span>{% endif %}
+ </td>
+ <td class="small">{{ a.created_at|date:"d M Y, H:i" }}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <p class=" py-3 ">No active system alerts.</p>
+ {% endif %}
+ </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Case Escalation{% endblock %}
+{% block crumb %}<span>DIG</span> / <b>Case Escalation</b>{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1>Case escalation</h1>
+    <p class="lead">High-value and escalated cases for DIG review.</p>
+  </div>
+</div>
+
+<div class="card">
+{% if appeals %}
+  <div class="overflow-x-auto">
+  <table>
+    <thead><tr><th>#</th><th>Challan</th><th>Plate</th><th>Stage</th><th>Reason</th><th>When</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for a in appeals %}
+      <tr>
+        <td class="font-mono">#{{ a.id }}</td>
+        <td class="font-mono"><a href="{% url 'challans:challan_detail' a.challan.id %}">{{ a.challan.ticket_no }}</a></td>
+        <td class="font-mono">{{ a.challan.plate_number }}</td>
+        <td><span class="badge badge-amber">{{ a.get_current_stage_display }}</span></td>
+        <td class="small">{{ a.escalation_reason|default:"-" }}</td>
+        <td class="small">{{ a.escalated_at|date:"d M H:i" }}</td>
+        <td><a href="{% url 'dig:appeal_override' a.id %}" class="btn btn-sm">Decide</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No escalated cases.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+{% else %}
+  <div class="empty">No escalated cases.</div>
+{% endif %}
+</div>
+{% endblock %}

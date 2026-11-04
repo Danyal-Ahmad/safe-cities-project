@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}My Appeals — Officer Portal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>My Appeals</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-chat-square-text me-2" style="color:#1E40AF;"></i>My Appeals</h1>
+    <p class="sc-lead">Track appeals for challans you have reviewed or issued.</p>
+  </div>
+</div>
+
+<!-- KPI strip -->
+<div class="sc-kpi-grid mb-4">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="sc-kpi-label">Pending</div>
+    <div class="sc-kpi-value">{{ pending_count|default:0 }}</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check-circle"></i></div>
+    <div class="sc-kpi-label">Approved</div>
+    <div class="sc-kpi-value">{{ approved_count|default:0 }}</div>
+  </div>
+  <div class="sc-kpi sc-kpi-danger">
+    <div class="sc-kpi-icon"><i class="bi bi-x-circle"></i></div>
+    <div class="sc-kpi-label">Rejected</div>
+    <div class="sc-kpi-value">{{ rejected_count|default:0 }}</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+    <div class="sc-kpi-label">Escalated</div>
+    <div class="sc-kpi-value">{{ escalated_count|default:0 }}</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-list-ul"></i>
+    <span>Appeal List</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if appeals %}
+    <div class="table-responsive">
+      <table class="table sc-table mb-0">
+        <thead>
+          <tr>
+            <th>Ticket #</th>
+            <th>Appellant</th>
+            <th>Stage</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ap in appeals %}
+          <tr>
+            <td><code>{{ ap.challan.ticket_no }}</code></td>
+            <td>{{ ap.submitted_by.display_name|default:ap.guest_name|default:"Guest" }}</td>
+            <td>
+              <span class="sc-badge {% if ap.current_stage == 'ssp' %}sc-badge-amber{% elif ap.current_stage == 'dig' %}sc-badge-purple{% else %}sc-badge-muted{% endif %}">
+                {{ ap.get_current_stage_display }}
+              </span>
+            </td>
+            <td>
+              <span class="sc-badge {% if ap.status == 'approved' %}sc-badge-ok{% elif ap.status == 'rejected' %}sc-badge-danger{% elif ap.status == 'escalated' %}sc-badge-amber{% else %}sc-badge-muted{% endif %}">
+                {{ ap.get_status_display }}
+              </span>
+            </td>
+            <td class="sc-text-sm sc-text-muted">{{ ap.created_at|date:"d M Y" }}</td>
+            <td>
+              <a href="{% url 'officer_portal:appeal_detail' ap.id %}" class="sc-btn sc-btn-sm sc-btn-outline">
+                View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty p-5 text-center">
+      <i class="bi bi-chat-square-text fs-1 opacity-25 d-block mb-3"></i>
+      No appeals on your challans yet.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

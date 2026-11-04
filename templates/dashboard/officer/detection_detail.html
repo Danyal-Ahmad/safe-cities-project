@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Detection #{{ detection.id }}{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Detection #{{ detection.id }}</b>{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+<div>
+<h1>Detection #{{ detection.id }}</h1>
+<p class="sc-lead">{{ detection.effective_plate|default:'—' }} · {{ detection.get_status_display }}</p>
+</div>
+</div>
+{% include "dashboard/officer/_detection_detail.html" %}{% endblock %}

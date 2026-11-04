@@ -6,7 +6,6 @@ urlpatterns = [
     path('stats/', views.realtime_stats, name='stats'),
     path('cameras-status/', views.cameras_status_json, name='cameras_status'),
     path('queue-count/', views.queue_count, name='queue_count'),
-    # JSON API endpoints for JS-driven dashboards
     path('api/kpis/', views.api_dashboard_kpis, name='api_dashboard_kpis'),
     path('api/charts/violation-distribution/', views.api_charts_violation_distribution, name='api_charts_violation'),
     path('api/charts/revenue/', views.api_charts_revenue, name='api_charts_revenue'),

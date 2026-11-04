@@ -107,18 +107,15 @@ path('analytics/',                    views.analytics,               name='analy
     path('autocomplete/',                 autocomplete.autocomplete,     name='autocomplete'),
     path('check-duplicate/',              autocomplete.check_duplicate,  name='check_duplicate'),
 
-    # --- Live monitoring & tracking ---
     path('live-monitor/',                 views.live_monitor,            name='live_monitor'),
     path('live-monitor/feed/',            views.live_monitor_feed,       name='live_monitor_feed'),
     path('live-tracking/timeline/',       officer_views.frame_timeline,  name='live_tracking_timeline'),
 
-    # --- Banner management (views exist in dig_portal.views; routes were missing) ---
     path('banners/',                      views.banner_list,             name='banner_list'),
     path('banners/add/',                  views.banner_add,              name='banner_add'),
     path('banners/<int:banner_id>/edit/', views.banner_edit,             name='banner_edit'),
     path('banners/<int:banner_id>/delete/', views.banner_delete,         name='banner_delete'),
 
-    # --- Camera management ---
     path('cameras/',                      views.camera_list,             name='camera_list'),
     path('cameras/list/',                 views.camera_list,             name='camera_list_alt'),
     path('cameras/add/',                  views.camera_add,              name='camera_add'),
@@ -127,11 +124,9 @@ path('analytics/',                    views.analytics,               name='analy
     path('cameras/<int:camera_id>/toggle/', views.camera_toggle,        name='camera_toggle'),
     path('cameras/assignments/',          views.camera_assignments,      name='camera_assignments'),
 
-    # --- Notifications inbox ---
     path('notifications/',                views.notifications,           name='notifications'),
     path('notifications/<int:notification_id>/read/', views.notification_read, name='notification_read'),
 
-    # --- System ---
     path('settings/',                     views.settings_edit,           name='settings_edit'),
     path('system-health/',                views.system_health,           name='system_health'),
     path('payment-settings/',             views.payment_settings,        name='payment_settings'),
@@ -140,11 +135,9 @@ path('analytics/',                    views.analytics,               name='analy
     path('live-tracking/', views.live_tracking, name='live_tracking'),
 
 
-    # --- Admin password reset (DIG-mediated flow) ---
     path('admin-resets/',                  views.admin_reset_request_list, name='admin_reset_request_list'),
     path('admin-resets/<str:token>/',      views.admin_reset_password,     name='admin_reset_password'),
 
-    # --- JSON API endpoints (consumed by safe-city-charts.js / safe-city-tables.js) ---
     path('api/dashboard/kpis/',                views.api_dashboard_kpis,            name='api_dashboard_kpis'),
     path('api/charts/violation-distribution/', views.api_chart_violation_distribution, name='api_chart_violation_distribution'),
     path('api/charts/location-distribution/',  views.api_chart_location_distribution,  name='api_chart_location_distribution'),

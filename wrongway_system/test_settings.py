@@ -5,8 +5,6 @@ os.environ.setdefault('SECRET_KEY', 'test-secret-key-not-for-production')
 
 from wrongway_system.settings import *  # noqa: F401,F403
 
-# Tests use the same PostgreSQL engine (no SQLite).
-# Override NAME so tests do not wipe the main SAFE_CITY_FYP database.
 _db = DATABASES['default'].copy()
 _db['NAME'] = os.environ.get('PG_TEST_DB', 'SAFE_CITY_FYP_TEST')
 DATABASES = {'default': _db}

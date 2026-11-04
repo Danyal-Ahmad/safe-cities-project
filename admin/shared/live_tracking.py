@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import Optional
 from django.db.models import Q, QuerySet
-from django.utils import timezone
-from datetime import timedelta
 
 from detections.models import Detection
 from cameras.models import Camera
@@ -19,7 +17,6 @@ from realtime.models import CameraAssignment
 class LiveTrackingService:
     """Service for retrieving live tracking data with proper access control."""
 
-    # Statuses shown by default (active queue + confirmed)
     DEFAULT_STATUSES = [
         Detection.PENDING,
         Detection.CONFIRMED,
@@ -58,7 +55,6 @@ class LiveTrackingService:
         """Get cameras user can access."""
         if self.user.role in (User.DIG, User.SSP, User.AUDIT, User.IT_SUPPORT):
             return list(Camera.objects.all().order_by('-is_active', '-installed_date')[:100])
-        # Officer: only assigned cameras (hard limit: 1 active)
         assigned_ids = list(CameraAssignment.objects.filter(
             officer=self.user, is_active=True
         ).values_list('camera_id', flat=True)[:1])
@@ -69,26 +65,21 @@ class LiveTrackingService:
         qs = Detection.objects.select_related('camera').order_by('-created_at')
 
         if self.user.role in (User.DIG, User.SSP, User.AUDIT, User.IT_SUPPORT):
-            # Unrestricted access
             pass
         else:
-            # Officer: only assigned cameras (hard limit: 1 active) + manual entries
             assigned_ids = list(CameraAssignment.objects.filter(
                 officer=self.user, is_active=True
             ).values_list('camera_id', flat=True)[:1])
             qs = qs.filter(Q(camera_id__in=assigned_ids) | Q(camera__isnull=True))
 
-        # Camera filter
         if self.selected_camera_id and not self.camera_not_found:
             qs = qs.filter(camera_id=self.selected_camera_id)
         elif self.camera_not_found:
             return qs.none()
 
-        # Plate filter
         if self.plate_query:
             qs = qs.filter(ai_plate_text__icontains=self.plate_query)
 
-        # Status filter
         if self.status_filter:
             qs = qs.filter(status=self.status_filter)
         else:
@@ -198,7 +189,6 @@ class LiveTrackingService:
         cam = camera or self.camera
         if not cam:
             return None
-        # 1) Active LiveFeed with uploaded video (demo / offline testing)
         try:
             from realtime.models import LiveFeed
             feed = (
@@ -216,16 +206,13 @@ class LiveTrackingService:
                     return su
         except Exception:
             pass
-        # 2) Camera-level media path stored on rtsp_url after upload (often /media/...)
         for attr in ('http_snapshot_url', 'rtsp_url'):
             url = (getattr(cam, attr, None) or '').strip()
             if not url:
                 continue
-            # Prefer browser-playable URLs
             low = url.lower()
             if any(x in low for x in ('.mp4', '.webm', '.ogg', '/media/', 'http://', 'https://', 'mjpeg', 'mjpg')):
                 return url
-        # 3) Any non-empty URL last (may be rtsp:// — player shows offline)
         for attr in ('http_snapshot_url', 'rtsp_url'):
             url = (getattr(cam, attr, None) or '').strip()
             if url:

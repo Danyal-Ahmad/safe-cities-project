@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timezone as dt_timezone
-import datetime as _dt
 
 from accounts.decorators import role_required
 from challans.models import Challan
@@ -20,7 +19,6 @@ HIGH_VALUE_THRESHOLD = 5000
 def dashboard(request):
     now = timezone.now()
     today = now.date()
-    last_7d = now - datetime.timedelta(days=7)
 
     high_value_challans = Challan.objects.filter(
         fine_amount__gte=HIGH_VALUE_THRESHOLD,
@@ -47,7 +45,6 @@ def dashboard(request):
     approved_appeals = ChallanAppeal.objects.filter(status=ChallanAppeal.APPROVED).count()
     rejected_appeals = ChallanAppeal.objects.filter(status=ChallanAppeal.REJECTED).count()
 
-    # 7-day appeal trend
     days_data = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)
@@ -61,7 +58,6 @@ def dashboard(request):
         ).exclude(status=ChallanAppeal.PENDING).count()
         days_data.append({'label': day.strftime('%a'), 'submitted': submitted, 'decided': decided})
 
-    # Violation breakdown
     violation_dist = (
         Challan.objects.values('violation_type')
         .annotate(c=Count('id'))

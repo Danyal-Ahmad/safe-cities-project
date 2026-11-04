@@ -70,9 +70,6 @@ def _doubt_floor(auto_thr: float) -> float:
     return max(0.35, auto_thr - 0.25)
 
 
-# ---------------------------------------------------------------------------
-# Step 2 — FRAME TRACKING
-# ---------------------------------------------------------------------------
 
 def frame_tracking(detection, camera) -> dict:
     """Match the detected plate against recent detections on the same camera to
@@ -137,9 +134,6 @@ def frame_tracking(detection, camera) -> dict:
     return track
 
 
-# ---------------------------------------------------------------------------
-# Step 3 — EVIDENCE: five hard security checks
-# ---------------------------------------------------------------------------
 
 def _check_plate_readability(detection, raw) -> dict:
     plate = (detection.ai_plate_text or '').strip().upper()
@@ -277,9 +271,6 @@ def build_evidence(detection, track, camera) -> tuple[list, str]:
     return checks, evidence_hash
 
 
-# ---------------------------------------------------------------------------
-# Step 4 — CHALLAN issuance (only after all five checks pass)
-# ---------------------------------------------------------------------------
 
 def issue_challan(detection, camera, user=None):
     from challans.models import Challan
@@ -353,9 +344,6 @@ def issue_challan(detection, camera, user=None):
     return challan
 
 
-# ---------------------------------------------------------------------------
-# Orchestration
-# ---------------------------------------------------------------------------
 
 def process_detection(detection, result: dict, camera=None, system_user=None):
     """Run the full enforcement pipeline for one detection record.
@@ -373,7 +361,6 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         or detection.plate_crop_image
     )
     is_violation = bool(result.get('detected_violation') or detection.ai_detected_violation)
-    side_conf = float(raw.get('side_confidence') or 0.0)
 
     auto_thr = _auto_confirm_threshold(camera or detection.camera)
     floor = _doubt_floor(auto_thr)

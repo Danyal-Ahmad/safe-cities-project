@@ -1,14 +1,9 @@
-# accounts/permissions.py
-# AUTO-GENERATED FROM permission.json - DO NOT EDIT MANUALLY
 from __future__ import annotations
 
 from collections import OrderedDict
 from typing import Iterable, Set
 
 
-# ============================================================================
-# PERMISSION DEFINITIONS
-# ============================================================================
 
 PERMISSIONS = (
     'add_camera',
@@ -120,9 +115,6 @@ PERMISSIONS = (
 PERMISSION_SET: frozenset = frozenset(PERMISSIONS)
 
 
-# ============================================================================
-# ROLE PERMISSION MATRIX
-# ============================================================================
 
 _IT_PERMS = {
     'add_camera',
@@ -137,20 +129,16 @@ _IT_PERMS = {
     'view_faq',
     'ai_model_testing',
     'appeal_workflow',
-    # H8 FIX: approve_appeal REMOVED — IT has no authority to approve appeals
     'approve_high_value_challan',
     'blacklist_rule_manage',
     'bulk_fine_adjust',
     'camera_feed',
     'challan_template_manage',
     'change_own_password',
-    # H8 FIX: delete_camera kept (IT manages hardware), delete_challan REMOVED
     'delete_camera',
-    # H8 FIX: delete_challan REMOVED — only DIG can delete challans
     'edit_camera',
     'edit_challan_fine',
     'edit_own_profile',
-    # H8 FIX: edit_penalty_config REMOVED — only DIG/SSP configure penalties
     'edit_system_settings',
     'escalate_appeal',
     'escalate_appeals',
@@ -174,7 +162,6 @@ _IT_PERMS = {
     'nadra_integration',
     'officer_pki',
     'officer_profile_manage',
-    # H8 FIX: override_appeal REMOVED — only DIG/SSP can override appeal decisions
     'pay_own_challans',
     'payment_gateway_config',
     'payment_integration',

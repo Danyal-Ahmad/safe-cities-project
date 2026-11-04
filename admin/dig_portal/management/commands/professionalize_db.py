@@ -10,7 +10,6 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 
 
-# Orphan tables from older builds (no model in current code)
 ORPHAN_TABLES = [
     'dig_portal_blacklistentry',
     'dig_portal_challanapproval',
@@ -20,7 +19,6 @@ ORPHAN_TABLES = [
     'dig_portal_shifthandover',
 ]
 
-# old_name -> new professional name
 RENAMES = {
     'accounts_user': 'sc_users',
     'accounts_officerprofile': 'sc_officer_profiles',

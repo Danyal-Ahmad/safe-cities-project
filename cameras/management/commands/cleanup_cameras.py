@@ -40,8 +40,6 @@ class Command(BaseCommand):
         total = Camera.objects.count()
         self.stdout.write(f"Total cameras: {total}")
 
-        # 1. Duplicate camera_id values (should be impossible given unique=True,
-        #    but check anyway in case the DB was seeded/restored outside the ORM).
         dupes = (Camera.objects.values('camera_id')
                  .annotate(n=Count('id')).filter(n__gt=1))
         if dupes:
@@ -57,7 +55,6 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.SUCCESS("No duplicate camera_id values."))
 
-        # 2. Cameras configured as streaming with no stream source at all.
         misconfigured = Camera.objects.filter(is_streaming=True, rtsp_url__isnull=True, http_snapshot_url__isnull=True)
         if misconfigured.exists():
             self.stdout.write(self.style.WARNING(f"\nCameras marked is_streaming=True with no rtsp_url/http_snapshot_url: {misconfigured.count()}"))
@@ -66,7 +63,6 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.SUCCESS("No streaming-enabled cameras missing a stream URL."))
 
-        # 3. Cameras stuck as 'online' despite a stale (or missing) health check.
         cutoff = timezone.now() - timedelta(hours=opts['stale_hours'])
         stale = Camera.objects.filter(health_status='online').filter(
             last_health_check__lt=cutoff
@@ -84,8 +80,6 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.SUCCESS("No stale 'online' cameras."))
 
-        # 4. Sanity check for orphaned FK rows (defensive; SET_NULL/CASCADE at the
-        #    DB level should make this impossible via normal ORM usage).
         orphan_detections = Detection.objects.filter(camera__isnull=False).exclude(
             camera_id__in=Camera.objects.values_list('id', flat=True))
         orphan_assignments = CameraAssignment.objects.exclude(
@@ -100,7 +94,6 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.SUCCESS("No orphaned detection/assignment/live-feed rows."))
 
-        # 5. Cameras with zero detections ever (candidates for review, not auto-removed).
         unused = Camera.objects.annotate(n=Count('detections')).filter(n=0)
         if unused.exists():
             self.stdout.write(self.style.WARNING(f"\nCameras with zero detections ever recorded: {unused.count()}"))

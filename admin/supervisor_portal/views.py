@@ -1,7 +1,5 @@
 import datetime
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.db.models import Count, Q
+from django.shortcuts import render
 from django.utils import timezone
 
 from accounts.decorators import role_required
@@ -9,14 +7,12 @@ from accounts.models import User
 from appeals.models import ChallanAppeal
 from detections.models import Detection
 from challans.models import Challan
-from admin.dig_portal.models import AuditLog
 
 
 @role_required('DIG', 'SSP', 'SUPV')
 def dashboard(request):
     now = timezone.now()
     today = now.date()
-    last_7d = now - datetime.timedelta(days=7)
 
     officers = User.objects.filter(role='OFFICER')
     total_officers = officers.count()
@@ -27,7 +23,6 @@ def dashboard(request):
     challans_issued = Challan.objects.count()
     challans_paid = Challan.objects.filter(payment_status='PAID').count()
 
-    # Per-officer stats
     stats = []
     for o in officers:
         reviewed = Detection.objects.filter(reviewed_by=o).count()
@@ -47,7 +42,6 @@ def dashboard(request):
         })
     stats.sort(key=lambda s: s['reviewed'], reverse=True)
 
-    # 7-day activity
     days_data = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)

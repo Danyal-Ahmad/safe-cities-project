@@ -1,8 +1,7 @@
 import datetime
-import json
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Count, Sum
+from django.db.models import Sum
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 
@@ -11,7 +10,6 @@ from cameras.models import Camera
 from detections.models import Detection
 from challans.models import Challan
 from appeals.models import ChallanAppeal
-from .models import LiveFeed
 
 
 @officer_or_dig_required
@@ -47,7 +45,6 @@ def queue_count(request):
     })
 
 
-# ===== New API endpoints for JS-driven dashboards =====
 
 @require_GET
 @login_required

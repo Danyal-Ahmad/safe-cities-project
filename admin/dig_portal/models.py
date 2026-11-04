@@ -71,13 +71,7 @@ class SystemSettings(models.Model):
             'car_class_id': 3,
             'vehicle_class_ids': [3, 4, 6, 8],
             'person_class_id': -1,
-            # Empirically calibrated: class 1 of the shipped int8 model is the
-            # plate class (verified on frames with clearly readable plates).
             'plate_class_ids': [1],
-            # Calibrated for the int8 detector on real safe-city footage:
-            # small/distant plates typically score 0.09–0.2, so 0.90 silently
-            # rejected every vehicle. Weak candidates are still filtered by
-            # OCR + side classification before anything is auto-confirmed.
             'confidence_threshold': 0.15,
             'nms_style': 'score_sort',
             'max_box_area_ratio': 0.22,

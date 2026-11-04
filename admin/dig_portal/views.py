@@ -2,7 +2,7 @@ import csv
 import datetime
 import logging
 import uuid
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, Http404
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET
 from django.urls import reverse
@@ -88,7 +88,6 @@ def dashboard(request):
             'avg_review_hrs': avg_review_hrs, 'accuracy': accuracy,
         })
 
-    # 7-day activity trend
     trend_daily = []
     for d in range(6, -1, -1):
         day = timezone.now() - timedelta(days=d)
@@ -100,7 +99,6 @@ def dashboard(request):
             'challans': Challan.objects.filter(created_at__gte=day_start, created_at__lt=day_end).count(),
         })
 
-    # Active alerts for the dashboard widget
     from admin.dig_portal.models import Alert
     active_alerts = list(
         Alert.objects.filter(is_active=True).filter(
@@ -318,7 +316,6 @@ def admin_list(request):
             'perm_record_payment': 'can_record_payment',
             'perm_manage_blacklist': 'can_manage_blacklist',
         }
-        # Persist flags on OfficerProfile for any staff (used by permission checks)
         from accounts.models import OfficerProfile
         prof, _ = OfficerProfile.objects.get_or_create(officer=target)
         for post_key, attr in flag_map.items():
@@ -337,7 +334,6 @@ def admin_list(request):
     from .admin_profiles import all_dropdowns, ROLE_PROFILES
     import json
     admins = list(User.objects.filter(role__in=[User.DIG, User.SSP, User.SUPERVISOR, User.OFFICER, User.AUDIT, User.IT_SUPPORT]).order_by('role', '-date_joined'))
-    # Attach OfficerProfile flags for template data-p* (permissions modal)
     from accounts.models import OfficerProfile
     profiles = {op.officer_id: op for op in OfficerProfile.objects.filter(officer_id__in=[u.id for u in admins])}
     for u in admins:
@@ -349,7 +345,6 @@ def admin_list(request):
             'can_flag_for_dig', 'can_add_internal_notes',
         ):
             setattr(u, attr, bool(getattr(op, attr, False)) if op else False)
-        # Non-officer staff: sensible defaults for live monitor
         if u.role in (User.DIG, User.SSP, User.SUPERVISOR, User.IT_SUPPORT) and not op:
             u.can_live_monitor = True
             u.can_live_tracking = True
@@ -364,7 +359,7 @@ def admin_list(request):
         }
         for role, p in ROLE_PROFILES.items()
     })
-    from accounts.permissions import ROLE_PERMISSION_MATRIX, PERMISSIONS, summarize_role
+    from accounts.permissions import ROLE_PERMISSION_MATRIX, PERMISSIONS
     role_perm_map = {
         role: sorted(list(perms))
         for role, perms in ROLE_PERMISSION_MATRIX.items()
@@ -600,8 +595,7 @@ def citizen_users_list(request):
     q = (request.GET.get('q') or '').strip()
     users = User.objects.filter(role=User.USER).order_by('-date_joined')
     if q:
-        from django.db.models import Q
-        users = users.filter(
+            users = users.filter(
             Q(first_name__icontains=q) | Q(last_name__icontains=q) |
             Q(email__icontains=q) | Q(cnic__icontains=q) | Q(phone__icontains=q) |
             Q(username__icontains=q)
@@ -786,9 +780,6 @@ def camera_edit(request, camera_id):
                     'is_active': True,
                 },
             )
-            # Run the AI detection pipeline over the uploaded video so the
-            # frames land in the review queue and on Live Tracking (the
-            # camera_add flow already did this; camera_edit was missing it).
             try:
                 from video_processor.models import VideoUpload
                 from cameras.video_processing import start_processing_async
@@ -1556,7 +1547,6 @@ def vehicle_search(request):
     """Search detections + challans by plate / CNIC / owner. Inputs sanitized."""
     import re
     raw = (request.GET.get('q') or '').strip()
-    # Allow plate-like or CNIC-like input only
     q = re.sub(r'[^A-Za-z0-9\- ]', '', raw)[:32].strip()
     detections = []
     challans = []
@@ -1714,7 +1704,6 @@ def blacklist_list(request):
             'created_at': e.created_at,
             'created_by': e.created_by,
         })
-    # legacy audit rows fallback if table empty
     if not rows:
         entries = AuditLog.objects.filter(action='blacklist.add').order_by('-timestamp')[:200]
         for e in entries:
@@ -1744,10 +1733,8 @@ def blacklist_add(request):
         value = (request.POST.get('value') or request.POST.get('plate_number') or request.POST.get('plate') or '').strip().upper()
         reason = (request.POST.get('reason') or request.POST.get('notes') or '').strip()
         if btype == 'plate':
-            lookup_field = 'plate_number'
             value_for_lookup = value
         elif btype == 'cnic':
-            lookup_field = 'plate_number'  # we store as plate_number for now
             value_for_lookup = value
         else:
             messages.error(request, "Type 'phone' / 'chassis' not yet supported for blacklist. Use 'plate' or 'cnic'.")
@@ -2180,7 +2167,6 @@ def camera_assignments(request):
             try:
                 camera = Camera.objects.get(pk=camera_id)
                 officer = User.objects.get(pk=officer_id, role=User.OFFICER)
-                # Hard limit: 1 active camera per officer
                 existing = CameraAssignment.objects.filter(officer=officer, is_active=True).exclude(camera=camera)
                 if existing.exists():
                     messages.error(
@@ -2299,7 +2285,6 @@ def officer_signatures(request):
             messages.success(request, f"Profile updated for {officer.display_name}.")
         return redirect(request.path + f'?role={role_filter}&q={search}')
 
-    # Pagination
     page = max(1, int(request.GET.get('page') or 1))
     from django.core.paginator import Paginator
     paginator = Paginator(qs, 25)
@@ -2672,7 +2657,6 @@ def case_escalation_tracker(request):
     role = getattr(request.user, 'role', '')
     qs = ChallanAppeal.objects.all().select_related('challan', 'submitted_by')
     if role == 'SSP':
-        # SSP sees pending appeals at SSP stage + any escalated they may track
         qs = qs.filter(
             Q(status=ChallanAppeal.PENDING, current_stage=ChallanAppeal.STAGE_SSP)
             | Q(status=ChallanAppeal.ESCALATED)
@@ -2702,7 +2686,6 @@ def regional_heatmap(request):
     import json
     from cameras.models import Camera
 
-    # Known city landmarks → approximate coords used when a camera has no GPS
     CITY_GEO = {
         'gulberg': (31.5204, 74.3587),
         'model town': (31.4833, 74.3261),
@@ -2733,7 +2716,6 @@ def regional_heatmap(request):
                 return coords
         return (31.5204, 74.3587)  # city centre fallback
 
-    # Heat intensity points: [lat, lng, intensity]
     heat_points = []
     camera_markers = []
 
@@ -2764,7 +2746,6 @@ def regional_heatmap(request):
             'status': cam.health_status or 'unknown',
         })
 
-    # Also aggregate challans that only have text location (no camera link)
     loc_counts = list(
         Challan.objects.exclude(location__isnull=True).exclude(location='')
         .values('location').annotate(c=Count('id')).order_by('-c')[:40]
@@ -2783,7 +2764,6 @@ def regional_heatmap(request):
         'total_points': len(heat_points),
     })
 
-# Alias so portals that still reference dig_views.heatmap keep working
 heatmap = regional_heatmap
 
 
@@ -3446,7 +3426,6 @@ def challan_template_designer(request):
             messages.error(request, "Template HTML is too short.")
             return redirect('it_support_portal:challan_template_designer')
         kwargs = {'name': name, 'html_content': html}
-        # optional fields
         for fld, val in [('is_active', False), ('uploaded_by', request.user if request.user.is_authenticated else None)]:
             if any(f.name == fld for f in ChallanTemplate._meta.get_fields()):
                 kwargs[fld] = val
@@ -3477,9 +3456,6 @@ def challan_template_designer(request):
     ]
     return render(request, 'dashboard/it_support/challan_designer.html', {
         'blocks': blocks,
-        # The designer JS presets interpolate {{ challan.* }} sample values;
-        # without this context variable the template engine raises
-        # VariableDoesNotExist while rendering the page.
         'challan': None,
     })
 
@@ -3493,7 +3469,6 @@ def live_tracking(request):
     """
     from admin.shared import LiveTrackingService
     from detections.models import Detection
-    from django.db.models import Q
 
     cam_id = request.GET.get('camera_id') or request.GET.get('camera') or ''
     service = LiveTrackingService(
@@ -3581,7 +3556,6 @@ def camera_test(request, camera_id):
         except Exception as e:
             return JsonResponse({'ok': False, 'kind': 'http', 'error': f'Request failed: {e}'})
 
-    # RTSP — bounded open + single frame grab
     try:
         import cv2
         import os as _os
@@ -3608,11 +3582,6 @@ def camera_test(request, camera_id):
         return JsonResponse({'ok': False, 'kind': 'rtsp', 'error': f'RTSP test failed: {e}'})
 
 
-# ---------------------------------------------------------------------------
-# JSON API endpoints for dashboard charts/tables
-# These are consumed by safe-city-charts.js / safe-city-tables.js via fetch().
-# All return CSRF-safe JSON via JsonResponse.
-# ---------------------------------------------------------------------------
 
 @dig_required
 @require_GET
@@ -3783,9 +3752,6 @@ def api_chart_officer_kpi(request):
     })
 
 
-# =============================================================================
-# Admin Password Reset (DIG-mediated flow)
-# =============================================================================
 
 def _client_ip(request):
     """Extract client IP, honouring X-Forwarded-For."""
@@ -3867,7 +3833,6 @@ def admin_reset_password(request, token):
             target.set_password(new_password)
             target.save(update_fields=['password'])
 
-            # Log audit trail
             AuditLog.write(request, 'admin.password_reset', 'User', target.id)
 
             req.status = AdminPasswordResetRequest.STATUS_RESOLVED
@@ -3875,7 +3840,6 @@ def admin_reset_password(request, token):
             req.resolved_by = request.user
             req.save(update_fields=['status', 'resolved_at', 'resolved_by'])
 
-            # Mark related notifications as read
             Notification.objects.filter(
                 recipient=request.user,
                 category='system',

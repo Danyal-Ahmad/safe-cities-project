@@ -136,7 +136,6 @@ def _pg_available(db_name, user, password, host, port):
         return False
 
 
-# PostgreSQL only — no SQLite fallback anywhere (production or otherwise).
 if not _pg_available(PG_DB, PG_USER, PG_PASSWORD, PG_HOST, PG_PORT):
     import sys
     print(

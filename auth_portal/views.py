@@ -354,7 +354,6 @@ def _notify_dig_for_reset(request, user, req):
                 target_url=abs_url,
             )
         except Exception:
-            # Never let a single bad recipient break the request flow
             continue
 
 

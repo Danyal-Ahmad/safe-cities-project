@@ -11,7 +11,6 @@ class ChallanManager(models.Manager):
         """Auto challan number (numeric), not plate-based.
         Format: 8+ digit number, sequential (e.g. 20019776).
         """
-        # Prefer pure-digit ticket_no rows for sequence
         last = (
             self.filter(ticket_no__regex=r'^[0-9]+$')
             .order_by('-id')
@@ -26,11 +25,9 @@ class ChallanManager(models.Manager):
         else:
             n = None
         if n is None:
-            # Fallback: year + sequential from count
             year = timezone.localdate().year
             base = year * 100000  # e.g. 202600000
             n = base + self.count() + 1
-        # Ensure uniqueness
         while self.filter(ticket_no=str(n)).exists():
             n += 1
         return str(n)
@@ -122,7 +119,6 @@ class Challan(models.Model):
         tid = (self.ticket_no or str(self.pk or 0))
         digits = ''.join(ch for ch in tid if ch.isdigit()) or str(self.pk or 0)
         core = digits[-12:].zfill(12)
-        # Luhn check digit
         total = 0
         for i, ch in enumerate(reversed(core)):
             n = int(ch)

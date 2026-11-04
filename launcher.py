@@ -28,25 +28,20 @@ PG_PORT = os.environ.get('PG_PORT', '5432')
 
 
 DEFAULT_ENV_EXAMPLE = """# ===== Safe City FYP -- Environment Configuration =====
-# Single .env at project root. Edit values below, then run: python launcher.py setup
 
-# ----- Django core -----
 DEBUG=True
 SECRET_KEY=safe-city-fyp-demo-CHANGE-THIS-IN-PRODUCTION-2026
 ALLOWED_HOSTS=*
 
-# ----- PostgreSQL (must match settings.py defaults) -----
 PG_DB=SAFE_CITY_FYP
 PG_USER=postgres
 PG_PASSWORD=Admin@2026
 PG_HOST=127.0.0.1
 PG_PORT=5432
 
-# ----- Account lockout -----
 ACCOUNT_LOCKOUT_THRESHOLD=5
 ACCOUNT_LOCKOUT_DURATION=900
 
-# ----- Email (disabled by default; console backend used instead) -----
 EMAIL_NOTIFICATIONS_ENABLED=False
 EMAIL_HOST=
 EMAIL_PORT=587
@@ -55,7 +50,6 @@ EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=noreply@safecity.fyp
 
-# ----- Camera worker -----
 CAMERA_WORKER_INTERVAL=5
 """
 
@@ -312,7 +306,6 @@ for db_attempt in ["postgres", "template1"]:
         conn.autocommit = True
         cur = conn.cursor()
 
-        # 1. Create user if missing (ignore "already exists")
         try:
             cur.execute(
                 sql.SQL("CREATE USER {} WITH PASSWORD %s").format(
@@ -325,7 +318,6 @@ for db_attempt in ["postgres", "template1"]:
             if "already exists" not in msg:
                 print("[WARN] CREATE USER skipped: " + str(e), flush=True)
 
-        # 2. Create database if missing
         try:
             cur.execute(
                 sql.SQL("CREATE DATABASE {} OWNER {}").format(

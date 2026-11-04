@@ -43,8 +43,7 @@
 {% endif %}
 
 <div class="row g-4">
-  {# ============ LEFT: evidence images + AI extraction ============ #}
-  <div class="col-lg-7">
+    <div class="col-lg-7">
     <div class="sc-card">
       <div class="sc-card-head">
         <span><i class="bi bi-camera-fill"></i> Evidence Images</span>
@@ -143,8 +142,7 @@
     </div>
   </div>
 
-  {# ============ RIGHT: 5-check evidence panel ============ #}
-  <div class="col-lg-5">
+    <div class="col-lg-5">
     {% with ev=detection.evidence_summary %}
     <div class="sc-card sc-evidence-card h-100">
       <div class="sc-card-head">
@@ -218,8 +216,7 @@
 </div>
 
 <div class="row g-4">
-  {# ============ LEFT: notes ============ #}
-  <div class="col-lg-7">
+    <div class="col-lg-7">
     <div class="sc-card h-100">
       <div class="sc-card-head">
         <span><i class="bi bi-journal-text"></i> Review Notes</span>
@@ -258,8 +255,7 @@
     </div>
   </div>
 
-  {# ============ RIGHT: officer actions ============ #}
-  <div class="col-lg-5">
+    <div class="col-lg-5">
     <div class="sc-card sc-actions-card h-100">
       <div class="sc-card-head"><span><i class="bi bi-shield-exclamation"></i> Officer Actions</span></div>
       {% if detection.status == 'pending_review' %}

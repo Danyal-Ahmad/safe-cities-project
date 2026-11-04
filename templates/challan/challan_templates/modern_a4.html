@@ -171,7 +171,7 @@
     <h2>{% if challan.locale == 'ur' %}شواہد{% else %}Violation Evidence{% endif %}</h2>
     <div class="sc-print-evidence-single">
       <div class="sc-print-evidence-frame">
-        <img src="{{ challan.detection.raw_image.url }}" alt="Detection frame — violation evidence">
+        <img src="file://{{ challan.detection.raw_image.path }}" alt="Detection frame — violation evidence">
         <div class="sc-print-evidence-overlay">
           <div class="sc-print-evidence-meta">
             <div><b>{% if challan.locale == 'ur' %}کیمرہ{% else %}Camera{% endif %}:</b> {{ challan.detection.camera.camera_id|default:'—' }}</div>

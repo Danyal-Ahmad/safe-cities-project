@@ -13,7 +13,7 @@ import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger('wrongway.payments')
 
@@ -97,7 +97,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
     ticket = getattr(challan, 'ticket_no', None) or str(getattr(challan, 'id', ''))
     reference = f"SC{getattr(challan, 'id', '0')}-{uuid.uuid4().hex[:10].upper()}"
 
-    # Strict: no cash / bank transfer (digital wallets & cards only)
     name_l = (getattr(method, 'name', '') or '').lower()
     prov_l = (getattr(method, 'provider', '') or '').lower()
     if type_key in ('cash', 'bank') or name_l == 'cash' or prov_l == 'cash' or 'bank transfer' in name_l or 'bank transfer' in prov_l:
@@ -109,7 +108,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'reference': reference,
         }
 
-    # ── JazzCash ──────────────────────────────────────────────
 
     if type_key == 'jazzcash' or 'jazz' in name_l:
         merchant_id = (cfg.get('merchant_id') or '').strip()
@@ -123,7 +121,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             if env != 'live' else
             'https://payments.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform'
         )
-        # JazzCash expects amount in paisa (multiply by 100)
         try:
             amt_paisa = str(int(Decimal(amount) * 100))
         except Exception:
@@ -168,7 +165,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'message': 'Redirecting to JazzCash…',
         }
 
-    # ── EasyPaisa ─────────────────────────────────────────────
     if type_key == 'easypaisa':
         store_id = (cfg.get('store_id') or cfg.get('merchant_id') or '').strip()
         if not store_id:
@@ -197,7 +193,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'message': 'Redirecting to EasyPaisa…',
         }
 
-    # ── Bank transfer — no gateway; return instructions payload ─
     if type_key == 'bank':
         return {
             'ok': True,
@@ -217,7 +212,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'message': 'Pay via bank transfer using the PSID / account details.',
         }
 
-    # ── Card / unknown — demo if no keys ──────────────────────
     if type_key == 'card':
         if not _has_keys(cfg, 'publishable_key', 'secret_key'):
             return _demo_payload(challan, method, reference, return_url, 'card')

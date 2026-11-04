@@ -4,9 +4,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
-# Custom error handlers. NOTE: Django 5 resolves handlerNNN from this URLconf
-# module only (settings.HANDLER4xx/5xx are ignored), so they must be wired
-# here. See also wrongway_system/settings.py HANDLER* entries (same views).
 from . import views as error_views
 
 handler400 = error_views.custom_400
@@ -21,7 +18,6 @@ handler503 = error_views.custom_503
 urlpatterns = [
     path('django-admin/', admin.site.urls),
 
-    # Browser-default favicon request — serve the project logo instead of 404
     path('favicon.ico', RedirectView.as_view(url='/static/img/project_logo.png', permanent=True)),
 
     path('', include('challans.urls')),

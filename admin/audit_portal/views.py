@@ -18,7 +18,6 @@ def dashboard(request):
     now = timezone.now()
     today = now.date()
     last_7d = now - datetime.timedelta(days=7)
-    last_30d = now - datetime.timedelta(days=30)
 
     total_challans = Challan.objects.count()
     total_paid = Challan.objects.filter(payment_status='PAID').count()
@@ -63,12 +62,10 @@ def dashboard(request):
         cnt = AuditLog.objects.filter(action=action).count()
         category_counts.append({'action': action, 'label': label, 'icon': icon, 'color': color, 'count': cnt})
 
-    # Top categories for chart
     top_categories = sorted(category_counts, key=lambda c: c['count'], reverse=True)[:8]
     cat_labels = [c['label'] for c in top_categories]
     cat_counts = [c['count'] for c in top_categories]
 
-    # 7-day audit log volume
     days_data = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)
@@ -77,10 +74,8 @@ def dashboard(request):
         cnt = AuditLog.objects.filter(timestamp__gte=day_start, timestamp__lt=day_end).count()
         days_data.append({'label': day.strftime('%a'), 'count': cnt})
 
-    # Recent audit logs
     recent_logs = AuditLog.objects.select_related('actor').order_by('-timestamp')[:12]
 
-    # Challan status breakdown
     challan_status = {
         'paid': total_paid,
         'unpaid': total_unpaid,

@@ -12,7 +12,6 @@ urlpatterns = [
     path('profile/',                               views.profile_edit,     name='profile_edit'),
     path('password/',                              views.password_change,   name='password_change'),
 
-    # JSON API endpoints
     path('api/kpis/',       views.api_citizen_kpis,      name='api_citizen_kpis'),
     path('api/challans/',   views.api_citizen_challans,  name='api_citizen_challans'),
 ]

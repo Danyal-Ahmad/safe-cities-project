@@ -104,7 +104,6 @@ class ChallanAppeal(models.Model):
 
         now = tz.now()
 
-        # H5 FIX: Route comment and reviewer to the correct stage-specific fields.
         if self.current_stage == self.STAGE_SSP:
             self.ssp_comment = comment
             self.ssp_reviewed_by = reviewer
@@ -114,7 +113,6 @@ class ChallanAppeal(models.Model):
             self.dig_reviewed_by = reviewer
             self.dig_reviewed_at = now
         else:
-            # STAGE_OFFICER or any future stage
             self.officer_comment = comment
             self.reviewed_by = reviewer
             self.reviewed_at = now
@@ -122,8 +120,6 @@ class ChallanAppeal(models.Model):
         self.status = decision
         self.save()
 
-        # H1 FIX: Void the challan when the appeal is approved so the citizen
-        # is not expected to pay a challan that has been officially dismissed.
         if decision == self.APPROVED:
             try:
                 challan = self.challan

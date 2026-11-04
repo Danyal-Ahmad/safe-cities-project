@@ -8,7 +8,7 @@ from accounts.decorators import it_required
 from challans.models import Challan
 from detections.models import Detection
 from cameras.models import Camera
-from admin.dig_portal.models import AuditLog, SystemSettings
+from admin.dig_portal.models import AuditLog
 from detections.ai import is_models_available, get_model_info
 
 from .models import PaymentMethod
@@ -16,7 +16,7 @@ from .models import PaymentMethod
 
 @it_required
 def dashboard(request):
-    from django.db.models import Count, Sum
+    from django.db.models import Sum
     from django.utils import timezone
     from datetime import timedelta
     from admin.dig_portal.models import ChallanTemplate, Banner, Alert
@@ -26,7 +26,6 @@ def dashboard(request):
     last_7d = timezone.now() - timedelta(days=7)
     last_30d = timezone.now() - timedelta(days=30)
 
-    # Camera stats
     cameras = Camera.objects.all()
     cameras_total = cameras.count()
     cameras_online = cameras.filter(health_status='online').count()
@@ -35,14 +34,12 @@ def dashboard(request):
     cameras_active = cameras.filter(is_active=True).count()
     cameras_with_issues = cameras.exclude(health_status='online').count()
 
-    # Detection stats
     detections_total = Detection.objects.count()
     detections_24h = Detection.objects.filter(created_at__gte=last_24h).count()
     detections_7d = Detection.objects.filter(created_at__gte=last_7d).count()
     detections_confirmed = Detection.objects.filter(status__in=['confirmed', 'auto_confirmed']).count()
     detections_pending = Detection.objects.filter(status='pending').count()
 
-    # Challan stats
     challans_total = Challan.objects.count()
     challans_paid = Challan.objects.filter(payment_status='PAID').count()
     challans_unpaid = Challan.objects.filter(payment_status='UNPAID').count()
@@ -51,13 +48,11 @@ def dashboard(request):
         payment_status='PAID', paid_at__gte=last_30d
     ).aggregate(total=Sum('fine_amount'))['total'] or 0
 
-    # User stats
     users_total = User.objects.count()
     staff_count = User.objects.filter(role__in=['DIG', 'SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT']).count()
     citizen_count = User.objects.filter(role='USER').count()
     active_users_24h = User.objects.filter(last_login__gte=last_24h).count()
 
-    # 7-day daily detection trend
     daily = []
     for d in range(6, -1, -1):
         day = timezone.now() - timedelta(days=d)
@@ -66,7 +61,6 @@ def dashboard(request):
         count = Detection.objects.filter(created_at__gte=day_start, created_at__lt=day_end).count()
         daily.append({'date': day_start.strftime('%b %d'), 'count': count})
 
-    # 7-day daily challan trend
     challan_daily = []
     for d in range(6, -1, -1):
         day = timezone.now() - timedelta(days=d)
@@ -75,7 +69,6 @@ def dashboard(request):
         count = Challan.objects.filter(created_at__gte=day_start, created_at__lt=day_end).count()
         challan_daily.append({'date': day_start.strftime('%b %d'), 'count': count})
 
-    # Violation distribution (last 30 days)
     from django.db.models import Count as CountQ
     violation_dist = list(
         Challan.objects.filter(created_at__gte=last_30d)
@@ -83,18 +76,14 @@ def dashboard(request):
         .order_by('-count')[:6]
     )
 
-    # Camera health per camera
     camera_health = list(
         cameras.values('camera_id', 'location', 'health_status', 'is_streaming', 'is_active')[:6]
     )
 
-    # Recent audit logs
     recent_audit = AuditLog.objects.order_by('-timestamp')[:8]
 
-    # Recent detections
     recent_detections = Detection.objects.select_related('camera').order_by('-created_at')[:6]
 
-    # Templates + banners + payment methods + alerts
     templates_count = ChallanTemplate.objects.filter(is_active=True).count()
     banners_active = Banner.objects.filter(is_active=True).count()
     alerts_active = Alert.objects.filter(is_active=True).count()
@@ -102,28 +91,22 @@ def dashboard(request):
     payment_methods_active = PaymentMethod.objects.filter(status='active').count()
 
     return render(request, 'dashboard/it_support/dashboard.html', {
-        # Camera
         'cameras_total': cameras_total, 'cameras_online': cameras_online,
         'cameras_offline': cameras_offline, 'cameras_streaming': cameras_streaming,
         'cameras_active': cameras_active, 'cameras_with_issues': cameras_with_issues,
-        # Detection
         'detections_total': detections_total, 'detections_24h': detections_24h,
         'detections_7d': detections_7d, 'detections_confirmed': detections_confirmed,
         'detections_pending': detections_pending,
-        # Challan
         'challans_total': challans_total, 'challans_paid': challans_paid,
         'challans_unpaid': challans_unpaid, 'challans_overdue': challans_overdue,
         'revenue_30d': revenue_30d,
-        # Users
         'users_total': users_total, 'staff_count': staff_count,
         'citizen_count': citizen_count, 'active_users_24h': active_users_24h,
-        # System
         'ai_available': is_models_available(), 'model_info': get_model_info(),
         'python_version': platform.python_version(), 'platform': platform.platform(),
         'templates_count': templates_count, 'banners_active': banners_active,
         'alerts_active': alerts_active,
         'payment_methods_count': payment_methods_count, 'payment_methods_active': payment_methods_active,
-        # Trend data (JSON-safe)
         'daily_detections': daily, 'daily_challans': challan_daily,
         'violation_dist': violation_dist, 'camera_health': camera_health,
         'recent_audit': recent_audit, 'recent_detections': recent_detections,
@@ -310,12 +293,8 @@ def staff_list(request):
 
 
 
-# ---------------------------------------------------------------------------
-# Live Vehicle Tracking (IT Support only — not exposed on DIG)
-# ---------------------------------------------------------------------------
 from django.http import JsonResponse
-from accounts.decorators import permission_required, staff_required, it_required
-from detections.models import Detection
+from accounts.decorators import permission_required, it_required
 
 
 @it_required

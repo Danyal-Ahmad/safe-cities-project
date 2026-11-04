@@ -170,15 +170,11 @@ def _needs_nadra_excise_integration(challan) -> bool:
         sys = _SS.get()
         has_excise = bool((getattr(sys, "excise_api_url", None) or "").strip() and
                           (getattr(sys, "excise_api_key", None) or "").strip())
-        # No owner AND (real mode without excise configured, OR demo mode) → integration needed.
         return (is_real() and not has_excise) or not is_real()
     except Exception:
         return True
 
 
-# WeasyPrint needs native GTK libraries that are usually missing on Windows.
-# Remember a failed import so each PDF request doesn't repeat the slow
-# library lookup — the fallback chain takes over immediately afterwards.
 _WEASYPRINT_STATE = None  # None = untested, True = ok, False = broken
 
 
@@ -256,7 +252,6 @@ def generate_challan_pdf(challan):
         "needs_nadra_excise": _needs_nadra_excise_integration(challan),
     }
 
-    # Resolve the issuing officer: prefer challan.created_by, then detection officer.
     officer = None
     created_by = getattr(challan, "created_by", None)
     if created_by is not None and getattr(created_by, "is_authenticated", True):

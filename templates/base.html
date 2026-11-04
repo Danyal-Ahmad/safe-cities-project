@@ -9,21 +9,17 @@
   <meta name="theme-color" content="#1E4E9C">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
 
-  {# ===== Google Fonts: Inter (English) + Noto Nastaliq Urdu (Urdu) ===== #}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  {# ===== Bootstrap 5.3 + Bootstrap Icons 1.11 + FontAwesome 6.5 ===== #}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-  {# ===== Animate.css 4.1 (CSS animations) ===== #}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
 
-  {# ===== Custom design system (must load after Bootstrap) ===== #}
-  <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
+    <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-public.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-modern.css' %}">
 
@@ -147,41 +143,30 @@
   </div>
 </div>
 
-{# ===== jQuery 3.7 (sync) + DataTables core (sync) — must load BEFORE buttons/select extensions ===== #}
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/datatables@1.13.8/media/js/jquery.dataTables.min.js"></script>
 
-{# ===== Bootstrap 5.3 JS Bundle (with Popper) ===== #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
-{# ===== Chart.js 4.4 + datalabels plugin ===== #}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
 
-{# ===== Day.js 1.11 + relativeTime plugin ===== #}
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/relativeTime.js" defer></script>
 
-{# ===== SweetAlert2 11 ===== #}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js" defer></script>
 
-{# ===== DataTables extensions (depend on core above) ===== #}
 <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.2/js/dataTables.buttons.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/datatables.net-select@1.7.0/js/dataTables.select.min.js" defer></script>
 
-{# ===== Select2 4.1 (requires jQuery) ===== #}
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
 
-{# ===== Cleave.js 1.6 (input formatting) ===== #}
 <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js" defer></script>
 
-{# ===== html5-qrcode 2.3 (QR code scan + generate) ===== #}
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
 
-{# ===== JsBarcode 3.11 (barcode generation) ===== #}
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" defer></script>
 
-{# ===== Application JS bundles ===== #}
 <script src="{% static 'js/safe-city.js' %}" defer></script>
 <script src="{% static 'js/safe-city-charts.js' %}" defer></script>
 <script src="{% static 'js/safe-city-tables.js' %}" defer></script>

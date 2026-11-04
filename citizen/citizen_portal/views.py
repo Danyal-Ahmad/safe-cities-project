@@ -64,7 +64,6 @@ def home(request):
         q |= Q(cnic=user.cnic)
         digits = _normalize_cnic(user.cnic)
         if digits:
-            # match dashed or plain CNIC stored on challans
             q |= Q(cnic=digits)
             q |= Q(cnic__icontains=digits[:5])  # broad safety; filtered below
     if user.phone:
@@ -76,12 +75,10 @@ def home(request):
             q |= Q(plate_number__iexact=plate.replace(' ', '').replace('-', ''))
     if q:
         raw = list(Challan.objects.filter(q).order_by('-issue_date')[:200])
-        # strict ownership filter (CNIC normalize + plates)
         challans = [c for c in raw if _is_challan_owner(c, user)]
     else:
         challans = []
 
-    # Aggregates
     today = timezone.now().date()
     unpaid = [c for c in challans if getattr(c, 'payment_status', '') == 'UNPAID']
     paid = [c for c in challans if getattr(c, 'payment_status', '') == 'PAID']
@@ -90,7 +87,6 @@ def home(request):
     outstanding_amount = sum(float(c.fine_amount or 0) for c in unpaid)
     paid_amount = sum(float(c.fine_amount or 0) for c in paid)
 
-    # Violation type breakdown
     from collections import Counter
     violation_counter = Counter()
     for c in challans:
@@ -99,7 +95,6 @@ def home(request):
     violation_labels = list(violation_counter.keys())
     violation_counts = list(violation_counter.values())
 
-    # Last 6 months trend
     import datetime
     month_labels = []
     month_counts = []
@@ -448,10 +443,6 @@ def pay_challan(request, challan_id):
     })
 
 
-# ---------------------------------------------------------------------------
-# JSON API endpoints for the citizen dashboard
-# Consumed by safe-city-charts.js / safe-city-tables.js via fetch().
-# ---------------------------------------------------------------------------
 
 def _citizen_challans_qs(user):
     """All challans matching this citizen (CNIC / phone / registered plates),

@@ -94,7 +94,6 @@ class User(AbstractUser):
 
     @property
     def public_id(self):
-        # M3 FIX: Use current year dynamically instead of hardcoded 2026
         from django.utils import timezone
         year = timezone.now().year
         role = self.role
@@ -237,7 +236,6 @@ class OfficerProfile(models.Model):
     can_live_monitor = models.BooleanField(default=False)
     can_record_payment = models.BooleanField(default=False)
     can_manage_blacklist = models.BooleanField(default=False)
-    # Operational detail
     badge_number = models.CharField(max_length=40, blank=True, default='')
     belt_number = models.CharField(max_length=40, blank=True, default='')
     rank = models.CharField(max_length=60, blank=True, default='Traffic Officer')
@@ -267,10 +265,6 @@ class OfficerProfile(models.Model):
 
 
 
-# ---------------------------------------------------------------------------
-# Role-specific detailed profile tables (one per role)
-# Base login identity remains in sc_users; extended data lives here.
-# ---------------------------------------------------------------------------
 
 class DigProfile(models.Model):
     """DIG (Deputy Inspector General) — command authority profile."""
@@ -451,7 +445,6 @@ class CitizenProfile(models.Model):
         return f"Citizen: {self.user.display_name}"
 
 
-# Auto-create the correct role profile when a User is saved
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

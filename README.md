@@ -2,7 +2,36 @@
 
 Django-based automated traffic-violation enforcement platform: a public E-Challan
 lookup portal, a multi-role command dashboard, live AI camera detection, and a
-four-stage evidence pipeline (DETECTION → TRACKING → EVIDENCE → CHALLAN).
+fully automated enforcement pipeline.
+
+## Enforcement Pipeline
+
+```
+DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHALLAN
+```
+
+1. **Detection** — ONNX plate detector + side classifier run on camera frames
+   (live cameras and uploaded videos).
+2. **Frame tracking** — the plate is matched across the camera's recent frames
+   to build a corroborated vehicle track (same plate in ≥ 2 frames, or a
+   single frame with ≥ 0.90 plate confidence).
+3. **Evidence** — five hard security checks must ALL pass before any challan
+   can be issued:
+   | # | Check | Requirement |
+   |---|-------|-------------|
+   | 1 | `plate_readability` | valid PK plate format + OCR confidence ≥ 0.60 |
+   | 2 | `frame_consistency` | corroborated track (≥ 2 frames) with ≥ 0.60 agreement, or single-frame ≥ 0.90 |
+   | 3 | `violation_logic` | side classification matches the camera's violation side (conf ≥ 0.60) |
+   | 4 | `image_evidence` | full frame + plate crop present, crop height ≥ 18 px |
+   | 5 | `chain_integrity` | SHA-256 chain digest over camera/plate/images/checks + no duplicate challan for the same plate on the same camera within 24 h |
+
+   Failures never issue a challan: hard failures are rejected, ambiguous cases
+   are parked in the review queue for DIG oversight. There is **no manual or
+   officer annotation anywhere** — every challan is issued exclusively by this
+   pipeline. The five check results, track metadata and the chain digest are
+   stored on the detection record and printed on the challan PDF.
+4. **Challan** — auto-issued e-challan with PDF (four layouts), PSID payment
+   ID, QR payload, Excise/NADRA owner lookup, email notification, audit log.
 
 ## Roles & Login
 
@@ -13,7 +42,8 @@ four-stage evidence pipeline (DETECTION → TRACKING → EVIDENCE → CHALLAN).
 
 - Citizens self-register at `/auth/citizen/signup/`
 - Staff accounts are created by DIG / IT Support via the Staff Directory
-- The first superuser: `python manage.py createsuperuser`
+- Bootstrap the first DIG admin: `python manage.py create_dig_admin`
+- Optional demo accounts for development: `python manage.py seed_demo_accounts --yes`
 
 ## Quick Start
 
@@ -34,21 +64,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # then edit DB credentials
 python manage.py migrate
+python manage.py create_dig_admin
 python manage.py runserver
 ```
 
-## AI Pipeline
-
-`DETECTION → TRACKING → EVIDENCE (5-step validation) → CHALLAN`
-
-1. **Detection** — ONNX vehicle/plate models run on live camera frames
-2. **Tracking** — per-camera violation tracking with frame timelines
-3. **Evidence** — 5-step validation (plate readability, direction, confidence
-   gate, deduplication cooldown, rate limiting) before a challan is drafted
-4. **Challan** — auto-generated e-challan with PDF evidence sheet, PSID payment
-   ID, appeals and online payment integration
-
-Model files live in `models/` (ONNX, int8 quantized).
+Full reset (destructive): `python launcher.py fresh`
 
 ## URL Map
 
@@ -67,6 +87,17 @@ Model files live in `models/` (ONNX, int8 quantized).
 | `/video/` | Video upload & batch processing |
 | `/realtime/` | Realtime JSON APIs |
 
+## Tests
+
+```bash
+python manage.py test detections accounts auth_portal challans video_processor
+```
+
+Covers the full pipeline (all-pass issuance, each failing check, duplicate
+blocking, tamper-evident hashing), RBAC and portal isolation for every role,
+IDOR scoping, PII masking, payment integrity, XSS/SQLi/CSRF hardening, and an
+end-to-end video dry run.
+
 ## Configuration
 
 Copy `.env.example` to `.env` and set:
@@ -83,7 +114,9 @@ PG_PORT=5432
 ```
 
 Government integrations (Excise, NADRA, payments) run in **sandbox mode** by
-default; configure live endpoints in IT Support → System Settings.
+default; configure live endpoints in IT Support → System Settings. Payment
+settlement only happens through the signed gateway webhook or the
+CSRF-protected checkout — no view can mark a challan PAID on its own.
 
 ## Project Layout
 
@@ -94,22 +127,22 @@ appeals/         Challan appeal workflow
 auth_portal/     Login / signup / password reset
 camera_worker/   RTSP camera enrollment & worker daemon
 cameras/         Camera registry & health
-challans/        E-challan lifecycle, PDF service, payments
+challans/        E-challan lifecycle, PDF service, public portal
 citizen/         Citizen portal
-detections/      AI detection engine & evidence validation
+detections/      AI engine, enforcement pipeline, evidence chain
 integrations/    Excise / NADRA / payment gateways
 models/          ONNX AI models
-payments/        Payment webhooks & APIs
-realtime/        Live tracking JSON APIs
-static/          Design system (CSS/JS/img)
+payments/        Payment webhooks & checkout
+realtime/        Live tracking JSON APIs + shared chart endpoints
+static/          Design system + per-page CSS/JS (no inline styles)
 templates/       All UI templates
 video_processor/ Batch video upload & processing
 wrongway_system/ Django project settings & security
 ```
 
-## Security Notes
+## Security
 
-- Argon2 password hashing, rate-limited public search and auth
-- Role-based access control driven by `permission.json`
-- Signed, expiring links for public challan views
-- All payment webhooks verified server-side
+See [SECURITY.md](SECURITY.md). Highlights: Argon2 password hashing, rate
+limits on auth and public search, RBAC driven by `permission.json`, portal
+isolation middleware, PII masking for anonymous visitors, signed links for
+public challan PDFs, and server-side settlement of every payment.

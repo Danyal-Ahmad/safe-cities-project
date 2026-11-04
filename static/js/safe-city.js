@@ -211,13 +211,19 @@
     function scShowMessages() {
         const nodes = document.querySelectorAll('.sc-messages .sc-msg, .sc-msg[data-msg-type]');
         if (!nodes.length) return;
+        let toasted = 0;
         nodes.forEach(function (n) {
             const type = (n.getAttribute('data-msg-type') || n.className.match(/sc-msg-(\w+)/) || [, 'info'])[1];
             const text = n.textContent.trim();
             if (text && hasSwal()) {
                 scToast(text, type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info');
+                toasted++;
             }
         });
+        if (toasted === nodes.length) {
+            const box = document.querySelector('.sc-messages');
+            if (box) box.hidden = true;
+        }
     }
 
     // ============================================================

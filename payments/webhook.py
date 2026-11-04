@@ -78,11 +78,9 @@ def _resolve_challan(ticket_no: Optional[str], txn_ref: Optional[str]):
         if c:
             return c
     if txn_ref:
-        # 1. Direct field on Challan
         c = Challan.objects.filter(txn_ref=txn_ref).first()
         if c:
             return c
-        # 2. PaymentTransaction table
         try:
             from payments.models import PaymentTransaction
             tx = PaymentTransaction.objects.filter(txn_ref=txn_ref).select_related('challan').first()
@@ -90,7 +88,6 @@ def _resolve_challan(ticket_no: Optional[str], txn_ref: Optional[str]):
                 return tx.challan
         except Exception:
             pass
-        # 3. Fallback to AuditLog search
         logs = (AuditLog.objects
                 .filter(action='challan.payment_submitted', target_model='Challan')
                 .order_by('-timestamp')[:50])

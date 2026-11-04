@@ -123,7 +123,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/pages/officer-review-queue.js' %}" defer></script>
-{# JS for the included _detection_detail.html partial (idempotent, guarded #}
-{# against double-binding if the partial is included more than once). #}
 <script src="{% static 'js/pages/officer-triage-detail.js' %}" defer></script>
 {% endblock %}

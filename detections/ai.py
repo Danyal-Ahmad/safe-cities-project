@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
+
+import numpy as np
 import os
 from pathlib import Path
 from typing import List, Tuple
 
-import numpy as np
 from PIL import Image
 from django.conf import settings
 
@@ -23,11 +24,6 @@ def get_ai_runtime_config():
             'output_labels': 'labels',
             'max_detections': 300,
             'num_classes': 91,
-            # Empirically calibrated on the shipped int8 model: class 1 is the
-            # PLATE class (verified against frames with clearly readable
-            # plates). The previous config had class 1 marked as "person" and
-            # zeroed it while scanning class 0, which the model never fires on
-            # — so no vehicle was ever detected.
             'plate_class_ids': [1],
             'person_class_id': -1,
             'confidence_threshold': 0.15,
@@ -234,10 +230,6 @@ def _detect_plates(image: Image.Image, threshold: float = None):
     pd = cfg.get('plate_detector', {})
     if threshold is None:
         threshold = float(pd.get('confidence_threshold') or PLATE_CONFIDENCE_THRESHOLD)
-    # Calibrated floor: the int8 detector scores small/distant plates between
-    # ~0.09 and ~0.2 on typical safe-city footage; 0.30+ means nothing is ever
-    # detected. Weak candidates are still filtered downstream by OCR + the
-    # side classifier, and only >= auto_confirm_threshold auto-issues a challan.
     threshold = max(0.10, min(0.99, float(threshold)))
     max_area = min(float(pd.get('max_box_area_ratio') or 0.18), 0.22)
     min_area = float(pd.get('min_box_area_ratio') or 0.0003)
@@ -336,9 +328,6 @@ def _classify_side(image: Image.Image) -> Tuple[str, float]:
             if len(names) < 2:
                 names = ['back', 'front']
 
-            # C3 FIX: If all probabilities are uniform (dead/constant model output),
-            # return unknown so the detection goes to officer review instead of being
-            # silently misclassified.
             if float(np.max(probs) - np.min(probs)) < 0.01:
                 logger.warning(
                     "C3: Side classifier output is near-uniform (%.4f~%.4f) — model may be "
@@ -358,10 +347,6 @@ def _classify_side(image: Image.Image) -> Tuple[str, float]:
             return label, best_p
 
         val = float(out[0])
-        # C3 FIX: The shipped int8 classifier emits a constant 0.0 for every input
-        # (dead quantized export). Report "unknown" instead of inventing a
-        # side — detections then flow to officer review instead of being
-        # silently classified (and wrong-way violations silently suppressed).
         if val == 0.0:
             logger.warning("C3: Side classifier returned 0.0 — dead model output. Returning unknown side.")
             return '', 0.0
@@ -407,11 +392,8 @@ def _normalize_plate_text(raw: str) -> str:
     if not raw:
         return ''
     s = _re.sub(r'[^A-Za-z0-9]', '', raw).upper()
-    # common OCR confusions
-    # keep digits/letters as-is after strip
     if len(s) < 3:
         return ''
-    # Format LEA1001 -> LEA-1001 when possible
     m = _re.match(r'^([A-Z]{1,3})([0-9]{2,4})$', s)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
@@ -432,7 +414,6 @@ def _get_paddle_ocr():
         return _paddle_ocr
     try:
         from paddleocr import PaddleOCR
-        # use_angle_cls helps rotated plates; English + latin digits for PK plates
         _paddle_ocr = PaddleOCR(
             use_angle_cls=True,
             lang='en',
@@ -473,7 +454,6 @@ def _preprocess_plate_for_ocr(pil_image):
         variants.append(arr)
         gray = cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY)
         gray = cv2.bilateralFilter(gray, 7, 50, 50)
-        # upscale small crops
         h, w = gray.shape[:2]
         scale = 2.5 if max(h, w) < 160 else 1.8
         gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
@@ -498,18 +478,15 @@ def _ocr_plate_image(pil_image) -> tuple:
     candidates = []  # (text, conf, engine)
     variants = _preprocess_plate_for_ocr(pil_image)
 
-    # ── 1) PaddleOCR ──────────────────────────────────────────
     paddle = _get_paddle_ocr()
     if paddle:
         for img in variants:
             try:
-                # PaddleOCR 2.x returns list[line]; 3.x may differ slightly
                 raw = paddle.ocr(img, cls=True)
                 lines = raw[0] if raw and isinstance(raw, list) else raw
                 if not lines:
                     continue
                 for item in lines:
-                    # item: [box, (text, conf)]
                     try:
                         if isinstance(item, (list, tuple)) and len(item) >= 2:
                             txt_conf = item[1]
@@ -527,7 +504,6 @@ def _ocr_plate_image(pil_image) -> tuple:
             except Exception as e:
                 logger.debug('PaddleOCR pass failed: %s', e)
 
-    # ── 2) EasyOCR ────────────────────────────────────────────
     if not candidates or max(c[1] for c in candidates) < 0.55:
         reader = _get_easyocr()
         if reader:
@@ -545,7 +521,6 @@ def _ocr_plate_image(pil_image) -> tuple:
                 except Exception as e:
                     logger.debug('EasyOCR pass failed: %s', e)
 
-    # ── 3) pytesseract (optional) ─────────────────────────────
     if not candidates:
         try:
             import pytesseract
@@ -563,7 +538,6 @@ def _ocr_plate_image(pil_image) -> tuple:
     if not candidates:
         return '', 0.0, ''
 
-    # Prefer plate-like length + confidence; slight boost to paddle
     def score(item):
         text, conf, eng = item
         bonus = 0.03 if eng == 'paddle' else (0.01 if eng == 'easyocr' else 0.0)
@@ -616,16 +590,12 @@ def run_pipeline(image_path, camera=None, plate_threshold: float = PLATE_CONFIDE
                 logger.debug('OCR failed: %s', e)
         if ocr_text:
             result['plate_text'] = ocr_text
-            # light parse province/series for PK plates LEA-1001
             parts = ocr_text.replace('-', ' ').split()
             if len(parts) >= 1 and parts[0].isalpha():
                 result['series'] = parts[0][:3]
             if len(parts) >= 2 and parts[1].isdigit():
-                # M7 FIX: Extract registration year from plate if a 4-digit number
-                # is present in the expected position (e.g. "ABC 2019 1234" format).
                 if len(parts[1]) == 4 and parts[1].startswith(('19', '20')):
                     result['registration_year'] = parts[1]
-                # Otherwise leave registration_year as None (unknown)
         ow, oh = image.size
         vehicle_bbox = _expand_box_to_vehicle(top_bbox, ow, oh, expand_w, expand_h)
         try:

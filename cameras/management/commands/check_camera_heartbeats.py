@@ -27,7 +27,6 @@ class Command(BaseCommand):
         timeout_sec = options['timeout_seconds']
         cutoff = timezone.now() - timedelta(seconds=timeout_sec)
 
-        # Cameras marked online whose last check/frame was before cutoff
         stale_cameras = Camera.objects.filter(
             is_active=True,
             health_status='online'

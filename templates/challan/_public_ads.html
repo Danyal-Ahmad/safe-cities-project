@@ -1,7 +1,4 @@
 {% load static %}
-{# Public Service Ads + Popup Ads — managed by DIG/IT via Banner model #}
-{# Banner.placement='ad' (announcement panel) and Banner.placement='popup' (modal on load) #}
-{# HTML-type banners render full-bleed; image banners fall back to a framed image #}
 {% if homepage_banners %}
   <div class="scf-public-ads-banner">
     {% for ad in homepage_banners %}
@@ -38,6 +35,5 @@
       {% endif %}
     </div>
   </div>
-  {# Popup behavior lives in static/js/pages/public-ads.js (loaded by challan/home.html). #}
-  {% endwith %}
+    {% endwith %}
 {% endif %}

@@ -6,7 +6,6 @@ app_name = 'challans'
 
 urlpatterns = [
     path('', views.home, name='home'),
-    # /challan/ (no id) — people type this expecting the search home
     path('challan/', RedirectView.as_view(pattern_name='challans:home', permanent=False)),
     path('challan/<int:challan_id>/', views.challan_detail, name='challan_detail'),
     path('challan/<int:challan_id>/pdf/', views.challan_pdf, name='challan_pdf'),

@@ -14,17 +14,12 @@ from .pdf_service import _needs_nadra_excise_integration
 import re
 
 
-# ---------------------------------------------------------------------------
-# H7 FIX: Simple cache-based rate limiting for public challan search.
-# Limits each IP to RATE_LIMIT_MAX_REQUESTS searches per RATE_LIMIT_WINDOW seconds.
-# ---------------------------------------------------------------------------
 RATE_LIMIT_MAX_REQUESTS = 20
 RATE_LIMIT_WINDOW = 60  # seconds
 
 
 def _check_rate_limit(request) -> bool:
     """Return True if the request is within the rate limit, False if exceeded."""
-    # Authenticated staff never rate-limited
     if request.user.is_authenticated and hasattr(request.user, 'role') and request.user.role != 'USER':
         return True
     ip = (
@@ -109,7 +104,6 @@ def home(request):
     raw_plate = (request.GET.get('plate') or '').strip().upper()
     raw_cnic = (request.GET.get('cnic') or '').strip()
 
-    # Server-side input sanitization
     plate = re.sub(r'[^A-Z0-9\-]', '', raw_plate)[:12]
     cnic = re.sub(r'[^0-9\-]', '', raw_cnic)[:15]
     cnic_digits = re.sub(r'\D', '', cnic)[:13]
@@ -117,7 +111,6 @@ def home(request):
     challans = None
     searched = False
     if plate or cnic_digits:
-        # H7 FIX: Rate-limit public search to 20 req/min per IP
         if not _check_rate_limit(request):
             return HttpResponse(
                 "Too many search requests. Please wait a minute before trying again.",
@@ -273,7 +266,7 @@ def _mask_challan_pii(challan):
     challan.cnic = _mask_cnic(challan.cnic)
     challan.phone = '•••• •••••••' if challan.phone else challan.phone
     if challan.address:
-        challan.address = str(challan.address)[:24] + '…'
+        challan.address = str(challan.address)[:12] + '…'
     challan.chassis_no = '•••••••' if challan.chassis_no else challan.chassis_no
 
 
@@ -289,7 +282,6 @@ def challan_detail(request, challan_id):
     def _cnic_digits(s):
         return ''.join(ch for ch in (s or '') if ch.isdigit())
 
-    # Guest may appeal if challan is unpaid and no active appeal (CNIC verified on POST)
     can_appeal = (
         challan.payment_status == Challan.UNPAID
         and not has_active
@@ -298,7 +290,6 @@ def challan_detail(request, challan_id):
         ChallanAppeal.objects.filter(challan=challan).order_by('-created_at')[:5]
     )
 
-    # Digital payment methods only (no cash)
     payment_methods = [
         m for m in PaymentMethod.active_for_citizens()
         if (m.name or '').lower() != 'cash'
@@ -325,7 +316,6 @@ def challan_detail(request, challan_id):
             return redirect(request.get_full_path() or f'/challan/{challan.id}/?tab=review')
 
         if is_guest:
-            # Must match challan CNIC (13 digits)
             challan_cnic = _cnic_digits(challan.cnic)
             if not guest_cnic or len(guest_cnic) != 13:
                 messages.error(request, "Enter the 13-digit CNIC linked to this challan to appeal without signing in.")
@@ -428,14 +418,10 @@ def challan_pdf(request, challan_id):
 
     force = (request.GET.get('regen') or '') == '1'
     if force or not challan.pdf_file:
-        # save_challan_pdf generates AND persists — the previous code called
-        # generate_challan_pdf() and threw the bytes away, then 404'd because
-        # challan.pdf_file was still empty.
         from challans.pdf_service import save_challan_pdf
         try:
             save_challan_pdf(challan, force=force)
         except Exception:
-            # last-chance: still attempt fallback inside service
             save_challan_pdf(challan, force=True)
         challan.refresh_from_db()
     try:
@@ -456,7 +442,6 @@ def guest_pay(request, challan_id):
     gateway is the local demo-checkout page where the visitor must explicitly
     confirm (CSRF-protected). This view never marks a challan PAID by itself.
     """
-    from django.views.decorators.http import require_http_methods
     from admin.it_support_portal.models import PaymentMethod
     from integrations.payments import initiate_payment
     from payments.models import PaymentTransaction

@@ -85,7 +85,7 @@
 {% endif %}
 
 <!-- Dynamic KPI Row (Permission Gated) -->
-<div class="md-kpi-grid">
+<div class="md-kpi-grid" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
   <!-- Total Challans -->
   <div class="md-kpi-card">
     <div class="md-kpi-icon-box">
@@ -150,7 +150,9 @@
         <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">Monthly Trend</span>
       </div>
       <div class="md-card-body" style="height: 220px; position: relative;">
-        <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"></canvas>
+        <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"
+                data-month-labels='[{% for m in month_labels %}"{{ m|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+                data-month-counts='[{% for m in month_counts %}{{ m }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
     </div>
 
@@ -164,7 +166,9 @@
         <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">Category Share</span>
       </div>
       <div class="md-card-body" style="height: 220px; position: relative;">
-        <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"></canvas>
+        <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"
+                data-violation-labels='[{% for v in violation_labels %}"{{ v|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+                data-violation-counts='[{% for v in violation_counts %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
     </div>
   </div>
@@ -335,139 +339,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Live clock
-function updateClock(){
-  const el = document.getElementById('live-clock');
-  if(el) {
-    const now = new Date();
-    const pad = n => String(n).padStart(2,'0');
-    el.textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
-      ' · ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-  }
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-// Fetch helper (CSRF-safe)
-async function scFetch(url, options={}){
-  const resp = await fetch(url, {
-    ...options,
-    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json', ...(options.headers||{}) },
-  });
-  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  return resp.json();
-}
-
-// KPI real-time loading
-async function loadKPIs(){
-  const apiBase = "{% url 'citizen_portal:api_citizen_kpis' %}";
-  try {
-    const data = (await scFetch(apiBase)).kpis || {};
-    document.querySelectorAll('[data-key]').forEach(el => {
-      const key = el.dataset.key;
-      const fmt = el.dataset.format;
-      if(!(key in data)) return;
-      const val = data[key];
-      if(fmt === 'pkr') {
-        el.textContent = 'PKR ' + Number(val).toLocaleString('en-PK');
-      } else {
-        el.textContent = Number(val).toLocaleString('en-PK');
-      }
-    });
-  } catch(e) { console.warn('KPI load failed:', e); }
-}
-
-// Static Chart Initializer
-function initStaticCharts(){
-  if(typeof Chart === 'undefined') return;
-
-  const trend = document.getElementById('chart-citizen-trend');
-  if(trend && !trend.dataset.apiUrl) {
-    const labels = [{% for m in month_labels %}'{{ m }}',{% endfor %}];
-    const counts = [{% for m in month_counts %}{{ m }},{% endfor %}];
-    if(labels.length > 0) {
-      new Chart(trend, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Challans',
-            data: counts,
-            backgroundColor: 'rgba(2, 132, 199, 0.75)',
-            borderColor: '#0284c7',
-            borderWidth: 1,
-            borderRadius: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
-            x: { grid: { display: false } }
-          }
-        }
-      });
-    }
-  }
-
-  const types = document.getElementById('chart-citizen-types');
-  if(types && !types.dataset.apiUrl) {
-    const labels = [{% for v in violation_labels %}'{{ v }}',{% endfor %}];
-    const counts = [{% for v in violation_counts %}{{ v }},{% endfor %}];
-    if(labels.length > 0) {
-      new Chart(types, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: counts,
-            backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#10b981', '#0284c7'],
-            borderColor: '#fff',
-            borderWidth: 2,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } }
-        }
-      });
-    }
-  }
-}
-
-// API Chart Initializer
-async function initChartFromAPI(canvas){
-  if(typeof Chart === 'undefined') return;
-  try {
-    const apiUrl = canvas.dataset.apiUrl;
-    const chartType = canvas.dataset.chartType || 'bar';
-    const json = await scFetch(apiUrl);
-    new Chart(canvas, {
-      type: chartType,
-      data: json,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: chartType === 'doughnut' } },
-        scales: chartType === 'doughnut' ? {} : {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
-        }
-      }
-    });
-  } catch(e) {
-    console.warn('API chart init failed:', e);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  loadKPIs();
-  initStaticCharts();
-  document.querySelectorAll('canvas[data-api-url]').forEach(canvas => initChartFromAPI(canvas));
-});
-</script>
+<script src="{% static 'js/pages/citizen-home.js' %}" defer></script>
 {% endblock %}

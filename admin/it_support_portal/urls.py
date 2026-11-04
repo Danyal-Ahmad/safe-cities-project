@@ -1,7 +1,6 @@
 from django.urls import path
 from . import views
 from admin.dig_portal import views as dig_views
-from admin.officer_portal import views as officer_views
 
 app_name = 'it_support_portal'
 
@@ -22,7 +21,6 @@ urlpatterns = [
     path('live-monitor/feed/', dig_views.live_monitor_feed, name='live_monitor_feed'),
     path('live-tracking/', views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', views.live_tracking_timeline, name='live_tracking_timeline'),
-    path('live-tracking/annotation-save/', views.annotation_save, name='annotation_save'),
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('cameras/<int:camera_id>/stream-url/', dig_views.camera_stream_url, name='camera_stream_url'),
     path('cameras/<int:camera_id>/test/', dig_views.camera_test, name='camera_test'),
@@ -60,9 +58,4 @@ urlpatterns = [
     path('officer-signatures/', dig_views.officer_signatures, name='officer_signatures'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),
-
-    path('live-tracking/ai-assist/', officer_views.ai_assist_frame, name='ai_assist_frame'),
-    path('live-tracking/ocr-crop/', officer_views.ocr_plate_crop, name='ocr_plate_crop'),
-    path('annotate/', officer_views.manual_annotation, name='manual_annotation'),
-    path('annotate/submit/', officer_views.submit_annotation, name='submit_annotation'),
 ]

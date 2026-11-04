@@ -1,0 +1,153 @@
+/* ==========================================================================
+   DIG — Camera Network  (dashboard/dig/camera_list.html)
+   ========================================================================== */
+
+/* ---------- Filter bar ---------- */
+
+.cam-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: var(--sc-radius, 14px);
+  background: var(--sc-bg-soft, #F1F4F9);
+}
+
+.cam-filter-search {
+  flex: 1 1 240px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--sc-surface, #FFFFFF);
+  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border-radius: 999px;
+}
+
+.cam-filter-search i { color: var(--sc-text-faint, #8A94B0); }
+
+.cam-filter-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: var(--sc-text, #33415C);
+}
+
+.cam-filter-select {
+  padding: 8px 12px;
+  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border-radius: 999px;
+  background: var(--sc-surface, #FFFFFF);
+  color: var(--sc-text, #33415C);
+  font-size: 0.8rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.cam-filter-select:focus { border-color: var(--sc-primary, #2563EB); }
+
+/* ---------- Camera id icon ---------- */
+
+.cam-id-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sc-info-bg, #EEF3FC);
+  color: var(--sc-info, #2E5FB7);
+  font-size: 0.9rem;
+}
+
+.cam-location { max-width: 230px; }
+
+.cam-dir-badge { min-width: 78px; justify-content: center; }
+
+/* ---------- Health chip (online / offline / degraded / unknown) ---------- */
+
+.cam-health-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.cam-health-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.cam-health-online {
+  background: var(--sc-success-bg, #EAF7F0);
+  color: var(--sc-success, #22A45D);
+  border-color: #BCE3CC;
+}
+
+.cam-health-online .cam-health-dot { animation: cam-pulse 1.8s infinite; }
+
+.cam-health-offline {
+  background: var(--sc-danger-bg, #FDF3F5);
+  color: var(--sc-danger, #E23B4E);
+  border-color: #F3C6CC;
+}
+
+.cam-health-degraded {
+  background: var(--sc-warning-bg, #FDF6E7);
+  color: #B87A10;
+  border-color: #F2DFB5;
+}
+
+.cam-health-unknown {
+  background: var(--sc-bg-soft, #F1F4F9);
+  color: var(--sc-text-muted, #5B6B85);
+  border-color: var(--sc-border-strong, #D3DAE7);
+}
+
+@keyframes cam-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 164, 93, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 164, 93, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 164, 93, 0); }
+}
+
+/* ---------- Read-only note (non-IT roles) ---------- */
+
+.cam-readonly-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sc-text-faint, #8A94B0);
+  white-space: nowrap;
+}
+
+.cam-actions { flex-wrap: nowrap; }
+
+/* Hide verbose action labels on narrow screens */
+@media (max-width: 1280px) {
+  .cam-action-label { display: none; }
+}
+
+@media (max-width: 760px) {
+  .cam-location { max-width: 160px; }
+  .cam-filter-bar { align-items: stretch; flex-direction: column; }
+  .cam-filter-select { width: 100%; }
+}

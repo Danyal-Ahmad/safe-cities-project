@@ -31,6 +31,10 @@ PERMISSIONS = (
     'ai_confidence_config',
     'ai_model_testing',
     'ai_detection_config',
+    'camera_video_upload',
+    'global_search',
+    'manage_faq',
+    'view_faq',
     'payment_integration',
     'payment_method_config',
     'payment_gateway_config',
@@ -49,14 +53,11 @@ PERMISSIONS = (
     'edit_own_profile',
     'view_detections',
     'review_detections',
-    'confirm_detection',
     'reject_detection',
     'flag_detection',
     'add_review_note',
     'view_flagged_detections',
-    'manual_annotation',
     'view_challans',
-    'add_manual_challan',
     'edit_challan_fine',
     'delete_challan',
     'mark_challan_paid',
@@ -125,12 +126,15 @@ PERMISSION_SET: frozenset = frozenset(PERMISSIONS)
 
 _IT_PERMS = {
     'add_camera',
-    'add_manual_challan',
     'add_officer_feedback',
     'add_review_note',
     'add_to_blacklist',
     'ai_confidence_config',
     'ai_detection_config',
+    'camera_video_upload',
+    'global_search',
+    'manage_faq',
+    'view_faq',
     'ai_model_testing',
     'appeal_workflow',
     # H8 FIX: approve_appeal REMOVED — IT has no authority to approve appeals
@@ -140,7 +144,6 @@ _IT_PERMS = {
     'camera_feed',
     'challan_template_manage',
     'change_own_password',
-    'confirm_detection',
     # H8 FIX: delete_camera kept (IT manages hardware), delete_challan REMOVED
     'delete_camera',
     # H8 FIX: delete_challan REMOVED — only DIG can delete challans
@@ -167,7 +170,6 @@ _IT_PERMS = {
     'manage_regional_access',
     'manage_shifts',
     'manage_smtp_sms',
-    'manual_annotation',
     'mark_challan_paid',
     'nadra_integration',
     'officer_pki',
@@ -234,7 +236,6 @@ _DIG_PERMS = {
     'approve_high_value_challan',
     'bulk_fine_adjust',
     'change_own_password',
-    'confirm_detection',
     'delete_challan',
     'delete_user',
     'edit_admin',
@@ -360,18 +361,15 @@ _SUPERVISOR_PERMS = {
 }
 
 _OFFICER_PERMS = {
-    'add_manual_challan',
     'add_review_note',
     'appeal_workflow',
     'camera_feed',
     'change_own_password',
-    'confirm_detection',
     'edit_own_profile',
     'escalate_appeals',
     'flag_detection',
     'live_tracking',
     'live_tracking_timeline',
-    'manual_annotation',
     'officer_pki',
     'officer_profile_manage',
     'pay_own_challans',
@@ -674,6 +672,10 @@ def get_permission_groups() -> 'OrderedDict[str, list]':
         'ai_confidence_config',
         'ai_model_testing',
         'ai_detection_config',
+    'camera_video_upload',
+    'global_search',
+    'manage_faq',
+    'view_faq',
     ]
 
     groups['Payment Integration (IT only)'] = [
@@ -710,18 +712,15 @@ def get_permission_groups() -> 'OrderedDict[str, list]':
     groups['Detection Review (Officer)'] = [
         'view_detections',
         'review_detections',
-        'confirm_detection',
-        'reject_detection',
+            'reject_detection',
         'flag_detection',
         'add_review_note',
         'view_flagged_detections',
-        'manual_annotation',
-    ]
+        ]
 
     groups['Challan Management'] = [
         'view_challans',
-        'add_manual_challan',
-        'edit_challan_fine',
+            'edit_challan_fine',
         'delete_challan',
         'mark_challan_paid',
         'record_payment',

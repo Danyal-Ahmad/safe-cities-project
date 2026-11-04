@@ -7,7 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 {% block content %}
-
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-bar-chart-line me-2" style="color:#6D28D9;"></i>Analytics</h1>
@@ -52,7 +51,9 @@
         <span>Violation Trends (Last 30 Days)</span>
       </div>
       <div class="sc-card-body">
-        <canvas id="trendsChart" height="260"></canvas>
+        <canvas id="trendsChart" height="260"
+                data-trend-labels="{{ trend_labels|default:'[]' }}"
+                data-trend-data="{{ trend_data|default:'[]' }}"></canvas>
       </div>
     </div>
   </div>
@@ -63,7 +64,9 @@
         <span>Violation Types</span>
       </div>
       <div class="sc-card-body">
-        <canvas id="typesChart" height="260"></canvas>
+        <canvas id="typesChart" height="260"
+                data-type-labels="{{ type_labels|default:'[]' }}"
+                data-type-counts="{{ type_counts|default:'[]' }}"></canvas>
       </div>
     </div>
   </div>
@@ -136,55 +139,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-(function() {
-  const trendsLabels = {{ trend_labels|default:"[]"|safe }};
-  const trendsData   = {{ trend_data|default:"[]"|safe }};
-  const typeLabels   = {{ type_labels|default:"[]"|safe }};
-  const typeCounts   = {{ type_counts|default:"[]"|safe }};
-
-  if (document.getElementById('trendsChart')) {
-    new Chart(document.getElementById('trendsChart'), {
-      type: 'line',
-      data: {
-        labels: trendsLabels.length ? trendsLabels : ['No data'],
-        datasets: [{
-          label: 'Violations',
-          data: trendsData.length ? trendsData : [0],
-          borderColor: '#6D28D9',
-          backgroundColor: 'rgba(109,40,217,0.08)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 3,
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-      }
-    });
-  }
-
-  if (document.getElementById('typesChart') && typeLabels.length) {
-    new Chart(document.getElementById('typesChart'), {
-      type: 'doughnut',
-      data: {
-        labels: typeLabels,
-        datasets: [{
-          data: typeCounts,
-          backgroundColor: ['#6D28D9','#BE123C','#B45309','#1E40AF','#0F766E','#475569'],
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-  } else if (document.getElementById('typesChart')) {
-    document.getElementById('typesChart').closest('.sc-card-body').innerHTML =
-      '<p class="sc-empty">No violation type data yet.</p>';
-  }
-})();
-</script>
+<script src="{% static 'js/pages/dig-analytics.js' %}" defer></script>
 {% endblock %}

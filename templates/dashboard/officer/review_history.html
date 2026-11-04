@@ -1,13 +1,126 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Review History{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Review history</b>{% endblock %}
+{% block title %}Review History — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-review-history.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Review history</h1>
-<p class="sc-lead">Your past review actions.</p>
+  <div>
+    <h1><i class="bi bi-clock-history"></i> Review History</h1>
+    <p class="sc-lead">
+      Your past review actions on detections &mdash; rejections, flags and auto-confirmed
+      challans &mdash; with the notes you recorded for the audit trail.
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-gap-2">
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-journal-check"></i> {{ actions|length|default:0 }} actions shown</span>
+    <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-collection"></i> All Detections</a>
+  </div>
 </div>
+
+{# ---- Filters --------------------------------------------------------------- #}
+<div class="sc-card">
+  <div class="sc-card-head">
+    <span><i class="bi bi-funnel"></i> Filters</span>
+    {% if plate_q or date_from or date_to %}<span class="sc-badge sc-badge-blue"><i class="bi bi-funnel-fill"></i> active</span>{% endif %}
+  </div>
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="sc-form-label" for="plateInput">Plate number</label>
+      <input type="text" id="plateInput" name="plate" value="{{ plate_q }}" class="sc-form-control"
+             placeholder="e.g. LEA-1100" autocomplete="off">
+    </div>
+    <div class="col-md-3">
+      <label class="sc-form-label" for="dateFromInput">Reviewed from</label>
+      <input type="date" id="dateFromInput" name="date_from" value="{{ date_from }}" class="sc-form-control">
+    </div>
+    <div class="col-md-3">
+      <label class="sc-form-label" for="dateToInput">Reviewed to</label>
+      <input type="date" id="dateToInput" name="date_to" value="{{ date_to }}" class="sc-form-control">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm w-100"><i class="bi bi-search"></i> Filter</button>
+    </div>
+    {% if plate_q or date_from or date_to %}
+    <div class="col-md-2">
+      <a href="{% url 'officer_portal:review_history' %}" class="sc-btn sc-btn-outline sc-btn-sm w-100"><i class="bi bi-x-lg"></i> Clear</a>
+    </div>
+    {% endif %}
+  </form>
+  <div class="sc-flex sc-flex-wrap sc-gap-2 sc-mt-3 sc-ranges">
+    <span class="sc-text-xs sc-text-faint sc-range-label"><i class="bi bi-lightning-charge"></i> Quick ranges:</span>
+    <button type="button" class="sc-btn sc-btn-sm" data-range-days="0">Today</button>
+    <button type="button" class="sc-btn sc-btn-sm" data-range-days="7">Last 7 days</button>
+    <button type="button" class="sc-btn sc-btn-sm" data-range-days="30">Last 30 days</button>
+  </div>
 </div>
-<div class="sc-card"><h2>Review History</h2><p class="sc-empty">Your past review actions.</p></div>{% endblock %}
+
+{# ---- History table ---------------------------------------------------------- #}
+<div class="sc-card">
+  <div class="sc-card-head">
+    <span><i class="bi bi-list-check"></i> My Review Actions</span>
+    <span class="sc-badge sc-badge-muted">{{ actions|length|default:0 }} shown</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if actions %}
+    <div class="sc-table-wrap sc-table-wrap-flush">
+      <table class="sc-table sc-data-table" data-table-id="officer-history">
+        <thead>
+          <tr>
+            <th>Plate</th>
+            <th>Detection</th>
+            <th>Camera</th>
+            <th>Result</th>
+            <th>Notes</th>
+            <th>Reviewed At</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in actions %}
+          <tr class="sc-row-link" data-href="{% url 'officer_portal:detection_detail' a.id %}">
+            <td><strong class="sc-mono sc-plate-cell">{{ a.effective_plate|default:"UNREAD" }}</strong></td>
+            <td class="sc-mono">#{{ a.id }}</td>
+            <td class="sc-text-sm">
+              {% if a.camera %}{{ a.camera.camera_id }}{% else %}<span class="sc-text-faint">—</span>{% endif %}
+            </td>
+            <td>
+              {% if a.status == 'confirmed' %}
+                <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> Confirmed</span>
+              {% elif a.status == 'rejected' %}
+                <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+              {% elif a.status == 'flagged_for_dig' %}
+                <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> Flagged</span>
+              {% else %}
+                <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> Pending</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-sm sc-notes-cell">{{ a.review_notes|truncatechars:80|default:"—" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ a.reviewed_at|date:"d M Y, H:i"|default:"—" }}</td>
+            <td>
+              <a href="{% url 'officer_portal:detection_detail' a.id %}" class="sc-btn sc-btn-sm sc-btn-outline">
+                <i class="bi bi-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-journal-x"></i>
+      No review actions found{% if plate_q or date_from or date_to %} for the current filters{% endif %}.
+      Once you reject or flag detections from the review queue, your decisions will be listed here.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-review-history.js' %}" defer></script>
+{% endblock %}

@@ -1,13 +1,114 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Permission Changes{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Permission changes</b>{% endblock %}
+{% block title %}Permission Changes — Audit Portal{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-permission-changes.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Permission changes</h1>
-<p class="sc-lead">Role + permission audit trail.</p>
+  <div>
+    <h1><i class="bi bi-key me-2"></i>Permission Changes</h1>
+    <p class="sc-lead">Role, account and permission mutations recorded across users and administrators.</p>
+  </div>
+  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
 </div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-journal-check"></i> Logged events</div>
+    <div class="sc-kpi-value">{{ count|default:0 }}</div>
+    <div class="sc-kpi-foot">matching tracked actions</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-list-check"></i> Tracked actions</div>
+    <div class="sc-kpi-value">{{ actions|length|default:0 }}</div>
+    <div class="sc-kpi-foot">audit filters</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-clock-history"></i> Latest event</div>
+    {% if logs %}
+    {% with latest=logs|first %}
+    <div class="sc-kpi-value">{{ latest.timestamp|date:"d M" }}</div>
+    <div class="sc-kpi-foot">{{ latest.timestamp|date:"H:i" }} &middot; most recent entry</div>
+    {% endwith %}
+    {% else %}
+    <div class="sc-kpi-value">&mdash;</div>
+    <div class="sc-kpi-foot">no entries yet</div>
+    {% endif %}
+  </div>
 </div>
-<div class="sc-page-hero"><div><h1>Permission Changes</h1><p class="sc-lead">Role + permission audit trail.</p></div></div><div class="sc-card">{% if logs %}<table class="sc-table sc-data-table"><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody>{% for l in logs %}<tr><td class="sc-text-sm">{{ l.timestamp|date:"d M H:i" }}</td><td class="sc-text-sm">{{ l.actor|default:"-" }}</td><td><span class="sc-badge sc-badge-gray">{{ l.action }}</span></td><td class="sc-mono sc-text-sm">{{ l.target_model }} #{{ l.target_id|default:"-" }}</td><td class="sc-text-sm sc-text-muted">{{ l.details|truncatechars:60 }}</td></tr>{% empty %}<tr><td colspan="5" class="sc-empty">No entries.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No entries.</div>{% endif %}</div>{% endblock %}
+
+{% if actions %}
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-funnel"></i>
+    <span>Tracked actions</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="audit-chips">
+      {% for a in actions %}
+      <span class="audit-chip"><i class="bi bi-dot"></i>{{ a }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-shield-key"></i>
+      <span>Permission change log</span>
+    </div>
+    <span class="sc-badge sc-badge-gray">{{ logs|length|default:0 }} entries</span>
+  </div>
+  {% if logs %}
+  <div class="table-responsive">
+    <table class="table sc-table mb-0">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>IP address</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td class="sc-text-sm sc-text-nowrap">{{ l.timestamp|date:"d M Y H:i" }}</td>
+          <td>
+            {% if l.actor %}
+            <div class="audit-actor-name">{{ l.actor.display_name|default:l.actor.username }}</div>
+            <div class="audit-actor-sub">{{ l.actor.username }}</div>
+            {% else %}
+            <span class="sc-text-muted">System</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="sc-badge audit-action-badge {% if 'create' in l.action %}sc-badge-green{% elif 'delete' in l.action %}sc-badge-red{% elif 'edit' in l.action or 'update' in l.action %}sc-badge-amber{% elif 'toggle' in l.action %}sc-badge-blue{% else %}sc-badge-gray{% endif %}">
+              {{ l.action }}
+            </span>
+          </td>
+          <td class="sc-mono sc-text-sm">{{ l.target_model }}{% if l.target_id %} #{{ l.target_id }}{% endif %}</td>
+          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"—" }}</td>
+          <td class="sc-text-sm sc-text-muted audit-details-cell">
+            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}&mdash;{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="sc-empty p-5">
+    <i class="bi bi-shield-key"></i>
+    No permission changes recorded for the tracked actions.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

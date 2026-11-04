@@ -6,7 +6,7 @@ from django.db.models import Count, Sum
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 
-from accounts.decorators import officer_or_dig_required, dig_required
+from accounts.decorators import officer_or_dig_required, dig_required, staff_required
 from cameras.models import Camera
 from detections.models import Detection
 from challans.models import Challan
@@ -139,8 +139,7 @@ def api_tables_detections(request):
     plate = request.GET.get('plate', '').strip().upper()
     status = request.GET.get('status', '').strip()
     if plate:
-        from django.db.models import Q
-        qs = qs.filter(Q(ai_plate_text__icontains=plate) | Q(manual_plate_text__icontains=plate))
+        qs = qs.filter(ai_plate_text__icontains=plate)
     if status:
         qs = qs.filter(status=status)
     start = int(request.GET.get('start', 0))
@@ -164,7 +163,7 @@ def api_tables_detections(request):
 
 
 @require_GET
-@login_required
+@staff_required
 def api_live_recent_detections(request):
     """Return recent detections for live tracking (polled by JS)."""
     camera_id = request.GET.get('camera_id', '').strip()
@@ -208,4 +207,62 @@ def api_citizen_challans(request):
             'issue_date': c.issue_date.isoformat(),
             'due_date': c.due_date.isoformat(),
         } for c in qs],
+    })
+
+
+@require_GET
+@staff_required
+def api_chart_activity_trend_shared(request):
+    """Activity trend (detections vs challans) for every staff dashboard.
+
+    Lives outside /portal/ so portal isolation never blocks cross-portal
+    chart fetches. Response shape matches the DIG dashboard charts."""
+    import datetime
+    from datetime import timedelta as _td
+    from challans.models import Challan
+    rows = []
+    for d in range(6, -1, -1):
+        day = timezone.now() - _td(days=d)
+        ds = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        de = ds + _td(days=1)
+        rows.append({
+            'date': ds.strftime('%b %d'),
+            'detections': Detection.objects.filter(created_at__gte=ds, created_at__lt=de).count(),
+            'challans': Challan.objects.filter(created_at__gte=ds, created_at__lt=de).count(),
+        })
+    return JsonResponse({
+        'labels': [r['date'] for r in rows],
+        'datasets': [
+            {'label': 'Detections', 'data': [r['detections'] for r in rows], 'borderColor': '#0a1a3a', 'backgroundColor': 'rgba(10,26,58,0.15)', 'tension': 0.3, 'fill': True},
+            {'label': 'Challans', 'data': [r['challans'] for r in rows], 'borderColor': '#dc2626', 'backgroundColor': 'rgba(220,38,38,0.15)', 'tension': 0.3, 'fill': True},
+        ],
+    })
+
+
+@require_GET
+@staff_required
+def api_chart_violation_distribution_shared(request):
+    """Violation-type distribution for every staff dashboard.
+
+    Response shape matches the DIG dashboard charts (labels + datasets)."""
+    import datetime
+    from django.db.models import Count as _Count
+    from challans.models import Challan
+    try:
+        days = max(1, min(180, int(request.GET.get('days', 30))))
+    except (TypeError, ValueError):
+        days = 30
+    since = timezone.now() - datetime.timedelta(days=days)
+    rows = (
+        Challan.objects.filter(issue_date__gte=since.date())
+        .values('violation_type').annotate(c=_Count('id')).order_by('-c')
+    )
+    labels = [dict(Challan.VIOLATION_CHOICES).get(r['violation_type'], r['violation_type']) for r in rows]
+    return JsonResponse({
+        'labels': labels,
+        'datasets': [{
+            'label': 'Challans',
+            'data': [r['c'] for r in rows],
+            'backgroundColor': '#dc2626',
+        }],
     })

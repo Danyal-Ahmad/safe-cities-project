@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Officer — Review History (officer-review-history)
+   Filter bar + history table polish.
+   ========================================================================== */
+
+.sc-table-wrap-flush {
+  border: none;
+  border-radius: 0;
+}
+
+.sc-plate-cell {
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+  color: var(--sc-navy-deep);
+}
+
+.sc-row-link {
+  cursor: pointer;
+}
+
+.sc-row-link:hover td {
+  background: #F6F9FD;
+}
+
+.sc-notes-cell {
+  max-width: 320px;
+  color: var(--sc-text-muted);
+}
+
+table.sc-data-table td:last-child {
+  white-space: nowrap;
+}
+
+input[type="date"].sc-form-control {
+  min-width: 0;
+}
+
+.sc-form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-text-muted);
+  margin-bottom: 6px;
+}
+
+.sc-ranges {
+  border-top: 1px dashed var(--sc-border);
+  padding-top: 12px;
+}
+
+.sc-range-label {
+  align-self: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

@@ -1,13 +1,154 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Payment Methods{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Payment methods</b>{% endblock %}
+{% block title %}Payment Methods — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-payment-method-list.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Payment methods</h1>
-<p class="sc-lead">Configure JazzCash, EasyPaisa, bank, card options.</p>
+  <div>
+    <h1><i class="bi bi-credit-card me-2"></i>Payment Methods</h1>
+    <p class="sc-lead">Gateway integrations citizens can use to pay e-challans online &mdash; mobile wallets, cards and payment gateways.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:payment_method_add' %}" class="sc-btn sc-btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Method</a>
+  </div>
 </div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-credit-card-2-front"></i></div>
+    <div class="sc-kpi-label">Configured Methods</div>
+    <div class="sc-kpi-value">{{ total_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">wallets, cards &amp; gateways</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check2-circle"></i></div>
+    <div class="sc-kpi-label">Active Now</div>
+    <div class="sc-kpi-value">{{ active_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">visible to citizens at checkout</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-globe2"></i></div>
+    <div class="sc-kpi-label">Online Checkout</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">{% if active_count %}Open{% else %}Closed{% endif %}</div>
+    <div class="sc-kpi-foot">{% if active_count %}citizens can pay online now{% else %}enable a method to accept online payments{% endif %}</div>
+  </div>
 </div>
-<div class="sc-flex sc-justify-end sc-mb-3"><a class="sc-btn sc-btn-primary" href="{% url 'it_support_portal:payment_method_add' %}"><i class="bi bi-plus-circle"></i> Add method</a></div><div class="sc-card">{% if methods %}<table class="sc-table sc-data-table"><thead><tr><th>Name</th><th>Provider</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for m in methods %}<tr><td><strong>{{ m.name }}</strong></td><td>{{ m.provider|default:"-" }}</td><td><span class="sc-badge sc-badge-gray">{{ m.type }}</span></td><td>{% if m.status == 'active' %}<span class="sc-badge sc-badge-ok">Active</span>{% else %}<span class="sc-badge sc-badge-gray">Disabled</span>{% endif %}</td><td><form method="post" action="{% url 'it_support_portal:payment_method_toggle' m.id %}" class="d-inline">{% csrf_token %}<button type="submit" class="sc-btn sc-btn-sm">Toggle</button></form> <a class="sc-btn sc-btn-sm" href="{% url 'it_support_portal:payment_method_edit' m.id %}">Edit</a></td></tr>{% empty %}<tr><td colspan="5" class="sc-empty">No methods.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No payment methods.</div>{% endif %}</div>{% endblock %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-list-ul"></i>
+    <span>Configured Methods ({{ methods|length|default:0 }})</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if methods %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Environment</th>
+            <th>Provider Config</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in methods %}
+          <tr>
+            <td>
+              <div class="it-pm-name"><i class="bi bi-wallet2 me-1"></i><strong>{{ m.name }}</strong></div>
+              <div class="sc-text-xs sc-text-muted">{{ m.provider|default:"&mdash;" }}{% if m.created_by %} &middot; added by {{ m.created_by.username }}{% endif %}</div>
+            </td>
+            <td><span class="sc-badge it-pm-type-{{ m.type }}"><i class="bi bi-tag"></i>{{ m.get_type_display|default:m.type }}</span></td>
+            <td>
+              {% if m.status == 'active' %}
+              <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active</span>
+              {% elif m.status == 'maintenance' %}
+              <span class="sc-badge sc-badge-amber"><i class="bi bi-tools"></i>Maintenance</span>
+              {% else %}
+              <span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>Disabled</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="sc-badge {% if m.environment == 'live' %}sc-badge-red{% else %}sc-badge-blue{% endif %} sc-mono">{{ m.environment|default:"sandbox" }}</span>
+            </td>
+            <td class="sc-text-xs sc-text-muted it-pm-config">
+              {% if m.type == 'wallet' %}{{ m.config.merchant_id|yesno:"merchant on file,no merchant" }}{% elif m.type == 'card' %}{{ m.config.publishable_key|yesno:"keys on file,no keys" }}{% elif m.type == 'gateway' %}{{ m.config.api_key|yesno:"API key on file,no API key" }}{% else %}&mdash;{% endif %}
+            </td>
+            <td class="text-end">
+              <div class="it-pm-actions">
+                <form method="post" action="{% url 'it_support_portal:payment_method_toggle' m.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="sc-btn sc-btn-sm {% if m.status == 'active' %}{% else %}sc-btn-primary{% endif %}">
+                    {% if m.status == 'active' %}<i class="bi bi-pause me-1"></i>Disable{% else %}<i class="bi bi-play me-1"></i>Enable{% endif %}
+                  </button>
+                </form>
+                <a href="{% url 'it_support_portal:payment_method_edit' m.id %}" class="sc-btn sc-btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+                <form method="post" action="{% url 'it_support_portal:payment_method_delete' m.id %}" data-it-confirm="Delete payment method '{{ m.name }}'? Citizens will immediately lose this option at checkout.">
+                  {% csrf_token %}
+                  <button type="submit" class="sc-btn sc-btn-sm sc-btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-credit-card"></i>
+      <p class="mb-1">No payment methods configured yet.</p>
+      <p class="sc-hint mb-0">Add JazzCash, EasyPaisa or a card gateway so citizens can pay e-challans online.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="sc-card it-pm-help">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle"></i>
+    <span>Integration Notes</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="it-pm-note">
+          <i class="bi bi-shield-check"></i>
+          <div>
+            <div class="it-pm-note-t">Citizens only see active methods</div>
+            <div class="sc-text-xs sc-text-muted">Disabled or maintenance methods are hidden from the checkout screen.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="it-pm-note">
+          <i class="bi bi-code-slash"></i>
+          <div>
+            <div class="it-pm-note-t">Wallets need a merchant ID</div>
+            <div class="sc-text-xs sc-text-muted">JazzCash / EasyPaisa require merchant credentials and an integrity salt.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="it-pm-note">
+          <i class="bi bi-beaker"></i>
+          <div>
+            <div class="it-pm-note-t">Test in sandbox first</div>
+            <div class="sc-text-xs sc-text-muted">Keep the environment on sandbox until provider callbacks are verified.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-payment-method-list.js' %}" defer></script>
+{% endblock %}

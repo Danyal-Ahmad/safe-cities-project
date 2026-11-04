@@ -4,6 +4,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
+# Custom error handlers. NOTE: Django 5 resolves handlerNNN from this URLconf
+# module only (settings.HANDLER4xx/5xx are ignored), so they must be wired
+# here. See also wrongway_system/settings.py HANDLER* entries (same views).
+from . import views as error_views
+
+handler400 = error_views.custom_400
+handler401 = error_views.custom_401
+handler402 = error_views.custom_402
+handler404 = error_views.custom_404
+handler500 = error_views.custom_500
+handler501 = error_views.custom_501
+handler502 = error_views.custom_502
+handler503 = error_views.custom_503
+
 urlpatterns = [
     path('django-admin/', admin.site.urls),
 
@@ -53,8 +67,15 @@ def handler403(request, exception=None):
     if is_ratelimited:
         return render(
             request,
-            'errors/403.html',
+            'errors/error_page.html',
             {
+                'code': 403,
+                'title': 'Access Forbidden',
+                'message': (
+                    'You do not have permission to access this page. If you '
+                    'believe you should, sign in with an account that has '
+                    'the required role or contact your administrator.'
+                ),
                 'ratelimited': True,
                 'retry_minutes': 15,
                 'err_title_override': 'Too Many Attempts',
@@ -67,7 +88,20 @@ def handler403(request, exception=None):
             status=403,
         )
 
-    return render(request, 'errors/403.html', status=403)
+    return render(
+        request,
+        'errors/error_page.html',
+        {
+            'code': 403,
+            'title': 'Access Forbidden',
+            'message': (
+                'You do not have permission to access this page. If you '
+                'believe you should, sign in with an account that has the '
+                'required role or contact your administrator.'
+            ),
+        },
+        status=403,
+    )
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

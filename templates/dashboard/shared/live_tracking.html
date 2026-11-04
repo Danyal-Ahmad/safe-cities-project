@@ -21,9 +21,6 @@
       <span class="md-live-dot"></span>
       <span id="radarStatusText">Radar Active</span>
     </div>
-    <a href="{% url 'officer_portal:manual_annotation' %}" class="md-btn md-btn-cyan md-btn-sm">
-      <i class="bi bi-pencil-square me-1"></i>Annotation Studio
-    </a>
   </div>
 </div>
 
@@ -32,7 +29,7 @@
   <form method="get" class="row g-2 align-items-center">
     <div class="col-md-4">
       <label class="sc-text-xs sc-text-muted fw-bold text-uppercase mb-1 d-block">Active Camera Source</label>
-      <select name="camera_id" class="md-select form-select-sm" onchange="this.form.submit()">
+      <select name="camera_id" class="md-select form-select-sm">
         {% for c in cameras %}
         <option value="{{ c.id }}" {% if c.id|stringformat:"s" == selected_camera_id %}selected{% endif %}>
           {{ c.camera_id }} &middot; {{ c.location|default:"Command Grid"|truncatechars:35 }}
@@ -80,17 +77,19 @@
       </div>
     </div>
 
-    <div class="md-video-stage" id="stageContainer">
+    <div class="md-video-stage" id="stageContainer"
+         data-selected-camera-pk="{{ selected_camera_id }}"
+         data-selected-camera-id="{{ selected_camera.camera_id|default:'' }}">
       {% if stream_url %}
         {% if '.mp4' in stream_url or '.webm' in stream_url or '.mov' in stream_url or '/media/' in stream_url %}
         <video id="liveVideoPlayer" muted autoplay loop playsinline>
           <source src="{{ stream_url }}" type="video/mp4">
         </video>
         {% else %}
-        <img id="liveVideoPlayer" src="{{ stream_url }}" alt="Camera Stream" onerror="this.src='/static/img/no_signal.png'">
+        <img id="liveVideoPlayer" src="{{ stream_url }}" alt="Camera Stream">
         {% endif %}
       {% elif selected_camera %}
-        <img id="liveVideoPlayer" src="{% url portal_ns|add:':camera_snapshot' selected_camera.id %}" alt="Camera Snapshot" onerror="this.style.display='none'; document.getElementById('noSignalState').style.display='flex';">
+        <img id="liveVideoPlayer" src="{% url portal_ns|add:':camera_snapshot' selected_camera.id %}" alt="Camera Snapshot" data-snapshot-fallback>
       {% else %}
         <div class="text-center text-light opacity-50 p-5" id="noSignalState">
           <i class="bi bi-camera-video-off fs-1 d-block mb-2"></i>
@@ -126,9 +125,14 @@
         {% for d in recent_detections %}
         <div class="border rounded p-1 bg-white cursor-pointer timeline-thumb-card {% if latest_detection and latest_detection.id == d.id %}border-primary shadow-sm{% endif %}"
              style="min-width: 90px; cursor: pointer;"
-             onclick="selectDetection({{ d.id }}, '{{ d.effective_plate|default:'' }}', '{{ d.ai_confidence|floatformat:2|default:'0.00' }}', '{{ d.camera.camera_id|default:'' }}', '{{ d.get_status_display }}', '{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}')">
+             data-det-id="{{ d.id }}"
+             data-plate="{{ d.effective_plate|default:'' }}"
+             data-conf="{{ d.ai_confidence|floatformat:2|default:'0.00' }}"
+             data-camera="{{ d.camera.camera_id|default:'' }}"
+             data-status="{{ d.get_status_display }}"
+             data-img="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}">
           {% if d.raw_image %}
-          <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Thumb" style="width: 82px; height: 50px; object-fit: cover; border-radius: 4px; background:#0A0E14;" onerror="this.style.visibility='hidden';">
+          <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Thumb" style="width: 82px; height: 50px; object-fit: cover; border-radius: 4px; background:#0A0E14;">
           {% else %}
           <div style="width: 82px; height: 50px; background: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #64748b;">No Img</div>
           {% endif %}
@@ -154,7 +158,7 @@
         {% if latest_detection %}
         <div class="d-flex gap-3 align-items-center mb-3">
           {% if latest_detection.raw_image %}
-          <img id="inspectorImage" src="{% if latest_detection.raw_image %}{{ latest_detection.raw_image.url }}{% endif %}" alt="Snapshot" style="width:110px;height:75px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;background:#0A0E14;" onerror="this.style.visibility='hidden';">
+          <img id="inspectorImage" src="{% if latest_detection.raw_image %}{{ latest_detection.raw_image.url }}{% endif %}" alt="Snapshot" style="width:110px;height:75px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;background:#0A0E14;">
           {% else %}
           <div id="inspectorImagePlaceholder" style="width:110px;height:75px;background:#0f172a;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#64748b;">
             <i class="bi bi-image fs-4"></i>
@@ -187,9 +191,6 @@
         </div>
 
         <div class="d-grid gap-2">
-          <a id="btnSendToStudio" href="{% url 'officer_portal:manual_annotation' %}?camera_id={{ selected_camera_id }}&focus={{ latest_detection.id }}" class="md-btn md-btn-primary">
-            <i class="bi bi-pencil-square me-1"></i>Open in Annotation Studio
-          </a>
           <a id="btnDetailLink" href="{% url 'officer_portal:detection_detail' latest_detection.id %}" class="md-btn md-btn-outline md-btn-sm">
             <i class="bi bi-info-circle me-1"></i>Full Audit Ledger
           </a>
@@ -212,9 +213,14 @@
       <div class="md-feed-list" id="realtimeFeedList">
         {% for d in recent_detections|slice:":10" %}
         <div class="md-feed-item {% if forloop.first %}active{% endif %}"
-             onclick="selectDetection({{ d.id }}, '{{ d.effective_plate|default:'' }}', '{{ d.ai_confidence|floatformat:2|default:'0.00' }}', '{{ d.camera.camera_id|default:'' }}', '{{ d.get_status_display }}', '{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}')">
+             data-det-id="{{ d.id }}"
+             data-plate="{{ d.effective_plate|default:'' }}"
+             data-conf="{{ d.ai_confidence|floatformat:2|default:'0.00' }}"
+             data-camera="{{ d.camera.camera_id|default:'' }}"
+             data-status="{{ d.get_status_display }}"
+             data-img="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}">
           {% if d.raw_image %}
-          <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Target" class="md-feed-thumb" onerror="this.style.visibility='hidden';">
+          <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Target" class="md-feed-thumb">
           {% else %}
           <div class="md-feed-thumb d-flex align-items-center justify-content-center text-white sc-text-xs">
             <i class="bi bi-car-front"></i>
@@ -246,116 +252,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-let showBBoxes = true;
-const canvas = document.getElementById('trackingCanvas');
-const ctx = canvas ? canvas.getContext('2d') : null;
-const stageContainer = document.getElementById('stageContainer');
-const videoPlayer = document.getElementById('liveVideoPlayer');
-let simulatedDetections = [];
-
-function resizeCanvas() {
-  if (!canvas || !stageContainer) return;
-  canvas.width = stageContainer.clientWidth;
-  canvas.height = stageContainer.clientHeight;
-  drawBoxes();
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// Toggle Bounding Boxes Button
-document.getElementById('btnToggleBBox')?.addEventListener('click', function() {
-  showBBoxes = !showBBoxes;
-  document.getElementById('bboxStateText').textContent = showBBoxes ? 'ON' : 'OFF';
-  drawBoxes();
-});
-
-function drawBoxes() {
-  if (!ctx || !canvas) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (!showBBoxes) return;
-
-  const w = canvas.width;
-  const h = canvas.height;
-
-  simulatedDetections.forEach((det, idx) => {
-    // Relative coordinates or randomized demo boxes if coordinates not strictly bounded
-    let bx = (det.bbox && det.bbox[0]) ? (det.bbox[0] * w) : (w * 0.25 + (idx * 60) % (w * 0.5));
-    let by = (det.bbox && det.bbox[1]) ? (det.bbox[1] * h) : (h * 0.35 + (idx * 40) % (h * 0.3));
-    let bw = (det.bbox && det.bbox[2]) ? (det.bbox[2] * w) : 180;
-    let bh = (det.bbox && det.bbox[3]) ? (det.bbox[3] * h) : 120;
-
-    // Draw vehicle bounding box (Cyan / Emerald)
-    ctx.strokeStyle = '#00F0FF';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(bx, by, bw, bh);
-
-    // Corner targeting brackets
-    const cLen = 14;
-    ctx.strokeStyle = '#10B981';
-    ctx.lineWidth = 3.5;
-    // Top-left
-    ctx.beginPath(); ctx.moveTo(bx, by + cLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cLen, by); ctx.stroke();
-    // Top-right
-    ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cLen); ctx.stroke();
-    // Bottom-left
-    ctx.beginPath(); ctx.moveTo(bx, by + bh - cLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cLen, by + bh); ctx.stroke();
-    // Bottom-right
-    ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cLen); ctx.stroke();
-
-    // Plate Tag Label
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.fillRect(bx, by - 24, Math.max(120, bw * 0.7), 24);
-    ctx.fillStyle = '#00F0FF';
-    ctx.font = 'bold 12px monospace';
-    ctx.fillText(`${det.plate || 'TARGET'} (${Math.round((det.confidence || 0.85) * 100)}%)`, bx + 6, by - 7);
-  });
-}
-
-// Select Target in Inspector
-function selectDetection(id, plate, conf, camera, status, imgUrl) {
-  const inspectorId = document.getElementById('inspectorId');
-  const inspectorPlate = document.getElementById('inspectorPlate');
-  const inspectorConf = document.getElementById('inspectorConfidence');
-  const inspectorCamera = document.getElementById('inspectorCamera');
-  const inspectorImage = document.getElementById('inspectorImage');
-  const targetBadge = document.getElementById('targetStatusBadge');
-  const btnStudio = document.getElementById('btnSendToStudio');
-  const btnDetail = document.getElementById('btnDetailLink');
-
-  if (inspectorId) inspectorId.textContent = '#' + id;
-  if (inspectorPlate) inspectorPlate.textContent = plate || 'UNREADABLE';
-  if (inspectorConf) inspectorConf.textContent = conf;
-  if (inspectorCamera) inspectorCamera.textContent = camera || 'Camera';
-  if (targetBadge) targetBadge.textContent = status || 'PENDING';
-  if (inspectorImage && imgUrl) inspectorImage.src = imgUrl;
-
-  const camId = "{{ selected_camera_id }}";
-  if (btnStudio) btnStudio.href = `/portal/officer/manual/?camera_id=${camId}&focus=${id}`;
-  if (btnDetail) btnDetail.href = `/portal/officer/detection/${id}/`;
-
-  // Highlight selected target in feed
-  document.querySelectorAll('.md-feed-item').forEach(el => el.classList.remove('active'));
-}
-
-// Real-Time Polling: Connects HTML -> CSS -> JS -> Python API
-function pollRealtimeStream() {
-  const camId = "{{ selected_camera.camera_id|default:'' }}";
-  fetch(`/realtime/api/live/recent-detections/?camera_id=${encodeURIComponent(camId)}&limit=15`)
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.items && data.items.length) {
-        simulatedDetections = data.items;
-        document.getElementById('hudDetectionCount').textContent = `AI Targets: ${data.items.length}`;
-        drawBoxes();
-      }
-    })
-    .catch(() => {});
-}
-
-// Initial draw and schedule periodic real-time sync
-setTimeout(resizeCanvas, 500);
-setInterval(pollRealtimeStream, 2000);
-pollRealtimeStream();
-</script>
+<script src="{% static 'js/pages/live-tracking.js' %}" defer></script>
 {% endblock %}

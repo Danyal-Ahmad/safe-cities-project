@@ -1,13 +1,116 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Flagged Detections{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Flagged detections</b>{% endblock %}
+{% block title %}Flagged Detections — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-flagged-list.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Flagged detections</h1>
-<p class="sc-lead">Detections escalated to senior review.</p>
+  <div>
+    <h1><i class="bi bi-flag"></i> Flagged Detections</h1>
+    <p class="sc-lead">
+      Detections escalated by officers for senior review. The DIG examines the evidence
+      and makes the final decision.
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-gap-2">
+    <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> {{ detections|length|default:0 }} awaiting DIG</span>
+    <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-collection"></i> All Detections</a>
+  </div>
 </div>
+
+<div class="sc-banner sc-banner-warn">
+  <i class="bi bi-arrow-up-right-circle"></i>
+  <div>
+    These detections are <strong>awaiting a DIG decision</strong>. Officers cannot confirm,
+    reject or un-flag them &mdash; use the detail page to review the five-step evidence and
+    any escalation notes left by the flagging officer.
+  </div>
 </div>
-<div class="sc-card"><h2>Flagged Detections</h2><p class="sc-empty">Detections escalated to senior review.</p></div>{% endblock %}
+
+{# ---- Flagged detections table ---------------------------------------------- #}
+<div class="sc-card">
+  <div class="sc-card-head">
+    <span><i class="bi bi-list-ul"></i> Escalation Queue</span>
+    <span class="sc-badge sc-badge-muted">{{ detections|length|default:0 }} shown</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if detections %}
+    <div class="sc-table-wrap sc-table-wrap-flush">
+      <table class="sc-table sc-data-table" data-table-id="officer-flagged">
+        <thead>
+          <tr>
+            <th>Detection</th>
+            <th>Plate</th>
+            <th>Camera</th>
+            <th>Confidence</th>
+            <th>Evidence</th>
+            <th>Flagged By</th>
+            <th>Flagged At</th>
+            <th>Escalation Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detections %}
+          <tr class="sc-row-link" data-href="{% url 'officer_portal:detection_detail' d.id %}">
+            <td class="sc-mono">#{{ d.id }}</td>
+            <td><strong class="sc-mono sc-plate-cell">{{ d.effective_plate|default:"UNREAD" }}</strong></td>
+            <td class="sc-text-sm">
+              {% if d.camera %}
+                {{ d.camera.camera_id }}{% if d.camera.location %} <span class="sc-text-faint">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}
+              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+            </td>
+            <td>
+              {% if d.ai_confidence %}
+                <span class="sc-badge {% if d.ai_confidence >= 0.85 %}sc-badge-ok{% elif d.ai_confidence >= 0.6 %}sc-badge-amber{% else %}sc-badge-red{% endif %} sc-mono">
+                  {% widthratio d.ai_confidence 1 100 %}%
+                </span>
+              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+            </td>
+            <td>
+              {% with ev=d.evidence_summary %}
+                {% if ev.total %}
+                  {% if ev.all_passed %}
+                    <span class="sc-badge sc-badge-ok" data-bs-toggle="tooltip" title="All {{ ev.total }} hard security checks passed">
+                      <i class="bi bi-shield-fill-check"></i> {{ ev.passed }}/{{ ev.total }}
+                    </span>
+                  {% else %}
+                    <span class="sc-badge sc-badge-amber" data-bs-toggle="tooltip" title="{{ ev.passed }} of {{ ev.total }} hard security checks passed — open for details">
+                      <i class="bi bi-shield-fill-exclamation"></i> {{ ev.passed }}/{{ ev.total }}
+                    </span>
+                  {% endif %}
+                {% else %}
+                  <span class="sc-badge sc-badge-muted" data-bs-toggle="tooltip" title="No evidence checks recorded">—</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td class="sc-text-sm">{{ d.reviewed_by.display_name|default:d.reviewed_by|default:"—" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ d.reviewed_at|date:"d M Y, H:i"|default:"—" }}</td>
+            <td class="sc-text-sm sc-notes-cell">{{ d.review_notes|truncatechars:70|default:"—" }}</td>
+            <td>
+              <a href="{% url 'officer_portal:detection_detail' d.id %}" class="sc-btn sc-btn-sm sc-btn-outline">
+                <i class="bi bi-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-check2-circle"></i>
+      Nothing is currently flagged for DIG review. Detections you flag from the
+      review queue or a detection page will appear here.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-flagged-list.js' %}" defer></script>
+{% endblock %}

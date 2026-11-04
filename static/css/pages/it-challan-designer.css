@@ -1,0 +1,154 @@
+/* ==========================================================================
+   IT SUPPORT — Challan Template Designer (it-challan-designer)
+   ========================================================================== */
+
+.it-ds-pal {
+  display: grid;
+  gap: 8px;
+}
+
+.it-ds-pal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: var(--sc-radius, 14px);
+  background: #FFFFFF;
+  cursor: grab;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--sc-text, #33415C);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.it-ds-pal-item:hover {
+  border-color: #B9C9E8;
+  box-shadow: var(--sc-shadow);
+  transform: translateY(-1px);
+}
+
+.it-ds-pal-item:active { cursor: grabbing; }
+
+.it-ds-pal-ic {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--sc-info-bg, #EEF3FC);
+  color: var(--sc-info, #2E5FB7);
+  font-size: 0.95rem;
+}
+
+.it-ds-pal-add {
+  margin-left: auto;
+  color: var(--sc-primary, #2563EB);
+  font-size: 1rem;
+}
+
+/* Canvas */
+.it-ds-canvas {
+  position: relative;
+  min-height: 520px;
+  padding: 18px;
+  border: 2px dashed var(--sc-border-strong, #D3DAE7);
+  border-radius: var(--sc-radius, 14px);
+  background: #F8FAFD;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.it-ds-canvas.it-drag-over {
+  border-color: var(--sc-primary, #2563EB);
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.it-ds-empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--sc-text-faint, #8A94B0);
+  font-size: 0.85rem;
+  padding: 40px 12px;
+}
+
+.it-ds-empty i { font-size: 2.4rem; color: #C4CEDF; margin-bottom: 10px; }
+
+.it-ds-placed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-left: 4px solid var(--sc-primary, #2563EB);
+  border-radius: 10px;
+  background: #FFFFFF;
+  box-shadow: var(--sc-shadow);
+  cursor: grab;
+}
+
+.it-ds-placed.it-dragging { opacity: 0.45; border-style: dashed; }
+.it-ds-placed:active { cursor: grabbing; }
+
+.it-ds-placed-ic {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
+  color: var(--sc-primary, #2563EB);
+  font-size: 0.9rem;
+}
+
+.it-ds-placed-body { min-width: 0; flex: 1; }
+
+.it-ds-placed-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--sc-navy-deep, #0F2557);
+}
+
+.it-ds-placed-pos {
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.68rem;
+  color: var(--sc-text-faint, #8A94B0);
+}
+
+.it-ds-placed-x {
+  border: 0;
+  background: none;
+  color: var(--sc-danger, #E23B4E);
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.it-ds-placed-x:hover { background: var(--sc-danger-bg, #FDF3F5); }
+
+/* Code output */
+.it-ds-code {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  min-height: 220px;
+  background: #FBFCFE;
+}
+
+@media (max-width: 576px) {
+  .it-ds-canvas { min-height: 360px; }
+  .it-ds-pal-item span { font-size: 0.78rem; }
+}

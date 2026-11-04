@@ -1,0 +1,51 @@
+/* ==========================================================================
+   IT SUPPORT — System Backups (it-backup-list)
+   ========================================================================== */
+
+.it-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.it-action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px dashed var(--sc-border-strong, #D3DAE7);
+  border-radius: var(--sc-radius, 14px);
+  background: #F8FAFD;
+}
+
+.it-action-box h3 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--sc-navy-deep, #0F2557);
+}
+
+.it-action-box h3 i { color: var(--sc-primary, #2563EB); }
+
+.it-action-box .sc-btn { align-self: flex-start; }
+
+.it-file-pick { margin-bottom: 4px; }
+
+.it-file-pick .form-control { padding: 8px 12px; font-size: 0.85rem; }
+
+.it-filename {
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.8rem;
+  color: var(--sc-text, #33415C);
+  word-break: break-all;
+}
+
+.it-filename i { color: var(--sc-primary, #2563EB); }
+
+@media (max-width: 720px) {
+  .it-action-box .sc-btn { align-self: stretch; }
+  .it-action-box .sc-btn,
+  .it-action-box .sc-btn * { justify-content: center; text-align: center; }
+}

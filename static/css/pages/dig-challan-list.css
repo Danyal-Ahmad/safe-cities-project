@@ -1,0 +1,130 @@
+/* ==========================================================================
+   DIG — E-Challan Register  (dashboard/dig/challan_list.html)
+   ========================================================================== */
+
+/* ---------- Filter card ---------- */
+
+.ch-filter-card { margin-bottom: 14px; }
+.ch-filter-card .sc-card-body { padding-top: 4px; }
+
+.ch-filter-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ch-filter-field { flex: 0 1 auto; }
+
+.ch-filter-plate input {
+  width: 240px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border-radius: var(--sc-radius-sm, 10px);
+  background: var(--sc-surface, #FFFFFF);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ch-filter-plate input:focus {
+  border-color: var(--sc-primary, #2563EB);
+  box-shadow: 0 0 0 3px var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
+}
+
+.ch-filter-status select {
+  width: 180px;
+  padding: 10px 14px;
+  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border-radius: var(--sc-radius-sm, 10px);
+  background: var(--sc-surface, #FFFFFF);
+  font-size: 0.875rem;
+  color: var(--sc-text, #33415C);
+  outline: none;
+  cursor: pointer;
+}
+
+.ch-filter-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sc-text-muted, #5B6B85);
+  margin-bottom: 6px;
+}
+
+.ch-filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ---------- Summary strip ---------- */
+
+.ch-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ch-summary-item {
+  background: var(--sc-surface, #FFFFFF);
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: var(--sc-radius, 14px);
+  box-shadow: var(--sc-shadow, 0 4px 16px rgba(15, 37, 87, 0.06));
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ch-summary-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-text-muted, #5B6B85);
+}
+
+.ch-summary-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--sc-navy-deep, #0F2557);
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-summary-paid .ch-summary-label,
+.ch-summary-paid .ch-summary-value { color: var(--sc-success, #22A45D); }
+
+.ch-summary-unpaid .ch-summary-label,
+.ch-summary-unpaid .ch-summary-value { color: var(--sc-danger, #E23B4E); }
+
+.ch-summary-overdue .ch-summary-label,
+.ch-summary-overdue .ch-summary-value { color: #B87A10; }
+
+.ch-summary-voided .ch-summary-label,
+.ch-summary-voided .ch-summary-value { color: var(--sc-info, #2E5FB7); }
+
+/* ---------- Table details ---------- */
+
+.ch-fine { white-space: nowrap; color: var(--sc-navy-deep, #0F2557); }
+
+.ch-due-overdue { color: var(--sc-danger, #E23B4E); font-weight: 700; }
+
+.ch-location { max-width: 200px; }
+
+@media (max-width: 760px) {
+  .ch-filter-form { align-items: stretch; flex-direction: column; }
+  .ch-filter-plate input, .ch-filter-status select { width: 100%; }
+  .ch-filter-actions { margin-left: 0; }
+  .ch-summary-value { font-size: 1.05rem; }
+}

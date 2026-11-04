@@ -235,7 +235,7 @@ def permission_changes(request):
 def camera_changes(request):
     return _filtered_audit(
         request,
-        'dashboard/audit/camera_changes.html',
+        'dashboard/audit/changes_log.html',
         ['camera.add', 'camera.edit', 'camera.delete',
          'camera.toggle', 'camera.set_online', 'camera.auto_delete_empty',
          'camera.regenerate_token', 'camera.assign', 'camera.unassign'],
@@ -248,7 +248,7 @@ def camera_changes(request):
 def challan_changes(request):
     return _filtered_audit(
         request,
-        'dashboard/audit/challan_changes.html',
+        'dashboard/audit/changes_log.html',
         ['challan.manual_create', 'challan.create', 'challan.update',
          'challan.void', 'challan.mark_paid', 'challan.fine_edit',
          'challan.record_payment', 'challan.bulk_fine',
@@ -262,7 +262,7 @@ def challan_changes(request):
 def payment_changes(request):
     return _filtered_audit(
         request,
-        'dashboard/audit/payment_changes.html',
+        'dashboard/audit/changes_log.html',
         ['payment_settings.update', 'payment_method.create',
          'payment_method.update', 'payment_method.toggle',
          'payment_method.delete', 'challan.record_payment',
@@ -276,7 +276,7 @@ def payment_changes(request):
 def banner_changes(request):
     return _filtered_audit(
         request,
-        'dashboard/audit/banner_changes.html',
+        'dashboard/audit/changes_log.html',
         ['banner.create', 'banner.update', 'banner.delete', 'banner.toggle'],
         'Banner Changes Audit',
         'fa-image',
@@ -287,7 +287,7 @@ def banner_changes(request):
 def alert_changes(request):
     return _filtered_audit(
         request,
-        'dashboard/audit/alert_changes.html',
+        'dashboard/audit/changes_log.html',
         ['alert.create', 'alert.update', 'alert.delete', 'alert.toggle',
          'broadcast.send'],
         'Alert Changes Audit',

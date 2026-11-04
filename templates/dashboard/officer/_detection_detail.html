@@ -17,9 +17,6 @@
       {% endif %}
     </div>
     <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <a href="{% url 'officer_portal:manual_annotation' %}?camera_id={{ detection.camera.id }}&focus={{ detection.id }}" class="md-btn md-btn-secondary md-btn-sm" title="Open in manual annotation studio (Key: A)">
-        <i class="bi bi-bounding-box"></i> Studio <span class="md-action-key">A</span>
-      </a>
       <a href="{% url 'officer_portal:detection_detail' detection.id %}" class="md-btn md-btn-outline md-btn-sm" title="Full audit detail page">
         <i class="bi bi-arrows-fullscreen"></i>
       </a>
@@ -33,7 +30,7 @@
     <div style="background: #0f172a; border-radius: var(--md-radius-md); overflow: hidden; border: 1px solid #1e293b; position: relative;">
       <div style="position: relative; min-height: 320px; display: flex; align-items: center; justify-content: center; background: #000;">
         {% if detection.raw_image %}
-          <img src="{% if detection.raw_image %}{{ detection.raw_image.url }}{% endif %}" alt="Violation Target #{{ detection.id }}" id="detailTargetImage" style="max-width: 100%; max-height: 420px; object-fit: contain; display: block; background:#0A0E14;" onerror="this.style.opacity='0.15';">
+          <img src="{% if detection.raw_image %}{{ detection.raw_image.url }}{% endif %}" alt="Violation Target #{{ detection.id }}" id="detailTargetImage" style="max-width: 100%; max-height: 420px; object-fit: contain; display: block; background:#0A0E14;">
         {% else %}
           <div style="padding: 3rem; text-align: center; color: #64748b;">
             <i class="bi bi-camera-video-off" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;"></i>
@@ -86,20 +83,16 @@
         <!-- Editable Plate Override (Minimal effort needed: pre-populated) -->
         <div class="md-form-group" style="margin-bottom: 0.75rem;">
           <label style="font-size: 0.72rem;">Plate Correction (if AI was off)</label>
-          <input type="text" name="manual_plate_text" id="manualPlateInput" value="{{ detection.effective_plate|default:'' }}"
-                 placeholder="LEA-1234"
-                 style="font-family: monospace; font-weight: 700; text-transform: uppercase;"
-                 class="md-input">
         </div>
 
         <!-- Quick Reject Presets to avoid typing 20 chars manually -->
         <div class="md-form-group" style="margin-bottom: 0.75rem;">
           <label style="font-size: 0.72rem;">Review Observations / Quick Reason</label>
           <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
-            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('Plate obscured by mud or tow hook')">Blurry Plate</button>
-            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('Authorized emergency response vehicle on duty')">Emergency Unit</button>
-            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('False positive: Vehicle was executing a legal U-turn')">Legal Turn</button>
-            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" onclick="applyQuickNote('Plate number mismatch: character misclassified by OCR')">OCR Mismatch</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="Plate obscured by mud or tow hook">Blurry Plate</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="Authorized emergency response vehicle on duty">Emergency Unit</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="False positive: Vehicle was executing a legal U-turn">Legal Turn</button>
+            <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="Plate number mismatch: character misclassified by OCR">OCR Mismatch</button>
           </div>
           <textarea name="notes" id="reviewNotesInput" rows="2" class="md-textarea" placeholder="Optional for confirm; auto-filled above for reject/flag" style="font-size: 0.8rem;">{{ detection.review_notes|default:'' }}</textarea>
         </div>
@@ -107,25 +100,17 @@
         <!-- Zero-Friction Action Buttons with Keyboard Shortcut Tags -->
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
           <!-- Confirm Button (Key: C) -->
-          <button type="submit" id="btnConfirmTriage" formaction="{% url 'officer_portal:confirm_detection' detection.id %}"
-                  class="md-btn md-btn-success" style="width: 100%; justify-content: space-between; font-size: 0.875rem; padding: 0.65rem 1rem;">
-            <span><i class="bi bi-check-circle-fill"></i> Confirm & Issue Challan</span>
-            <span class="md-action-key" style="background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.3);">C</span>
-          </button>
-
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
             <!-- Reject Button (Key: R) -->
             <button type="submit" id="btnRejectTriage" formaction="{% url 'officer_portal:reject_detection' detection.id %}"
-                    class="md-btn md-btn-danger md-btn-sm" style="justify-content: space-between;"
-                    onclick="return validateRejectNotes()">
+                    class="md-btn md-btn-danger md-btn-sm" style="justify-content: space-between;">
               <span><i class="bi bi-x-circle"></i> Reject</span>
               <span class="md-action-key" style="background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.3);">R</span>
             </button>
 
             <!-- Flag Button (Key: F) -->
             <button type="submit" id="btnFlagTriage" formaction="{% url 'officer_portal:flag_detection' detection.id %}"
-                    class="md-btn md-btn-secondary md-btn-sm" style="justify-content: space-between; color: #b45309 !important; border-color: #f59e0b;"
-                    onclick="return validateFlagNotes()">
+                    class="md-btn md-btn-secondary md-btn-sm" style="justify-content: space-between; color: #b45309 !important; border-color: #f59e0b;">
               <span><i class="bi bi-flag-fill" style="color: #f59e0b;"></i> Escalate</span>
               <span class="md-action-key" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;">F</span>
             </button>
@@ -135,32 +120,8 @@
     </div>
   </div>
 </div>
-
-<script>
-function applyQuickNote(text) {
-  const noteField = document.getElementById('reviewNotesInput');
-  if (noteField) {
-    noteField.value = text;
-    noteField.focus();
-  }
-}
-
-function validateRejectNotes() {
-  const noteField = document.getElementById('reviewNotesInput');
-  if (!noteField || noteField.value.trim().length < 5) {
-    applyQuickNote('False positive: Vehicle was executing a legal maneuver');
-  }
-  return true;
-}
-
-function validateFlagNotes() {
-  const noteField = document.getElementById('reviewNotesInput');
-  if (!noteField || noteField.value.trim().length < 5) {
-    applyQuickNote('Escalated for senior review due to ambiguous plate lighting');
-  }
-  return true;
-}
-</script>
+{# Behavior for this partial lives in static/js/pages/officer-triage-detail.js #}
+{# (loaded by the including template; idempotent against double-binding). #}
 {% else %}
 <div style="padding: 4rem 2rem; text-align: center; color: var(--md-text-muted);">
   <i class="bi bi-hand-index-thumb" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.75rem;"></i>

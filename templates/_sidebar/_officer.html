@@ -26,9 +26,6 @@
   {% if request.user|has_perm:"live_tracking_timeline" %}
   <a href="{% url 'officer_portal:frame_timeline' %}" class="sc-nav-link {% if request.path == '/portal/officer/timeline/' or '/live-tracking/timeline/' in request.path %}sc-active{% endif %}"><i class="bi bi-clock"></i> <span class="sc-nav-link-text">Frame Timeline</span></a>
   {% endif %}
-  {% if request.user|has_perm:"manual_annotation" %}
-  <a href="{% url 'officer_portal:manual_annotation' %}" class="sc-nav-link {% if request.path == '/portal/officer/annotate/' %}sc-active{% endif %}"><i class="bi bi-pencil-square"></i> <span class="sc-nav-link-text">Manual Annotation</span></a>
-  {% endif %}
   {% if request.user|has_perm:"vehicle_tracking" %}
   <a href="{% url 'officer_portal:vehicle_tracking' %}" class="sc-nav-link {% if request.path == '/portal/officer/vehicle-tracking/' %}sc-active{% endif %}"><i class="bi bi-geo-alt"></i> <span class="sc-nav-link-text">Vehicle Tracking</span></a>
   {% endif %}
@@ -44,9 +41,6 @@
   {% endif %}
   {% if request.user|has_perm:"view_appeals" %}
   <a href="{% url 'officer_portal:appeal_list' %}" class="sc-nav-link {% if request.path == '/portal/officer/appeals/' %}sc-active{% endif %}"><i class="bi bi-shield-exclamation"></i> <span class="sc-nav-link-text">Appeals</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"add_manual_challan" %}
-  <a href="{% url 'officer_portal:add_manual_challan' %}" class="sc-nav-link {% if request.path == '/portal/officer/challan/add/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-plus"></i> <span class="sc-nav-link-text">Add Manual Challan</span></a>
   {% endif %}
 </div>
 

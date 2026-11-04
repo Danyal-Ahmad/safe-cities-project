@@ -1,13 +1,205 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Challan Templates{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Challan templates</b>{% endblock %}
+{% block title %}Challan Templates — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-challan-templates.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Challan templates</h1>
-<p class="sc-lead">SAFE CITY FYP print templates gallery.</p>
+  <div>
+    <h1><i class="bi bi-file-earmark-ruled me-2"></i>Challan Print Templates</h1>
+    <p class="sc-lead">Activate and edit the built-in print layouts, or manage database templates used when generating e-challan PDFs.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-btn sc-btn-primary"><i class="bi bi-palette me-1"></i>Open A4 Designer</a>
+  </div>
 </div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-collection"></i></div>
+    <div class="sc-kpi-label">Layouts &amp; Templates</div>
+    <div class="sc-kpi-value">{{ templates|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">file layouts + database templates</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-database"></i></div>
+    <div class="sc-kpi-label">Database Templates</div>
+    <div class="sc-kpi-value">{{ challan_templates|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">rows in the template library</div>
+  </div>
+  <div class="sc-kpi {% if any_custom_active %}sc-kpi-ok{% else %}sc-kpi-info{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-check2-square"></i></div>
+    <div class="sc-kpi-label">Active Print Layout</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;"><span class="sc-mono">{{ active_template_key|default:"modern_a4" }}</span></div>
+    <div class="sc-kpi-foot">{% if any_custom_active %}a custom database template is active{% else %}built-in file layout in use{% endif %}</div>
+  </div>
 </div>
-<div class="sc-flex sc-gap-2 sc-mb-3"><a class="sc-btn sc-btn-success" href="#"><i class="bi bi-upload"></i> Upload PDF</a><a class="sc-btn sc-btn-primary" href="{% url 'it_support_portal:challan_template_designer' %}"><i class="bi bi-palette"></i> A4 Designer</a></div><div class="sc-card">{% if templates %}<div class="sc-grid sc-grid-3">{% for t in templates %}<div class="sc-card"><div class="sc-flex sc-justify-between sc-items-center sc-mb-2"><strong>{{ t.name }}</strong>{% if t.is_active %}<span class="sc-badge sc-badge-ok">Active</span>{% else %}<span></span>{% endif %}</div><div style="min-height:100px;background:#0A0E14;border-radius:8px;padding:10px;color:#8BE9C8;font-size:9.5px;overflow:hidden;position:relative;"><div style="position:absolute;top:6px;right:8px;font-size:8px;color:#5B6B85;text-transform:uppercase;letter-spacing:0.1em;">Template source</div><pre style="margin:0;white-space:pre-wrap;word-break:break-all;max-height:140px;overflow:hidden;font-family:ui-monospace,monospace;color:#8BE9C8;">{{ t.preview_html|default:t.name|truncatechars:400 }}</pre></div><form method="post" class="sc-mt-2">{% csrf_token %}<input type="hidden" name="action" value="set_challan_template"><input type="hidden" name="active_template" value="{{ t.key }}"><button type="submit" class="sc-btn sc-btn-sm sc-btn-primary" style="width:100%;justify-content:center;">Set as active</button></form></div>{% endfor %}</div>{% else %}<div class="sc-empty">No templates.</div>{% endif %}</div>{% endblock %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-file-earmark-break"></i>
+    <span>Built-in File Layouts</span>
+    <form method="post" action="{% url 'it_support_portal:challan_templates' %}" class="ms-auto d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="set_challan_template">
+      <input type="hidden" name="active_template" value="default">
+      <button type="submit" class="sc-btn sc-btn-sm" data-it-confirm="Restore the default official layout (modern_a4)?">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Restore Default
+      </button>
+    </form>
+  </div>
+  <div class="sc-card-body">
+    <div class="row g-3">
+      {% for t in templates %}
+      {% if t.is_file %}
+      <div class="col-md-6 col-xl-4">
+        <div class="it-tpl-card{% if t.is_active %} it-tpl-card-active{% endif %}">
+          <div class="it-tpl-head">
+            <span class="sc-mono sc-text-xs">{{ t.thumb_label }}</span>
+            {% if t.is_active %}
+            <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active</span>
+            {% else %}
+            <span class="sc-badge sc-badge-gray">Inactive</span>
+            {% endif %}
+          </div>
+          <h3 class="it-tpl-name">{{ t.name }}</h3>
+          <p class="it-tpl-blurb">{{ t.blurb }}</p>
+          <div class="it-tpl-frame" data-it-preview="{{ t.preview_html|default:'' }}" role="img" aria-label="Preview of {{ t.name }}"></div>
+          <form method="post" action="{% url 'it_support_portal:challan_templates' %}" class="it-tpl-actions">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="activate_file_template">
+            <input type="hidden" name="template_key" value="{{ t.key }}">
+            {% if t.is_active %}
+            <button type="submit" class="sc-btn sc-btn-sm" disabled><i class="bi bi-check2-circle me-1"></i>Current Layout</button>
+            {% else %}
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
+            {% endif %}
+          </form>
+          <details class="it-tpl-edit">
+            <summary><i class="bi bi-code-square me-1"></i>Edit layout HTML</summary>
+            <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="save_file_template">
+              <input type="hidden" name="template_key" value="{{ t.key }}">
+              <label class="sc-text-xs sc-text-muted d-block mb-1">Layout source (Django template &mdash; saved to <span class="sc-mono">{{ t.key }}.html</span>)</label>
+              <textarea name="html_content" rows="10" class="form-control sc-mono it-code" spellcheck="false">{{ t.html_content }}</textarea>
+              <div class="sc-flex sc-gap-2 sc-mt-2">
+                <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-save me-1"></i>Save Layout</button>
+                <button type="reset" class="sc-btn sc-btn-sm">Reset</button>
+              </div>
+            </form>
+          </details>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-database"></i>
+    <span>Database Template Library ({{ challan_templates|length|default:0 }})</span>
+    <details class="it-upload ms-auto">
+      <summary class="sc-btn sc-btn-sm"><i class="bi bi-upload me-1"></i>Upload PDF Template</summary>
+      <form method="post" action="{% url 'it_support_portal:challan_templates' %}" enctype="multipart/form-data" class="it-upload-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_pdf_template">
+        <div class="sc-form-group">
+          <label class="sc-text-xs sc-text-muted d-block mb-1">Template name</label>
+          <input type="text" name="template_name" class="form-control form-control-sm" placeholder="e.g. Post Office A5 Copy" required>
+        </div>
+        <div class="sc-form-group">
+          <label class="sc-text-xs sc-text-muted d-block mb-1">PDF file</label>
+          <input type="file" name="pdf_file" accept="application/pdf" class="form-control form-control-sm" required>
+        </div>
+        <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-cloud-arrow-up me-1"></i>Upload PDF</button>
+      </form>
+    </details>
+  </div>
+  <div class="sc-card-body">
+    {% if challan_templates %}
+    <div class="row g-3">
+      {% for ct in challan_templates %}
+      {% with db_key="db:"|add:ct.id %}
+      <div class="col-md-6 col-xl-4">
+        <div class="it-tpl-card{% if active_template_key == db_key %} it-tpl-card-active{% endif %}">
+          <div class="it-tpl-head">
+            <span class="sc-text-xs sc-text-muted">#{{ ct.id }}</span>
+            {% if active_template_key == db_key %}
+            <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active on System</span>
+            {% elif ct.is_active %}
+            <span class="sc-badge sc-badge-amber"><i class="bi bi-star-half"></i>Marked Active</span>
+            {% else %}
+            <span class="sc-badge sc-badge-gray">Inactive</span>
+            {% endif %}
+          </div>
+          <h3 class="it-tpl-name">{{ ct.name }}</h3>
+          <p class="it-tpl-blurb">
+            {% if ct.file %}
+            <a href="{{ ct.file.url }}" target="_blank" rel="noopener"><i class="bi bi-file-earmark-pdf me-1"></i>Uploaded PDF</a>
+            {% elif ct.html_content %}HTML template{% else %}no content{% endif %}
+            &middot; added {{ ct.created_at|date:"d M Y" }}{% if ct.uploaded_by %} by {{ ct.uploaded_by.username }}{% endif %}
+          </p>
+          <div class="it-tpl-frame" data-it-preview="{{ ct.preview_html|default:ct.html_content|default:'' }}" role="img" aria-label="Preview of {{ ct.name }}"></div>
+          <div class="it-tpl-actions">
+            <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="set_challan_template">
+              <input type="hidden" name="active_template" value="{{ ct.id }}">
+              {% if active_template_key == db_key %}
+              <button type="submit" class="sc-btn sc-btn-sm" disabled><i class="bi bi-check2-circle me-1"></i>Current Template</button>
+              {% else %}
+              <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Set Active</button>
+              {% endif %}
+            </form>
+            <form method="post" action="{% url 'it_support_portal:challan_templates' %}" data-it-confirm="Delete template '{{ ct.name }}'? This cannot be undone.">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_challan_template">
+              <input type="hidden" name="template_id" value="{{ ct.id }}">
+              <button type="submit" class="sc-btn sc-btn-sm sc-btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+            </form>
+          </div>
+          <details class="it-tpl-edit">
+            <summary><i class="bi bi-code-square me-1"></i>Edit HTML content</summary>
+            <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="save_challan_template">
+              <input type="hidden" name="template_id" value="{{ ct.id }}">
+              <div class="sc-form-group">
+                <label class="sc-text-xs sc-text-muted d-block mb-1">Template name</label>
+                <input type="text" name="template_name" value="{{ ct.name }}" class="form-control form-control-sm" required>
+              </div>
+              <div class="sc-form-group">
+                <label class="sc-text-xs sc-text-muted d-block mb-1">HTML content (Django template &mdash; challan.* fields are filled at print time)</label>
+                <textarea name="html_content" rows="10" class="form-control sc-mono it-code" spellcheck="false">{{ ct.html_content }}</textarea>
+              </div>
+              <div class="sc-flex sc-gap-2">
+                <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-save me-1"></i>Save Changes</button>
+                <button type="reset" class="sc-btn sc-btn-sm">Reset</button>
+              </div>
+            </form>
+          </details>
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-database-x"></i>
+      <p class="mb-1">No database templates yet.</p>
+      <p class="sc-hint mb-0">Upload a PDF template above, or compose a layout in the A4 Designer.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-challan-templates.js' %}" defer></script>
+{% endblock %}

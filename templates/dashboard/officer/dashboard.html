@@ -18,7 +18,7 @@
       <span>Officer Command Center</span>
     </div>
     <p class="md-hero-subtitle">
-      AI Detection Triage &middot; Live Surveillance Tracking &middot; Manual Forensic Annotation
+      AI Detection Triage &middot; Live Surveillance Tracking &middot; Automated Evidence Pipeline
     </p>
   </div>
   <div class="md-hero-actions">
@@ -57,15 +57,6 @@
     </a>
   </div>
   <div class="col-md-4">
-    <a href="{% url 'officer_portal:manual_annotation' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background:#f3e8ff;color:#9333ea;">
-        <i class="bi bi-pencil-square"></i>
-      </div>
-      <div>
-        <div class="fw-bold fs-6">Manual Annotation Studio</div>
-        <div class="sc-text-xs sc-text-muted">Draw plate boxes, OCR assist & issue verified challan</div>
-      </div>
-    </a>
   </div>
 </div>
 
@@ -77,7 +68,7 @@
       <span class="md-kpi-label">Review Queue</span>
       <div class="md-kpi-icon-wrap"><i class="bi bi-clock-history"></i></div>
     </div>
-    <div class="md-kpi-val" id="queueVal">{{ queue_count|default:0|intcomma }}</div>
+    <div class="md-kpi-val" id="queueVal" data-queue-api-url="{% url 'realtime:queue_count' %}">{{ queue_count|default:0|intcomma }}</div>
     <div class="md-kpi-foot">
       <a href="{% url 'officer_portal:review_queue' %}" class="text-warning fw-semibold text-decoration-none">
         <i class="bi bi-arrow-right-circle me-1"></i>Open queue
@@ -132,7 +123,9 @@
       </div>
       <div class="md-card-body">
         <div style="height:260px;position:relative;">
-          <canvas id="officerActivityChart"></canvas>
+          <canvas id="officerActivityChart"
+                  data-days-labels='[{% for d in days_data %}"{{ d.label|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+                  data-days-counts='[{% for d in days_data %}{{ d.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
         </div>
       </div>
     </div>
@@ -144,7 +137,7 @@
       </div>
       <div class="md-card-body d-flex flex-column align-items-center justify-content-center">
         <div style="height:210px;width:100%;position:relative;">
-          <canvas id="officerDoughnutChart"></canvas>
+          <canvas id="officerDoughnutChart" data-confirmed="{{ confirmed_total|default:0 }}" data-rejected="{{ rejected_total|default:0 }}"></canvas>
         </div>
         <div class="d-flex justify-content-center gap-3 mt-3 sc-text-xs">
           <span><i class="bi bi-circle-fill text-success me-1"></i>Confirmed ({{ confirmed_total }})</span>
@@ -182,7 +175,7 @@
           <td>
             <div class="d-flex align-items-center gap-2">
               {% if d.raw_image %}
-              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Snapshot" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;background:#0A0E14;" onerror="this.style.opacity='0.15';">
+              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Snapshot" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;background:#0A0E14;">
               {% else %}
               <div style="width:48px;height:32px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;">
                 <i class="bi bi-image"></i>
@@ -236,113 +229,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // 1. Live Clock
-  setInterval(function() {
-    const el = document.getElementById('liveClock');
-    if (el) {
-      const now = new Date();
-      el.textContent = now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + now.toLocaleTimeString();
-    }
-  }, 1000);
-
-  // 2. Real-time Queue Polling
-  function pollQueue() {
-    fetch("{% url 'realtime:queue_count' %}")
-      .then(res => res.json())
-      .then(data => {
-        if (data && typeof data.count !== 'undefined') {
-          const valEl = document.getElementById('queueVal');
-          const pillEl = document.getElementById('kpiQueuePill');
-          if (valEl) valEl.textContent = data.count;
-          if (pillEl) pillEl.textContent = data.count;
-        }
-      })
-      .catch(() => {});
-  }
-  setInterval(pollQueue, 5000);
-
-  // 3. Activity Line Chart
-  const daysLabels = [{% for d in days_data %}"{{ d.label }}"{% if not forloop.last %},{% endif %}{% endfor %}];
-  const daysCounts = [{% for d in days_data %}{{ d.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
-
-  const ctxActivity = document.getElementById('officerActivityChart');
-  if (ctxActivity && window.Chart) {
-    new Chart(ctxActivity, {
-      type: 'line',
-      data: {
-        labels: daysLabels.length ? daysLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-          label: 'Reviewed Violations',
-          data: daysCounts.length ? daysCounts : [0, 0, 0, 0, 0, 0, 0],
-          borderColor: '#1d4ed8',
-          backgroundColor: 'rgba(29, 78, 216, 0.08)',
-          fill: true,
-          tension: 0.35,
-          borderWidth: 2.5,
-          pointBackgroundColor: '#1d4ed8',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0f172a',
-            padding: 10,
-            cornerRadius: 8,
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 },
-            grid: { color: 'rgba(226, 232, 240, 0.6)' }
-          },
-          x: {
-            grid: { display: false }
-          }
-        }
-      }
-    });
-  }
-
-  // 4. Decision Distribution Doughnut
-  const ctxDoughnut = document.getElementById('officerDoughnutChart');
-  if (ctxDoughnut && window.Chart) {
-    const confCount = {{ confirmed_total|default:0 }};
-    const rejcCount = {{ rejected_total|default:0 }};
-    new Chart(ctxDoughnut, {
-      type: 'doughnut',
-      data: {
-        labels: ['Confirmed', 'Rejected'],
-        datasets: [{
-          data: [confCount || (rejcCount ? 0 : 1), rejcCount],
-          backgroundColor: ['#10b981', '#ef4444'],
-          borderWidth: 2,
-          borderColor: '#ffffff',
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0f172a',
-            padding: 10,
-            cornerRadius: 8,
-          }
-        }
-      }
-    });
-  }
-});
-</script>
+<script src="{% static 'js/pages/officer-dashboard.js' %}" defer></script>
 {% endblock %}

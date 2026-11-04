@@ -1,13 +1,249 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Appeal Detail{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Appeal detail</b>{% endblock %}
+{% block title %}Appeal #{{ appeal.id }} — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-appeal-detail.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Appeal detail</h1>
-<p class="sc-lead">View full appeal information.</p>
+  <div>
+    <h1><i class="bi bi-shield-exclamation"></i> Appeal #{{ appeal.id }} &mdash; {{ appeal.challan.ticket_no }}</h1>
+    <p class="sc-lead">
+      Filed {{ appeal.created_at|date:"d M Y, H:i" }}
+      {% if appeal.submitted_by %}by {{ appeal.submitted_by.display_name|default:appeal.submitted_by }}{% elif appeal.guest_name %}by guest appellant {{ appeal.guest_name }}{% else %}by an anonymous guest appellant{% endif %}
+      against challan <strong>{{ appeal.challan.ticket_no }}</strong> (plate {{ appeal.challan.plate_number }}).
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-items-center sc-gap-2">
+    {% if appeal.status == 'approved' %}
+      <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> {{ appeal.get_status_display }}</span>
+    {% elif appeal.status == 'rejected' %}
+      <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> {{ appeal.get_status_display }}</span>
+    {% elif appeal.status == 'escalated' %}
+      <span class="sc-badge sc-badge-purple"><i class="bi bi-arrow-up-right-circle-fill"></i> {{ appeal.get_status_display }}</span>
+    {% else %}
+      <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> {{ appeal.get_status_display }}</span>
+    {% endif %}
+    <span class="sc-badge sc-badge-blue sc-stage-jump" data-scroll-to="#decisionTrail" data-bs-toggle="tooltip" title="Jump to decision trail"><i class="bi bi-diagram-3"></i> {{ appeal.get_current_stage_display }}</span>
+    <a href="{% url 'officer_portal:appeal_list' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-arrow-left"></i> All Appeals</a>
+  </div>
 </div>
+
+{% if read_only %}
+<div class="sc-banner sc-banner-warn">
+  <i class="bi bi-eye-fill"></i>
+  <div>
+    <strong>Read-only view.</strong> Officers cannot approve or reject appeals &mdash;
+    only the <strong>SSP</strong> decides appeals at the SSP Review stage, with the DIG as the
+    final escalation authority.
+  </div>
 </div>
-<div class="sc-card"><h2>Appeal Detail</h2><p class="sc-empty">View full appeal information.</p></div>{% endblock %}
+{% endif %}
+
+<div class="row g-4">
+  {# ---- LEFT: appeal content + decision trail -------------------------------- #}
+  <div class="col-lg-7">
+    <div class="sc-card">
+      <div class="sc-card-head">
+        <span><i class="bi bi-chat-square-quote"></i> Citizen's Appeal</span>
+        <span class="sc-badge sc-badge-muted"><i class="bi bi-calendar3"></i> {{ appeal.created_at|date:"d M Y" }}</span>
+      </div>
+      <dl class="sc-meta-list">
+        <div class="sc-meta-row sc-meta-row-wide">
+          <dt>Reason for appeal</dt>
+          <dd class="sc-appeal-reason">{{ appeal.reason|default:"No reason provided." }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Appellant</dt>
+          <dd>
+            {% if appeal.submitted_by %}
+              <i class="bi bi-person-badge"></i> {{ appeal.submitted_by.display_name|default:appeal.submitted_by }}
+              <span class="sc-text-faint">(registered citizen)</span>
+            {% elif appeal.guest_name %}
+              <i class="bi bi-person"></i> {{ appeal.guest_name }}
+              <span class="sc-text-faint">(guest)</span>
+            {% else %}
+              <i class="bi bi-person-x"></i> Anonymous guest
+            {% endif %}
+          </dd>
+        </div>
+        {% if appeal.guest_cnic %}
+        <div class="sc-meta-row">
+          <dt>Guest CNIC</dt>
+          <dd class="sc-mono">{{ appeal.guest_cnic }}</dd>
+        </div>
+        {% endif %}
+        <div class="sc-meta-row">
+          <dt>Evidence attached</dt>
+          <dd>
+            {% if appeal.evidence_file %}
+              <a href="{{ appeal.evidence_file.url }}" target="_blank" rel="noopener" class="sc-btn sc-btn-sm sc-btn-outline">
+                <i class="bi bi-paperclip"></i> View evidence file
+              </a>
+            {% else %}
+              <span class="sc-text-muted">No evidence attached</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Last updated</dt>
+          <dd>{{ appeal.updated_at|date:"d M Y, H:i" }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="sc-card" id="decisionTrail">
+      <div class="sc-card-head">
+        <span><i class="bi bi-diagram-3"></i> Decision Trail</span>
+        <span class="sc-badge {% if appeal.status == 'pending' %}sc-badge-amber{% else %}sc-badge-ok{% endif %}">
+          {% if appeal.status == 'pending' %}In progress{% else %}Concluded{% endif %}
+        </span>
+      </div>
+      <ul class="sc-timeline">
+        <li class="sc-timeline-item {% if appeal.officer_comment or appeal.reviewed_by %}sc-timeline-done{% endif %}">
+          <span class="sc-timeline-dot"><i class="bi bi-person-badge"></i></span>
+          <div class="sc-timeline-body">
+            <div class="sc-timeline-title">
+              Officer Review
+              {% if appeal.officer_comment or appeal.reviewed_by %}<span class="sc-badge sc-badge-ok">Done</span>
+              {% else %}<span class="sc-badge sc-badge-muted">Awaited</span>{% endif %}
+            </div>
+            {% if appeal.officer_comment %}
+              <p class="sc-timeline-text">{{ appeal.officer_comment }}</p>
+            {% endif %}
+            {% if appeal.reviewed_by %}
+              <div class="sc-timeline-meta">Reviewed by {{ appeal.reviewed_by.display_name|default:appeal.reviewed_by }}{% if appeal.reviewed_at %} &middot; {{ appeal.reviewed_at|date:"d M Y, H:i" }}{% endif %}</div>
+            {% endif %}
+          </div>
+        </li>
+        <li class="sc-timeline-item {% if appeal.ssp_comment or appeal.ssp_reviewed_by %}sc-timeline-done{% endif %}">
+          <span class="sc-timeline-dot"><i class="bi bi-shield-fill-check"></i></span>
+          <div class="sc-timeline-body">
+            <div class="sc-timeline-title">
+              SSP Review <span class="sc-text-faint sc-text-xs">(decision authority)</span>
+              {% if appeal.ssp_comment or appeal.ssp_reviewed_by %}<span class="sc-badge sc-badge-ok">Done</span>
+              {% else %}<span class="sc-badge sc-badge-amber">Pending</span>{% endif %}
+            </div>
+            {% if appeal.ssp_comment %}
+              <p class="sc-timeline-text">{{ appeal.ssp_comment }}</p>
+            {% endif %}
+            {% if appeal.ssp_reviewed_by %}
+              <div class="sc-timeline-meta">Reviewed by {{ appeal.ssp_reviewed_by.display_name|default:appeal.ssp_reviewed_by }}{% if appeal.ssp_reviewed_at %} &middot; {{ appeal.ssp_reviewed_at|date:"d M Y, H:i" }}{% endif %}</div>
+            {% endif %}
+          </div>
+        </li>
+        <li class="sc-timeline-item {% if appeal.dig_comment or appeal.dig_reviewed_by %}sc-timeline-done{% endif %} sc-timeline-last">
+          <span class="sc-timeline-dot"><i class="bi bi-award"></i></span>
+          <div class="sc-timeline-body">
+            <div class="sc-timeline-title">
+              DIG Review <span class="sc-text-faint sc-text-xs">(escalation authority)</span>
+              {% if appeal.dig_comment or appeal.dig_reviewed_by %}<span class="sc-badge sc-badge-ok">Done</span>
+              {% else %}<span class="sc-badge sc-badge-muted">Only if escalated</span>{% endif %}
+            </div>
+            {% if appeal.dig_comment %}
+              <p class="sc-timeline-text">{{ appeal.dig_comment }}</p>
+            {% endif %}
+            {% if appeal.dig_reviewed_by %}
+              <div class="sc-timeline-meta">Reviewed by {{ appeal.dig_reviewed_by.display_name|default:appeal.dig_reviewed_by }}{% if appeal.dig_reviewed_at %} &middot; {{ appeal.dig_reviewed_at|date:"d M Y, H:i" }}{% endif %}</div>
+            {% endif %}
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  {# ---- RIGHT: challan summary + appeal status -------------------------------- #}
+  <div class="col-lg-5">
+    <div class="sc-card">
+      <div class="sc-card-head"><span><i class="bi bi-receipt"></i> Challenged Challan</span></div>
+      <dl class="sc-meta-list">
+        <div class="sc-meta-row">
+          <dt>Ticket #</dt>
+          <dd class="sc-mono"><strong>{{ appeal.challan.ticket_no }}</strong></dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Plate</dt>
+          <dd class="sc-mono sc-plate-cell">{{ appeal.challan.plate_number }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Violation</dt>
+          <dd>{{ appeal.challan.get_violation_type_display|default:appeal.challan.violation_type }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Fine Amount</dt>
+          <dd><strong>PKR {{ appeal.challan.fine_amount|intcomma }}</strong></dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Issued</dt>
+          <dd>{{ appeal.challan.issue_date|date:"d M Y" }}{% if appeal.challan.due_date %} <span class="sc-text-faint">&middot; due {{ appeal.challan.due_date|date:"d M Y" }}</span>{% endif %}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Payment</dt>
+          <dd>
+            {% if appeal.challan.payment_status == 'PAID' %}
+              <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> Paid</span>
+            {% elif appeal.challan.payment_status == 'VOIDED' %}
+              <span class="sc-badge sc-badge-muted"><i class="bi bi-slash-circle"></i> Voided</span>
+            {% else %}
+              <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> Unpaid</span>
+            {% endif %}
+          </dd>
+        </div>
+        {% if appeal.challan.owner_name %}
+        <div class="sc-meta-row">
+          <dt>Registered Owner</dt>
+          <dd>{{ appeal.challan.owner_name }}</dd>
+        </div>
+        {% endif %}
+        {% if appeal.challan.location %}
+        <div class="sc-meta-row">
+          <dt>Location</dt>
+          <dd>{{ appeal.challan.location }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+      <a href="{% url 'challans:challan_detail' appeal.challan.id %}" class="sc-btn sc-btn-outline sc-btn-sm w-100">
+        <i class="bi bi-box-arrow-up-right"></i> Open challan detail
+      </a>
+    </div>
+
+    <div class="sc-card">
+      <div class="sc-card-head"><span><i class="bi bi-info-circle"></i> Appeal Status</span></div>
+      <dl class="sc-meta-list">
+        <div class="sc-meta-row">
+          <dt>Status</dt>
+          <dd>{{ appeal.get_status_display }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Current Stage</dt>
+          <dd>{{ appeal.get_current_stage_display }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Escalated</dt>
+          <dd>
+            {% if appeal.is_escalated %}
+              <span class="sc-badge sc-badge-purple"><i class="bi bi-arrow-up-right-circle-fill"></i> Yes</span>
+              {% if appeal.escalated_at %}<span class="sc-text-faint sc-text-sm"> &middot; {{ appeal.escalated_at|date:"d M Y, H:i" }}</span>{% endif %}
+            {% else %}<span class="sc-text-muted">No</span>{% endif %}
+          </dd>
+        </div>
+        {% if appeal.escalation_reason %}
+        <div class="sc-meta-row sc-meta-row-wide">
+          <dt>Escalation Reason</dt>
+          <dd class="sc-text-sm">{{ appeal.escalation_reason }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+      <div class="sc-hint">
+        <i class="bi bi-lock"></i> Officers have read-only access to appeals. Decisions are made by the SSP (and DIG on escalation).
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-appeal-detail.js' %}" defer></script>
+{% endblock %}

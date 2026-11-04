@@ -1,13 +1,597 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}System Settings{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>System settings</b>{% endblock %}
+{% block title %}System Settings — Safe City{% endblock %}
+{% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-settings-edit.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="sc-page-hero">
-<div>
-<h1>System settings</h1>
-<p class="sc-lead">Tune thresholds, fines.</p>
+  <div>
+    <h1><i class="bi bi-sliders me-2"></i>System Settings</h1>
+    <p class="sc-lead">
+      Central configuration for the Safe City enforcement platform — violation fines, deadlines,
+      AI thresholds, NADRA / Excise integration and challan branding. Every save is audit-logged.
+    </p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url portal_ns|add:':system_health' %}" class="sc-btn">
+      <i class="bi bi-activity me-1"></i>System Health
+    </a>
+    <a href="{% url portal_ns|add:':payment_settings' %}" class="sc-btn">
+      <i class="bi bi-credit-card me-1"></i>Payment Settings
+    </a>
+  </div>
 </div>
-</div>
-<div class="sc-page-hero"><div><h1>System Settings</h1><p class="sc-lead">Tune thresholds, fines.</p></div></div><div class="sc-card" style="max-width:720px;"><form method="post" class="sc-form-group">{% csrf_token %}<div class="sc-form-group"><label>AI confidence threshold (0-1)</label><input type="number" name="ai_confidence_threshold" step="0.01" min="0" max="1" value="{{ settings.ai_confidence_threshold|default:0.75 }}" class="w-full"></div><div class="sc-form-group"><label>Default fine (PKR)</label><input type="number" name="default_fine" value="{{ settings.default_fine|default:2000 }}" class="w-full"></div><div class="sc-form-group"><label>Due days</label><input type="number" name="due_date_days" value="{{ settings.due_date_days|default:14 }}" class="w-full"></div><div class="sc-form-group"><label>Integration mode</label><select name="integration_mode" class="w-full"><option value="demo">Demo</option><option value="real">Real</option></select></div><div class="sc-form-group"><label>PSA</label><textarea name="psa_text" rows="2" class="w-full">{{ settings.psa_text|default:"" }}</textarea></div><button type="submit" class="sc-btn sc-btn-primary">Save settings</button></form></div>{% endblock %}
+
+<!-- Section quick-nav -->
+<nav class="set-nav" aria-label="Settings sections">
+  <a href="#set-fines" class="set-nav-chip"><i class="bi bi-cash-coin"></i>Fines</a>
+  <a href="#set-deadlines" class="set-nav-chip"><i class="bi bi-calendar-event"></i>Deadlines &amp; Ops</a>
+  <a href="#set-ai" class="set-nav-chip"><i class="bi bi-cpu"></i>AI Configuration</a>
+  <a href="#set-integrations" class="set-nav-chip"><i class="bi bi-plug"></i>NADRA / Excise</a>
+  <a href="#set-branding" class="set-nav-chip"><i class="bi bi-card-heading"></i>Challan Branding</a>
+  <a href="#set-notifications" class="set-nav-chip"><i class="bi bi-envelope"></i>Notifications</a>
+  <a href="#set-blacklist" class="set-nav-chip"><i class="bi bi-slash-circle"></i>Auto-Blacklist</a>
+</nav>
+
+<form method="post" action="{% url portal_ns|add:':settings_edit' %}" id="settingsForm" novalidate>
+  {% csrf_token %}
+
+  <!-- ================= VIOLATIONS & FINES ================= -->
+  <section class="sc-card" id="set-fines">
+    <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="d-flex align-items-center gap-2"><i class="bi bi-cash-coin"></i>Violations &amp; Fines</span>
+      <span class="sc-badge sc-badge-blue"><i class="bi bi-signpost-2"></i>Wrong-way enforcement active</span>
+    </div>
+    <div class="sc-card-body">
+
+      <div class="set-fines-grid">
+        <div class="sc-form-group">
+          <label for="id-fine-wrong-way">Wrong-way fine (PKR) <span class="set-req">*</span></label>
+          <input type="number" name="fine_wrong_way" id="id-fine-wrong-way" class="w-full"
+                 min="0" step="1"
+                 value="{{ settings.default_fines.wrong_way|default:500 }}"
+                 data-label="Wrong-way fine">
+          <p class="sc-hint">Applied to every newly issued wrong-way challan. Only wrong-way enforcement is live.</p>
+        </div>
+
+        <div class="set-fines-reference">
+          <div class="set-ref-title"><i class="bi bi-bookmark"></i> Reference fine table (defaults)</div>
+          <div class="set-ref-chips">
+            <span class="sc-badge sc-badge-info">Wrong way · {{ default_fines.wrong_way|default:500 }}</span>
+            <span class="sc-badge sc-badge-muted">No helmet · {{ default_fines.no_helmet|default:300 }}</span>
+            <span class="sc-badge sc-badge-muted">Signal break · {{ default_fines.signal_break|default:500 }}</span>
+            <span class="sc-badge sc-badge-muted">Over speed · {{ default_fines.over_speed|default:800 }}</span>
+            <span class="sc-badge sc-badge-muted">Other · {{ default_fines.other|default:500 }}</span>
+          </div>
+          <p class="sc-hint mb-0">Only the wrong-way amount is editable from this form; the remaining defaults are reference values.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DEADLINES & LIVE OPS ================= -->
+  <section class="sc-card" id="set-deadlines">
+    <div class="sc-card-header d-flex align-items-center gap-2">
+      <i class="bi bi-calendar-event"></i>Deadlines &amp; Live Operations
+    </div>
+    <div class="sc-card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-due-date-days">Payment window (days) <span class="set-req">*</span></label>
+            <input type="number" name="due_date_days" id="id-due-date-days" class="w-full"
+                   min="1" step="1" value="{{ settings.due_date_days|default:30 }}"
+                   data-label="Payment window">
+            <p class="sc-hint">Days between issue date and due date on every challan.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-grace-hours">Grace hours</label>
+            <input type="number" name="grace_hours" id="id-grace-hours" class="w-full"
+                   min="0" step="1" value="{{ settings.template_config.grace_hours|default:'' }}"
+                   placeholder="—"
+                   data-label="Grace hours">
+            <p class="sc-hint">Optional grace window recorded in the system config.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-live-refresh-sec">Live refresh (seconds)</label>
+            <input type="number" name="live_refresh_sec" id="id-live-refresh-sec" class="w-full"
+                   min="1" step="1" value="{{ settings.template_config.live_refresh_sec|default:'' }}"
+                   placeholder="—"
+                   data-label="Live refresh">
+            <p class="sc-hint">Live monitor refresh interval recorded in the system config.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-max-trail-frames">Max trail frames</label>
+            <input type="number" name="max_trail_frames" id="id-max-trail-frames" class="w-full"
+                   min="0" step="1" value="{{ settings.template_config.max_trail_frames|default:'' }}"
+                   placeholder="—"
+                   data-label="Max trail frames">
+            <p class="sc-hint">Frames retained per vehicle track in the system config.</p>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="sc-form-group">
+            <label class="set-switch-label" for="id-auto-confirm">
+              <span class="set-switch">
+                <input type="checkbox" name="auto_confirm_high_conf" id="id-auto-confirm" value="on"
+                       {% if settings.template_config.auto_confirm_high_conf %}checked{% endif %}>
+                <span class="set-switch-slider"></span>
+              </span>
+              <span class="set-switch-text">
+                <strong>Auto-confirm high-confidence detections</strong>
+                <span class="sc-hint">Detections scoring above a camera's auto-confirm threshold create challans without officer review.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= AI CONFIGURATION ================= -->
+  <section class="sc-card" id="set-ai">
+    <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="d-flex align-items-center gap-2"><i class="bi bi-cpu"></i>AI Configuration</span>
+      <span class="sc-badge {% if model_info.plate_detector.exists and model_info.side_classifier.exists %}sc-badge-ok{% else %}sc-badge-danger{% endif %}">
+        <i class="bi bi-box"></i>
+        {% if model_info.plate_detector.exists and model_info.side_classifier.exists %}Models loaded{% else %}Model file missing{% endif %}
+      </span>
+    </div>
+    <div class="sc-card-body">
+
+      <div class="set-model-strip">
+        <div class="set-model-item">
+          <span class="set-model-label">Plate detector</span>
+          <span class="set-model-value sc-mono">{{ model_info.plate_detector.file|default:"—" }}</span>
+          <span class="set-model-meta">{{ model_info.plate_detector.size_mb|default:0 }} MB · OCR {{ model_info.ocr_backend|default:"easyocr" }}</span>
+        </div>
+        <div class="set-model-item">
+          <span class="set-model-label">Side classifier</span>
+          <span class="set-model-value sc-mono">{{ model_info.side_classifier.file|default:"—" }}</span>
+          <span class="set-model-meta">{{ model_info.side_classifier.size_mb|default:0 }} MB · threshold {{ model_info.side_classifier.back_threshold|default:"0.50" }}</span>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-ai-conf">Global AI confidence threshold <span class="set-req">*</span></label>
+            <input type="number" name="ai_confidence_threshold" id="id-ai-conf" class="w-full"
+                   min="0" max="1" step="0.01"
+                   value="{{ settings.ai_confidence_threshold|default:0.75 }}"
+                   data-label="Global AI confidence threshold">
+            <p class="sc-hint">0–1. Minimum confidence to accept a car detection (0.75 default).</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-plate-conf">Plate detector confidence</label>
+            <input type="number" name="plate_confidence_threshold" id="id-plate-conf" class="w-full"
+                   min="0" max="1" step="0.01"
+                   value="{{ ai_cfg.plate_detector.confidence_threshold|default:0.15 }}"
+                   data-label="Plate detector confidence">
+            <p class="sc-hint">ONNX plate detector score cut-off (calibrated for the int8 model).</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-max-box">Max box area ratio</label>
+            <input type="number" name="max_box_area_ratio" id="id-max-box" class="w-full"
+                   min="0" max="1" step="0.01"
+                   value="{{ ai_cfg.plate_detector.max_box_area_ratio|default:0.22 }}"
+                   data-label="Max box area ratio">
+            <p class="sc-hint">Rejects detections whose bounding box dominates the frame.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-box-tighten">Box tighten</label>
+            <input type="number" name="box_tighten" id="id-box-tighten" class="w-full"
+                   min="0" max="1" step="0.01"
+                   value="{{ ai_cfg.plate_detector.box_tighten|default:0.88 }}"
+                   data-label="Box tighten">
+            <p class="sc-hint">Plate crop tightening factor around the detected box.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-side-back">Side classifier back threshold</label>
+            <input type="number" name="side_back_threshold" id="id-side-back" class="w-full"
+                   min="0" max="1" step="0.01"
+                   value="{{ ai_cfg.side_classifier.back_threshold|default:0.50 }}"
+                   data-label="Side classifier back threshold">
+            <p class="sc-hint">Score above which a vehicle side is classified as "back".</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-min-side-conf">Min side confidence</label>
+            <input type="number" name="min_side_confidence" id="id-min-side-conf" class="w-full"
+                   min="0" max="1" step="0.01"
+                   value="{{ ai_cfg.side_classifier.min_side_confidence|default:0.55 }}"
+                   data-label="Min side confidence">
+            <p class="sc-hint">Below this score the side classification is discarded.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="set-switch-label" for="id-car-only">
+            <span class="set-switch">
+              <input type="hidden" name="car_only" value="off">
+              <input type="checkbox" name="car_only" id="id-car-only" value="on"
+                     {% if ai_cfg.car_only %}checked{% endif %}>
+              <span class="set-switch-slider"></span>
+            </span>
+            <span class="set-switch-text">
+              <strong>Cars only</strong>
+              <span class="sc-hint">Restrict detection processing to car-class vehicles.</span>
+            </span>
+          </label>
+        </div>
+        <div class="col-md-6">
+          <label class="set-switch-label" for="id-reject-person">
+            <span class="set-switch">
+              <input type="hidden" name="reject_person" value="off">
+              <input type="checkbox" name="reject_person" id="id-reject-person" value="on"
+                     {% if ai_cfg.reject_person %}checked{% endif %}>
+              <span class="set-switch-slider"></span>
+            </span>
+            <span class="set-switch-text">
+              <strong>Reject person detections</strong>
+              <span class="sc-hint">Discard person-class detections before violation analysis.</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="sc-banner mb-0">
+        <i class="bi bi-info-circle"></i>
+        <div>Threshold changes take effect on the next detection cycle. Model files themselves are provisioned on the
+          server ({{ model_info.plate_detector.size_mb|default:0 }} MB detector +
+          {{ model_info.side_classifier.size_mb|default:0 }} MB classifier).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NADRA / EXCISE INTEGRATION ================= -->
+  <section class="sc-card" id="set-integrations">
+    <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="d-flex align-items-center gap-2"><i class="bi bi-plug"></i>NADRA / Excise Integration</span>
+      <span class="sc-badge {% if settings.integration_mode == 'real' %}sc-badge-danger{% else %}sc-badge-teal{% endif %}">
+        <i class="bi bi-toggle-on"></i>Mode: {{ settings.integration_mode|default:"demo"|upper }}
+      </span>
+    </div>
+    <div class="sc-card-body">
+
+      <div class="sc-banner {% if settings.integration_mode == 'real' %}sc-banner-danger{% endif %}" data-mode-banner hidden>
+        <i class="bi bi-exclamation-triangle"></i>
+        <div><strong>Real mode is live.</strong> Owner lookups will hit the configured production NADRA / Excise endpoints.</div>
+      </div>
+
+      <div class="sc-form-group">
+        <label for="id-integration-mode">Integration mode <span class="set-req">*</span></label>
+        <select name="integration_mode" id="id-integration-mode" data-mode-select>
+          <option value="demo" {% if settings.integration_mode != 'real' %}selected{% endif %}>Demo — sandboxed responses</option>
+          <option value="real" {% if settings.integration_mode == 'real' %}selected{% endif %}>Real — live endpoints</option>
+        </select>
+        <p class="sc-hint">Demo mode serves deterministic sandbox data for demos and training. Real mode calls the configured endpoints below.</p>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-nadra-url">NADRA API URL</label>
+            <input type="url" name="nadra_api_url" id="id-nadra-url" class="w-full"
+                   value="{{ settings.nadra_api_url|default:'' }}" placeholder="https://nadra.verisys.example/api"
+                   data-label="NADRA API URL">
+            <p class="sc-hint">NADRA Verisys / CNIC verification endpoint used for owner verification.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-nadra-key">NADRA API key</label>
+            <div class="set-secret-field">
+              <input type="password" name="nadra_api_key" id="id-nadra-key" class="w-full"
+                     value="{{ settings.nadra_api_key|default:'' }}" placeholder="••••••••" autocomplete="new-password"
+                     data-label="NADRA API key">
+              <button type="button" class="set-secret-toggle" data-secret-toggle="id-nadra-key"
+                      aria-label="Show or hide NADRA API key"><i class="bi bi-eye"></i></button>
+            </div>
+            <p class="sc-hint">Secret — stored in the settings record and never displayed in exports.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-excise-url">Excise API URL</label>
+            <input type="url" name="excise_api_url" id="id-excise-url" class="w-full"
+                   value="{{ settings.excise_api_url|default:'' }}" placeholder="https://excise.example.gov.pk/api"
+                   data-label="Excise API URL">
+            <p class="sc-hint">Vehicle registration lookup endpoint for owner and vehicle details.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-excise-key">Excise API key</label>
+            <div class="set-secret-field">
+              <input type="password" name="excise_api_key" id="id-excise-key" class="w-full"
+                     value="{{ settings.excise_api_key|default:'' }}" placeholder="••••••••" autocomplete="new-password"
+                     data-label="Excise API key">
+              <button type="button" class="set-secret-toggle" data-secret-toggle="id-excise-key"
+                      aria-label="Show or hide Excise API key"><i class="bi bi-eye"></i></button>
+            </div>
+            <p class="sc-hint">Secret — treat like a password.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CHALLAN BRANDING ================= -->
+  <section class="sc-card" id="set-branding">
+    <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="d-flex align-items-center gap-2"><i class="bi bi-card-heading"></i>Challan Branding</span>
+      <span class="sc-badge sc-badge-purple"><i class="bi bi-file-earmark-pdf"></i>{{ challan_templates|length }} template{{ challan_templates|length|pluralize }} on file</span>
+    </div>
+    <div class="sc-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="sc-form-group">
+            <label for="id-header-text">Header text</label>
+            <input type="text" name="header_text" id="id-header-text" class="w-full"
+                   value="{{ settings.template_config.header_text|default:'' }}" maxlength="120"
+                   placeholder="SAFE CITY — TRAFFIC ENFORCEMENT"
+                   data-label="Header text">
+            <p class="sc-hint">Printed at the top of every challan PDF.</p>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="sc-form-group">
+            <label for="id-footer-text">Footer text</label>
+            <textarea name="footer_text" id="id-footer-text" rows="2" class="w-full" maxlength="255"
+                      placeholder="Pay at any National Bank of Pakistan branch or Post Office before the due date."
+                      data-label="Footer text">{{ settings.template_config.footer_text|default:'' }}</textarea>
+            <p class="sc-hint">Payment instructions printed at the bottom of every challan PDF.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-account-number">Account number</label>
+            <input type="text" name="account_number" id="id-account-number" class="w-full sc-mono"
+                   value="{{ settings.template_config.account_number|default:'' }}" maxlength="64"
+                   placeholder="SAFECITY-CHALLAN-00123456789"
+                   data-label="Account number">
+            <p class="sc-hint">Government account number citizens pay the fine into.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-banner mb-0">
+        <i class="bi bi-palette"></i>
+        <div>PDF layout templates are managed on the
+          <strong>Challan Templates</strong> page — {{ challan_templates|length }} database template{{ challan_templates|length|pluralize }} currently on file.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NOTIFICATIONS ================= -->
+  <section class="sc-card" id="set-notifications">
+    <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="d-flex align-items-center gap-2"><i class="bi bi-envelope"></i>Notifications — Email &amp; SMS</span>
+      <span class="sc-badge {% if settings.email_enabled %}sc-badge-ok{% else %}sc-badge-muted{% endif %}">
+        <i class="bi bi-power"></i>Email {% if settings.email_enabled %}enabled{% else %}disabled{% endif %}
+      </span>
+    </div>
+    <div class="sc-card-body">
+
+      <label class="set-switch-label set-switch-row" for="id-email-enabled">
+        <span class="set-switch">
+          <input type="checkbox" name="email_enabled" id="id-email-enabled" value="on"
+                 {% if settings.email_enabled %}checked{% endif %}>
+          <span class="set-switch-slider"></span>
+        </span>
+        <span class="set-switch-text">
+          <strong>Enable outgoing email</strong>
+          <span class="sc-hint">Master switch for challan notification emails.</span>
+        </span>
+      </label>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-email-from-name">From name</label>
+            <input type="text" name="email_from_name" id="id-email-from-name" class="w-full"
+                   value="{{ settings.email_template.from_name|default:'' }}" maxlength="80"
+                   placeholder="Safe City E-Challan" data-label="From name">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-email-subject-prefix">Subject prefix</label>
+            <input type="text" name="email_subject_prefix" id="id-email-subject-prefix" class="w-full"
+                   value="{{ settings.email_template.subject_prefix|default:'' }}" maxlength="60"
+                   placeholder="[Safe City]" data-label="Subject prefix">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-smtp-host">SMTP host</label>
+            <input type="text" name="smtp_host" id="id-smtp-host" class="w-full"
+                   value="{{ settings.template_config.smtp_host|default:'' }}" placeholder="smtp.example.gov.pk"
+                   data-label="SMTP host">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="sc-form-group">
+            <label for="id-smtp-port">SMTP port</label>
+            <input type="number" name="smtp_port" id="id-smtp-port" class="w-full" min="1" max="65535" step="1"
+                   value="{{ settings.template_config.smtp_port|default:587 }}" data-label="SMTP port">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="sc-form-group">
+            <label for="id-smtp-user">SMTP user</label>
+            <input type="text" name="smtp_user" id="id-smtp-user" class="w-full"
+                   value="{{ settings.template_config.smtp_user|default:'' }}" placeholder="challan@example.gov.pk"
+                   data-label="SMTP user">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="sc-form-group">
+            <label for="id-smtp-password">SMTP password</label>
+            <div class="set-secret-field">
+              <input type="password" name="smtp_password" id="id-smtp-password" class="w-full"
+                     value="{{ settings.template_config.smtp_password|default:'' }}" placeholder="••••••••"
+                     autocomplete="new-password" data-label="SMTP password">
+              <button type="button" class="set-secret-toggle" data-secret-toggle="id-smtp-password"
+                      aria-label="Show or hide SMTP password"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label for="id-smtp-from">Envelope from</label>
+            <input type="text" name="smtp_from" id="id-smtp-from" class="w-full"
+                   value="{{ settings.template_config.smtp_from|default:'' }}" placeholder="no-reply@safecity.gov.pk"
+                   data-label="Envelope from">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="sc-form-group">
+            <label for="id-smtp-tls">SMTP TLS</label>
+            <input type="text" name="smtp_tls" id="id-smtp-tls" class="w-full"
+                   value="{{ settings.template_config.smtp_tls|default:'1' }}" maxlength="1"
+                   placeholder="1" data-label="SMTP TLS">
+            <p class="sc-hint">Use 1 for STARTTLS.</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-sms-provider">SMS provider</label>
+            <input type="text" name="sms_provider" id="id-sms-provider" class="w-full"
+                   value="{{ settings.template_config.sms_provider|default:'' }}" placeholder="e.g. Telenor Bulk"
+                   data-label="SMS provider">
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="sc-form-group">
+            <label for="id-sms-api-url">SMS API URL</label>
+            <input type="url" name="sms_api_url" id="id-sms-api-url" class="w-full"
+                   value="{{ settings.template_config.sms_api_url|default:'' }}" placeholder="https://sms.example/api/send"
+                   data-label="SMS API URL">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-sms-api-key">SMS API key</label>
+            <div class="set-secret-field">
+              <input type="password" name="sms_api_key" id="id-sms-api-key" class="w-full"
+                     value="{{ settings.template_config.sms_api_key|default:'' }}" placeholder="••••••••"
+                     autocomplete="new-password" data-label="SMS API key">
+              <button type="button" class="set-secret-toggle" data-secret-toggle="id-sms-api-key"
+                      aria-label="Show or hide SMS API key"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-sms-api-secret">SMS API secret</label>
+            <div class="set-secret-field">
+              <input type="password" name="sms_api_secret" id="id-sms-api-secret" class="w-full"
+                     value="{{ settings.template_config.sms_api_secret|default:'' }}" placeholder="••••••••"
+                     autocomplete="new-password" data-label="SMS API secret">
+              <button type="button" class="set-secret-toggle" data-secret-toggle="id-sms-api-secret"
+                      aria-label="Show or hide SMS API secret"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-sms-sender">SMS sender ID</label>
+            <input type="text" name="sms_sender" id="id-sms-sender" class="w-full"
+                   value="{{ settings.template_config.sms_sender|default:'' }}" maxlength="20" placeholder="SAFECITY"
+                   data-label="SMS sender ID">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= AUTO-BLACKLIST ================= -->
+  <section class="sc-card" id="set-blacklist">
+    <div class="sc-card-header d-flex align-items-center gap-2">
+      <i class="bi bi-slash-circle"></i>Automatic Blacklisting
+    </div>
+    <div class="sc-card-body">
+
+      <label class="set-switch-label set-switch-row" for="id-auto-blacklist-enabled">
+        <span class="set-switch">
+          <input type="checkbox" name="auto_blacklist_enabled" id="id-auto-blacklist-enabled" value="on"
+                 {% if settings.template_config.auto_blacklist_enabled == False %}{% else %}checked{% endif %}>
+          <span class="set-switch-slider"></span>
+        </span>
+        <span class="set-switch-text">
+          <strong>Auto-blacklist repeat offenders</strong>
+          <span class="sc-hint">Automatically blacklist a plate once its unpaid challan count reaches the threshold below.</span>
+        </span>
+      </label>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label for="id-auto-blacklist-threshold">Unpaid challan threshold</label>
+            <input type="number" name="auto_blacklist_threshold" id="id-auto-blacklist-threshold" class="w-full"
+                   min="1" step="1"
+                   value="{{ settings.template_config.auto_blacklist_threshold|default:5 }}"
+                   data-label="Auto-blacklist threshold">
+            <p class="sc-hint">Minimum unpaid challans before a plate is auto-blacklisted (default 5).</p>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="sc-banner mb-0">
+            <i class="bi bi-diagram-3"></i>
+            <div>Auto-blacklist entries are created with a system reason and appear on the
+              <strong>Blacklist Register</strong> alongside manual entries. Existing audit entries prevent duplicates.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STICKY SAVE BAR ================= -->
+  <div class="set-savebar" data-savebar>
+    <div class="set-savebar-meta">
+      <i class="bi bi-clock-history"></i>
+      Last saved
+      {% if settings.updated_at %}{{ settings.updated_at|date:"d M Y, H:i" }}{% else %}—{% endif %}
+      {% if settings.updated_by %} · by {{ settings.updated_by.display_name|default:settings.updated_by.username }}{% endif %}
+    </div>
+    <div class="set-savebar-actions">
+      <a href="{% url portal_ns|add:':system_health' %}" class="sc-btn"><i class="bi bi-x-circle me-1"></i>Discard</a>
+      <button type="submit" class="sc-btn sc-btn-primary" data-save-btn>
+        <i class="bi bi-check2-circle me-1"></i>Save configuration
+      </button>
+    </div>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-settings-edit.js' %}" defer></script>
+{% endblock %}

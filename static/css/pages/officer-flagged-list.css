@@ -1,0 +1,32 @@
+/* ==========================================================================
+   Officer — Flagged List (officer-flagged-list)
+   Escalation queue table polish.
+   ========================================================================== */
+
+.sc-table-wrap-flush {
+  border: none;
+  border-radius: 0;
+}
+
+.sc-plate-cell {
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+  color: var(--sc-navy-deep);
+}
+
+.sc-row-link {
+  cursor: pointer;
+}
+
+.sc-row-link:hover td {
+  background: #F6F9FD;
+}
+
+.sc-notes-cell {
+  max-width: 260px;
+  color: var(--sc-text-muted);
+}
+
+table.sc-data-table td:last-child {
+  white-space: nowrap;
+}

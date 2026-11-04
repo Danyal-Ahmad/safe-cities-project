@@ -1,13 +1,268 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Vehicle Search{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Vehicle search</b>{% endblock %}
+{% block title %}Vehicle Search — Safe City{% endblock %}
+{% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-vehicle-search.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="sc-page-hero">
-<div>
-<h1>Vehicle search</h1>
-<p class="sc-lead">Search by plate, CNIC, or chassis.</p>
+  <div>
+    <h1><i class="bi bi-car-front me-2"></i>Vehicle Search</h1>
+    <p class="sc-lead">
+      Trace any vehicle across the platform — raw AI detections and issued challans in one
+      lookup by plate, owner name or CNIC.
+    </p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url portal_ns|add:':blacklist_list' %}" class="sc-btn">
+      <i class="bi bi-slash-circle me-1"></i>Blacklist Register
+    </a>
+    <a href="{% url portal_ns|add:':challan_list' %}" class="sc-btn">
+      <i class="bi bi-receipt me-1"></i>Challan Register
+    </a>
+  </div>
 </div>
+
+<!-- ============ SEARCH ============ -->
+<div class="sc-card vs-search-card">
+  <div class="sc-card-body">
+    <form method="get" action="{% url portal_ns|add:':vehicle_search' %}" class="vs-search-form" role="search">
+      <div class="vs-search-input-wrap">
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" id="id-q" value="{{ q|default:'' }}"
+               placeholder="Plate (LEA-1100), owner name or CNIC…"
+               aria-label="Search vehicle" autocomplete="off" maxlength="32"
+               data-uppercase-input>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-primary">
+        <i class="bi bi-search me-1"></i>Search
+      </button>
+      {% if q %}
+      <a href="{% url portal_ns|add:':vehicle_search' %}" class="sc-btn">
+        <i class="bi bi-x-circle me-1"></i>Clear
+      </a>
+      {% endif %}
+    </form>
+
+    <div class="vs-search-examples">
+      <span class="vs-examples-label"><i class="bi bi-lightbulb"></i> Try:</span>
+      <button type="button" class="vs-example-chip" data-example="LEA-1100">LEA-1100</button>
+      <button type="button" class="vs-example-chip" data-example="LEA">LEA…</button>
+      <span class="sc-hint">Plate queries are matched in upper case; CNIC needs at least 5 digits.</span>
+    </div>
+  </div>
 </div>
-<div class="sc-page-hero"><div><h1>Vehicle Search</h1><p class="sc-lead">Search by plate, CNIC, or chassis.</p></div></div><div class="sc-card"><form method="get" class="sc-flex sc-gap-2 sc-mb-3"><input type="text" name="plate" value="{{ plate|default:"" }}" placeholder="LEA-1100" class="sc-text-sm" style="border:1px solid var(--sc-border-strong);border-radius:4px;padding:8px 12px;flex:1;"><button type="submit" class="sc-btn sc-btn-primary">Search</button></form>{% if plate %}<div class="sc-grid sc-grid-2"><div><h2 class="sc-text-sm sc-mb-2">Detections</h2>{% if detections %}<div class="sc-table-wrap"><table class="sc-table"><thead><tr><th>Plate</th><th>Camera</th><th>Status</th><th>Time</th></tr></thead><tbody>{% for d in detections %}<tr><td class="sc-mono">{{ d.effective_plate|default:"-" }}</td><td>{{ d.camera.camera_id|default:"-" }}</td><td>{{ d.get_status_display }}</td><td class="sc-text-sm">{{ d.created_at|date:"d M H:i" }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="sc-empty">No detections for {{ plate }}.</p>{% endif %}</div><div><h2 class="sc-text-sm sc-mb-2">Challans</h2>{% if challans %}<div class="sc-table-wrap"><table class="sc-table"><thead><tr><th>Ticket</th><th>Fine</th><th>Status</th><th>Due</th></tr></thead><tbody>{% for c in challans %}<tr><td class="sc-mono"><a href="{% url 'challans:challan_detail' c.id %}">{{ c.ticket_no }}</a></td><td>PKR {{ c.fine_amount|floatformat:0|intcomma }}</td><td>{% if c.payment_status == 'PAID' %}<span class="sc-badge sc-badge-ok">Paid</span>{% else %}<span class="sc-badge sc-badge-amber">Unpaid</span>{% endif %}</td><td class="sc-text-sm">{{ c.due_date|date:"d M Y" }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}</div></div>{% else %}<p class="sc-empty">Enter a plate, CNIC, or chassis to search.</p>{% endif %}</div>{% endblock %}
+
+{% if q %}
+
+<!-- ============ RESULT SUMMARY ============ -->
+<div class="sc-banner vs-result-banner">
+  <i class="bi bi-binoculars"></i>
+  <div>
+    Results for <strong class="sc-mono">{{ q }}</strong> —
+    <strong>{{ detections|length }}</strong> detection{{ detections|length|pluralize }} and
+    <strong>{{ challans|length }}</strong> challan{{ challans|length|pluralize }} found.
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12">
+
+    <!-- ============ DETECTIONS ============ -->
+    <div class="sc-card">
+      <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-camera-reels"></i> Detections
+        </span>
+        <span class="sc-badge sc-badge-purple">
+          <i class="bi bi-list-ol"></i>{{ detections|length }} record{{ detections|length|pluralize }}
+        </span>
+      </div>
+      <div class="sc-card-body">
+        {% if detections %}
+        <div class="sc-table-wrap">
+          <table class="sc-table sc-data-table">
+            <thead>
+              <tr>
+                <th>Plate</th>
+                <th>Camera</th>
+                <th>Side</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th>Evidence Checks</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in detections %}
+              <tr>
+                <td><span class="md-plate-tag">{{ d.effective_plate|default:"—" }}</span></td>
+                <td class="sc-text-sm sc-mono">
+                  {% if d.camera %}{{ d.camera.camera_id }}{% else %}<span class="sc-text-faint">—</span>{% endif %}
+                </td>
+                <td>
+                  {% if d.ai_side_classification %}
+                    <span class="sc-badge {% if d.ai_side_classification == 'back' %}sc-badge-teal{% else %}sc-badge-purple{% endif %}">
+                      <i class="bi bi-arrow-left-right"></i>{{ d.ai_side_classification|capfirst }}
+                    </span>
+                  {% else %}<span class="sc-text-faint">—</span>{% endif %}
+                </td>
+                <td>
+                  {% if d.status == 'confirmed' %}
+                    <span class="sc-badge sc-badge-green"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
+                  {% elif d.status == 'rejected' %}
+                    <span class="sc-badge sc-badge-gray"><i class="bi bi-dash-circle"></i>Rejected</span>
+                  {% elif d.status == 'flagged_for_dig' %}
+                    <span class="sc-badge sc-badge-red"><i class="bi bi-flag-fill"></i>Flagged for DIG</span>
+                  {% else %}
+                    <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i>Pending Review</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if d.ai_confidence is not None %}
+                  <div class="vs-conf-cell">
+                    <div class="md-conf-bar">
+                      <div class="md-conf-fill" data-conf="{{ d.ai_confidence|floatformat:4 }}"></div>
+                    </div>
+                    <span class="vs-conf-value sc-mono">{{ d.ai_confidence|floatformat:2 }}</span>
+                  </div>
+                  {% else %}<span class="sc-text-faint">—</span>{% endif %}
+                </td>
+                <td>
+                  {% with es=d.evidence_summary %}
+                    {% if es.total %}
+                      <span class="sc-badge {% if es.all_passed %}sc-badge-ok{% else %}sc-badge-amber{% endif %}"
+                            title="{% if es.all_passed %}All evidence checks passed{% else %}Some evidence checks failed{% endif %}{% if es.hash %} — hash {{ es.hash|slice:':12' }}…{% endif %}">
+                        <i class="bi bi-shield-{% if es.all_passed %}check{% else %}exclamation{% endif %}"></i>
+                        {{ es.passed }}/{{ es.total }} checks
+                      </span>
+                    {% else %}
+                      <span class="sc-badge sc-badge-gray"><i class="bi bi-shield-slash"></i>No package</span>
+                    {% endif %}
+                  {% endwith %}
+                </td>
+                <td class="sc-text-sm">{{ d.created_at|date:"d M Y, H:i" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if detections|length >= 50 %}
+        <p class="sc-hint mb-0"><i class="bi bi-info-circle me-1"></i>Showing the 50 most recent detections for this query.</p>
+        {% endif %}
+        {% else %}
+        <div class="sc-empty">
+          <i class="bi bi-camera-video-off"></i>
+          No detections matched <strong class="sc-mono mx-1">{{ q }}</strong>.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+
+    <!-- ============ CHALLANS ============ -->
+    <div class="sc-card">
+      <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-receipt"></i> Challans
+        </span>
+        <span class="sc-badge sc-badge-blue">
+          <i class="bi bi-list-ol"></i>{{ challans|length }} record{{ challans|length|pluralize }}
+        </span>
+      </div>
+      <div class="sc-card-body">
+        {% if challans %}
+        <div class="sc-table-wrap">
+          <table class="sc-table sc-data-table">
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                <th>Plate</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Fine</th>
+                <th>Due</th>
+                <th class="text-end">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in challans %}
+              <tr>
+                <td class="sc-mono fw-bold">{{ c.ticket_no }}</td>
+                <td><span class="md-plate-tag">{{ c.plate_number }}</span></td>
+                <td class="sc-text-sm">{{ c.owner_name|default:"—" }}</td>
+                <td>
+                  {% if c.payment_status == 'PAID' %}
+                    <span class="sc-badge sc-badge-green"><i class="bi bi-check-circle-fill"></i>Paid</span>
+                  {% elif c.payment_status == 'VOIDED' %}
+                    <span class="sc-badge sc-badge-blue"><i class="bi bi-slash-circle"></i>Voided</span>
+                  {% elif c.is_overdue %}
+                    <span class="sc-badge sc-badge-red"><i class="bi bi-exclamation-octagon"></i>Overdue</span>
+                  {% else %}
+                    <span class="sc-badge sc-badge-amber"><i class="bi bi-clock"></i>Unpaid</span>
+                  {% endif %}
+                </td>
+                <td class="fw-bold vs-fine">PKR {{ c.fine_amount|floatformat:0|intcomma }}</td>
+                <td class="sc-text-sm {% if c.is_overdue %}vs-due-overdue{% endif %}">{{ c.due_date|date:"d M Y" }}</td>
+                <td class="text-end">
+                  <a href="{% url 'challans:challan_detail' c.id %}" class="sc-btn sc-btn-sm sc-btn-outline"
+                     title="Open public challan detail">
+                    <i class="bi bi-box-arrow-up-right"></i> View
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if challans|length >= 50 %}
+        <p class="sc-hint mb-0"><i class="bi bi-info-circle me-1"></i>Showing the 50 most recent challans for this query.</p>
+        {% endif %}
+        {% else %}
+        <div class="sc-empty">
+          <i class="bi bi-receipt-cutoff"></i>
+          No challans matched <strong class="sc-mono mx-1">{{ q }}</strong>.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+
+<!-- ============ NO QUERY STATE ============ -->
+<div class="sc-card">
+  <div class="sc-card-body">
+    <div class="sc-empty vs-empty-cta">
+      <i class="bi bi-binoculars"></i>
+      <h2 class="vs-empty-title">Start a vehicle lookup</h2>
+      <p>
+        Enter a plate number, owner name or CNIC above to pull the full enforcement history —
+        raw detections with AI confidence and tamper-evident evidence checks, plus every challan issued.
+      </p>
+      <div class="vs-empty-quick">
+        <button type="button" class="sc-btn sc-btn-outline" data-example="LEA-1100">
+          <i class="bi bi-search me-1"></i>Search plate LEA-1100
+        </button>
+        <a href="{% url portal_ns|add:':blacklist_list' %}" class="sc-btn">
+          <i class="bi bi-slash-circle me-1"></i>Blacklist Register
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-vehicle-search.js' %}" defer></script>
+{% endblock %}

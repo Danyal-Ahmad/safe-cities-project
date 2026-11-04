@@ -1,13 +1,100 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Auth Events{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Auth events</b>{% endblock %}
+{% block title %}Authentication Events — Audit Portal{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-auth-events.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Auth events</h1>
-<p class="sc-lead">Login/logout events.</p>
+  <div>
+    <h1><i class="bi bi-shield-lock me-2"></i>Authentication Events</h1>
+    <p class="sc-lead">Login, logout, password and account-lock events drawn from the immutable audit log.</p>
+  </div>
+  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
 </div>
+
+{% regroup logs|dictsort:"action" by action as action_groups %}
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-journal-text"></i> Events in view</div>
+    <div class="sc-kpi-value">{{ logs|length|default:0 }}</div>
+    <div class="sc-kpi-foot">most recent events</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-collection"></i> Event types</div>
+    <div class="sc-kpi-value">{{ action_groups|length|default:0 }}</div>
+    <div class="sc-kpi-foot">distinct actions</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-clock-history"></i> Latest event</div>
+    {% if logs %}
+    {% with latest=logs|first %}
+    <div class="sc-kpi-value">{{ latest.timestamp|date:"d M" }}</div>
+    <div class="sc-kpi-foot">{{ latest.timestamp|date:"H:i" }} &middot; most recent entry</div>
+    {% endwith %}
+    {% else %}
+    <div class="sc-kpi-value">&mdash;</div>
+    <div class="sc-kpi-foot">no entries yet</div>
+    {% endif %}
+  </div>
 </div>
-<div class="sc-page-hero"><div><h1>Auth Events</h1><p class="sc-lead">Login/logout events.</p></div></div><div class="sc-card">{% if logs %}<table class="sc-table sc-data-table"><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody>{% for l in logs %}<tr><td class="sc-text-sm">{{ l.timestamp|date:"d M H:i" }}</td><td class="sc-text-sm">{{ l.actor|default:"-" }}</td><td><span class="sc-badge sc-badge-gray">{{ l.action }}</span></td><td class="sc-mono sc-text-sm">{{ l.target_model }} #{{ l.target_id|default:"-" }}</td><td class="sc-text-sm sc-text-muted">{{ l.details|truncatechars:60 }}</td></tr>{% empty %}<tr><td colspan="5" class="sc-empty">No entries.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No entries.</div>{% endif %}</div>{% endblock %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-shield-lock"></i>
+      <span>Authentication log</span>
+    </div>
+    <span class="sc-badge sc-badge-gray">{{ logs|length|default:0 }} events</span>
+  </div>
+  {% if logs %}
+  <div class="table-responsive">
+    <table class="table sc-table mb-0">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>IP address</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td class="sc-text-sm sc-text-nowrap">{{ l.timestamp|date:"d M Y H:i" }}</td>
+          <td>
+            {% if l.actor %}
+            <div class="audit-actor-name">{{ l.actor.display_name|default:l.actor.username }}</div>
+            <div class="audit-actor-sub">{{ l.actor.username }}</div>
+            {% else %}
+            <span class="sc-text-muted">System</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="sc-badge audit-action-badge {% if 'fail' in l.action or 'lock' in l.action or 'deny' in l.action %}sc-badge-red{% elif 'success' in l.action or 'login' in l.action or 'logout' in l.action %}sc-badge-green{% elif 'reset' in l.action or 'change' in l.action %}sc-badge-amber{% else %}sc-badge-gray{% endif %}">
+              {{ l.action }}
+            </span>
+          </td>
+          <td class="sc-mono sc-text-sm">{{ l.target_model }}{% if l.target_id %} #{{ l.target_id }}{% endif %}</td>
+          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"—" }}</td>
+          <td class="sc-text-sm sc-text-muted audit-details-cell">
+            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}&mdash;{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="sc-empty p-5">
+    <i class="bi bi-shield-lock"></i>
+    No authentication events recorded yet.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

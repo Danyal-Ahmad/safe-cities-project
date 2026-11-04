@@ -139,9 +139,6 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('live-tracking/', views.live_tracking, name='live_tracking'),
 
-    path('live-tracking/ai-assist/', officer_views.ai_assist_frame, name='ai_assist_frame'),
-    path('live-tracking/ocr-crop/', officer_views.ocr_plate_crop, name='ocr_plate_crop'),
-    path('annotate/submit/', officer_views.submit_annotation, name='submit_annotation'),
 
     # --- Admin password reset (DIG-mediated flow) ---
     path('admin-resets/',                  views.admin_reset_request_list, name='admin_reset_request_list'),

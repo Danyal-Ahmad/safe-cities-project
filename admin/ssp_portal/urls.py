@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from admin.dig_portal import views as dig_views
-from admin.officer_portal import views as officer_views
+from admin.officer_portal.views import frame_timeline as officer_frame_timeline
 
 app_name = 'ssp_portal'
 
@@ -12,10 +12,6 @@ urlpatterns = [
     path('appeal/<int:appeal_id>/decide/', views.decide_appeal, name='decide_appeal'),
 
     path('challans/', dig_views.challan_list, name='challan_list'),
-    path('challan/<int:challan_id>/record-payment/', dig_views.record_payment, name='record_payment'),
-    path('challan/<int:challan_id>/verify-payment/', dig_views.verify_citizen_payment, name='verify_citizen_payment'),
-    path('challan/<int:challan_id>/mark-paid/', dig_views.mark_challan_paid, name='mark_challan_paid'),
-    path('challan/<int:challan_id>/mark-unpaid/', dig_views.mark_challan_unpaid, name='mark_challan_unpaid'),
     path('flagged/', dig_views.flagged_detections, name='flagged_detections'),
     path('blacklist/', dig_views.blacklist_list, name='blacklist_list'),
     path('blacklist/add/', dig_views.blacklist_add, name='blacklist_add'),
@@ -35,7 +31,6 @@ urlpatterns = [
 
     path('analytics/', dig_views.analytics, name='analytics'),
     path('reports/', dig_views.reports, name='reports'),
-    path('revenue/', dig_views.revenue_dashboard, name='revenue_dashboard'),
     path('vehicle-search/', dig_views.vehicle_search, name='vehicle_search'),
     path('flagged-detections/', dig_views.flagged_detections, name='flagged_detections_alias'),
     path('live-monitor/', dig_views.live_monitor, name='live_monitor'),
@@ -59,9 +54,6 @@ urlpatterns = [
     path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner, name='alerts_hub_delete_banner'),
 
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
-    path('live-tracking/timeline/', officer_views.frame_timeline, name='live_tracking_timeline'),
+    path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),
 
-    path('live-tracking/ai-assist/', officer_views.ai_assist_frame, name='ai_assist_frame'),
-    path('live-tracking/ocr-crop/', officer_views.ocr_plate_crop, name='ocr_plate_crop'),
-    path('annotate/submit/', officer_views.submit_annotation, name='submit_annotation'),
 ]

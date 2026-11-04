@@ -196,122 +196,17 @@ def admin_forgot_password(request):
     return render(request, 'auth/admin/admin_forgot_password.html', {'step': 'request'})
 
 
-def admin_reset_confirm(request, token):
-    from accounts.models import AdminPasswordResetRequest
-    try:
-        req = (AdminPasswordResetRequest.objects
-               .select_related('target_user', 'resolved_by')
-               .get(token=token))
-    except AdminPasswordResetRequest.DoesNotExist:
-        return render(request, 'auth/admin/admin_forgot_password.html', {
-            'step': 'invalid',
-        })
-
-    if req.status == AdminPasswordResetRequest.STATUS_RESOLVED:
-        return render(request, 'auth/admin/admin_forgot_password.html', {
-            'step': 'resolved',
-            'user_name': req.target_user.display_name,
-        })
-    if req.status == AdminPasswordResetRequest.STATUS_CANCELLED:
-        return render(request, 'auth/admin/admin_forgot_password.html', {
-            'step': 'invalid',
-        })
-    if req.is_expired():
-        return render(request, 'auth/admin/admin_forgot_password.html', {
-            'step': 'expired',
-            'user_name': req.target_user.display_name,
-        })
-    if not req.target_user.is_active:
-        return render(request, 'auth/admin/admin_forgot_password.html', {
-            'step': 'invalid',
-        })
-
-    if request.method == 'POST':
-        new_password = (request.POST.get('new_password') or '').strip()
-        confirm_password = (request.POST.get('confirm_password') or '').strip()
-        if not new_password:
-            messages.error(request, "New password is required.")
-        elif new_password != confirm_password:
-            messages.error(request, "Passwords do not match.")
-        elif len(new_password) < 12:
-            messages.error(request, "Password must be at least 12 characters.")
-        else:
-            try:
-                validate_password(new_password, user=req.target_user)
-            except ValidationError as ve:
-                for msg in ve.messages:
-                    messages.error(request, msg)
-                return render(request, 'auth/admin/admin_forgot_password.html', {
-                    'step': '2', 'token': token, 'user_name': req.target_user.display_name,
-                })
-            req.target_user.set_password(new_password)
-            req.target_user.save()
-            req.status = AdminPasswordResetRequest.STATUS_RESOLVED
-            req.resolved_at = timezone.now()
-            req.save(update_fields=['status', 'resolved_at'])
-            messages.success(request, "Password updated successfully! You can now sign in.")
-            return redirect('auth_portal:admin_login')
-
-        return render(request, 'auth/admin/admin_forgot_password.html', {
-            'step': '2', 'token': token, 'user_name': req.target_user.display_name,
-        })
-
-    return render(request, 'auth/admin/admin_forgot_password.html', {
-        'step': '2', 'token': token, 'user_name': req.target_user.display_name,
-    })
-
-
 def forgot_password(request):
-    """2-step citizen forgot password:
-       Step 1 (POST 'cnic'): verify user exists, if so show new-password form inline
-       Step 2 (POST 'new_password' + 'token'): actually reset the password
+    """Citizen forgot password.
+
+    Step 1: visitor submits a CNIC. If an active citizen account matches, a
+    single-use reset token is created and the reset link is DELIVERED to the
+    registered email address only. The token is never rendered into the
+    response, and the result message is identical whether or not the account
+    exists (anti-enumeration). Step 2 happens on /auth/citizen/reset/<token>/
+    (citizen_reset_confirm) after the visitor follows the emailed link.
     """
     if request.method == 'POST':
-        action = (request.POST.get('action') or 'verify_cnic').strip()
-
-        # Step 2: actually reset the password using the token issued in step 1
-        if action == 'reset_password':
-            token_str = (request.POST.get('token') or '').strip()
-            tok = _get_valid_token(token_str)
-            if not tok:
-                messages.error(request, "Session expired. Please verify your CNIC again.")
-                return render(request, 'auth/citizen/forgot_password.html', {'step': 'request'})
-
-            new_password = (request.POST.get('new_password') or '').strip()
-            confirm_password = (request.POST.get('confirm_password') or '').strip()
-
-            if not new_password:
-                messages.error(request, "New password is required.")
-                return _render_citizen_step2(request, tok)
-            if new_password != confirm_password:
-                messages.error(request, "Passwords do not match.")
-                return _render_citizen_step2(request, tok)
-            if len(new_password) < 8:
-                messages.error(request, "Password must be at least 8 characters.")
-                return _render_citizen_step2(request, tok)
-
-            try:
-                validate_password(new_password, user=tok.user)
-            except ValidationError as ve:
-                for msg in ve.messages:
-                    messages.error(request, msg)
-                return _render_citizen_step2(request, tok)
-
-            tok.user.set_password(new_password)
-            tok.user.save()
-            tok.used_at = timezone.now()
-            tok.save(update_fields=['used_at'])
-            AuditLog_object = _get_audit_log()
-            if AuditLog_object is not None:
-                try:
-                    AuditLog_object.write(request, 'auth.password_reset', 'User', tok.user.id,
-                                           method='citizen_self_service')
-                except Exception:
-                    pass
-            messages.success(request, "Password updated successfully! You can now sign in.")
-            return redirect('auth_portal:citizen_login')
-
-        # Step 1: verify CNIC
         cnic = (request.POST.get('cnic') or '').strip()
         cnic_digits = ''.join(ch for ch in cnic if ch.isdigit())
 
@@ -323,42 +218,30 @@ def forgot_password(request):
 
         user = User.objects.filter(cnic=cnic, role=User.USER, is_active=True).first()
         if not user:
-            # try with digits only
             user = User.objects.filter(cnic=cnic_digits, role=User.USER, is_active=True).first()
 
-        if not user:
-            # Don't reveal whether the CNIC exists or not; show generic error
-            messages.error(request,
-                "We could not find an active citizen account with that CNIC. "
-                "Please double-check your CNIC or sign up for a new account."
-            )
-            return render(request, 'auth/citizen/forgot_password.html', {
-                'step': 'request', 'cnic': cnic,
-            })
+        if user:
+            PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(used_at=timezone.now())
+            token = PasswordResetToken.objects.create(user=user)
+            token.ip_address = _client_ip(request)
+            token.save(update_fields=['ip_address'])
+            _send_reset_email(request, user, token, kind='citizen')
+            AuditLog_object = _get_audit_log()
+            if AuditLog_object is not None:
+                try:
+                    AuditLog_object.write(request, 'auth.reset_requested', 'User', user.id,
+                                          delivery='email')
+                except Exception:
+                    pass
 
-        # Invalidate previous tokens and issue a new one (short-lived, used in the same form)
-        PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(used_at=timezone.now())
-        token = PasswordResetToken.objects.create(user=user)
-        # Mark this as a short-lived "in-form" token, valid for 15 minutes
-        messages.success(request, "Account verified! Please set a new password below.")
-
-        return render(request, 'auth/citizen/forgot_password.html', {
-            'step': 'verified',
-            'cnic': cnic,
-            'user_name': user.display_name or 'Citizen',
-            'token': token.token,
-        })
+        messages.success(request, (
+            "If an active citizen account exists for that CNIC, a password "
+            "reset link has been sent to the registered email address. The "
+            "link is valid for %d hours." % RESET_TOKEN_TTL_HOURS
+        ))
+        return render(request, 'auth/citizen/forgot_password.html', {'step': 'request'})
 
     return render(request, 'auth/citizen/forgot_password.html', {'step': 'request'})
-
-
-def _render_citizen_step2(request, tok):
-    return render(request, 'auth/citizen/forgot_password.html', {
-        'step': 'verified',
-        'cnic': tok.user.cnic or '',
-        'user_name': tok.user.display_name or 'Citizen',
-        'token': tok.token,
-    })
 
 
 def citizen_reset_confirm(request, token):
@@ -395,12 +278,12 @@ def citizen_reset_confirm(request, token):
             return redirect('auth_portal:citizen_login')
 
         return render(request, 'auth/citizen/forgot_password.html', {
-            'step': '2', 'token': token, 'user_name': tok.user.display_name,
+            'step': 'verified', 'token': token, 'user_name': tok.user.display_name,
             'cnic': tok.user.cnic or '',
         })
 
     return render(request, 'auth/citizen/forgot_password.html', {
-        'step': '2', 'token': token, 'user_name': tok.user.display_name,
+        'step': 'verified', 'token': token, 'user_name': tok.user.display_name,
         'cnic': tok.user.cnic or '',
     })
 

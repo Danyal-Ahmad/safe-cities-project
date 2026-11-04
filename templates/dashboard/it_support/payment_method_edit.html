@@ -1,13 +1,229 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Payment Method{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Edit payment method</b>{% endblock %}
+{% block title %}{% if is_add %}Add Payment Method{% else %}Edit {{ pm.name }}{% endif %} — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-payment-method-edit.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Edit payment method</h1>
-<p class="sc-lead">Edit gateway configuration.</p>
+  <div>
+    <h1>
+      <i class="bi bi-credit-card me-2"></i>{% if is_add %}Add Payment Method{% else %}Edit Payment Method{% endif %}
+    </h1>
+    <p class="sc-lead">
+      {% if is_add %}Register a mobile wallet, card or gateway integration for citizen e-challan payments.{% else %}Update <strong>{{ pm.name }}</strong>{% if pm.provider %} ({{ pm.provider }}){% endif %} &mdash; credentials, status and transaction limits.{% endif %}
+    </p>
+    {% if not is_add %}
+    <div class="sc-flex sc-gap-2 sc-mt-2">
+      {% if pm.status == 'active' %}
+      <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active</span>
+      {% elif pm.status == 'maintenance' %}
+      <span class="sc-badge sc-badge-amber"><i class="bi bi-tools"></i>Maintenance</span>
+      {% else %}
+      <span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>Disabled</span>
+      {% endif %}
+      <span class="sc-badge sc-badge-blue sc-mono">{{ pm.environment|default:'sandbox' }}</span>
+    </div>
+    {% endif %}
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-btn"><i class="bi bi-arrow-left me-1"></i>All Methods</a>
+  </div>
 </div>
-</div>
-<div class="sc-card" style="max-width:720px;"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="save"><div class="sc-grid sc-grid-2"><div class="sc-form-group"><label>Name *</label><input type="text" name="name" value="{{ pm.name }}" required class="w-full"></div><div class="sc-form-group"><label>Provider *</label><input type="text" name="provider" value="{{ pm.provider }}" required class="w-full"></div></div><div class="sc-grid sc-grid-2"><div class="sc-form-group"><label>Type</label><select name="type" class="w-full"><option value="wallet">Wallet</option><option value="card">Card</option><option value="bank">Bank</option><option value="gateway">Gateway</option></select></div><div class="sc-form-group"><label>Status</label><select name="status" class="w-full"><option value="active">Active</option><option value="disabled">Disabled</option><option value="maintenance">Maintenance</option></select></div></div><div class="sc-form-group"><label>Merchant ID</label><input type="text" name="config_merchant_id" value="{{ pm.config.merchant_id|default:"" }}" class="w-full"></div><div class="sc-form-group"><label>Password / API secret</label><input type="password" name="config_password" class="w-full" autocomplete="new-password"></div><div class="sc-form-group"><label>Integrity salt / Hash key</label><input type="text" name="config_integrity_salt" value="{{ pm.config.integrity_salt|default:"" }}" class="w-full"></div><div class="sc-form-group"><label>Publishable key (cards)</label><input type="text" name="config_publishable_key" value="{{ pm.config.publishable_key|default:"" }}" class="w-full"></div><div class="sc-form-group"><label>Secret key (cards)</label><input type="password" name="config_secret_key" class="w-full" autocomplete="new-password"></div><div class="sc-form-group"><label>Environment</label><select name="tx_environment" class="w-full"><option value="sandbox">Sandbox</option><option value="live">Live</option></select></div><div class="sc-flex sc-gap-2"><button type="submit" class="sc-btn sc-btn-primary">Save</button><a class="sc-btn" href="{% url 'it_support_portal:payment_method_list' %}">Cancel</a></div></form></div>{% endblock %}
+
+<form method="post" action="" class="sc-card it-pm-form" data-pm-form>
+  {% csrf_token %}
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-sliders"></i>
+    <span>{% if is_add %}New Method{% else %}Method Settings{% endif %}</span>
+    {% if not is_add %}
+    <span class="ms-auto sc-text-xs sc-text-muted">created {{ pm.created_at|date:"d M Y" }} &middot; updated {{ pm.updated_at|date:"d M Y" }}</span>
+    {% endif %}
+  </div>
+  <div class="sc-card-body">
+    <div class="it-pm-section">
+      <div class="it-pm-section-t"><i class="bi bi-card-heading me-2"></i>Identity</div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="pmName">Method name <span class="sc-text-muted">*</span></label>
+            <input type="text" id="pmName" name="name" value="{{ pm.name }}" class="form-control" maxlength="100" placeholder="e.g. JazzCash" required>
+            <div class="sc-hint">Shown to citizens at checkout. Must be unique.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="pmProvider">Provider <span class="sc-text-muted">*</span></label>
+            <input type="text" id="pmProvider" name="provider" value="{{ pm.provider }}" class="form-control" maxlength="100" placeholder="JazzCash / EasyPaisa / Stripe" required>
+            <div class="sc-hint">The payment provider behind this method.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="pmType">Integration type</label>
+            <select id="pmType" name="type" class="form-select" data-pm-type-select>
+              {% for t in types %}
+              <option value="{{ t.0 }}" {% if pm.type == t.0 %}selected{% endif %}>{{ t.1 }}</option>
+              {% endfor %}
+            </select>
+            <div class="sc-hint">Bank transfer and cash are not supported. The form below adapts to the selected type.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="pmStatus">Status</label>
+            <select id="pmStatus" name="status" class="form-select">
+              {% for s in statuses %}
+              <option value="{{ s.0 }}" {% if pm.status == s.0 %}selected{% endif %}>{{ s.1 }}</option>
+              {% endfor %}
+            </select>
+            <div class="sc-hint">Only <b>active</b> methods are offered to citizens.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="it-pm-section">
+      <div class="it-pm-section-t"><i class="bi bi-key me-2"></i>Provider Configuration</div>
+
+      <div class="it-pm-group" data-pm-types="wallet">
+        <div class="it-pm-group-t"><i class="bi bi-wallet2 me-2"></i>Mobile wallet credentials</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgMerchant">Merchant ID</label>
+              <input type="text" id="cfgMerchant" name="config_merchant_id" value="{{ pm.config.merchant_id }}" class="form-control sc-mono" placeholder="PP_MERCHANT_ID">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgPassword">Password / API secret</label>
+              <input type="password" id="cfgPassword" name="config_password" value="{{ pm.config.password }}" class="form-control sc-mono" autocomplete="new-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgSalt">Integrity salt / hash key</label>
+              <input type="text" id="cfgSalt" name="config_integrity_salt" value="{{ pm.config.integrity_salt }}" class="form-control sc-mono" placeholder="used for secure hash generation">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgReturn">Return URL</label>
+              <input type="url" id="cfgReturn" name="config_return_url" value="{{ pm.config.return_url }}" class="form-control sc-mono" placeholder="https://safecity.fyp/portal/pay/return/">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="it-pm-group" data-pm-types="card">
+        <div class="it-pm-group-t"><i class="bi bi-credit-card-2-front me-2"></i>Card gateway keys</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgPub">Publishable key</label>
+              <input type="text" id="cfgPub" name="config_publishable_key" value="{{ pm.config.publishable_key }}" class="form-control sc-mono" placeholder="pk_test_&hellip; / pk_live_&hellip;">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgSecret">Secret key</label>
+              <input type="password" id="cfgSecret" name="config_secret_key" value="{{ pm.config.secret_key }}" class="form-control sc-mono" autocomplete="new-password" placeholder="sk_test_&hellip; / sk_live_&hellip;">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgWebhook">Webhook signing secret</label>
+              <input type="password" id="cfgWebhook" name="config_webhook_secret" value="{{ pm.config.webhook_secret }}" class="form-control sc-mono" autocomplete="new-password" placeholder="whsec_&hellip;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="it-pm-group" data-pm-types="gateway">
+        <div class="it-pm-group-t"><i class="bi bi-router me-2"></i>Gateway API access</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgApiKey">API key</label>
+              <input type="text" id="cfgApiKey" name="config_api_key" value="{{ pm.config.api_key }}" class="form-control sc-mono" placeholder="provider API key">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgApiSecret">API secret</label>
+              <input type="password" id="cfgApiSecret" name="config_api_secret" value="{{ pm.config.api_secret }}" class="form-control sc-mono" autocomplete="new-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgWhUrl">Webhook URL</label>
+              <input type="url" id="cfgWhUrl" name="config_webhook_url" value="{{ pm.config.webhook_url }}" class="form-control sc-mono" placeholder="https://provider.example/webhook">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm" for="cfgGwReturn">Return URL</label>
+              <input type="url" id="cfgGwReturn" name="config_return_url" value="{{ pm.config.return_url }}" class="form-control sc-mono" placeholder="https://safecity.fyp/portal/pay/return/">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="it-pm-section">
+      <div class="it-pm-section-t"><i class="bi bi-cash-coin me-2"></i>Transaction Settings</div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="txCurrency">Currency</label>
+            <input type="text" id="txCurrency" name="tx_currency" value="{{ pm.transaction_settings.currency|default:'PKR' }}" class="form-control sc-mono" maxlength="8">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="txEnv">Environment</label>
+            <select id="txEnv" name="tx_environment" class="form-select">
+              <option value="sandbox" {% if pm.transaction_settings.environment|default:'sandbox' == 'sandbox' %}selected{% endif %}>Sandbox (test)</option>
+              <option value="live" {% if pm.transaction_settings.environment|default:'sandbox' == 'live' %}selected{% endif %}>Live (production)</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="txSettle">Settlement days</label>
+            <input type="number" id="txSettle" name="tx_settlement_days" value="{{ pm.transaction_settings.settlement_days|default:2 }}" class="form-control" min="0" max="90">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="txMin">Minimum amount</label>
+            <input type="number" id="txMin" name="tx_min_amount" value="{{ pm.transaction_settings.min_amount|default:100 }}" class="form-control" min="0" step="0.01">
+            <div class="sc-hint">Smallest fine a citizen may pay through this method.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sc-form-group">
+            <label class="form-label sc-text-sm" for="txMax">Maximum amount</label>
+            <input type="number" id="txMax" name="tx_max_amount" value="{{ pm.transaction_settings.max_amount|default:1000000 }}" class="form-control" min="0" step="0.01">
+            <div class="sc-hint">Anything above this is rejected by the provider.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="it-pm-submit sc-flex sc-gap-2 sc-flex-wrap">
+      <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-check2-circle me-1"></i>{% if is_add %}Create Method{% else %}Save Changes{% endif %}</button>
+      <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-btn">Cancel</a>
+      {% if not is_add %}
+      <span class="sc-hint ms-auto align-self-center">Deleting is done from the methods list.</span>
+      {% endif %}
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-payment-method-edit.js' %}" defer></script>
+{% endblock %}

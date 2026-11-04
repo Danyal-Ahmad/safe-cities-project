@@ -5,193 +5,7 @@
 {% block body_class %}public-home{% endblock %}
 
 {% block extra_head %}
-<style>
-  body.public-home { background: #E8EEF7; font-size: 14px; }
-
-  .pub-shell { max-width: 1240px; margin: 0 auto; padding: 18px 20px 24px; display: flex; flex-direction: column; min-height: 100vh; box-sizing: border-box; }
-  .pub-footer { text-align: center; padding: 22px; color: #8A94B0; font-size: 0.78rem; margin-top: auto; }
-
-  /* ===== Header ===== */
-  .pub-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 16px 24px;
-    margin-bottom: 18px;
-    background: linear-gradient(115deg, #1E4E9C 0%, #2757A8 55%, #3B6FC4 100%);
-    border-radius: 20px;
-    box-shadow: 0 12px 32px rgba(30, 78, 156, 0.30);
-    color: #FFFFFF;
-    position: relative;
-    overflow: hidden;
-  }
-  .pub-header::after {
-    content: '';
-    position: absolute;
-    right: -70px; top: -90px;
-    width: 320px; height: 320px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(74,123,200,0.5), transparent 70%);
-    pointer-events: none;
-  }
-  .pub-brand { display: flex; align-items: center; gap: 14px; position: relative; z-index: 2; }
-  .pub-brand img {
-    width: 54px; height: 54px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.94);
-    padding: 5px;
-    object-fit: contain;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-  }
-  .pub-brand-text { display: flex; flex-direction: column; }
-  .pub-brand-title { font-size: 1.45rem; font-weight: 800; letter-spacing: 0.02em; }
-  .pub-brand-sub { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.22em; color: #C9DAF5; }
-  .pub-signin {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 9px 20px;
-    border-radius: 999px;
-    background: #FFFFFF;
-    color: #16294E;
-    font-weight: 700;
-    font-size: 0.85rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-    position: relative; z-index: 2;
-  }
-  .pub-signin:hover { background: #EAF1FB; }
-
-  /* ===== Search hero ===== */
-  .pub-hero {
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 0;
-    background: #FFFFFF;
-    border: 1px solid #E4E8EF;
-    border-radius: 20px;
-    box-shadow: 0 4px 16px rgba(15,37,87,0.06);
-    overflow: hidden;
-    margin-bottom: 18px;
-  }
-  .pub-hero-form { padding: 34px 36px; }
-  .pub-hero-form h1 { font-size: 1.6rem; font-weight: 800; color: #0F2557; display: flex; align-items: center; gap: 12px; }
-  .pub-hero-form h1 i {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 50px; height: 50px; border-radius: 14px;
-    background: #22A45D; color: #fff; font-size: 1.3rem;
-    box-shadow: 0 6px 16px rgba(34,164,93,0.3);
-  }
-  .pub-hero-sub { color: #5B6B85; font-size: 0.95rem; margin: 10px 0 22px; }
-  .pub-field label {
-    display: block; font-size: 0.7rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.09em;
-    color: #5B6B85; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .pub-field label .hint { text-transform: none; letter-spacing: 0; font-weight: 500; color: #8A94B0; font-size: 0.68rem; }
-  .pub-field label .req { color: #E23B4E; }
-  .pub-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-  .pub-field input {
-    width: 100%; height: 44px; padding: 0 16px;
-    border: 1px solid #D3DAE7; border-radius: 12px;
-    font-size: 0.95rem; color: #33415C; outline: none;
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-  .pub-field input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.10); }
-  .pub-search-btn {
-    margin-top: 18px;
-    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    padding: 12px 30px;
-    border: none; border-radius: 999px;
-    background: #16294E; color: #fff;
-    font-size: 0.92rem; font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(22,41,78,0.25);
-    transition: background .15s ease, transform .1s ease;
-  }
-  .pub-search-btn:hover { background: #1E3763; }
-  .pub-search-btn:active { transform: translateY(1px); }
-  .pub-no-record {
-    margin-top: 16px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: #FDF3F5;
-    border: 1px solid #F3C6CC;
-    color: #C42C3E;
-    font-weight: 600;
-    font-size: 0.88rem;
-  }
-  .pub-hero-art {
-    position: relative;
-    background: linear-gradient(150deg, #EEF3FC, #E4EDF9);
-    display: flex; align-items: flex-end; justify-content: center;
-    overflow: hidden;
-  }
-  .pub-hero-art::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg, #FFFFFF 0%, rgba(255,255,255,0.35) 22%, rgba(255,255,255,0) 55%);
-    pointer-events: none;
-  }
-  .pub-hero-art img { width: 100%; display: block; object-fit: cover; height: 100%; mix-blend-mode: multiply; opacity: 0.92; }
-
-  /* ===== Results table ===== */
-  .pub-results { background: #FFFFFF; border: 1px solid #E4E8EF; border-radius: 20px; box-shadow: 0 4px 16px rgba(15,37,87,0.06); padding: 24px; }
-  .pub-results-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .pub-results-head h2 { font-size: 1.2rem; font-weight: 800; color: #0F2557; display: flex; align-items: center; gap: 10px; }
-  .pub-results-head h2 i { color: #2563EB; }
-  .pub-back {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 7px 16px; border-radius: 999px;
-    border: 1px solid #E4E8EF; background: #fff;
-    color: #16294E; font-weight: 600; font-size: 0.8rem;
-  }
-  .pub-back:hover { background: #F1F4F9; }
-  .pub-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-  .pub-table th {
-    text-align: left; padding: 11px 13px;
-    background: #F1F4F9; color: #5B6B85;
-    font-size: 0.67rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    border-bottom: 1px solid #E4E8EF; white-space: nowrap;
-  }
-  .pub-table td { padding: 11px 13px; border-bottom: 1px solid #EDF1F7; color: #33415C; vertical-align: middle; }
-  .pub-table tbody tr:hover { background: #F6F9FD; }
-  .pub-table tbody tr:last-child td { border-bottom: none; }
-  .challan-badge {
-    font-family: ui-monospace, monospace; font-weight: 700;
-    background: #EEF3FC; color: #2E5FB7;
-    border-radius: 8px; padding: 3px 9px; font-size: 0.75rem;
-  }
-  .paid-yes { color: #22A45D; font-weight: 700; }
-  .paid-no { color: #E23B4E; font-weight: 700; }
-  .row-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 13px; border-radius: 999px;
-    font-size: 0.74rem; font-weight: 700;
-    text-decoration: none; margin-right: 4px;
-  }
-  .dl-btn { background: #16294E; color: #fff; }
-  .dl-btn:hover { background: #1E3763; color: #fff; }
-  .rv-btn { background: #EEF3FC; color: #2E5FB7; border: 1px solid #C7D6F2; }
-  .rv-btn:hover { background: #E0EAF9; }
-
-  /* ===== Ads ===== */
-  .pub-ads { margin-top: 18px; }
-  .pub-ads-title {
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.14em; color: #8A94B0; margin-bottom: 10px;
-  }
-
-  .pub-footer { text-align: center; padding: 22px; color: #8A94B0; font-size: 0.78rem; }
-
-  @media (max-width: 900px) {
-    .pub-hero { grid-template-columns: 1fr; }
-    .pub-hero-art { display: none; }
-    .pub-fields { grid-template-columns: 1fr; }
-    .pub-header { padding: 14px 18px; }
-    .pub-brand-title { font-size: 1.15rem; }
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -228,11 +42,11 @@
         <div class="pub-fields">
           <div class="pub-field">
             <label>Plate Number <span class="req">*</span></label>
-            <input type="text" name="plate" placeholder="ABC 000 / ABC-00-0000" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
+            <input type="text" name="plate" placeholder="ABC 000 / ABC-00-0000" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
           </div>
           <div class="pub-field">
             <label>CNIC <span class="req">*</span></label>
-            <input type="text" name="cnic" placeholder="13 digits · 1234567890123" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15" oninput="formatCNIC(this)">
+            <input type="text" name="cnic" placeholder="13 digits · 1234567890123" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
           </div>
         </div>
         <button type="submit" class="pub-search-btn"><i class="bi bi-search"></i> Search Challan</button>
@@ -290,7 +104,7 @@
             <td>{{ c.vehicle_year|default:"—" }}</td>
             <td>{% if c.payment_status == 'PAID' %}<span class="paid-yes">Yes</span>{% else %}<span class="paid-no">No</span>{% endif %}</td>
             <td>
-              <a href="{% url 'challans:challan_pdf' c.id %}?token={{ c.ticket_no }}" class="row-btn dl-btn" target="_blank"><i class="bi bi-download"></i> Download</a>
+              <a href="{% url 'challans:challan_pdf' c.id %}?token={{ c.signed_token }}" class="row-btn dl-btn" target="_blank"><i class="bi bi-download"></i> Download</a>
               <a href="{% url 'challans:challan_detail' c.id %}" class="row-btn rv-btn"><i class="bi bi-eye"></i> Review</a>
             </td>
           </tr>
@@ -314,14 +128,9 @@
   <footer class="pub-footer">&copy; 2026 SAFE CITY &middot; E-Challan Enforcement Platform &middot; All Rights Reserved</footer>
 </div>
 
-<script>
-function formatCNIC(input){
-  var v=input.value.replace(/\D/g,'').substring(0,13);
-  var f='';
-  if(v.length>5) f=v.substring(0,5)+'-'+v.substring(5);
-  else f=v;
-  if(v.length>12) f=v.substring(0,5)+'-'+v.substring(5,12)+'-'+v.substring(12);
-  input.value=f;
-}
-</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/public-home.js' %}" defer></script>
+<script src="{% static 'js/pages/public-ads.js' %}" defer></script>
 {% endblock %}

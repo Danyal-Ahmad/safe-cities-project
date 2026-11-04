@@ -1,13 +1,232 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load perm_tags %}
 {% load humanize %}
-{% block title %}Cameras{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Cameras</b>{% endblock %}
+{% block title %}Camera Network — Safe City{% endblock %}
+{% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-camera-list.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="sc-page-hero">
-<div>
-<h1>Cameras</h1>
-<p class="sc-lead">All registered cameras.</p>
+  <div>
+    <h1><i class="bi bi-camera-video me-2"></i>Camera Network</h1>
+    <p class="sc-lead">
+      Registry of enforcement cameras across the city — mounting direction, enforcement side,
+      live health and enrollment state.
+    </p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url portal_ns|add:':camera_health' %}" class="sc-btn">
+      <i class="bi bi-heart-pulse me-1"></i>Health Dashboard
+    </a>
+    {% if can_manage or request.user|has_perm:"edit_camera" %}
+    <a href="{% url portal_ns|add:':camera_add' %}" class="sc-btn sc-btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Add Camera
+    </a>
+    {% endif %}
+  </div>
 </div>
+
+<!-- ============ KPI ROW ============ -->
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-camera-video"></i></div>
+    <div class="sc-kpi-label">Registered Cameras</div>
+    <div class="sc-kpi-value">{{ cameras|length|intcomma }}</div>
+    <div class="sc-kpi-foot">all time</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-broadcast"></i></div>
+    <div class="sc-kpi-label">Online</div>
+    <div class="sc-kpi-value">{{ online_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">active with media source</div>
+  </div>
+  <div class="sc-kpi sc-kpi-danger">
+    <div class="sc-kpi-icon"><i class="bi bi-camera-video-off"></i></div>
+    <div class="sc-kpi-label">Offline / Inactive</div>
+    <div class="sc-kpi-value">{{ offline_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">needs IT attention</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-play-circle"></i></div>
+    <div class="sc-kpi-label">With Media Source</div>
+    <div class="sc-kpi-value">{{ with_video|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">rtsp / snapshot url set</div>
+  </div>
 </div>
-<div class="sc-page-hero"><div><h1>Cameras</h1><p class="sc-lead">All registered cameras.</p></div></div><div class="sc-flex sc-justify-end sc-mb-3"><a class="sc-btn sc-btn-primary" href="{% url 'dig:camera_add' %}"><i class="bi bi-plus-circle"></i> Add camera</a></div><div class="sc-card">{% if cameras %}<table class="sc-table sc-data-table"><thead><tr><th>ID</th><th>Location</th><th>Direction</th><th>Health</th><th>Streaming</th><th>Last frame</th><th>Active</th><th>Action</th></tr></thead><tbody>{% for c in cameras %}<tr><td class="sc-mono"><a href="{% url 'dig:camera_edit' c.id %}">{{ c.camera_id }}</a></td><td>{{ c.location }}</td><td>{{ c.get_legal_direction_display|default:c.legal_direction }}</td><td>{% if c.health_status == 'online' %}<span class="sc-badge sc-badge-ok">Online</span>{% elif c.health_status == 'offline' %}<span class="sc-badge sc-badge-red">Offline</span>{% else %}<span class="sc-badge sc-badge-amber">Unknown</span>{% endif %}</td><td>{% if c.is_streaming %}<span class="sc-badge sc-badge-ok">Yes</span>{% else %}<span class="sc-badge sc-badge-gray">No</span>{% endif %}</td><td class="sc-text-sm">{{ c.last_frame_at|date:"d M H:i"|default:"-" }}</td><td>{% if c.is_active %}<span class="sc-badge sc-badge-ok">Yes</span>{% else %}<span class="sc-badge sc-badge-gray">No</span>{% endif %}</td><td><form method="post" action="{% url 'dig:camera_toggle' c.id %}" class="d-inline">{% csrf_token %}<button type="submit" class="sc-btn sc-btn-sm">Toggle</button></form></td></tr>{% empty %}<tr><td colspan="8" class="sc-empty">No cameras.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No cameras.</div>{% endif %}</div>{% endblock %}
+
+<!-- ============ REGISTRY ============ -->
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-list-ul"></i> Camera Registry
+    </span>
+    <span class="sc-badge sc-badge-blue" data-count-badge>{{ cameras|length }} camera{{ cameras|length|pluralize }}</span>
+  </div>
+
+  <div class="sc-card-body">
+
+    <!-- Client-side quick filters (registry is rendered in full) -->
+    <div class="cam-filter-bar" data-camera-filters>
+      <div class="cam-filter-search">
+        <i class="bi bi-search"></i>
+        <input type="search" id="camSearch" placeholder="Filter by camera ID or location…"
+               aria-label="Filter cameras" autocomplete="off" data-camera-search>
+      </div>
+      <select class="cam-filter-select" aria-label="Health status" data-camera-health-filter>
+        <option value="">All health states</option>
+        <option value="online">Online</option>
+        <option value="degraded">Degraded</option>
+        <option value="offline">Offline</option>
+        <option value="unknown">Unknown</option>
+      </select>
+      <select class="cam-filter-select" aria-label="Active state" data-camera-active-filter>
+        <option value="">Active &amp; inactive</option>
+        <option value="active">Active only</option>
+        <option value="inactive">Inactive only</option>
+      </select>
+      <button type="button" class="sc-btn sc-btn-sm" data-camera-filter-reset>
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+      </button>
+    </div>
+
+    {% if cameras %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table" id="cameraTable">
+        <thead>
+          <tr>
+            <th>Camera ID</th>
+            <th>Location</th>
+            <th>Mount Direction</th>
+            <th>Enforcement Side</th>
+            <th>Health</th>
+            <th>Enrollment</th>
+            <th>Streaming</th>
+            <th>Last Frame</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cameras %}
+          <tr data-camera-row
+              data-camera-id="{{ c.camera_id|lower }}"
+              data-location="{{ c.location|lower }}"
+              data-health="{{ c.health_status }}"
+              data-active="{% if c.is_active %}active{% else %}inactive{% endif %}">
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="cam-id-icon"><i class="bi bi-camera-video"></i></span>
+                <span class="sc-mono fw-bold">{{ c.camera_id }}</span>
+              </div>
+            </td>
+            <td class="cam-location">{{ c.location|default:"—" }}</td>
+            <td>
+              {% if c.legal_direction %}
+              <span class="sc-badge sc-badge-blue cam-dir-badge">
+                <i class="bi bi-signpost-split"></i>{{ c.get_legal_direction_display }}
+              </span>
+              {% else %}<span class="sc-text-muted">—</span>{% endif %}
+            </td>
+            <td>
+              <span class="sc-badge {% if c.violation_side == 'front' %}sc-badge-purple{% else %}sc-badge-teal{% endif %}">
+                <i class="bi bi-arrow-{% if c.violation_side == 'front' %}right{% else %}left{% endif %}"></i>
+                {{ c.get_violation_side_display|default:c.violation_side }}
+              </span>
+            </td>
+            <td>
+              <span class="cam-health-chip cam-health-{{ c.health_status|default:'unknown' }}">
+                <span class="cam-health-dot"></span>
+                {{ c.health_status|default:'unknown'|capfirst }}
+              </span>
+            </td>
+            <td>
+              {% if c.is_enrolled %}
+                <span class="sc-badge sc-badge-ok"><i class="bi bi-patch-check"></i>Enrolled</span>
+              {% else %}
+                <span class="sc-badge sc-badge-gray"><i class="bi bi-hourglass"></i>Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if c.is_streaming %}
+                <span class="sc-badge sc-badge-teal"><i class="bi bi-play-circle"></i>Live</span>
+              {% else %}
+                <span class="sc-badge sc-badge-gray"><i class="bi bi-pause-circle"></i>Paused</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-sm">
+              {% if c.last_frame_at %}
+                {{ c.last_frame_at|date:"d M Y, H:i" }}
+              {% else %}
+                <span class="sc-text-faint">No frames yet</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if c.is_active %}
+                <span class="sc-badge sc-badge-ok"><i class="bi bi-power"></i>Active</span>
+              {% else %}
+                <span class="sc-badge sc-badge-danger"><i class="bi bi-power"></i>Disabled</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="sc-flex sc-justify-end sc-gap-2 cam-actions">
+                <a href="{% url portal_ns|add:':camera_health' %}" class="sc-btn sc-btn-sm" title="Health dashboard">
+                  <i class="bi bi-heart-pulse"></i><span class="cam-action-label"> Health</span>
+                </a>
+                {% if can_manage or request.user|has_perm:"edit_camera" %}
+                <a href="{% url portal_ns|add:':camera_edit' c.id %}" class="sc-btn sc-btn-sm sc-btn-outline" title="Edit camera">
+                  <i class="bi bi-pencil-square"></i><span class="cam-action-label"> Edit</span>
+                </a>
+                <form method="post" action="{% url portal_ns|add:':camera_toggle' c.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="sc-btn sc-btn-sm {% if c.is_active %}sc-btn-danger{% else %}sc-btn-success{% endif %}"
+                          title="{% if c.is_active %}Deactivate camera{% else %}Activate camera{% endif %}">
+                    <i class="bi bi-toggle-{% if c.is_active %}on{% else %}off{% endif %}"></i>
+                    <span class="cam-action-label">{% if c.is_active %} Disable{% else %} Enable{% endif %}</span>
+                  </button>
+                </form>
+                {% else %}
+                <span class="cam-readonly-note" title="Camera configuration is managed by IT Support">
+                  <i class="bi bi-eye"></i> Status only
+                </span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cam-filter-empty sc-empty" data-camera-empty hidden>
+      <i class="bi bi-funnel"></i>
+      No cameras match the current filters.
+    </div>
+
+    <p class="sc-hint mt-2 mb-0">
+      <i class="bi bi-info-circle me-1"></i>
+      Direction shows the physical mounting (N/S/E/W); enforcement side is the vehicle side the AI
+      classifier treats as a wrong-way violation at that camera.
+      {% if not can_manage %}Camera configuration is restricted to IT Support — this view is read-only for command staff.{% endif %}
+    </p>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-camera-video-off"></i>
+      No cameras registered yet.
+      {% if can_manage or request.user|has_perm:"edit_camera" %}
+      <p class="mt-2"><a href="{% url portal_ns|add:':camera_add' %}" class="sc-btn sc-btn-primary sc-btn-sm"><i class="bi bi-plus-circle me-1"></i>Enroll the first camera</a></p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-camera-list.js' %}" defer></script>
+{% endblock %}

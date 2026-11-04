@@ -5,9 +5,7 @@
 {% block body_class %}page-dig{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-<style>
-  #heatmap-map { height: 520px; width: 100%; border-radius: 0 0 8px 8px; }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/dig-heatmap.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -35,7 +33,7 @@
         <span>Challan Density Map</span>
       </div>
       <div class="p-0">
-        <div id="heatmap-map"></div>
+        <div id="heatmap-map" data-camera-markers="{{ camera_markers_json|default:'[]' }}" data-heat-points="{{ heatmap_data_json|default:'[]' }}"></div>
       </div>
     </div>
   </div>
@@ -74,27 +72,5 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" crossorigin="anonymous"></script>
-<script>
-(function() {
-  const heatPoints = {{ heat_points|default:"[]"|safe }};
-  const map = L.map('heatmap-map').setView([31.5497, 74.3436], 12);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  if (heatPoints.length && window.L.heatLayer) {
-    L.heatLayer(heatPoints, {
-      radius: 28, blur: 18, maxZoom: 16,
-      gradient: { 0.2: '#4ade80', 0.5: '#fbbf24', 0.8: '#f87171', 1.0: '#dc2626' }
-    }).addTo(map);
-  } else if (!heatPoints.length) {
-    const noData = document.createElement('div');
-    noData.className = 'sc-empty p-4 text-center';
-    noData.innerHTML = '<i class="bi bi-map" style="font-size:2rem;"></i><br>No GPS data yet. Add lat/lng to cameras.';
-    document.getElementById('heatmap-map').replaceWith(noData);
-  }
-})();
-</script>
+<script src="{% static 'js/pages/dig-heatmap.js' %}" defer></script>
 {% endblock %}

@@ -1,13 +1,324 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Detection #{{ detection.id }}{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Detection #{{ detection.id }}</b>{% endblock %}
+{% block title %}Detection #{{ detection.id }} — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-detection-detail.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Detection #{{ detection.id }}</h1>
-<p class="sc-lead">{{ detection.effective_plate|default:'—' }} · {{ detection.get_status_display }}</p>
+  <div>
+    <h1><i class="bi bi-bullseye"></i> Detection #{{ detection.id }} &mdash; {{ detection.effective_plate|default:"Unread Plate" }}</h1>
+    <p class="sc-lead">
+      {% if detection.camera %}{{ detection.camera.camera_id }}{% if detection.camera.location %} &middot; {{ detection.camera.location }}{% endif %}{% else %}No camera assigned{% endif %}
+      &middot; detected {{ detection.created_at|date:"d M Y, H:i" }}
+      &middot; pipeline {{ detection.ai_workflow_version|default:"v1" }}
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-items-center sc-gap-2">
+    {% if detection.status == 'confirmed' %}
+      <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> {{ detection.get_status_display }}</span>
+    {% elif detection.status == 'rejected' %}
+      <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> {{ detection.get_status_display }}</span>
+    {% elif detection.status == 'flagged_for_dig' %}
+      <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> {{ detection.get_status_display }}</span>
+    {% else %}
+      <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> {{ detection.get_status_display }}</span>
+    {% endif %}
+    <a href="{% url 'officer_portal:review_queue' %}" class="sc-btn sc-btn-sm"><i class="bi bi-inbox"></i> Review Queue</a>
+    <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-collection"></i> All Detections</a>
+  </div>
 </div>
+
+{% if detection.status != 'pending_review' %}
+<div class="sc-banner {% if detection.status == 'confirmed' %}sc-banner-success{% elif detection.status == 'rejected' %}sc-banner-danger{% else %}sc-banner-warn{% endif %}">
+  <i class="bi bi-clipboard-check"></i>
+  <div>
+    <strong>{{ detection.get_status_display }}</strong> &mdash;
+    reviewed by {{ detection.reviewed_by.display_name|default:detection.reviewed_by|default:"unknown officer" }}{% if detection.reviewed_at %} on {{ detection.reviewed_at|date:"d M Y, H:i" }}{% endif %}.
+    {% if detection.review_notes %}<br><span class="sc-text-sm">Review notes: {{ detection.review_notes }}</span>{% endif %}
+  </div>
 </div>
-{% include "dashboard/officer/_detection_detail.html" %}{% endblock %}
+{% endif %}
+
+<div class="row g-4">
+  {# ============ LEFT: evidence images + AI extraction ============ #}
+  <div class="col-lg-7">
+    <div class="sc-card">
+      <div class="sc-card-head">
+        <span><i class="bi bi-camera-fill"></i> Evidence Images</span>
+        {% with ev=detection.evidence_summary %}
+          {% if ev.total %}
+            <span class="sc-badge {% if ev.all_passed %}sc-badge-ok{% else %}sc-badge-amber{% endif %}">
+              <i class="bi bi-shield-fill-check"></i> {{ ev.passed }}/{{ ev.total }} checks
+            </span>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div class="sc-evidence-grid">
+        <figure class="sc-evidence-figure">
+          <figcaption><i class="bi bi-image"></i> Raw Frame</figcaption>
+          <div class="sc-evidence-imgbox">
+            {% if detection.raw_image %}
+              <img class="sc-evidence-img" src="{{ detection.raw_image.url }}"
+                   alt="Raw camera frame for detection #{{ detection.id }}" data-img-fallback>
+            {% else %}
+              <div class="sc-evidence-missing"><i class="bi bi-camera-video-off"></i><span>No raw frame stored</span></div>
+            {% endif %}
+          </div>
+        </figure>
+        <figure class="sc-evidence-figure">
+          <figcaption><i class="bi bi-upc-scan"></i> Effective Plate Crop</figcaption>
+          <div class="sc-evidence-imgbox sc-evidence-plate-box">
+            {% if detection.effective_plate_image %}
+              <img class="sc-evidence-img" src="{{ detection.effective_plate_image.url }}"
+                   alt="Plate crop for detection #{{ detection.id }}" data-img-fallback>
+            {% else %}
+              <div class="sc-evidence-missing"><i class="bi bi-upc-scan"></i><span>No plate crop</span></div>
+            {% endif %}
+          </div>
+          <div class="sc-plate-display">{{ detection.effective_plate|default:"UNREAD" }}</div>
+        </figure>
+      </div>
+    </div>
+
+    <div class="sc-card">
+      <div class="sc-card-head"><span><i class="bi bi-cpu-fill"></i> AI Extraction</span></div>
+      <dl class="sc-meta-list">
+        <div class="sc-meta-row">
+          <dt>Detected Plate</dt>
+          <dd class="sc-mono sc-plate-cell">{{ detection.effective_plate|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Detected Violation</dt>
+          <dd>
+            {% if detection.ai_detected_violation %}
+              <span class="sc-badge sc-badge-amber"><i class="bi bi-exclamation-triangle-fill"></i> Wrong Way</span>
+            {% else %}
+              <span class="sc-badge sc-badge-muted"><i class="bi bi-check-circle"></i> No violation</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>AI Confidence</dt>
+          <dd>
+            {% if detection.ai_confidence %}
+              <div class="sc-flex sc-items-center sc-gap-2">
+                <span class="sc-conf-meter">
+                  <span class="sc-conf-fill {% if detection.ai_confidence >= 0.85 %}sc-conf-high{% elif detection.ai_confidence >= 0.6 %}sc-conf-mid{% else %}sc-conf-low{% endif %}" data-conf-width="{% widthratio detection.ai_confidence 1 100 %}"></span>
+                </span>
+                <strong class="sc-mono">{{ detection.ai_confidence|floatformat:2 }}</strong>
+              </div>
+            {% else %}—{% endif %}
+          </dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Side Classification</dt>
+          <dd>{{ detection.get_ai_side_classification_display|default:"—" }}</dd>
+        </div>
+        {% if detection.ai_province or detection.ai_series or detection.ai_registration_year %}
+        <div class="sc-meta-row">
+          <dt>Plate Parsing</dt>
+          <dd class="sc-text-sm">
+            Province: <strong>{{ detection.ai_province|default:"—" }}</strong>
+            &middot; Series: <strong>{{ detection.ai_series|default:"—" }}</strong>
+            &middot; Year: <strong>{{ detection.ai_registration_year|default:"—" }}</strong>
+          </dd>
+        </div>
+        {% endif %}
+        <div class="sc-meta-row">
+          <dt>Source Camera</dt>
+          <dd>
+            {% if detection.camera %}
+              {{ detection.camera.camera_id }}{% if detection.camera.location %} <span class="sc-text-muted">&middot; {{ detection.camera.location }}</span>{% endif %}
+            {% else %}—{% endif %}
+          </dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Detected At</dt>
+          <dd>{{ detection.created_at|date:"d M Y, H:i" }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  {# ============ RIGHT: 5-check evidence panel ============ #}
+  <div class="col-lg-5">
+    {% with ev=detection.evidence_summary %}
+    <div class="sc-card sc-evidence-card h-100">
+      <div class="sc-card-head">
+        <span><i class="bi bi-shield-lock-fill"></i> Hard Security Checks</span>
+        {% if ev.total %}
+          <span class="sc-badge {% if ev.all_passed %}sc-badge-ok{% else %}sc-badge-amber{% endif %}">
+            {% if ev.all_passed %}<i class="bi bi-patch-check-fill"></i>{% else %}<i class="bi bi-exclamation-triangle-fill"></i>{% endif %}
+            {{ ev.passed }}/{{ ev.total }} passed
+          </span>
+        {% else %}
+          <span class="sc-badge sc-badge-muted">none recorded</span>
+        {% endif %}
+      </div>
+
+      {% if ev.checks %}
+        <div class="sc-evidence-list">
+          {% for c in ev.checks %}
+          <div class="sc-evidence-check {% if c.passed %}sc-evidence-pass{% else %}sc-evidence-fail{% endif %}">
+            <div class="sc-evidence-check-head">
+              <span class="sc-evidence-check-name">
+                <i class="bi {% if c.passed %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i>
+                {% if c.check == 'plate_readability' %}Plate Readability
+                {% elif c.check == 'frame_consistency' %}Frame Consistency
+                {% elif c.check == 'violation_logic' %}Violation Logic
+                {% elif c.check == 'image_evidence' %}Image Evidence
+                {% elif c.check == 'chain_integrity' %}Chain Integrity
+                {% else %}{{ c.check|capfirst }}{% endif %}
+              </span>
+              {% if c.passed %}
+                <span class="sc-badge sc-badge-ok">PASS</span>
+              {% else %}
+                <span class="sc-badge sc-badge-red">FAIL</span>
+              {% endif %}
+            </div>
+            <p class="sc-evidence-check-detail">{{ c.detail|default:"No detail recorded." }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="sc-empty">
+          <i class="bi bi-shield-slash"></i>
+          No evidence checks were recorded for this detection.
+        </div>
+      {% endif %}
+
+      <div class="sc-evidence-meta">
+        <div class="sc-evidence-meta-item">
+          <span class="sc-evidence-meta-label"><i class="bi bi-link-45deg"></i> Track ID</span>
+          <span class="sc-mono">{{ detection.track_id|default:"—" }}</span>
+        </div>
+        <div class="sc-evidence-meta-item">
+          <span class="sc-evidence-meta-label"><i class="bi bi-film"></i> Track Frames</span>
+          <span class="sc-mono">{{ detection.track_frames|default:0 }}</span>
+        </div>
+        <div class="sc-evidence-meta-item">
+          <span class="sc-evidence-meta-label"><i class="bi bi-activity"></i> Track Consistency</span>
+          <span class="sc-mono">{{ detection.track_consistency|floatformat:2 }}</span>
+          <span class="sc-text-faint sc-text-xs">({% widthratio detection.track_consistency 1 100 %}%)</span>
+        </div>
+        <div class="sc-evidence-meta-item sc-evidence-meta-wide">
+          <span class="sc-evidence-meta-label"><i class="bi bi-hash"></i> Evidence Hash (SHA-256)</span>
+          <span class="sc-flex sc-items-center sc-gap-2">
+            <span class="sc-mono sc-evidence-hash">{% if ev.hash %}{{ ev.hash }}{% else %}—{% endif %}</span>
+            {% if ev.hash %}<button type="button" class="sc-btn sc-btn-sm" data-copy-value="{{ ev.hash }}" title="Copy evidence hash"><i class="bi bi-clipboard"></i> Copy</button>{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+  </div>
+</div>
+
+<div class="row g-4">
+  {# ============ LEFT: notes ============ #}
+  <div class="col-lg-7">
+    <div class="sc-card h-100">
+      <div class="sc-card-head">
+        <span><i class="bi bi-journal-text"></i> Review Notes</span>
+        <span class="sc-badge sc-badge-muted">{{ notes|length|default:0 }} note{{ notes|length|pluralize }}</span>
+      </div>
+      {% if notes %}
+        <ul class="sc-notes-list">
+          {% for n in notes %}
+          <li class="sc-note-item">
+            <div class="sc-note-head">
+              <span><i class="bi bi-person-badge"></i> <strong>{{ n.author.display_name|default:n.author|default:"Unknown" }}</strong></span>
+              <span class="sc-note-time"><i class="bi bi-clock"></i> {{ n.created_at|date:"d M Y, H:i" }}</span>
+            </div>
+            <p class="sc-note-body">{{ n.note }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="sc-empty sc-notes-empty">
+          <i class="bi bi-chat-left-dots"></i>
+          No review notes yet. Add the first internal note below.
+        </div>
+      {% endif %}
+      <form method="post" action="{% url 'officer_portal:add_review_note' detection.id %}"
+            class="sc-note-form" data-notes-form data-notes-min="5">
+        {% csrf_token %}
+        <label class="sc-form-label" for="noteInput"><i class="bi bi-plus-circle"></i> Add internal note</label>
+        <textarea id="noteInput" name="note" rows="2" class="sc-form-control"
+                  placeholder="Internal observation for the audit trail (min 5 characters)&hellip;"
+                  data-notes-input data-notes-min="5" required></textarea>
+        <div class="sc-flex sc-items-center sc-justify-between sc-mt-2">
+          <div class="sc-hint"><span data-notes-counter>0</span>/5 characters minimum</div>
+          <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm"><i class="bi bi-journal-plus"></i> Add Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# ============ RIGHT: officer actions ============ #}
+  <div class="col-lg-5">
+    <div class="sc-card sc-actions-card h-100">
+      <div class="sc-card-head"><span><i class="bi bi-shield-exclamation"></i> Officer Actions</span></div>
+      {% if detection.status == 'pending_review' %}
+        <div class="sc-banner">
+          <i class="bi bi-info-circle"></i>
+          <div>
+            Challans are issued <strong>automatically</strong> once evidence passes all five checks.
+            You may <strong>reject</strong> a false positive or <strong>flag</strong> an ambiguous case for the DIG.
+            Notes are mandatory (min 20 characters) and are written to the audit log.
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'officer_portal:reject_detection' detection.id %}"
+              class="sc-action-form" data-notes-form data-notes-min="20"
+              data-confirm-title="Reject this detection?"
+              data-confirm-text="The detection will be marked as a false positive. The decision and your notes are permanently recorded in the audit log."
+              data-confirm-button="Yes, reject">
+          {% csrf_token %}
+          <div class="sc-form-group">
+            <label class="sc-form-label" for="rejectNotes"><i class="bi bi-x-circle sc-text-danger"></i> Reject &mdash; False Positive</label>
+            <textarea id="rejectNotes" name="notes" rows="3" class="sc-form-control"
+                      placeholder="Why is this a false positive? e.g. &quot;Plate obscured by tow bar &mdash; vehicle was executing a legal U-turn at the junction.&quot;"
+                      data-notes-input data-notes-min="20" required></textarea>
+            <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
+          </div>
+          <button type="submit" class="sc-btn sc-btn-danger sc-btn-block">
+            <i class="bi bi-x-circle-fill"></i> Reject as False Positive
+          </button>
+        </form>
+
+        <form method="post" action="{% url 'officer_portal:flag_detection' detection.id %}"
+              class="sc-action-form" data-notes-form data-notes-min="20"
+              data-confirm-title="Flag this detection for DIG?"
+              data-confirm-text="The detection will be escalated for senior review. A DIG officer will make the final decision."
+              data-confirm-button="Yes, escalate">
+          {% csrf_token %}
+          <div class="sc-form-group">
+            <label class="sc-form-label" for="flagNotes"><i class="bi bi-flag sc-text-flag"></i> Flag &mdash; Escalate to DIG</label>
+            <textarea id="flagNotes" name="notes" rows="3" class="sc-form-control"
+                      placeholder="Why does this need senior review? e.g. &quot;Ambiguous plate lighting across track frames &mdash; requesting DIG verification before challan.&quot;"
+                      data-notes-input data-notes-min="20" required></textarea>
+            <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
+          </div>
+          <button type="submit" class="sc-btn sc-btn-flag sc-btn-block">
+            <i class="bi bi-flag-fill"></i> Flag for DIG Escalation
+          </button>
+        </form>
+      {% else %}
+        <div class="sc-empty">
+          <i class="bi bi-lock"></i>
+          This detection has already been reviewed &mdash; no further officer actions are available.
+          You can still add internal notes for the audit trail.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-detection-detail.js' %}" defer></script>
+{% endblock %}

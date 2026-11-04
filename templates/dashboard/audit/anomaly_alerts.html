@@ -1,13 +1,67 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Anomaly Alerts{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Anomaly alerts</b>{% endblock %}
+{% block title %}Anomaly Alerts — Audit Portal{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-anomalies.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Anomaly alerts</h1>
-<p class="sc-lead">Detected anomalies.</p>
+  <div>
+    <h1><i class="bi bi-exclamation-triangle me-2"></i>Anomaly Alerts</h1>
+    <p class="sc-lead">Automatically detected data-integrity and behavioural anomalies across the Safe City platform.</p>
+  </div>
+  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
 </div>
+
+{% regroup anomalies|dictsort:"severity" by severity as severity_groups %}
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi{% if anomalies %} sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-label"><i class="bi bi-broadcast"></i> Total anomalies</div>
+    <div class="sc-kpi-value">{{ anomalies|length|default:0 }}</div>
+    <div class="sc-kpi-foot">open detections</div>
+  </div>
+  {% for g in severity_groups %}
+  <div class="sc-kpi{% if g.grouper == 'HIGH' %} sc-kpi-danger{% elif g.grouper == 'MEDIUM' %} sc-kpi-amber{% endif %}">
+    <div class="sc-kpi-label">
+      <i class="bi {% if g.grouper == 'HIGH' %}bi-exclamation-octagon{% elif g.grouper == 'MEDIUM' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %}"></i>
+      {{ g.grouper|default:"UNRATED"|title }} severity
+    </div>
+    <div class="sc-kpi-value">{{ g.list|length|default:0 }}</div>
+    <div class="sc-kpi-foot">flagged items</div>
+  </div>
+  {% endfor %}
 </div>
-<div class="sc-page-hero"><div><h1>Anomaly Alerts</h1><p class="sc-lead">Detected anomalies.</p></div></div><div class="sc-card">{% if anomalies %}<div class="sc-grid sc-grid-2">{% for a in anomalies %}<div class="sc-card"><div class="sc-flex sc-items-center sc-justify-between sc-mb-2"><strong>{{ a.title|default:a.type }}</strong><span class="sc-badge sc-badge-{% if a.severity == 'high' %}red{% elif a.severity == 'medium' %}amber{% else %}blue{% endif %}">{{ a.severity|default:"info" }}</span></div><p class="sc-text-sm sc-text-muted">{{ a.description|default:"Anomaly detected" }}</p><p class="sc-text-xs sc-text-faint">{{ a.detected_at|date:"d M H:i" }}</p></div>{% endfor %}</div>{% else %}<div class="sc-empty">No anomalies detected.</div>{% endif %}</div>{% endblock %}
+
+{% if anomalies %}
+<div class="sc-grid sc-grid-2">
+  {% for a in anomalies %}
+  <div class="sc-card audit-anomaly-card audit-sev-{% if a.severity == 'HIGH' %}high{% elif a.severity == 'MEDIUM' %}medium{% elif a.severity == 'LOW' %}low{% else %}none{% endif %}">
+    <div class="sc-flex sc-items-center sc-justify-between sc-mb-2">
+      <span class="audit-anomaly-type">{{ a.type|default:"ANOMALY" }}</span>
+      <span class="sc-badge {% if a.severity == 'HIGH' %}sc-badge-red{% elif a.severity == 'MEDIUM' %}sc-badge-amber{% elif a.severity == 'LOW' %}sc-badge-blue{% else %}sc-badge-gray{% endif %}">
+        <i class="bi {% if a.severity == 'HIGH' %}bi-exclamation-octagon{% elif a.severity == 'MEDIUM' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %}"></i>
+        {{ a.severity|default:"INFO" }}
+      </span>
+    </div>
+    <p class="audit-anomaly-desc">{{ a.description|default:"Anomaly detected." }}</p>
+    <div class="audit-anomaly-meta">
+      <i class="bi bi-crosshair"></i>
+      <span>Target: <b>{{ a.target|default:"—" }}</b></span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="sc-card">
+  <div class="sc-empty p-5">
+    <i class="bi bi-shield-check"></i>
+    No anomalies detected — all integrity checks passed.
+  </div>
+</div>
+{% endif %}
+
+<p class="sc-hint"><i class="bi bi-arrow-repeat me-1"></i>Anomalies are re-evaluated on every page load: officer dismissal rates, orphan payments and zero-amount challans.</p>
+{% endblock %}

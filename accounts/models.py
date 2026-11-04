@@ -231,7 +231,6 @@ class OfficerProfile(models.Model):
     can_review_detections = models.BooleanField(default=True)
     can_review_appeals = models.BooleanField(default=True)
     can_flag_for_dig = models.BooleanField(default=True)
-    can_add_manual_challan = models.BooleanField(default=True)
     can_view_own_performance = models.BooleanField(default=True)
     can_add_internal_notes = models.BooleanField(default=True)
     can_live_tracking = models.BooleanField(default=True)

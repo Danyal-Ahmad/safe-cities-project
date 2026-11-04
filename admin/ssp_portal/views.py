@@ -108,6 +108,9 @@ def decide_appeal(request, appeal_id):
         if decision not in ('APPROVED', 'REJECTED'):
             messages.error(request, "Invalid decision.")
             return redirect('ssp_portal:dashboard')
+        if appeal.status != ChallanAppeal.PENDING or appeal.current_stage != ChallanAppeal.STAGE_SSP:
+            messages.error(request, "This appeal is not awaiting an SSP decision.")
+            return redirect('ssp_portal:dashboard')
 
         decision_const = ChallanAppeal.APPROVED if decision == 'APPROVED' else ChallanAppeal.REJECTED
         appeal.status = decision_const

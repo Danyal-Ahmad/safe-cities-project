@@ -1,13 +1,167 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Upload Video{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Upload video</b>{% endblock %}
+{% block title %}Upload Video — Safe City{% endblock %}
+{% block body_class %}page-officer{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/video-upload.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="sc-page-hero">
-<div>
-<h1>Upload video</h1>
-<p class="sc-lead">Process a video for AI violation detection.</p>
+  <div>
+    <h1><i class="bi bi-cloud-arrow-up me-2"></i>Upload Video</h1>
+    <p class="sc-lead">Upload a recorded traffic clip, link it to a camera and run the AI violation-detection pipeline on it.</p>
+  </div>
 </div>
+
+<div class="row g-4">
+  <!-- Upload form -->
+  <div class="col-lg-7">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-camera-reels"></i>
+        <span>New Video Upload</span>
+      </div>
+      <div class="sc-card-body">
+        {% if cameras %}
+        <form method="post" action="{% url 'video_processor:upload_video' %}" enctype="multipart/form-data" class="vp-form">
+          {% csrf_token %}
+
+          <div class="sc-form-group">
+            <label for="id_camera_id">Camera <span class="vp-req">*</span></label>
+            <select name="camera_id" id="id_camera_id" class="vp-camera-select" required>
+              <option value="" disabled selected>Select the camera this video belongs to…</option>
+              {% for c in cameras %}
+              <option value="{{ c.id }}">{{ c.camera_id }} — {{ c.location|default:"Unknown location"|truncatechars:40 }}</option>
+              {% endfor %}
+            </select>
+            <div class="sc-hint">Detections are attributed to this camera, so pick the one that recorded the footage.</div>
+          </div>
+
+          <div class="sc-form-group">
+            <label for="id_video_file">Video file <span class="vp-req">*</span></label>
+            <label class="vp-file-box" for="id_video_file">
+              <input class="vp-file-input" type="file" name="video_file" id="id_video_file" accept="video/*" required>
+              <i class="bi bi-camera-video vp-file-icon"></i>
+              <span class="vp-file-text"><strong>Choose a video file</strong> or click to browse</span>
+              <span class="vp-file-hint">MP4 · AVI · MOV · MKV — maximum 200 MB</span>
+            </label>
+          </div>
+
+          <button type="submit" class="sc-btn sc-btn-primary sc-btn-block">
+            <i class="bi bi-cpu me-1"></i> Upload &amp; Start AI Processing
+          </button>
+        </form>
+        {% else %}
+        <div class="sc-empty p-5 text-center">
+          <i class="bi bi-camera-video-off fs-1 opacity-25 d-block mb-3"></i>
+          No active cameras are available to you.
+          {% if user.role == 'OFFICER' %}
+          You need an active camera assignment before uploading footage — contact IT support.
+          {% else %}
+          Activate a camera first, then come back to upload footage against it.
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- What happens next -->
+  <div class="col-lg-5">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-diagram-3"></i>
+        <span>What Happens After Upload</span>
+      </div>
+      <div class="sc-card-body">
+        <ol class="vp-steps">
+          <li class="vp-step">
+            <span class="vp-step-num">1</span>
+            <span>
+              <span class="vp-step-title d-block">Upload &amp; validation</span>
+              <span class="vp-step-text">The file (max 200 MB) is stored and linked to the selected camera.</span>
+            </span>
+          </li>
+          <li class="vp-step">
+            <span class="vp-step-num">2</span>
+            <span>
+              <span class="vp-step-title d-block">Frame extraction</span>
+              <span class="vp-step-text">Frames are pulled from the clip and scanned for number plates.</span>
+            </span>
+          </li>
+          <li class="vp-step">
+            <span class="vp-step-num">3</span>
+            <span>
+              <span class="vp-step-title d-block">Violation detection</span>
+              <span class="vp-step-text">The AI pipeline classifies violations and raises detections.</span>
+            </span>
+          </li>
+          <li class="vp-step">
+            <span class="vp-step-num">4</span>
+            <span>
+              <span class="vp-step-title d-block">Review &amp; challans</span>
+              <span class="vp-step-text">Detections appear in the review queue — confirmed ones become e-challans automatically.</span>
+            </span>
+          </li>
+        </ol>
+        <div class="sc-hint mt-3 mb-0">
+          <i class="bi bi-lightbulb me-1"></i> Processing runs in the background — you can safely leave this page.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="sc-card" style="max-width:640px;"><form method="post" enctype="multipart/form-data" class="sc-search-form">{% csrf_token %}<div class="sc-form-group"><label>Camera *</label><select name="camera_id" required class="w-full">{% for c in cameras %}<option value="{{ c.id }}">{{ c.camera_id }} — {{ c.location|truncatechars:30 }}</option>{% endfor %}</select></div><div class="sc-form-group"><label>Video file *</label><input type="file" name="video_file" accept="video/*" required><div class="sc-hint">MP4, AVI, MKV up to 200MB</div></div><button type="submit" class="sc-btn sc-btn-primary sc-btn-block"><i class="bi bi-cloud-upload"></i> Upload &amp; Process</button></form></div>{% endblock %}
+
+<!-- Recent uploads (IT only) -->
+{% if recent_uploads %}
+<div class="sc-card mt-4">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-clock-history"></i>
+    <span>My Recent Uploads</span>
+  </div>
+  <div class="sc-card-body p-0">
+    <div class="table-responsive">
+      <table class="table sc-table mb-0">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Camera</th>
+            <th>Status</th>
+            <th>Progress</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in recent_uploads %}
+          <tr>
+            <td class="sc-mono sc-text-sm">{{ u.original_filename|default:"—"|truncatechars:48 }}</td>
+            <td>{{ u.camera.camera_id|default:"—" }}</td>
+            <td>
+              {% if u.status == 'completed' %}
+              <span class="sc-badge sc-badge-ok">Completed</span>
+              {% elif u.status == 'processing' %}
+              <span class="sc-badge sc-badge-amber">Processing</span>
+              {% elif u.status == 'failed' %}
+              <span class="sc-badge sc-badge-red">Failed</span>
+              {% else %}
+              <span class="sc-badge sc-badge-blue">Uploaded</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="vp-progress" role="progressbar" aria-valuenow="{{ u.progress_percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Processing progress">
+                <div class="vp-progress-bar {% if u.status == 'failed' %}vp-failed{% endif %} vp-w{% widthratio u.progress_percent 10 1 %}0"></div>
+              </div>
+              <span class="vp-progress-num">{{ u.progress_percent }}%</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,13 +1,168 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Officer Profile{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Officer profile</b>{% endblock %}
+{% block title %}My Profile — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-profile.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Officer profile</h1>
-<p class="sc-lead">Your account details and preferences.</p>
+  <div>
+    <h1><i class="bi bi-person-vcard"></i> Officer Profile</h1>
+    <p class="sc-lead">
+      Your account details and duty preferences. Contact details kept here are used for
+      shift alerts and escalation notifications.
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-gap-2">
+    <a href="{% url 'dig:change_password' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-key"></i> Change Password</a>
+  </div>
 </div>
+
+<div class="row g-4">
+  {# ---- LEFT: identity card --------------------------------------------------- #}
+  <div class="col-lg-4">
+    <div class="sc-card sc-profile-card h-100">
+      <div class="sc-profile-avatar-wrap">
+        <img class="sc-profile-avatar" src="{{ profile_user.avatar_url }}"
+             alt="Avatar of {{ profile_user.display_name|default:profile_user.username }}" data-img-fallback>
+        <span class="sc-profile-role-badge sc-badge sc-badge-blue"><i class="bi bi-shield-lock"></i> {{ profile_user.get_role_display }}</span>
+      </div>
+      <h2 class="sc-profile-name">{{ profile_user.display_name|default:profile_user.username }}</h2>
+      <p class="sc-profile-sub">{{ profile_user.designation|default:"Traffic Officer" }}</p>
+      <dl class="sc-meta-list sc-mt-3">
+        <div class="sc-meta-row">
+          <dt>Email</dt>
+          <dd class="sc-text-sm">{{ profile_user.email|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Phone</dt>
+          <dd class="sc-text-sm">{{ profile_user.phone|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Department</dt>
+          <dd class="sc-text-sm">{{ profile_user.department|default:"—" }}</dd>
+        </div>
+        {% if profile_user.staff_id %}
+        <div class="sc-meta-row">
+          <dt>Staff ID</dt>
+          <dd class="sc-text-sm sc-mono">{{ profile_user.staff_id }}</dd>
+        </div>
+        {% endif %}
+        <div class="sc-meta-row">
+          <dt>Username</dt>
+          <dd class="sc-text-sm sc-mono">{{ profile_user.username }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Member Since</dt>
+          <dd class="sc-text-sm">{{ profile_user.date_joined|date:"d M Y" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Last Login</dt>
+          <dd class="sc-text-sm">{{ profile_user.last_login|date:"d M Y, H:i"|default:"—" }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  {# ---- RIGHT: editable details + service record ------------------------------- #}
+  <div class="col-lg-8">
+    <div class="sc-card">
+      <div class="sc-card-head">
+        <span><i class="bi bi-pencil-square"></i> Editable Details</span>
+        <span class="sc-badge sc-badge-muted"><i class="bi bi-info-circle"></i> phone &amp; department only</span>
+      </div>
+      <form method="post" action="{% url 'officer_portal:self_profile' %}" class="sc-profile-form" data-profile-form>
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="sc-form-label" for="phoneInput">Phone</label>
+            <input type="tel" id="phoneInput" name="phone" value="{{ profile_user.phone|default:'' }}"
+                   class="sc-form-control" placeholder="+923001234567" autocomplete="tel"
+                   data-phone-input>
+            <div class="sc-hint">E.164 format preferred, e.g. +923001234567. Used for alerts.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="sc-form-label" for="departmentInput">Department</label>
+            <input type="text" id="departmentInput" name="department" value="{{ profile_user.department|default:'' }}"
+                   class="sc-form-control" placeholder="Traffic Police" autocomplete="organization">
+            <div class="sc-hint">e.g. Traffic Police, Highway Patrol, City Enforcement.</div>
+          </div>
+        </div>
+        <div class="sc-flex sc-items-center sc-justify-between sc-mt-3 sc-flex-wrap sc-gap-2">
+          <span class="sc-hint"><i class="bi bi-lock"></i> Role, staff ID and designation are managed by the DIG administration.</span>
+          <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-check2-circle"></i> Save Profile</button>
+        </div>
+      </form>
+    </div>
+
+    {% if profile_user.officer_profile %}
+    {% with op=profile_user.officer_profile %}
+    <div class="sc-card">
+      <div class="sc-card-head">
+        <span><i class="bi bi-person-badge"></i> Service Record</span>
+        <span class="sc-badge {% if op.is_field_active %}sc-badge-ok{% else %}sc-badge-muted{% endif %}">
+          {% if op.is_field_active %}<i class="bi bi-broadcast"></i> Field Active{% else %}<i class="bi bi-pause-circle"></i> Not Field Active{% endif %}
+        </span>
+      </div>
+      <dl class="sc-meta-list">
+        <div class="sc-meta-row">
+          <dt>Badge Number</dt>
+          <dd class="sc-mono">{{ op.badge_number|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Rank</dt>
+          <dd>{{ op.rank|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Unit</dt>
+          <dd>{{ op.unit|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Station</dt>
+          <dd>{{ op.station|default:"—" }}</dd>
+        </div>
+        <div class="sc-meta-row">
+          <dt>Shift Preference</dt>
+          <dd>
+            <span class="sc-badge {% if op.shift_preference == 'DAY' %}sc-badge-amber{% elif op.shift_preference == 'NIGHT' %}sc-badge-blue{% else %}sc-badge-teal{% endif %}">
+              <i class="bi bi-clock"></i> {{ op.get_shift_preference_display|default:"—" }}
+            </span>
+          </dd>
+        </div>
+        {% if op.joining_date %}
+        <div class="sc-meta-row">
+          <dt>Joining Date</dt>
+          <dd>{{ op.joining_date|date:"d M Y" }}</dd>
+        </div>
+        {% endif %}
+        {% if op.max_daily_challans %}
+        <div class="sc-meta-row">
+          <dt>Max Daily Challans</dt>
+          <dd>{{ op.max_daily_challans }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+      <div class="sc-hint">
+        <i class="bi bi-shield-lock"></i> Service record fields are maintained by the DIG administration.
+      </div>
+    </div>
+    {% endwith %}
+    {% else %}
+    <div class="sc-card">
+      <div class="sc-card-head"><span><i class="bi bi-person-badge"></i> Service Record</span></div>
+      <div class="sc-empty">
+        <i class="bi bi-person-x"></i>
+        No officer service record is linked to your account yet. Ask the DIG administration
+        to create one with your badge number, rank and station.
+      </div>
+    </div>
+    {% endif %}
+  </div>
 </div>
-<div class="sc-card"><h2>Officer Profile</h2><form method="post"><div class="sc-flex sc-gap-2"><button type="submit" class="sc-btn sc-btn-primary">Save profile</button></div></form><p class="sc-empty">Your account details and preferences.</p></div>{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-profile.js' %}" defer></script>
+{% endblock %}

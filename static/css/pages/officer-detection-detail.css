@@ -1,0 +1,361 @@
+/* ==========================================================================
+   Officer — Detection Detail (officer-detection-detail)
+   Evidence images, 5-check security panel, notes and officer actions.
+   ========================================================================== */
+
+/* ---- Evidence images ---------------------------------------------------- */
+
+.sc-evidence-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 16px;
+}
+
+.sc-evidence-figure {
+  margin: 0;
+  min-width: 0;
+}
+
+.sc-evidence-figure figcaption {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sc-evidence-imgbox {
+  position: relative;
+  border-radius: var(--sc-radius);
+  border: 1px solid var(--sc-border-strong);
+  background: #0B1220;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sc-evidence-plate-box {
+  min-height: 88px;
+  background: #101828;
+}
+
+.sc-evidence-img {
+  display: block;
+  max-width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+}
+
+.sc-evidence-imgbox.is-broken::after {
+  content: "Image unavailable";
+  display: block;
+  padding: 24px 12px;
+  color: #94A3B8;
+  font-size: 0.78rem;
+}
+
+.sc-evidence-missing {
+  padding: 32px 16px;
+  text-align: center;
+  color: #7E8CA8;
+  font-size: 0.78rem;
+}
+
+.sc-evidence-missing i {
+  display: block;
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: #4A5A76;
+}
+
+.sc-plate-display {
+  margin-top: 10px;
+  text-align: center;
+  font-family: var(--sc-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--sc-navy-deep);
+  background: var(--sc-bg-soft);
+  border: 1px dashed var(--sc-border-strong);
+  border-radius: var(--sc-radius-sm);
+  padding: 8px 10px;
+}
+
+/* ---- 5-check hard security panel ---------------------------------------- */
+
+.sc-evidence-card {
+  border-top: 3px solid var(--sc-primary);
+}
+
+.sc-evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sc-evidence-check {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 10px 14px;
+  background: var(--sc-surface);
+}
+
+.sc-evidence-check.sc-evidence-pass {
+  border-left: 3px solid var(--sc-success);
+  background: var(--sc-success-bg);
+}
+
+.sc-evidence-check.sc-evidence-fail {
+  border-left: 3px solid var(--sc-danger);
+  background: var(--sc-danger-bg);
+}
+
+.sc-evidence-check-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sc-evidence-check-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sc-navy-deep);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sc-evidence-check.sc-evidence-pass .sc-evidence-check-name i { color: var(--sc-success); }
+.sc-evidence-check.sc-evidence-fail .sc-evidence-check-name i { color: var(--sc-danger); }
+
+.sc-evidence-check-detail {
+  margin: 6px 0 0;
+  font-size: 0.76rem;
+  color: var(--sc-text-muted);
+  font-family: var(--sc-mono);
+  word-break: break-word;
+}
+
+/* Track + hash meta strip under the checks */
+
+.sc-evidence-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sc-border);
+}
+
+.sc-evidence-meta-item {
+  background: var(--sc-bg-soft);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.sc-evidence-meta-item.sc-evidence-meta-wide {
+  grid-column: 1 / -1;
+}
+
+.sc-evidence-meta-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--sc-text-muted);
+  margin-bottom: 4px;
+}
+
+.sc-evidence-meta-item .sc-mono {
+  font-size: 0.78rem;
+  color: var(--sc-navy-deep);
+  word-break: break-all;
+}
+
+.sc-evidence-hash {
+  font-size: 0.72rem;
+}
+
+/* ---- Meta definition lists ------------------------------------------------ */
+
+.sc-meta-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--sc-border);
+}
+
+.sc-meta-row:last-child {
+  border-bottom: none;
+}
+
+.sc-meta-row dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-text-muted);
+  flex-shrink: 0;
+}
+
+.sc-meta-row dd {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sc-text);
+  text-align: right;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.sc-meta-row-wide {
+  display: block;
+}
+
+.sc-meta-row-wide dt {
+  margin-bottom: 4px;
+}
+
+.sc-meta-row-wide dd {
+  text-align: left;
+}
+
+/* ---- AI confidence meter ------------------------------------------------- */
+
+.sc-conf-meter {
+  position: relative;
+  width: 140px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sc-border);
+  overflow: hidden;
+  display: inline-block;
+}
+
+.sc-conf-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.sc-conf-fill.sc-conf-high { background: var(--sc-success); }
+.sc-conf-fill.sc-conf-mid  { background: var(--sc-warning); }
+.sc-conf-fill.sc-conf-low  { background: var(--sc-danger); }
+
+/* ---- Review notes -------------------------------------------------------- */
+
+.sc-notes-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-note-item {
+  border: 1px solid var(--sc-border);
+  border-left: 3px solid var(--sc-primary);
+  border-radius: var(--sc-radius-sm);
+  padding: 10px 14px;
+  background: var(--sc-bg-soft);
+}
+
+.sc-note-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--sc-text-muted);
+  margin-bottom: 4px;
+}
+
+.sc-note-time i { font-size: 0.85em; }
+
+.sc-note-body {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sc-text);
+  white-space: pre-wrap;
+}
+
+.sc-notes-empty {
+  padding: 28px 20px;
+}
+
+.sc-note-form {
+  border-top: 1px dashed var(--sc-border-strong);
+  padding-top: 14px;
+}
+
+.sc-form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-text-muted);
+  margin-bottom: 6px;
+}
+
+/* ---- Officer actions ------------------------------------------------------ */
+
+.sc-actions-card {
+  border-top: 3px solid var(--sc-navy);
+}
+
+.sc-action-form {
+  margin-top: 16px;
+}
+
+.sc-action-form:first-of-type {
+  margin-top: 12px;
+}
+
+.sc-btn-flag {
+  background: var(--sc-warning);
+  border-color: var(--sc-warning);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.32);
+}
+
+.sc-btn-flag:hover {
+  background: #D98E0B;
+  border-color: #D98E0B;
+  color: #FFFFFF;
+}
+
+.sc-text-danger { color: var(--sc-danger); }
+.sc-text-flag   { color: #D98E0B; }
+
+/* ---- Responsive ----------------------------------------------------------- */
+
+@media (max-width: 980px) {
+  .sc-evidence-grid { grid-template-columns: 1fr; }
+  .sc-evidence-meta { grid-template-columns: 1fr; }
+}

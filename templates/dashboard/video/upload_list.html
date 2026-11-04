@@ -1,13 +1,122 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Uploaded Videos{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Video processing</b>{% endblock %}
+{% block title %}Video Processing Jobs — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/video-uploads.css' %}">
+{% endblock %}
+
 {% block content %}
+
+{% regroup uploads by status as status_groups %}
+
 <div class="sc-page-hero">
-<div>
-<h1>Video processing</h1>
-<p class="sc-lead">Track video processing jobs.</p>
+  <div>
+    <h1><i class="bi bi-film me-2"></i>Video Processing Jobs</h1>
+    <p class="sc-lead">Every uploaded clip, its AI processing status and the detections it produced.</p>
+  </div>
 </div>
+
+<!-- KPI summary -->
+<div class="md-kpi-grid">
+  <div class="md-kpi-card">
+    <div class="md-kpi-icon-box">
+      <i class="bi bi-collection-play"></i>
+    </div>
+    <div class="md-kpi-body">
+      <div class="md-kpi-label">Total Uploads</div>
+      <div class="md-kpi-value">{{ uploads|length|default:0|intcomma }}</div>
+      <div class="md-kpi-foot">all recorded jobs</div>
+    </div>
+  </div>
+  <div class="md-kpi-card kpi-success">
+    <div class="md-kpi-icon-box">
+      <i class="bi bi-check2-circle"></i>
+    </div>
+    <div class="md-kpi-body">
+      <div class="md-kpi-label">Completed</div>
+      <div class="md-kpi-value">{% for g in status_groups %}{% if g.grouper == 'completed' %}{{ g.list|length|intcomma }}{% endif %}{% endfor %}</div>
+      <div class="md-kpi-foot">pipeline finished</div>
+    </div>
+  </div>
+  <div class="md-kpi-card kpi-danger">
+    <div class="md-kpi-icon-box">
+      <i class="bi bi-x-octagon"></i>
+    </div>
+    <div class="md-kpi-body">
+      <div class="md-kpi-label">Failed</div>
+      <div class="md-kpi-value">{% for g in status_groups %}{% if g.grouper == 'failed' %}{{ g.list|length|intcomma }}{% endif %}{% endfor %}</div>
+      <div class="md-kpi-foot">need re-upload or support</div>
+    </div>
+  </div>
 </div>
-<div class="sc-card">{% if uploads %}<div class="sc-table-wrap"><table class="sc-table sc-data-table"><thead><tr><th>Filename</th><th>Camera</th><th>Frames</th><th>Status</th><th>Uploaded</th><th>Action</th></tr></thead><tbody>{% for u in uploads %}<tr><td class="sc-mono sc-text-sm">{{ u.original_filename }}</td><td>{{ u.camera.camera_id|default:"-" }}</td><td>{{ u.total_frames_extracted|default:0 }} / {{ u.frames_with_plates|default:0 }}</td><td><span class="sc-badge sc-badge-{% if u.status == 'completed' %}ok{% elif u.status == 'failed' %}err{% else %}amber{% endif %}">{{ u.get_status_display }}</td><td class="sc-text-sm">{{ u.created_at|date:"d M Y H:i" }}</td><td><a class="sc-btn sc-btn-sm" href="{% url 'officer_portal:detection_detail' u.id %}">View</a></td></tr>{% empty %}<tr><td colspan="6" class="sc-empty">No uploads.</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="sc-empty">No videos uploaded yet.</div>{% endif %}</div>{% endblock %}
+
+<!-- Jobs table -->
+<div class="sc-card mt-4">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-list-check"></i>
+    <span>Uploads ({{ uploads|length|default:0 }})</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if uploads %}
+    <div class="table-responsive">
+      <table class="table sc-table mb-0 vul-table">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Camera</th>
+            <th>Status</th>
+            <th class="vul-num">Frames</th>
+            <th class="vul-num">Plates</th>
+            <th class="vul-num">Violations</th>
+            <th class="vul-num">Auto&nbsp;Challans</th>
+            <th class="vul-num">Manual&nbsp;Review</th>
+            <th>Duration</th>
+            <th>Uploaded By</th>
+            <th>Uploaded</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in uploads %}
+          <tr>
+            <td class="sc-mono sc-text-sm">{{ u.original_filename|default:"—"|truncatechars:44 }}</td>
+            <td>{{ u.camera.camera_id|default:u.camera_location|default:"—" }}</td>
+            <td>
+              {% if u.status == 'completed' %}
+              <span class="sc-badge sc-badge-ok"><i class="bi bi-check2"></i> Completed</span>
+              {% elif u.status == 'processing' %}
+              <span class="sc-badge sc-badge-amber"><i class="bi bi-arrow-repeat"></i> Processing</span>
+              {% elif u.status == 'failed' %}
+              <span class="sc-badge sc-badge-red"><i class="bi bi-x-lg"></i> Failed</span>
+              {% else %}
+              <span class="sc-badge sc-badge-blue"><i class="bi bi-cloud-arrow-up"></i> Uploaded</span>
+              {% endif %}
+              {% if u.status == 'failed' and u.error_message %}
+              <div class="sc-text-xs sc-text-muted vul-err" title="{{ u.error_message|truncatechars:120 }}">see log</div>
+              {% endif %}
+            </td>
+            <td class="vul-num">{{ u.total_frames_extracted|default:0|intcomma }}</td>
+            <td class="vul-num">{{ u.frames_with_plates|default:0|intcomma }}</td>
+            <td class="vul-num">{{ u.violations_detected|default:0|intcomma }}</td>
+            <td class="vul-num">{{ u.auto_challans_created|default:0|intcomma }}</td>
+            <td class="vul-num">{{ u.manual_review_created|default:0|intcomma }}</td>
+            <td class="sc-text-sm">{{ u.duration_str }}</td>
+            <td class="sc-text-sm">{{ u.uploaded_by.display_name|default:u.uploaded_by.username|default:"—" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ u.created_at|date:"d M Y, H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty p-5 text-center">
+      <i class="bi bi-film fs-1 opacity-25 d-block mb-3"></i>
+      No videos have been uploaded yet. Use the
+      <a href="{% url 'video_processor:upload_video' %}">Upload Video</a>
+      page to process the first clip.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

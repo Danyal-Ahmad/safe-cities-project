@@ -1,0 +1,33 @@
+.ah-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.ah-toolbar input[type="text"] {
+  flex: 1; min-width: 180px; max-width: 300px; height: 38px; padding: 0 14px;
+  border: 1px solid #D3DAE7; border-radius: 999px; outline: none; font-size: 0.85rem;
+}
+.ah-toolbar input[type="text"]:focus { border-color: var(--sc-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.ah-toolbar select {
+  height: 38px; padding: 0 12px; border: 1px solid #D3DAE7; border-radius: 999px;
+  background: #fff; font-size: 0.83rem; outline: none; color: var(--sc-text);
+}
+.ah-item {
+  background: #FFFFFF; border: 1px solid var(--sc-border); border-radius: 14px;
+  box-shadow: var(--sc-shadow); padding: 16px; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ah-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.ah-item.sev-danger::before { background: var(--sc-danger); }
+.ah-item.sev-warning::before { background: var(--sc-warning); }
+.ah-item.sev-success::before { background: var(--sc-success); }
+.ah-item.sev-info::before { background: var(--sc-primary); }
+.ah-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ah-item-title { font-size: 0.95rem; font-weight: 700; color: var(--sc-heading); }
+.ah-item-msg { font-size: 0.83rem; color: var(--sc-text-muted); }
+.ah-item-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 0.72rem; color: var(--sc-text-faint); }
+.ah-actions { display: flex; gap: 6px; }
+.ah-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.ah-dot.live { background: var(--sc-success); }
+.ah-dot.off { background: #C4CEDF; }
+.ah-view-toggle { display: inline-flex; border: 1px solid var(--sc-border); border-radius: 999px; overflow: hidden; margin-left: auto; }
+.ah-view-btn { border: none; background: #fff; padding: 8px 14px; font-size: 0.78rem; font-weight: 600; color: var(--sc-text-muted); cursor: pointer; }
+.ah-view-btn.active { background: var(--sc-navy); color: #fff; }
+.ah-pane { display: none; }
+.ah-pane.active { display: block; }

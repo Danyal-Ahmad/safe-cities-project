@@ -556,20 +556,6 @@
       }
     },
     {
-      "name": "Confirm Detection",
-      "key": "confirm_detection",
-      "category": "OPERATIONAL / FUNCTIONAL",
-      "roles": {
-        "IT Support": true,
-        "DIG": true,
-        "SSP": false,
-        "Supervisor": false,
-        "Officer": true,
-        "Audit": false,
-        "Citizen": false
-      }
-    },
-    {
       "name": "Reject Detection",
       "key": "reject_detection",
       "category": "OPERATIONAL / FUNCTIONAL",
@@ -626,20 +612,6 @@
       }
     },
     {
-      "name": "Manual Annotation",
-      "key": "manual_annotation",
-      "category": "OPERATIONAL / FUNCTIONAL",
-      "roles": {
-        "IT Support": true,
-        "DIG": false,
-        "SSP": false,
-        "Supervisor": false,
-        "Officer": true,
-        "Audit": false,
-        "Citizen": false
-      }
-    },
-    {
       "name": "View Challans",
       "key": "view_challans",
       "category": "OPERATIONAL / FUNCTIONAL",
@@ -650,20 +622,6 @@
         "Supervisor": true,
         "Officer": true,
         "Audit": true,
-        "Citizen": false
-      }
-    },
-    {
-      "name": "Add Manual Challan",
-      "key": "add_manual_challan",
-      "category": "OPERATIONAL / FUNCTIONAL",
-      "roles": {
-        "IT Support": true,
-        "DIG": false,
-        "SSP": false,
-        "Supervisor": false,
-        "Officer": true,
-        "Audit": false,
         "Citizen": false
       }
     },

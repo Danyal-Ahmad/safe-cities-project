@@ -159,12 +159,17 @@ def home(request):
         else:
             challans = []
         is_guest = not request.user.is_authenticated
+        signer = TimestampSigner()
         for c in (challans or []):
             if is_guest and c.owner_name:
                 parts = c.owner_name.split()
                 c.display_owner = ' '.join([parts[0]] + [p[0] + '.' for p in parts[1:]]) if len(parts) > 1 else parts[0]
             else:
                 c.display_owner = c.owner_name or '—'
+            try:
+                c.signed_token = signer.sign(str(c.id))
+            except Exception:
+                c.signed_token = ''
 
     homepage_banners = []
     popup_banners = []
@@ -245,6 +250,31 @@ def _citizen_owns_challan(user, challan):
     except Exception:
         pass
     return False
+
+
+def _mask_challan_pii(challan):
+    """In-memory PII masking for anonymous visitors. Never persisted —
+    masking happens after all POST validation, only for the response."""
+    def _mask_name(name):
+        if not name:
+            return name
+        parts = str(name).split()
+        if len(parts) > 1:
+            return ' '.join([parts[0]] + [p[0] + '.' for p in parts[1:]])
+        return parts[0]
+
+    def _mask_cnic(v):
+        d = ''.join(ch for ch in str(v or '') if ch.isdigit())
+        if len(d) == 13:
+            return f"{d[:5]}-•••••••-{d[12]}"
+        return '•••••-•••••••-•' if v else v
+
+    challan.owner_name = _mask_name(challan.owner_name)
+    challan.cnic = _mask_cnic(challan.cnic)
+    challan.phone = '•••• •••••••' if challan.phone else challan.phone
+    if challan.address:
+        challan.address = str(challan.address)[:24] + '…'
+    challan.chassis_no = '•••••••' if challan.chassis_no else challan.chassis_no
 
 
 def challan_detail(request, challan_id):
@@ -335,6 +365,9 @@ def challan_detail(request, challan_id):
         messages.success(request, "Appeal submitted. SSP will review your case.")
         return redirect(f'/challan/{challan.id}/?tab=review')
 
+    if is_guest and not is_owner:
+        _mask_challan_pii(challan)
+
     return render(request, 'challan/detail.html', {
         'challan': challan,
         'is_guest': is_guest,
@@ -385,16 +418,13 @@ def challan_pdf(request, challan_id):
         token = (request.GET.get('token') or '').strip()
         if not token:
             return HttpResponseForbidden("Authentication or signed token required.")
-        if token == (challan.ticket_no or '') or token == str(challan.id):
-            pass
-        else:
-            signer = TimestampSigner()
-            try:
-                unsigned = signer.unsign(token, max_age=30 * 24 * 3600)
-                if int(unsigned) != challan.id:
-                    return HttpResponseForbidden("Invalid token.")
-            except (BadSignature, SignatureExpired, ValueError):
-                return HttpResponseForbidden("Expired or invalid token.")
+        signer = TimestampSigner()
+        try:
+            unsigned = signer.unsign(token, max_age=30 * 24 * 3600)
+            if int(unsigned) != challan.id:
+                return HttpResponseForbidden("Invalid token.")
+        except (BadSignature, SignatureExpired, ValueError):
+            return HttpResponseForbidden("Expired or invalid token.")
 
     force = (request.GET.get('regen') or '') == '1'
     if force or not challan.pdf_file:
@@ -420,11 +450,16 @@ def challan_pdf(request, challan_id):
 
 
 def guest_pay(request, challan_id):
-    """Public pay — no login. Digital methods only. Marks PAID on successful demo/gateway return."""
-    from django.utils import timezone
+    """Public pay — no login. Digital methods only.
+
+    The visitor is ALWAYS routed through the payment gateway. In demo mode the
+    gateway is the local demo-checkout page where the visitor must explicitly
+    confirm (CSRF-protected). This view never marks a challan PAID by itself.
+    """
     from django.views.decorators.http import require_http_methods
     from admin.it_support_portal.models import PaymentMethod
     from integrations.payments import initiate_payment
+    from payments.models import PaymentTransaction
 
     challan = get_object_or_404(Challan, pk=challan_id)
     if challan.payment_status == Challan.PAID:
@@ -438,7 +473,6 @@ def guest_pay(request, challan_id):
 
     if request.method == 'POST':
         method_id = request.POST.get('payment_method') or request.GET.get('method')
-        # Instant demo pay: mark PAID when method selected (FYP demo / no merchant keys)
         method = None
         if method_id:
             method = PaymentMethod.objects.filter(pk=method_id, status=PaymentMethod.STATUS_ACTIVE).first()
@@ -453,37 +487,45 @@ def guest_pay(request, challan_id):
         callback_url = request.build_absolute_uri('/api/v1/payment/webhook/')
         init = initiate_payment(challan, method, return_url, callback_url)
 
-        # If gateway form available, show redirect page
-        if init.get('ok') and init.get('mode') == 'form' and init.get('action'):
+        if not init.get('ok'):
+            messages.error(request, init.get('error') or "Payment could not be initiated.")
+            return redirect('challans:guest_pay', challan_id=challan.id)
+
+        PaymentTransaction.objects.create(
+            ticket_no=challan.ticket_no,
+            challan=challan,
+            provider=(init.get('provider') or method.name or 'demo'),
+            amount=challan.fine_amount,
+            status=PaymentTransaction.STATUS_PENDING,
+            txn_ref=init.get('reference'),
+        )
+        try:
+            from admin.dig_portal.models import AuditLog
+            AuditLog.write(request, 'challan.payment_initiated', 'Challan', challan.id,
+                           ticket_no=challan.ticket_no, method=method.name,
+                           mode=init.get('mode'), reference=init.get('reference'))
+        except Exception:
+            pass
+
+        if init.get('mode') == 'form' and init.get('action'):
             return render(request, 'challan/pay_redirect.html', {
                 'challan': challan,
                 'init': init,
                 'payment_method': method,
             })
 
-        # Demo / keys missing: mark PAID immediately (public guest pay as requested)
-        challan.payment_status = Challan.PAID
-        if hasattr(challan, 'paid_at'):
-            challan.paid_at = timezone.now()
-        if hasattr(challan, 'payment_method_name'):
-            challan.payment_method_name = method.name
-        if hasattr(challan, 'transaction_ref'):
-            challan.transaction_ref = init.get('reference') or f"GUEST-{challan.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
-        challan.save()
-        try:
-            from admin.dig_portal.models import AuditLog
-            AuditLog.write(
-                request, 'challan.guest_paid', 'Challan', challan.id,
-                ticket=challan.ticket_no, method=method.name,
-                mode=init.get('mode') or 'demo_auto',
-            )
-        except Exception:
-            pass
-        messages.success(
-            request,
-            f"Payment successful. Challan {challan.ticket_no} is now PAID.",
-        )
-        return redirect('challans:challan_detail', challan_id=challan.id)
+        if init.get('mode') == 'demo':
+            return redirect(init.get('action_url') or f"/challan/{challan.id}/")
+
+        if init.get('mode') == 'bank':
+            return render(request, 'challan/guest_pay.html', {
+                'challan': challan,
+                'payment_methods': methods,
+                'bank_instructions': init.get('fields') or {},
+            })
+
+        messages.info(request, "Payment session started. Complete it at the gateway.")
+        return redirect(init.get('action_url') or f"/challan/{challan.id}/")
 
     return render(request, 'challan/guest_pay.html', {
         'challan': challan,
@@ -492,13 +534,18 @@ def guest_pay(request, challan_id):
 
 
 def guest_pay_done(request, challan_id):
-    """Return URL after gateway — mark PAID if still unpaid."""
-    from django.utils import timezone
+    """Gateway return URL — display only.
+
+    Payment status is mutated exclusively by the signed gateway webhook or the
+    CSRF-protected demo checkout confirmation. This view never writes.
+    """
     challan = get_object_or_404(Challan, pk=challan_id)
-    if challan.payment_status == Challan.UNPAID:
-        challan.payment_status = Challan.PAID
-        if hasattr(challan, 'paid_at'):
-            challan.paid_at = timezone.now()
-        challan.save(update_fields=['payment_status'] + (['paid_at'] if hasattr(challan, 'paid_at') else []))
-        messages.success(request, f"Payment recorded. Challan {challan.ticket_no} is PAID.")
+    if challan.payment_status == Challan.PAID:
+        messages.success(request, f"Payment received. Challan {challan.ticket_no} is PAID.")
+    else:
+        messages.info(
+            request,
+            f"Payment for {challan.ticket_no} is still awaiting confirmation from the gateway. "
+            "Refresh this page in a few seconds."
+        )
     return redirect('challans:challan_detail', challan_id=challan.id)

@@ -1,0 +1,125 @@
+/* ==========================================================================
+   DIG — Add to Blacklist  (dashboard/dig/blacklist_add.html)
+   ========================================================================== */
+
+.bl-req {
+  color: var(--sc-danger, #E23B4E);
+  font-weight: 800;
+}
+
+/* Value input — enforced uppercase, mono */
+.bl-value-input {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* Live character counter attached to the reason label */
+.bl-counter {
+  float: right;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--sc-text-faint, #8A94B0);
+  text-transform: none;
+}
+
+.bl-counter.bl-counter-warn { color: #B87A10; }
+.bl-counter.bl-counter-limit { color: var(--sc-danger, #E23B4E); }
+
+/* Shake + red ring when JS flags a missing required field */
+.bl-invalid {
+  border-color: var(--sc-danger, #E23B4E) !important;
+  box-shadow: 0 0 0 3px var(--sc-danger-bg, #FDF3F5) !important;
+  animation: bl-shake 0.3s ease;
+}
+
+@keyframes bl-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.bl-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px dashed var(--sc-border, #E4E8EF);
+  margin-top: 18px;
+  padding-top: 16px;
+}
+
+/* ---------- Policy panel ---------- */
+
+.bl-policy-card .sc-card-body { padding-top: 2px; }
+
+.bl-policy-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.bl-policy-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 0.83rem;
+  color: var(--sc-text, #33415C);
+}
+
+.bl-policy-list li > i {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  background: var(--sc-danger-bg, #FDF3F5);
+  color: var(--sc-danger, #E23B4E);
+}
+
+.bl-policy-list li:nth-child(2) > i { background: var(--sc-info-bg, #EEF3FC); color: var(--sc-info, #2E5FB7); }
+.bl-policy-list li:nth-child(3) > i { background: var(--sc-purple-bg, #F1EDFC); color: var(--sc-purple, #7C5CE0); }
+.bl-policy-list li:nth-child(4) > i { background: var(--sc-teal-bg, #E8FAF7); color: #0D9488; }
+.bl-policy-list li:nth-child(5) > i { background: var(--sc-warning-bg, #FDF6E7); color: #B87A10; }
+
+.bl-policy-list strong { color: var(--sc-navy-deep, #0F2557); }
+
+/* What happens next */
+.bl-next-steps {
+  border: 1px dashed #B9C9E8;
+  border-radius: var(--sc-radius, 14px);
+  background: linear-gradient(120deg, #F4F8FE, #EEF3FC);
+  padding: 14px 16px;
+}
+
+.bl-next-steps-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sc-info, #2E5FB7);
+  margin-bottom: 8px;
+}
+
+.bl-steps {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.8rem;
+  color: var(--sc-text-muted, #5B6B85);
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 760px) {
+  .bl-form-actions .sc-btn { width: 100%; }
+}

@@ -1,13 +1,159 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Backups{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>System backups</b>{% endblock %}
+{% block title %}System Backups — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-backup-list.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>System backups</h1>
-<p class="sc-lead">Database snapshot backups.</p>
+  <div>
+    <h1><i class="bi bi-hdd-network me-2"></i>System Backups</h1>
+    <p class="sc-lead">Create, import and download JSON snapshots of the Safe City database &mdash; users, cameras, challans and detections.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:system_health' %}" class="sc-btn"><i class="bi bi-heart-pulse me-1"></i>System Health</a>
+  </div>
 </div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-archive"></i></div>
+    <div class="sc-kpi-label">Snapshots Stored</div>
+    <div class="sc-kpi-value">{{ backups|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">latest 50 kept on server</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
+    <div class="sc-kpi-label">Newest Snapshot</div>
+    <div class="sc-kpi-value" style="font-size:1.15rem;">{% if backups %}{{ backups.0.mtime|date:"d M Y" }}{% else %}&mdash;{% endif %}</div>
+    <div class="sc-kpi-foot">{% if backups %}{{ backups.0.mtime|date:"H:i" }} &middot; {{ backups.0.name|truncatechars:34 }}{% else %}no backups yet{% endif %}</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-journal-check"></i></div>
+    <div class="sc-kpi-label">Backup Audit Entries</div>
+    <div class="sc-kpi-value">{{ logs|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">recent backup operations</div>
+  </div>
 </div>
-<div class="sc-card">{% if backups %}<table class="sc-table sc-data-table"><thead><tr><th>Filename</th><th>Size</th><th>Created</th><th>Action</th></tr></thead><tbody>{% for b in backups %}<tr><td class="sc-mono sc-text-sm">{{ b.filename }}</td><td>{{ b.size_kb }} KB</td><td class="sc-text-sm">{{ b.mtime|date:"d M Y H:i" }}</td><td><a class="sc-btn sc-btn-sm" href="{% url 'it_support_portal:backup_download' b.filename %}"><i class="bi bi-download"></i> Download</a></td></tr>{% empty %}<tr><td colspan="4" class="sc-empty">No backups yet.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No backups yet.</div>{% endif %}</div>{% endblock %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-plus-circle"></i>
+    <span>Create &amp; Import</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="it-action-grid">
+      <form method="post" action="{% url 'it_support_portal:backup_list' %}" class="it-action-box" data-it-form="create">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <h3><i class="bi bi-database-add me-2"></i>Create Snapshot</h3>
+        <p class="sc-text-sm sc-text-muted">Dumps users, cameras, challans and detections into a timestamped JSON file on the server.</p>
+        <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Create Backup Now</button>
+        <p class="sc-hint">Files are named <span class="sc-mono">backup_YYYYMMDD_HHMMSS.json</span>.</p>
+      </form>
+      <form method="post" action="{% url 'it_support_portal:backup_list' %}" enctype="multipart/form-data" class="it-action-box" data-it-form="import">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="import">
+        <h3><i class="bi bi-upload me-2"></i>Import Backup File</h3>
+        <p class="sc-text-sm sc-text-muted">Upload an existing JSON backup. It is stored for review before any restore is applied.</p>
+        <div class="it-file-pick">
+          <input type="file" name="backup_file" accept=".json,application/json" id="itImportFile" class="form-control" data-it-file-input>
+          <div class="sc-hint" data-it-file-label>No file selected.</div>
+        </div>
+        <button type="submit" class="sc-btn"><i class="bi bi-box-arrow-in-up me-1"></i>Upload &amp; Store</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-archive"></i>
+    <span>Snapshot Archive ({{ backups|length|default:0 }})</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if backups %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Size</th>
+            <th>Created</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in backups %}
+          <tr>
+            <td>
+              <div class="it-filename"><i class="bi bi-filetype-json me-1"></i>{{ b.name }}</div>
+            </td>
+            <td class="sc-text-sm">{{ b.size_kb }} KB</td>
+            <td class="sc-text-sm sc-text-muted">{{ b.mtime|date:"d M Y H:i" }}</td>
+            <td class="text-end">
+              <a href="{% url 'it_support_portal:backup_download' b.name %}" class="sc-btn sc-btn-sm sc-btn-outline" data-it-download="{{ b.name }}">
+                <i class="bi bi-download me-1"></i>Download
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-inbox"></i>
+      <p class="mb-1">No backups have been created yet.</p>
+      <p class="sc-hint mb-0">Use <b>Create Backup Now</b> above to take the first JSON snapshot of the database.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-journal-text"></i>
+    <span>Backup Audit Trail</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if logs %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Actor</th>
+            <th>Action</th>
+            <th>File</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td class="sc-text-sm sc-text-muted">{{ log.timestamp|date:"d M Y H:i" }}</td>
+            <td class="sc-text-sm">{{ log.actor.username|default:"system" }}</td>
+            <td><span class="sc-badge sc-badge-blue sc-mono">{{ log.action }}</span></td>
+            <td class="sc-text-sm">{{ log.details.file|default:"&mdash;" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ log.ip_address|default:"&mdash;" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-journal-x"></i>
+      <p class="mb-0">No backup operations have been logged yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-backup-list.js' %}" defer></script>
+{% endblock %}

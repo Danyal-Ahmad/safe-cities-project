@@ -1,0 +1,64 @@
+/* ==========================================================================
+   IT SUPPORT — Payment Method List (it-payment-method-list)
+   ========================================================================== */
+
+.it-pm-name {
+  font-size: 0.88rem;
+  color: var(--sc-navy-deep, #0F2557);
+}
+
+.it-pm-name i { color: var(--sc-primary, #2563EB); }
+
+.it-pm-config { max-width: 190px; }
+
+.it-pm-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.it-pm-actions form { margin: 0; }
+
+.it-pm-type-wallet { background: var(--sc-info-bg, #EEF3FC); color: var(--sc-info, #2E5FB7); }
+.it-pm-type-card { background: var(--sc-purple-bg, #F1EDFC); color: var(--sc-purple, #7C5CE0); }
+.it-pm-type-gateway { background: #E8FAF7; color: #0D9488; }
+
+.it-pm-help { border-top: 3px solid var(--sc-info-bg, #EEF3FC); }
+
+.it-pm-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: var(--sc-radius, 14px);
+  background: #FFFFFF;
+  height: 100%;
+}
+
+.it-pm-note > i {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--sc-info-bg, #EEF3FC);
+  color: var(--sc-info, #2E5FB7);
+  font-size: 1.05rem;
+}
+
+.it-pm-note-t {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--sc-navy-deep, #0F2557);
+  margin-bottom: 2px;
+}
+
+@media (max-width: 720px) {
+  .it-pm-actions { justify-content: flex-start; }
+  .it-pm-actions .sc-btn { flex: 1 1 auto; justify-content: center; }
+}

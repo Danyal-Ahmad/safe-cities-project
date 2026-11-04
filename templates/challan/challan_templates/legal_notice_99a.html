@@ -1,0 +1,173 @@
+{# Legal notice style e-challan — Section 99-A Motor Vehicles Ordinance 1965 (A4) #}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Legal Notice {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; font-size: 10.5px; color: #111; margin: 0; padding: 0; line-height: 1.55; background: #fff; }
+  .ln-head { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 14px; }
+  .ln-head h1 { font-size: 17px; margin: 0 0 2px 0; letter-spacing: 1px; text-transform: uppercase; }
+  .ln-head .ln-sub { font-size: 9px; color: #333; letter-spacing: 0.6px; }
+  .ln-head .ln-logos { margin-top: 8px; }
+  .ln-head .ln-logos img { height: 38px; margin: 0 6px; }
+  .ln-ref { display: flex; justify-content: space-between; font-size: 9.5px; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 12px; }
+  .ln-ref b { letter-spacing: 0.4px; }
+  .ln-notice-title { text-align: center; font-weight: 900; font-size: 12.5px; letter-spacing: 2.5px; text-transform: uppercase; margin: 14px 0 10px 0; }
+  .ln-p { margin: 0 0 10px 0; text-align: justify; }
+  .ln-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  .ln-table th, .ln-table td { border: 1px solid #000; padding: 5px 8px; font-size: 9.5px; text-align: left; }
+  .ln-table th { background: #efefef; text-transform: uppercase; font-size: 8px; letter-spacing: 0.6px; width: 32%; }
+  .ln-amount { text-align: center; margin: 14px 0; }
+  .ln-amount .amt { font-size: 26px; font-weight: 900; letter-spacing: 1px; }
+  .ln-amount .due { font-size: 10px; color: #333; }
+  .ln-amount .psid { font-size: 9.5px; color: #333; margin-top: 2px; }
+  .ln-evidence { border: 1px solid #000; padding: 8px; margin: 12px 0; }
+  .ln-evidence h3 { margin: 0 0 6px 0; font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid #000; padding-bottom: 3px; }
+  .ln-evidence .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ln-evidence .imgs figure { margin: 0; border: 1px solid #999; padding: 3px; text-align: center; }
+  .ln-evidence .imgs img { width: 100%; height: auto; }
+  .ln-evidence .imgs figcaption { font-size: 7.5px; color: #444; text-transform: uppercase; letter-spacing: 0.6px; padding-top: 3px; }
+  .ln-checks { margin-top: 8px; }
+  .ln-check { font-size: 9px; padding: 2px 0 2px 18px; text-indent: -18px; }
+  .ln-check.pass::before { content: "\2714 "; color: #15803d; font-weight: 900; }
+  .ln-check.fail::before { content: "\2716 "; color: #cc0000; font-weight: 900; }
+  .ln-hash { font-size: 8px; color: #333; font-style: italic; margin-top: 6px; border-top: 1px dotted #888; padding-top: 4px; }
+  .ln-warning { border: 1.5px solid #000; padding: 8px 10px; margin: 12px 0; font-size: 9.5px; background: #fff; }
+  .ln-warning b { text-transform: uppercase; }
+  .ln-signatures { display: flex; justify-content: space-between; margin-top: 26px; }
+  .ln-sig { text-align: center; width: 220px; }
+  .ln-sig img { height: 34px; }
+  .ln-sig .line { border-top: 1px solid #000; margin-top: 14px; padding-top: 4px; font-size: 9px; color: #333; }
+  .ln-footer { margin-top: 22px; border-top: 1px solid #000; padding-top: 6px; font-size: 8px; color: #444; display: flex; justify-content: space-between; }
+  .ln-barcode { text-align: center; margin: 10px 0; }
+  .ln-barcode svg { height: 40px; }
+  .ln-barcode .tno { font-size: 9px; letter-spacing: 2px; margin-top: 2px; }
+  .ln-stamp { float: right; border: 2px solid #000; padding: 6px 10px; font-size: 9px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; transform: rotate(-4deg); }
+</style>
+</head>
+<body>
+
+<div class="ln-head">
+  <h1>Safe City Traffic Enforcement</h1>
+  <div class="ln-sub">Government of the Punjab &middot; Traffic Police Wing &middot; Section 99-A, Motor Vehicles Ordinance, 1965</div>
+  <div class="ln-logos">
+    {% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% endif %}
+    {% if logo_right_path %}<img src="file://{{ logo_right_path }}" alt="">{% endif %}
+  </div>
+</div>
+
+<div class="ln-ref">
+  <span><b>Notice Ref:</b> {{ challan.ticket_no }}</span>
+  <span><b>Issued:</b> {{ challan.issue_date|date:"d F Y" }}</span>
+  <span><b>Respond Before:</b> {{ challan.due_date|date:"d F Y" }}</span>
+</div>
+
+<div class="ln-notice-title">Notice of Traffic Violation</div>
+
+<p class="ln-p">
+  Take notice that on {{ challan.issue_date|date:"d F Y" }} at {{ challan.location|default:"a public road" }}, the
+  vehicle bearing registration number <b>{{ challan.plate_number }}</b>
+  {% if challan.owner_name %} registered in the name of <b>{{ challan.owner_name }}</b>{% if challan.cnic %} (CNIC {{ challan.cnic }}){% endif %}{% endif %}
+  was recorded by automated enforcement camera
+  {{ challan.camera.camera_id|default:"—" }} committing the offence of
+  <b>{{ challan.get_violation_type_display|upper }}</b>.
+</p>
+
+<table class="ln-table">
+  <tr><th>Offence</th><td>{{ challan.get_violation_type_display }}</td></tr>
+  <tr><th>Vehicle</th><td>{{ challan.plate_number }} &middot; {{ challan.vehicle_type|default:"Car" }}{% if challan.color %} &middot; {{ challan.color }}{% endif %}{% if challan.make_year %} &middot; {{ challan.make_year }}{% endif %}</td></tr>
+  <tr><th>Location</th><td>{{ challan.location|default:"—" }}</td></tr>
+  <tr><th>Camera / Time</th><td>{{ challan.camera.camera_id|default:"—" }} &middot; {{ challan.created_at|date:"d M Y, H:i" }}</td></tr>
+  <tr><th>Legal / Moving Direction</th><td>{{ challan.legal_direction|default:"—" }} / {{ challan.moving_direction|default:"—" }}</td></tr>
+  <tr><th>Automation Confidence</th><td>{% if challan.ai_confidence %}{{ challan.ai_confidence|floatformat:2 }}{% else %}—{% endif %}</td></tr>
+  <tr><th>Payable Amount</th><td><b>PKR {{ challan.fine_amount|floatformat:0 }}/-</b></td></tr>
+  <tr><th>Payment Status</th><td>{{ challan.get_payment_status_display }}</td></tr>
+</table>
+
+<div class="ln-amount">
+  <div class="amt">PKR {{ challan.fine_amount|floatformat:0 }}/-</div>
+  <div class="due">Payable on or before {{ challan.due_date|date:"d F Y" }} under Head <b>C0263A</b> (IC3 E-Challans)</div>
+  <div class="psid">PSID: {{ challan.psid }}</div>
+</div>
+
+{% if evidence_summary %}
+<div class="ln-evidence">
+  <h3>Evidence Chain &mdash; Security Verification ({{ evidence_summary.passed }}/{{ evidence_summary.total }})</h3>
+  <div class="ln-checks">
+    {% for check in evidence_summary.checks %}
+    <div class="ln-check {% if check.passed %}pass{% else %}fail{% endif %}"><b>{{ check.check|title }}</b> &mdash; {{ check.detail }}</div>
+    {% endfor %}
+  </div>
+  {% if evidence_summary.track_id %}
+  <div class="ln-hash">Frame tracking: {{ evidence_summary.track_id }} &middot; {{ evidence_summary.track_frames }} frame(s) &middot; consistency {{ evidence_summary.track_consistency|floatformat:2 }}</div>
+  {% endif %}
+  {% if evidence_summary.hash %}
+  <div class="ln-hash">Tamper-evident chain digest (SHA-256): {{ evidence_summary.hash }}</div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="ln-evidence">
+  <h3>Photographic Evidence</h3>
+  <div class="imgs">
+    <figure>
+      {% if challan.detection and challan.detection.raw_image %}
+      <img src="file://{{ challan.detection.raw_image.path }}" alt="Violation frame">
+      {% else %}
+      <div style="height:90px;display:flex;align-items:center;justify-content:center;color:#999;font-size:9px;">[Not Available]</div>
+      {% endif %}
+      <figcaption>Violation frame &mdash; wide angle</figcaption>
+    </figure>
+    <figure>
+      {% if challan.detection and challan.detection.effective_plate_image %}
+      <img src="file://{{ challan.detection.effective_plate_image.path }}" alt="Plate crop">
+      {% else %}
+      <div style="height:90px;display:flex;align-items:center;justify-content:center;color:#999;font-size:9px;">[Not Available]</div>
+      {% endif %}
+      <figcaption>Number plate recognition crop</figcaption>
+    </figure>
+  </div>
+</div>
+
+{% if needs_nadra_excise %}
+<div class="ln-warning">
+  <b>Notice:</b> Owner identity for this plate could not be resolved through the Excise &amp; NADRA registries.
+  This notice will be served once registry integration is configured.
+</div>
+{% endif %}
+
+<div class="ln-warning">
+  <b>Warning:</b> Failure to discharge this notice within the stipulated period may result in further penalty,
+  registration suspension, and impounding of the vehicle under the Motor Vehicles Ordinance, 1965.
+  Appeals may be filed online through the Citizen Portal or at any traffic police counter.
+</div>
+
+<div class="ln-barcode">
+  {% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}
+  <div class="tno">{{ challan.ticket_no }}</div>
+</div>
+
+<div class="ln-signatures">
+  <div class="ln-sig">
+    {% if officer_signature_url %}<img src="file://{{ officer_signature_url }}" alt="">{% endif %}
+    <div class="line">
+      {{ officer_signature_name|default:"Issuing Officer" }}<br>
+      {{ officer_signature_designation|default:"Traffic Police" }} &middot; {{ officer_staff_id|default:"—" }}
+    </div>
+  </div>
+  <div class="ln-sig">
+    <div class="line">Issued by the Safe City Automated Enforcement System<br>{{ challan.created_at|date:"d F Y, H:i" }}</div>
+  </div>
+</div>
+
+<div class="ln-footer">
+  <span>Safe City Traffic Enforcement &middot; Government of the Punjab</span>
+  <span>This is a system-generated legal notice.</span>
+</div>
+
+</body>
+</html>

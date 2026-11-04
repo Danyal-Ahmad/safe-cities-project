@@ -125,7 +125,7 @@
         <span class="md-badge md-badge-secondary">Weekly Inflow</span>
       </div>
       <div class="md-card-body" style="height: 240px; position: relative;">
-        <canvas id="appealsTrendChart" data-api-url="{% url 'dig:api_chart_activity_trend' %}" data-chart-type="bar"></canvas>
+        <canvas id="appealsTrendChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="bar"></canvas>
       </div>
     </div>
 
@@ -138,7 +138,7 @@
         <span class="md-badge md-badge-secondary">All Violations</span>
       </div>
       <div class="md-card-body" style="height: 240px; position: relative;">
-        <canvas id="violDistChart" data-api-url="{% url 'dig:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>
+        <canvas id="violDistChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>
       </div>
     </div>
   </div>
@@ -183,7 +183,7 @@
                   <span class="md-badge md-badge-dark" style="font-family: monospace;">{{ a.challan.plate_number }}</span>
                 </td>
                 <td style="font-weight: 700;">PKR {{ a.challan.fine_amount|floatformat:0|intcomma }}</td>
-                <td>{{ a.submitted_by.display_name|default:a.submitted_by.username }}</td>
+                <td>{{ a.submitted_by.display_name|default:a.guest_name|default:'Guest (unregistered)' }}</td>
                 <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ a.created_at|date:"d M Y" }}</td>
                 <td style="font-size: 0.8rem; max-width: 200px; color: var(--md-text-body);">{{ a.reason|truncatechars:90 }}</td>
                 <td style="text-align: right;">
@@ -253,7 +253,7 @@
               <td style="font-family: monospace;">{{ a.challan.ticket_no }}</td>
               <td><span class="md-badge md-badge-dark" style="font-family: monospace;">{{ a.challan.plate_number }}</span></td>
               <td style="font-weight: 700;">PKR {{ a.challan.fine_amount|floatformat:0|intcomma }}</td>
-              <td>{{ a.submitted_by.display_name|default:a.submitted_by.username }}</td>
+              <td>{{ a.submitted_by.display_name|default:a.guest_name|default:'Guest (unregistered)' }}</td>
               <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ a.escalated_at|date:"d M Y H:i" }}</td>
               <td style="font-size: 0.8rem; color: var(--md-text-body);">{{ a.escalation_reason|truncatechars:90 }}</td>
             </tr>
@@ -317,48 +317,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Live clock
-function updateClock(){
-  const el = document.getElementById('live-clock');
-  if(el) {
-    const now = new Date();
-    const pad = n => String(n).padStart(2,'0');
-    el.textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
-      ' · ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-  }
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-// Generic Chart.js from API
-async function initChartFromAPI(canvas){
-  if(typeof Chart === 'undefined') return;
-  try {
-    const apiUrl   = canvas.dataset.apiUrl;
-    const chartType = canvas.dataset.chartType || 'bar';
-    const json = await (await fetch(apiUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })).json();
-
-    new Chart(canvas, {
-      type: chartType,
-      data: json,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: chartType === 'doughnut' } },
-        scales: chartType === 'doughnut' ? {} : {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
-        }
-      }
-    });
-  } catch(e) {
-    console.warn('Chart init failed:', e);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('canvas[data-api-url]').forEach(canvas => initChartFromAPI(canvas));
-});
-</script>
+<script src="{% static 'js/pages/ssp-dashboard.js' %}" defer></script>
 {% endblock %}

@@ -24,7 +24,6 @@ class LiveTrackingService:
         Detection.PENDING,
         Detection.CONFIRMED,
         Detection.FLAGGED,
-        Detection.MANUAL,
     ]
 
     def __init__(self, user: User, selected_camera_id: Optional[str] = None,
@@ -87,10 +86,7 @@ class LiveTrackingService:
 
         # Plate filter
         if self.plate_query:
-            qs = qs.filter(
-                Q(ai_plate_text__icontains=self.plate_query) |
-                Q(manual_plate_text__icontains=self.plate_query)
-            )
+            qs = qs.filter(ai_plate_text__icontains=self.plate_query)
 
         # Status filter
         if self.status_filter:

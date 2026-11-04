@@ -43,16 +43,14 @@ def _make_barcode(ticket_no: str):
 
 
 def _get_quadrant_images(challan):
-    """Evidence frames for PDF: full scene, vehicle crop, plate crop (+ legacy quadrants)."""
+    """Evidence frames for the PDF: full scene, vehicle crop and plate crop."""
     if not getattr(challan, "detection", None):
         return []
     d = challan.detection
     candidates = [
-        ("Full frame", getattr(d, "raw_image", None) or getattr(d, "snapshot", None)),
-        ("Vehicle", getattr(d, "vehicle_image", None) or getattr(d, "manual_q1_image", None)),
-        ("Number plate", getattr(d, "plate_image", None) or getattr(d, "manual_q2_image", None)),
-        ("Q3", getattr(d, "manual_q3_image", None)),
-        ("Q4", getattr(d, "manual_q4_image", None)),
+        ("Full frame", getattr(d, "raw_image", None)),
+        ("Vehicle", getattr(d, "vehicle_image", None)),
+        ("Number plate", getattr(d, "plate_image", None) or getattr(d, "plate_crop_image", None)),
     ]
     out = []
     for label, img in candidates:
@@ -228,9 +226,25 @@ def generate_challan_pdf(challan):
     bc_svg, bc_url = _make_barcode(
         getattr(challan, "ticket_no", "") or str(getattr(challan, "id", ""))
     )
+    evidence_summary = None
+    det = getattr(challan, "detection", None)
+    if det is not None and getattr(det, "evidence_checks", None):
+        checks = det.evidence_checks or []
+        passed = sum(1 for c in checks if c.get("passed"))
+        evidence_summary = {
+            "checks": checks,
+            "passed": passed,
+            "total": len(checks),
+            "all_passed": bool(checks) and passed == len(checks),
+            "hash": det.evidence_hash,
+            "track_id": det.track_id,
+            "track_frames": det.track_frames,
+            "track_consistency": det.track_consistency,
+        }
     context = {
         "challan": challan,
         "settings": sys_settings,
+        "evidence_summary": evidence_summary,
         "template_config": sys_settings.template_config or getattr(
             SystemSettings, "DEFAULT_TEMPLATE_CONFIG", {}
         ),
@@ -283,16 +297,19 @@ def generate_challan_pdf(challan):
     if isinstance(tpl_key, str) and tpl_key.startswith("db:"):
         try:
             from admin.dig_portal.models import ChallanTemplate
-            name = tpl_key[3:]
-            row = ChallanTemplate.objects.filter(name=name, is_active=True).first()
-            if row and row.html_body:
+            tid = tpl_key[3:]
+            row = ChallanTemplate.objects.filter(pk=tid, is_active=True).first()
+            if row and row.html_content:
                 from django.template import Template, Context
-                html_string = Template(row.html_body).render(Context(context))
+                html_string = Template(row.html_content).render(Context(context))
         except Exception as e:
             logger.warning("DB template render failed: %s", e)
     else:
         template_map = {
-            "modern_a4":     "challan/challan_templates/modern_a4.html",
+            "modern_a4":          "challan/challan_templates/modern_a4.html",
+            "classic_a4":         "challan/challan_templates/classic_a4.html",
+            "legal_notice_99a":   "challan/challan_templates/legal_notice_99a.html",
+            "digital_slip":       "challan/challan_templates/digital_slip.html",
             "safecityfyp_classic": "challan/challan_templates/modern_a4.html",
         }
         tpl_name = template_map.get(tpl_key, template_map["modern_a4"])

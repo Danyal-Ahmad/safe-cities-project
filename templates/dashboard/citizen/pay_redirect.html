@@ -16,5 +16,8 @@
 </form>
 </div>
 </div>
-<script>setTimeout(function(){var f=document.getElementById('redirectForm');if(f)f.submit();},500);</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/citizen-pay-redirect.js' %}" defer></script>
 {% endblock %}

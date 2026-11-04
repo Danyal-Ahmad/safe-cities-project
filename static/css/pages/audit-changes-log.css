@@ -1,0 +1,90 @@
+/* ==========================================================================
+   AUDIT PORTAL — Consolidated Changes Log (audit-changes-log)
+   Shared by camera / challan / payment / banner / alert change views.
+   ========================================================================== */
+
+/* Tracked-action chips ---------------------------------------------------- */
+
+.audit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.audit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
+  color: var(--sc-primary, #2563EB);
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.audit-chip i {
+  font-size: 0.65rem;
+}
+
+/* Hero meta (event count next to the dashboard button) -------------------- */
+
+.audit-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Table helpers ------------------------------------------------------------ */
+
+.audit-action-badge {
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.audit-details-cell {
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.audit-actor-name {
+  font-weight: 600;
+  color: var(--sc-navy-deep, #0F2557);
+  font-size: 0.85rem;
+}
+
+.audit-actor-sub {
+  font-size: 0.72rem;
+  color: var(--sc-text-faint, #8A94B0);
+}
+
+.audit-ip {
+  white-space: nowrap;
+}
+
+/* Read-only banner strip --------------------------------------------------- */
+
+.audit-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--sc-text-muted, #5B6B85);
+  background: var(--sc-bg-soft, #F1F4F9);
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+@media (max-width: 760px) {
+  .audit-details-cell {
+    max-width: 180px;
+  }
+}

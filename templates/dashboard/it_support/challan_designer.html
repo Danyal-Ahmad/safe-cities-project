@@ -1,13 +1,108 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Template Designer{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>A4 challan template designer</b>{% endblock %}
+{% block title %}Template Designer — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-challan-designer.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>A4 challan template designer</h1>
-<p class="sc-lead">Drag-and-drop A4 layout designer.</p>
+  <div>
+    <h1><i class="bi bi-palette me-2"></i>A4 Challan Template Designer</h1>
+    <p class="sc-lead">Compose a print-ready A4 e-challan from standard blocks. The designer emits a Django template that uses the live challan fields when the PDF is generated.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-btn"><i class="bi bi-file-earmark-ruled me-1"></i>Back to Templates</a>
+  </div>
 </div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-grid-1x2"></i>
+        <span>Block Palette</span>
+        <span class="sc-badge sc-badge-blue ms-auto">{{ blocks|length }} blocks</span>
+      </div>
+      <div class="sc-card-body">
+        <p class="sc-text-sm sc-text-muted mb-3">Drag a block onto the canvas, or click it to append. Drag placed blocks to reorder.</p>
+        <div class="it-ds-pal" data-ds-palette>
+          {% for blk in blocks %}
+          <button type="button" class="it-ds-pal-item" draggable="true" data-block="{{ blk.id }}" data-label="{{ blk.label }}" title="Add {{ blk.label }}">
+            <i class="fa-solid {{ blk.icon }} it-ds-pal-ic"></i>
+            <span>{{ blk.label }}</span>
+            <i class="bi bi-plus-circle it-ds-pal-add"></i>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="sc-card">
+      <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+        <i class="bi bi-file-earmark-ruled"></i>
+        <span>A4 Canvas</span>
+        <span class="sc-badge sc-badge-gray sc-mono ms-1" data-ds-count>0 blocks</span>
+        <div class="ms-auto sc-flex sc-gap-2">
+          <button type="button" class="sc-btn sc-btn-sm sc-btn-primary" data-ds-generate><i class="bi bi-magic me-1"></i>Generate HTML</button>
+          <button type="button" class="sc-btn sc-btn-sm" data-ds-clear><i class="bi bi-eraser me-1"></i>Clear</button>
+        </div>
+      </div>
+      <div class="sc-card-body">
+        <div class="it-ds-canvas" data-ds-canvas>
+          <div class="it-ds-empty" data-ds-empty>
+            <i class="bi bi-arrows-move"></i>
+            <p class="mb-1">Drop blocks here to build the layout</p>
+            <p class="sc-hint mb-0">The canvas is a single A4 sheet &mdash; blocks stack top to bottom.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'it_support_portal:challan_template_designer' %}" class="sc-card it-ds-form" data-ds-form>
+      {% csrf_token %}
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-save"></i>
+        <span>Save Template</span>
+      </div>
+      <div class="sc-card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm">Template name</label>
+              <input type="text" name="template_name" value="Custom A4" class="form-control" maxlength="120" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sc-form-group">
+              <label class="form-label sc-text-sm">Make it the active print layout</label>
+              <div class="form-check form-switch mt-1">
+                <input class="form-check-input" type="checkbox" role="switch" id="dsActivate" name="activate" value="1">
+                <label class="form-check-label sc-text-sm" for="dsActivate">Activate immediately after saving</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-form-group">
+          <label class="form-label sc-text-sm">Generated template HTML <span class="sc-text-muted">(Django template &mdash; challan.* fields are filled at print time)</span></label>
+          <textarea name="html_content" rows="12" class="form-control sc-mono it-ds-code" spellcheck="false" data-ds-html placeholder="Click Generate HTML, or paste an existing template here."></textarea>
+          <div class="sc-flex sc-justify-between sc-mt-2">
+            <span class="sc-hint" data-ds-counter>0 characters &middot; at least 50 required</span>
+            <span class="sc-hint sc-mono" data-ds-blocks-list>no blocks placed</span>
+          </div>
+        </div>
+        <div class="sc-flex sc-gap-2 sc-flex-wrap">
+          <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-save me-1"></i>Save Template</button>
+          <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-btn">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
-<div class="sc-card"><div class="sc-grid sc-grid-2"><div><h3>Blocks</h3><div class="sc-grid sc-grid-2"><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-accent-soft);"><i class="bi bi-card-text"></i><br>Header</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-info-soft);"><i class="bi bi-upc-scan"></i><br>QR</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-success-soft);"><i class="bi bi-table"></i><br>Table</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-warning-soft);"><i class="bi bi-person"></i><br>Owner</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:var(--sc-danger-soft);"><i class="bi bi-receipt"></i><br>Payment</div><div class="sc-card" draggable="true" style="cursor:grab;text-align:center;background:#f3e8ff;"><i class="bi bi-vector-pen"></i><br>Sign</div></div></div><div style="border:2px dashed var(--sc-border);border-radius:6px;min-height:500px;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:14px;">A4 canvas — drop blocks here</div></div></div>{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-challan-designer.js' %}" defer></script>
+{% endblock %}

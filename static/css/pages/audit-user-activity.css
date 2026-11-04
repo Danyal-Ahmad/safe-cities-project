@@ -1,0 +1,65 @@
+/* ==========================================================================
+   AUDIT PORTAL — User Activity (audit-user-activity)
+   ========================================================================== */
+
+/* Tracked-action chips ---------------------------------------------------- */
+
+.audit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.audit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sc-teal-bg, #E8FAF7);
+  color: #0D9488;
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.audit-chip i {
+  font-size: 0.65rem;
+}
+
+/* Table helpers ----------------------------------------------------------- */
+
+.audit-action-badge {
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.audit-details-cell {
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.audit-actor-name {
+  font-weight: 600;
+  color: var(--sc-navy-deep, #0F2557);
+  font-size: 0.85rem;
+}
+
+.audit-actor-sub {
+  font-size: 0.72rem;
+  color: var(--sc-text-faint, #8A94B0);
+}
+
+.audit-ip {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .audit-details-cell {
+    max-width: 180px;
+  }
+}

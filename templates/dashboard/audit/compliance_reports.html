@@ -1,13 +1,193 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Compliance Reports{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Compliance reports</b>{% endblock %}
+{% block title %}Compliance Reports — Audit Portal{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-compliance.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Compliance reports</h1>
-<p class="sc-lead">SAFE CITY FYP compliance metrics.</p>
+  <div>
+    <h1><i class="bi bi-shield-check me-2"></i>Compliance Reports</h1>
+    <p class="sc-lead">Challan compliance breakdown by violation type, payment status and issuing location.</p>
+  </div>
+  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
 </div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-tags"></i> Violation types</div>
+    <div class="sc-kpi-value">{{ by_type|length|default:0 }}</div>
+    <div class="sc-kpi-foot">distinct categories</div>
+  </div>
+  {% for k, v in by_status.items %}
+  <div class="sc-kpi{% if k == 'PAID' %} sc-kpi-ok{% elif k == 'UNPAID' %} sc-kpi-amber{% elif k == 'VOIDED' %} sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-label">
+      <i class="bi {% if k == 'PAID' %}bi-check-circle{% elif k == 'UNPAID' %}bi-hourglass-split{% elif k == 'VOIDED' %}bi-x-circle{% else %}bi-circle{% endif %}"></i>
+      {{ k|default:"UNKNOWN" }} challans
+    </div>
+    <div class="sc-kpi-value">{{ v|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">payment status</div>
+  </div>
+  {% endfor %}
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-geo-alt"></i> Locations tracked</div>
+    <div class="sc-kpi-value">{{ by_location|length|default:0 }}</div>
+    <div class="sc-kpi-foot">top issuing areas</div>
+  </div>
 </div>
-<div class="sc-page-hero"><div><h1>Compliance Reports</h1><p class="sc-lead">SAFE CITY FYP compliance metrics.</p></div></div><div class="sc-card">{% if by_type %}<h2>By violation type</h2><table class="sc-table"><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>{% for k, v in by_type.items %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</tbody></table>{% endif %}{% if by_status %}<h2 class="sc-mt-3">By status</h2><table class="sc-table"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>{% for k, v in by_status.items %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</tbody></table>{% endif %}{% if not by_type and not by_status %}<div class="sc-empty">No compliance data yet.</div>{% endif %}</div>{% endblock %}
+
+{% if by_status or by_type %}
+<div class="row g-4">
+  {% if by_status %}
+  <div class="col-lg-6">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-pie-chart"></i>
+        <span>Payment status breakdown</span>
+      </div>
+      <div class="sc-card-body">
+        <div class="audit-chart-box">
+          <canvas id="auditStatusChart"
+                  data-labels="{% for k, v in by_status.items %}{{ k|default:'UNKNOWN' }}{% if not forloop.last %}|{% endif %}{% endfor %}"
+                  data-values="{% for k, v in by_status.items %}{{ v|default:0 }}{% if not forloop.last %}|{% endif %}{% endfor %}"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% if by_type %}
+  <div class="col-lg-6">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-diagram-3"></i>
+        <span>Violation type distribution</span>
+      </div>
+      <div class="sc-card-body">
+        <div class="audit-chart-box">
+          <canvas id="auditTypeChart"
+                  data-labels="{% for k, v in by_type.items %}{{ k|default:'UNKNOWN' }}{% if not forloop.last %}|{% endif %}{% endfor %}"
+                  data-values="{% for k, v in by_type.items %}{{ v|default:0 }}{% if not forloop.last %}|{% endif %}{% endfor %}"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="row g-4{% if by_status or by_type %} mt-0{% endif %}">
+  <div class="col-lg-6">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-tags"></i>
+          <span>By violation type</span>
+        </div>
+        <span class="sc-badge sc-badge-blue">{{ by_type|length|default:0 }} types</span>
+      </div>
+      {% if by_type %}
+      <div class="table-responsive">
+        <table class="table sc-table mb-0">
+          <thead>
+            <tr><th>Violation type</th><th class="text-end">Challans</th></tr>
+          </thead>
+          <tbody>
+            {% for k, v in by_type.items %}
+            <tr>
+              <td><span class="sc-badge sc-badge-gray">{{ k|default:"UNSPECIFIED" }}</span></td>
+              <td class="text-end audit-loc-count">{{ v|default:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="sc-empty p-4">
+        <i class="bi bi-tags"></i>
+        No violation data yet — challans will appear here once issued.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-wallet2"></i>
+          <span>By payment status</span>
+        </div>
+        <span class="sc-badge sc-badge-blue">{{ by_status|length|default:0 }} statuses</span>
+      </div>
+      {% if by_status %}
+      <div class="table-responsive">
+        <table class="table sc-table mb-0">
+          <thead>
+            <tr><th>Status</th><th class="text-end">Challans</th></tr>
+          </thead>
+          <tbody>
+            {% for k, v in by_status.items %}
+            <tr>
+              <td>
+                <span class="sc-badge {% if k == 'PAID' %}sc-badge-green{% elif k == 'UNPAID' %}sc-badge-amber{% elif k == 'VOIDED' %}sc-badge-red{% else %}sc-badge-gray{% endif %}">
+                  {{ k|default:"UNKNOWN" }}
+                </span>
+              </td>
+              <td class="text-end audit-loc-count">{{ v|default:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="sc-empty p-4">
+        <i class="bi bi-wallet2"></i>
+        No payment-status data yet.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="sc-card">
+      <div class="sc-card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-geo-alt"></i>
+          <span>By location — top {{ by_location|length|default:15 }}</span>
+        </div>
+        <span class="sc-badge sc-badge-teal">{{ by_location|length|default:0 }} locations</span>
+      </div>
+      {% if by_location %}
+      <div class="table-responsive">
+        <table class="table sc-table mb-0">
+          <thead>
+            <tr><th>Rank</th><th>Location</th><th class="text-end">Challans</th></tr>
+          </thead>
+          <tbody>
+            {% for k, v in by_location.items %}
+            <tr>
+              <td><span class="audit-loc-rank">{{ forloop.counter }}</span></td>
+              <td>{{ k|default:"Unspecified" }}</td>
+              <td class="text-end audit-loc-count">{{ v|default:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="sc-empty p-4">
+        <i class="bi bi-geo-alt"></i>
+        No location data yet.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/audit-compliance.js' %}" defer></script>
+{% endblock %}

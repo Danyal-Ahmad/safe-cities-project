@@ -1,13 +1,85 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Camera Feed{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Camera feed</b>{% endblock %}
+{% block title %}Camera Feed — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-camera-feed.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Camera feed</h1>
-<p class="sc-lead">Latest frames from assigned cameras.</p>
+  <div>
+    <h1><i class="bi bi-camera-video"></i> Camera Feed &mdash; Monitoring Wall</h1>
+    <p class="sc-lead">
+      Latest pending detections from your assigned cameras, newest first. Click any
+      frame to open the full evidence panel and take action.
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-gap-2">
+    <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> {{ recent|length|default:0 }} pending</span>
+    <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-sm"><i class="bi bi-collection"></i> All Detections</a>
+    <a href="{% url 'officer_portal:review_queue' %}" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-inbox"></i> Review Queue</a>
+  </div>
 </div>
+
+{% if recent %}
+<div class="sc-feed-grid">
+  {% for d in recent %}
+  <a class="sc-feed-card" href="{% url 'officer_portal:detection_detail' d.id %}">
+    <div class="sc-feed-thumb">
+      {% if d.raw_image %}
+        <img src="{{ d.raw_image.url }}" alt="Pending detection frame for plate {{ d.effective_plate|default:'unknown' }}" data-img-fallback>
+      {% else %}
+        <div class="sc-feed-noimg"><i class="bi bi-camera-video-off"></i><span>No frame</span></div>
+      {% endif %}
+      <span class="sc-feed-status"><span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> {{ d.get_status_display }}</span></span>
+      <span class="sc-feed-cam"><i class="bi bi-camera3"></i> {% if d.camera %}{{ d.camera.camera_id }}{% else %}—{% endif %}</span>
+    </div>
+    <div class="sc-feed-body">
+      <span class="sc-feed-plate sc-mono">{{ d.effective_plate|default:"UNREAD" }}</span>
+      <span class="sc-feed-conf">
+        {% if d.ai_confidence %}
+          <span class="sc-badge {% if d.ai_confidence >= 0.85 %}sc-badge-ok{% elif d.ai_confidence >= 0.6 %}sc-badge-amber{% else %}sc-badge-red{% endif %} sc-mono">
+            {% widthratio d.ai_confidence 1 100 %}%
+          </span>
+        {% else %}<span class="sc-text-faint sc-text-xs">no confidence</span>{% endif %}
+      </span>
+    </div>
+    <div class="sc-feed-foot">
+      <span class="sc-feed-time"><i class="bi bi-clock"></i> {{ d.created_at|date:"d M, H:i" }}</span>
+      <span class="sc-feed-evidence">
+        {% with ev=d.evidence_summary %}
+          {% if ev.total %}
+            {% if ev.all_passed %}
+              <span class="sc-badge sc-badge-ok"><i class="bi bi-shield-fill-check"></i> {{ ev.passed }}/{{ ev.total }}</span>
+            {% else %}
+              <span class="sc-badge sc-badge-amber"><i class="bi bi-shield-fill-exclamation"></i> {{ ev.passed }}/{{ ev.total }}</span>
+            {% endif %}
+          {% else %}
+            <span class="sc-badge sc-badge-muted">—</span>
+          {% endif %}
+        {% endwith %}
+      </span>
+    </div>
+  </a>
+  {% endfor %}
 </div>
-<div class="sc-card"><h2>Camera Feed</h2><p class="sc-empty">Latest frames from assigned cameras.</p></div>{% endblock %}
+{% else %}
+<div class="sc-card">
+  <div class="sc-empty sc-feed-empty">
+    <i class="bi bi-camera-video-off"></i>
+    No pending detections right now &mdash; the wall is clear.
+    New violations from your assigned cameras will appear here automatically.
+    <div class="sc-mt-3">
+      <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-outline sc-btn-sm">
+        <i class="bi bi-collection"></i> Browse all detections
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-camera-feed.js' %}" defer></script>
+{% endblock %}

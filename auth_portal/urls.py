@@ -9,7 +9,6 @@ urlpatterns = [
     path('admin/redirect/',                 views.role_redirect,         name='role_redirect'),
 
     path('admin/forgot-password/',          views.admin_forgot_password, name='admin_forgot_password'),
-    path('admin/reset/<str:token>/',        views.admin_reset_confirm,   name='admin_reset_confirm'),
 
     path('citizen/login/',                  views.citizen_login,         name='citizen_login'),
     path('citizen/signup/',                 views.citizen_signup,        name='citizen_signup'),

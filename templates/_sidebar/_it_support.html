@@ -5,24 +5,24 @@
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
-  <a href="{% url 'it_support_portal:dashboard' %}" class="sc-nav-link {% if request.path == '/portal/it-support/' or request.path == '/portal/it-support/dashboard/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
+  <a href="{% url 'it_support_portal:dashboard' %}" class="sc-nav-link {% if request.path == '/portal/it/' or request.path == '/portal/it/dashboard/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
 </div>
 
 <div class="sc-nav-section" data-section="Infrastructure">
   <div class="sc-nav-title">Infrastructure</div>
   {% if request.user|has_any_perm:"view_cameras,view_camera_health" %}
-  <a href="{% url 'it_support_portal:camera_list' %}" class="sc-nav-link {% if request.path == '/portal/it-support/cameras/' %}sc-active{% endif %}"><i class="bi bi-camera"></i> <span class="sc-nav-link-text">Cameras</span></a>
-  <a href="{% url 'it_support_portal:camera_health' %}" class="sc-nav-link {% if request.path == '/portal/it-support/camera-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse"></i> <span class="sc-nav-link-text">Camera Health</span></a>
-  <a href="{% url 'it_support_portal:cameras_status' %}" class="sc-nav-link {% if request.path == '/portal/it-support/cameras-status/' %}sc-active{% endif %}"><i class="bi bi-broadcast"></i> <span class="sc-nav-link-text">Cameras Status</span></a>
+  <a href="{% url 'it_support_portal:camera_list' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras/' %}sc-active{% endif %}"><i class="bi bi-camera"></i> <span class="sc-nav-link-text">Cameras</span></a>
+  <a href="{% url 'it_support_portal:camera_health' %}" class="sc-nav-link {% if request.path == '/portal/it/camera-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse"></i> <span class="sc-nav-link-text">Camera Health</span></a>
+  <a href="{% url 'it_support_portal:cameras_status' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras-status/' %}sc-active{% endif %}"><i class="bi bi-broadcast"></i> <span class="sc-nav-link-text">Cameras Status</span></a>
   {% endif %}
   {% if request.user|has_perm:"manage_camera_assignments" %}
-  <a href="{% url 'it_support_portal:camera_assignments' %}" class="sc-nav-link {% if request.path == '/portal/it-support/cameras/assignments/' %}sc-active{% endif %}"><i class="bi bi-link-45deg"></i> <span class="sc-nav-link-text">Camera Assignments</span></a>
+  <a href="{% url 'it_support_portal:camera_assignments' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras/assignments/' %}sc-active{% endif %}"><i class="bi bi-link-45deg"></i> <span class="sc-nav-link-text">Camera Assignments</span></a>
   {% endif %}
   {% if request.user|has_perm:"live_monitor" %}
   <a href="{% url 'it_support_portal:live_monitor' %}" class="sc-nav-link {% if '/live-monitor/' in request.path %}sc-active{% endif %}"><i class="bi bi-camera-video"></i> <span class="sc-nav-link-text">Live Monitor</span></a>
   {% endif %}
   {% if request.user|has_perm:"live_tracking" %}
-  <a href="{% url 'it_support_portal:live_tracking' %}" class="sc-nav-link {% if request.path == '/portal/it-support/live-tracking/' %}sc-active{% endif %}"><i class="bi bi-binoculars"></i> <span class="sc-nav-link-text">Live Tracking</span></a>
+  <a href="{% url 'it_support_portal:live_tracking' %}" class="sc-nav-link {% if request.path == '/portal/it/live-tracking/' %}sc-active{% endif %}"><i class="bi bi-binoculars"></i> <span class="sc-nav-link-text">Live Tracking</span></a>
   {% endif %}
   {% if request.user|has_perm:"live_tracking_timeline" %}
   <a href="{% url 'it_support_portal:live_tracking_timeline' %}" class="sc-nav-link {% if '/live-tracking/timeline/' in request.path %}sc-active{% endif %}"><i class="bi bi-clock-history"></i> <span class="sc-nav-link-text">Live Timeline</span></a>
@@ -32,20 +32,20 @@
 <div class="sc-nav-section" data-section="System">
   <div class="sc-nav-title">System</div>
   {% if request.user|has_perm:"system_health" %}
-  <a href="{% url 'it_support_portal:system_health' %}" class="sc-nav-link {% if request.path == '/portal/it-support/system-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse-fill"></i> <span class="sc-nav-link-text">System Health</span></a>
+  <a href="{% url 'it_support_portal:system_health' %}" class="sc-nav-link {% if request.path == '/portal/it/system-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse-fill"></i> <span class="sc-nav-link-text">System Health</span></a>
   {% endif %}
   {% if request.user|has_perm:"edit_system_settings" %}
-  <a href="{% url 'it_support_portal:settings_edit' %}" class="sc-nav-link {% if request.path == '/portal/it-support/settings/' %}sc-active{% endif %}"><i class="bi bi-sliders"></i> <span class="sc-nav-link-text">Settings</span></a>
+  <a href="{% url 'it_support_portal:settings_edit' %}" class="sc-nav-link {% if request.path == '/portal/it/settings/' %}sc-active{% endif %}"><i class="bi bi-sliders"></i> <span class="sc-nav-link-text">Settings</span></a>
   {% endif %}
   {% if request.user|has_perm:"pdf_settings" %}
-  <a href="{% url 'it_support_portal:pdf_settings' %}" class="sc-nav-link {% if request.path == '/portal/it-support/pdf-settings/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-pdf"></i> <span class="sc-nav-link-text">PDF Settings</span></a>
+  <a href="{% url 'it_support_portal:pdf_settings' %}" class="sc-nav-link {% if request.path == '/portal/it/pdf-settings/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-pdf"></i> <span class="sc-nav-link-text">PDF Settings</span></a>
   {% endif %}
   {% if request.user|has_perm:"challan_template_manage" %}
-  <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-nav-link {% if request.path == '/portal/it-support/challan-templates/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-ruled"></i> <span class="sc-nav-link-text">Challan Templates</span></a>
-  <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it-support/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Template Designer</span></a>
+  <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-ruled"></i> <span class="sc-nav-link-text">Challan Templates</span></a>
+  <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Template Designer</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_backups" %}
-  <a href="{% url 'it_support_portal:backup_list' %}" class="sc-nav-link {% if request.path == '/portal/it-support/backups/' %}sc-active{% endif %}"><i class="bi bi-cloud-arrow-down"></i> <span class="sc-nav-link-text">Backups</span></a>
+  <a href="{% url 'it_support_portal:backup_list' %}" class="sc-nav-link {% if request.path == '/portal/it/backups/' %}sc-active{% endif %}"><i class="bi bi-cloud-arrow-down"></i> <span class="sc-nav-link-text">Backups</span></a>
   {% endif %}
   {% if request.user|has_perm:"manage_alerts" %}
   <a href="{% url 'it_support_portal:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone-fill"></i> <span class="sc-nav-link-text">Alerts</span></a>
@@ -55,20 +55,20 @@
 <div class="sc-nav-section" data-section="Payments">
   <div class="sc-nav-title">Payments</div>
   {% if request.user|has_perm:"payment_method_config" %}
-  <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-nav-link {% if request.path == '/portal/it-support/payment-methods/' %}sc-active{% endif %}"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Payment Methods</span></a>
-  <a href="{% url 'it_support_portal:payment_method_add' %}" class="sc-nav-link {% if request.path == '/portal/it-support/payment-methods/add/' %}sc-active{% endif %}"><i class="bi bi-plus-circle"></i> <span class="sc-nav-link-text">Add Method</span></a>
+  <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-nav-link {% if request.path == '/portal/it/payment-methods/' %}sc-active{% endif %}"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Payment Methods</span></a>
+  <a href="{% url 'it_support_portal:payment_method_add' %}" class="sc-nav-link {% if request.path == '/portal/it/payment-methods/add/' %}sc-active{% endif %}"><i class="bi bi-plus-circle"></i> <span class="sc-nav-link-text">Add Method</span></a>
   {% endif %}
 </div>
 
 <div class="sc-nav-section" data-section="Staff">
   <div class="sc-nav-title">Staff</div>
   {% if request.user|has_perm:"view_users" %}
-  <a href="{% url 'it_support_portal:staff_list' %}" class="sc-nav-link {% if request.path == '/portal/it-support/staff/' %}sc-active{% endif %}"><i class="bi bi-people-fill"></i> <span class="sc-nav-link-text">Staff Directory</span></a>
+  <a href="{% url 'it_support_portal:staff_list' %}" class="sc-nav-link {% if request.path == '/portal/it/staff/' %}sc-active{% endif %}"><i class="bi bi-people-fill"></i> <span class="sc-nav-link-text">Staff Directory</span></a>
   {% endif %}
 </div>
 
 <div class="sc-nav-bottom">
-  <a href="{% url 'it_support_portal:self_profile' %}" class="sc-nav-bottom-link {% if request.path == '/portal/it-support/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-bottom-text">My Profile</span></a>
+  <a href="{% url 'it_support_portal:self_profile' %}" class="sc-nav-bottom-link {% if request.path == '/portal/it/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-bottom-text">My Profile</span></a>
   <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
     {% csrf_token %}
     <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">

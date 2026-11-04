@@ -347,8 +347,9 @@ def password_change(request):
 @user_only_required
 def pay_challan(request, challan_id):
     challan = get_object_or_404(Challan, pk=challan_id)
-    # Anyone may pay a public unpaid challan (guest or citizen)
-    # Owner check only used for display preferences.
+    if not _is_challan_owner(challan, request.user):
+        messages.error(request, "You can only pay your own challans. Use the public challan page for other payments.")
+        return redirect('citizen_portal:home')
     if challan.payment_status in (Challan.PAID, Challan.VOIDED):
         messages.info(request, "This challan cannot be paid.")
         return redirect('citizen_portal:home')
@@ -376,23 +377,36 @@ def pay_challan(request, challan_id):
         action = (request.POST.get('action') or 'manual').strip()
 
         if action == 'initiate' and method_id:
-            from admin.it_support_portal.models import PaymentMethod
             from integrations.payments import initiate_payment
+            from payments.models import PaymentTransaction
             payment_method = get_object_or_404(PaymentMethod, pk=method_id, status=PaymentMethod.STATUS_ACTIVE)
-            return_url = request.build_absolute_uri(reverse('citizen_portal:pay_challan', kwargs={'challan_id': challan.id}))
+            return_url = request.build_absolute_uri(f'/challan/{challan.id}/pay/done/')
             callback_url = request.build_absolute_uri('/api/v1/payment/webhook/')
             init = initiate_payment(challan, payment_method, return_url, callback_url)
-            if init['mode'] == 'form' and init.get('url'):
-                AuditLog.write(request, 'challan.payment_initiate', 'Challan', challan.id,
-                               ticket=challan.ticket_no, txn_ref=init.get('txn_ref'),
-                               method=payment_method.name, mode='form')
+            if not init.get('ok'):
+                messages.error(request, init.get('error') or "Payment could not be initiated.")
+                return redirect('citizen_portal:pay_challan', challan_id=challan.id)
+
+            PaymentTransaction.objects.create(
+                ticket_no=challan.ticket_no,
+                challan=challan,
+                provider=(init.get('provider') or payment_method.name or 'demo'),
+                amount=challan.fine_amount,
+                status=PaymentTransaction.STATUS_PENDING,
+                txn_ref=init.get('reference'),
+            )
+            AuditLog.write(request, 'challan.payment_initiate', 'Challan', challan.id,
+                           ticket=challan.ticket_no, txn_ref=init.get('reference'),
+                           method=payment_method.name, mode=init.get('mode'))
+            if init.get('mode') == 'form':
                 return render(request, 'dashboard/citizen/pay_redirect.html', {
                     'challan': challan,
                     'init': init,
                     'payment_method': payment_method,
                 })
+            if init.get('mode') == 'demo':
+                return redirect(init.get('action_url') or reverse('citizen_portal:pay_challan', kwargs={'challan_id': challan.id}))
             messages.info(request, init.get('message') or 'Use manual transaction reference.')
-
 
         if not method_id:
             messages.error(request, "Please select a payment method.")
@@ -419,23 +433,18 @@ def pay_challan(request, challan_id):
                 target_url=_safe_verify_url(challan.id),
             )
 
-        # Instant PAID for digital demo when gateway keys not configured
-        from django.utils import timezone
-        challan.payment_status = Challan.PAID
-        if hasattr(challan, 'paid_at'):
-            challan.paid_at = timezone.now()
-        challan.save()
-        messages.success(request, f"Payment successful. Challan {challan.ticket_no} is now PAID.")
+        messages.success(
+            request,
+            f"Payment reference submitted. Staff will verify {txn_ref} and mark "
+            f"{challan.ticket_no} as paid after confirmation."
+        )
         return redirect('citizen_portal:home')
-
-    bank = None  # bank transfer removed — digital only
 
     return render(request, 'dashboard/citizen/pay_challan.html', {
         'challan': challan,
         'payment_methods': payment_methods,
         'psid': challan.psid,
         'qr_payload': challan.payment_qr_payload,
-        'bank': bank,
     })
 
 

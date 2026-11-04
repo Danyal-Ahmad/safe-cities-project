@@ -1,13 +1,141 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Staff Directory{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Staff directory</b>{% endblock %}
+{% block title %}Staff Directory — Safe City{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-staff-list.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>Staff directory</h1>
-<p class="sc-lead">All non-citizen staff accounts.</p>
+  <div>
+    <h1><i class="bi bi-people me-2"></i>Staff Directory</h1>
+    <p class="sc-lead">Read-only directory of every non-citizen account on the Safe City portal &mdash; roles, departments and account status.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-person-badge"></i>{{ total_count|default:0 }} staff accounts</span>
+  </div>
 </div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-people"></i></div>
+    <div class="sc-kpi-label">Staff Accounts</div>
+    <div class="sc-kpi-value">{{ total_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">all staff roles, all regions</div>
+  </div>
+  <div class="sc-kpi {% if role_filter or dept_filter or region_filter %}sc-kpi-amber{% else %}sc-kpi-ok{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-funnel"></i></div>
+    <div class="sc-kpi-label">Matching Filters</div>
+    <div class="sc-kpi-value">{{ staff|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">{% if role_filter or dept_filter or region_filter %}filtered view in effect{% else %}showing every account{% endif %}</div>
+  </div>
+  <div class="sc-kpi sc-kpi-info">
+    <div class="sc-kpi-icon"><i class="bi bi-diagram-3"></i></div>
+    <div class="sc-kpi-label">Roles in System</div>
+    <div class="sc-kpi-value">{{ role_choices|length|default:0 }}</div>
+    <div class="sc-kpi-foot">from DIG to IT Support</div>
+  </div>
 </div>
-<div class="sc-card">{% if staff %}<table class="sc-table sc-data-table"><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Department</th><th>Status</th><th>Last login</th></tr></thead><tbody>{% for s in staff %}<tr><td class="sc-mono">{{ s.username }}</td><td>{{ s.display_name }}</td><td><span class="sc-badge sc-badge-blue">{{ s.role_label }}</span></td><td>{{ s.department|default:"-" }}</td><td>{% if s.is_active %}<span class="sc-badge sc-badge-ok">Active</span>{% else %}<span class="sc-badge sc-badge-gray">Disabled</span>{% endif %}</td><td class="sc-text-sm">{{ s.last_login|date:"d M H:i"|default:"-" }}</td></tr>{% empty %}<tr><td colspan="6" class="sc-empty">No staff.</td></tr>{% endfor %}</tbody></table>{% else %}<div class="sc-empty">No staff.</div>{% endif %}</div>{% endblock %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-funnel"></i>
+    <span>Filter Directory</span>
+    {% if role_filter or dept_filter or region_filter %}
+    <a href="{% url 'it_support_portal:staff_list' %}" class="ms-auto sc-btn sc-btn-sm"><i class="bi bi-x-circle me-1"></i>Clear Filters</a>
+    {% endif %}
+  </div>
+  <div class="sc-card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label sc-text-sm" for="fltRole">Role</label>
+        <select name="role" id="fltRole" class="form-select form-select-sm">
+          <option value="">All roles</option>
+          {% for r in role_choices %}
+          <option value="{{ r.0 }}" {% if role_filter == r.0 %}selected{% endif %}>{{ r.1 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label sc-text-sm" for="fltDept">Department</label>
+        <input type="text" name="department" id="fltDept" value="{{ dept_filter }}" class="form-control form-control-sm" placeholder="e.g. Traffic Police">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label sc-text-sm" for="fltRegion">Region</label>
+        <input type="text" name="region" id="fltRegion" value="{{ region_filter }}" class="form-control form-control-sm" placeholder="e.g. Central Region">
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm w-100"><i class="bi bi-search me-1"></i>Apply</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-list-ul"></i>
+    <span>Staff Accounts ({{ staff|length|default:0 }})</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if staff %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>Staff Member</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Account</th>
+            <th>Last Login</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in staff %}
+          <tr>
+            <td>
+              <div class="it-staff-name">{{ s.display_name|default:s.username }}</div>
+              <div class="sc-text-xs sc-text-muted sc-mono">{{ s.username }}</div>
+            </td>
+            <td class="sc-text-sm">{{ s.email|default:"&mdash;" }}</td>
+            <td><span class="sc-badge it-role-{{ s.role|lower }}"><i class="bi bi-person-badge"></i>{{ s.role_label|default:s.role }}</span></td>
+            <td class="sc-text-sm">{{ s.phone|default:"&mdash;" }}</td>
+            <td class="sc-text-sm">{{ s.department|default:"&mdash;" }}</td>
+            <td>
+              {% if s.is_active %}
+              <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active</span>
+              {% else %}
+              <span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>Disabled</span>
+              {% endif %}
+              {% if s.is_locked %}
+              <span class="sc-badge sc-badge-red"><i class="bi bi-lock"></i>Locked</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-sm sc-text-muted">{{ s.last_login|date:"d M Y H:i"|default:"Never" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-people"></i>
+      <p class="mb-1">No staff accounts match the current filters.</p>
+      <p class="sc-hint mb-0">Clear the filters above or widen the role / department / region search.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="sc-card it-staff-note">
+  <div class="sc-card-body sc-flex sc-gap-2 sc-items-center">
+    <i class="bi bi-shield-lock it-staff-note-ic"></i>
+    <div>
+      <div class="it-staff-note-t">Read-only for IT Support</div>
+      <div class="sc-text-sm sc-text-muted">This directory is for lookups only. Role assignment, lockouts and account changes are handled from the DIG portal.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

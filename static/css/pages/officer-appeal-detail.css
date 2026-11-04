@@ -1,0 +1,161 @@
+/* ==========================================================================
+   Officer — Appeal Detail (officer-appeal-detail)
+   Read-only appeal view: meta lists, reason block, decision timeline.
+   ========================================================================== */
+
+.sc-appeal-reason {
+  background: var(--sc-bg-soft);
+  border: 1px solid var(--sc-border);
+  border-left: 3px solid var(--sc-primary);
+  border-radius: var(--sc-radius-sm);
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: var(--sc-text);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.sc-plate-cell {
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+  color: var(--sc-navy-deep);
+}
+
+/* ---- Meta definition lists ------------------------------------------------ */
+
+.sc-meta-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--sc-border);
+}
+
+.sc-meta-row:last-child {
+  border-bottom: none;
+}
+
+.sc-meta-row dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-text-muted);
+  flex-shrink: 0;
+}
+
+.sc-meta-row dd {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sc-text);
+  text-align: right;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.sc-meta-row-wide {
+  display: block;
+}
+
+.sc-meta-row-wide dt {
+  margin-bottom: 4px;
+}
+
+.sc-meta-row-wide dd {
+  text-align: left;
+}
+
+/* ---- Decision trail timeline ---------------------------------------------- */
+
+.sc-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.sc-timeline::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--sc-border);
+  border-radius: 999px;
+}
+
+.sc-timeline-item {
+  position: relative;
+  padding: 0 0 18px 48px;
+}
+
+.sc-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.sc-timeline-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  background: var(--sc-bg-soft);
+  color: var(--sc-text-faint);
+  border: 2px solid var(--sc-border-strong);
+  z-index: 1;
+}
+
+.sc-timeline-done .sc-timeline-dot {
+  background: var(--sc-success-bg);
+  color: var(--sc-success);
+  border-color: var(--sc-success);
+}
+
+.sc-timeline-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--sc-navy-deep);
+  padding-top: 6px;
+}
+
+.sc-timeline-text {
+  margin: 6px 0 0;
+  font-size: 0.83rem;
+  color: var(--sc-text);
+  background: var(--sc-bg-soft);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 8px 12px;
+  white-space: pre-wrap;
+}
+
+.sc-timeline-meta {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--sc-text-faint);
+}
+
+/* ---- Stage badge jump link ------------------------------------------------- */
+
+.sc-stage-jump {
+  cursor: pointer;
+}

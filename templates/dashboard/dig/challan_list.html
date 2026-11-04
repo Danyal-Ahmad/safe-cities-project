@@ -1,13 +1,200 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}E-Challans{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>E-Challans</b>{% endblock %}
+{% block title %}E-Challan Register — Safe City{% endblock %}
+{% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-challan-list.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="sc-page-hero">
-<div>
-<h1>E-Challans</h1>
-<p class="sc-lead">All challans issued by the system.</p>
+  <div>
+    <h1><i class="bi bi-receipt me-2"></i>E-Challan Register</h1>
+    <p class="sc-lead">
+      Complete challan ledger issued by the Safe City system — filterable by plate and
+      payment status. This register is read-only for command staff.
+    </p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url portal_ns|add:':vehicle_search' %}" class="sc-btn">
+      <i class="bi bi-car-front me-1"></i>Vehicle Search
+    </a>
+    <a href="{% url portal_ns|add:':blacklist_list' %}" class="sc-btn">
+      <i class="bi bi-slash-circle me-1"></i>Blacklist
+    </a>
+  </div>
 </div>
+
+<!-- ============ FILTERS ============ -->
+<div class="sc-card ch-filter-card">
+  <div class="sc-card-body">
+    <form method="get" action="{% url portal_ns|add:':challan_list' %}" class="ch-filter-form" data-challan-filters>
+      <div class="ch-filter-field ch-filter-plate">
+        <label for="id-plate" class="ch-filter-label"><i class="bi bi-search me-1"></i>Plate</label>
+        <input type="text" id="id-plate" name="plate" value="{{ plate_filter|default:'' }}"
+               class="sc-mono" placeholder="e.g. LEA-1100" maxlength="20" autocomplete="off"
+               data-uppercase-input data-label="Plate">
+      </div>
+      <div class="ch-filter-field ch-filter-status">
+        <label for="id-status" class="ch-filter-label"><i class="bi bi-funnel me-1"></i>Status</label>
+        <select id="id-status" name="status">
+          <option value="">All statuses</option>
+          <option value="UNPAID" {% if status_filter == 'UNPAID' %}selected{% endif %}>Unpaid</option>
+          <option value="PAID" {% if status_filter == 'PAID' %}selected{% endif %}>Paid</option>
+          <option value="VOIDED" {% if status_filter == 'VOIDED' %}selected{% endif %}>Voided</option>
+        </select>
+      </div>
+      <div class="ch-filter-actions">
+        <button type="submit" class="sc-btn sc-btn-primary">
+          <i class="bi bi-funnel me-1"></i>Apply filters
+        </button>
+        {% if plate_filter or status_filter %}
+        <a href="{% url portal_ns|add:':challan_list' %}" class="sc-btn">
+          <i class="bi bi-x-circle me-1"></i>Reset
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
 </div>
-<form method="get" class="sc-flex sc-flex-wrap sc-gap-2 sc-mb-3"><input type="text" name="plate" value="{{ plate_filter|default:"" }}" placeholder="Filter by plate..." class="sc-text-sm" style="border:1px solid var(--sc-border-strong);border-radius:4px;padding:6px 10px;flex:1;min-width:200px;"><select name="status" class="sc-text-sm" style="border:1px solid var(--sc-border-strong);border-radius:4px;padding:6px 10px;"><option value="">All status</option><option value="UNPAID">Unpaid</option><option value="PAID">Paid</option><option value="VOIDED">Voided</option></select><button type="submit" class="sc-btn sc-btn-sm">Filter</button><a class="sc-btn sc-btn-sm" href="{% url 'dig:challan_list' %}">Reset</a></form><div class="sc-card">{% if challans %}<div class="sc-table-wrap"><table class="sc-table sc-data-table"><thead><tr><th>Ticket</th><th>Plate</th><th>Owner</th><th>CNIC</th><th>Fine</th><th>Status</th><th>Issued</th><th>Due</th><th>Camera</th><th>Action</th></tr></thead><tbody>{% for c in challans %}<tr><td class="sc-mono"><a href="{% url 'challans:challan_detail' c.id %}">{{ c.ticket_no }}</a></td><td class="sc-mono">{{ c.plate_number }}</td><td class="sc-text-sm">{{ c.owner_name|default:"-" }}</td><td class="sc-mono sc-text-sm">{{ c.cnic|default:"-" }}</td><td>PKR {{ c.fine_amount|floatformat:0|intcomma }}</td><td>{% if c.payment_status == 'PAID' %}<span class="sc-badge sc-badge-ok">Paid</span>{% elif c.is_overdue %}<span class="sc-badge sc-badge-red">Overdue</span>{% else %}<span class="sc-badge sc-badge-amber">Unpaid</span>{% endif %}</td><td class="sc-text-sm">{{ c.issue_date|date:"d M Y" }}</td><td class="sc-text-sm">{{ c.due_date|date:"d M Y" }}</td><td class="sc-text-sm">{{ c.camera.camera_id|default:"-" }}</td><td><a class="sc-btn sc-btn-sm" href="{% url 'dig:mark_challan_paid' c.id %}">Mark paid</a> <a class="sc-btn sc-btn-sm" href="{% url 'dig:edit_challan_fine' c.id %}">Edit</a></td></tr>{% empty %}<tr><td colspan="9" class="sc-empty">No challans.</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="sc-empty">No challans found.</div>{% endif %}</div>{% endblock %}
+
+<!-- ============ SUMMARY STRIP ============ -->
+<div class="ch-summary" data-challan-summary>
+  <div class="ch-summary-item">
+    <span class="ch-summary-label"><i class="bi bi-journal-text"></i> Matching challans</span>
+    <span class="ch-summary-value" data-stat="total">{{ total|default:0|intcomma }}</span>
+  </div>
+  <div class="ch-summary-item ch-summary-paid">
+    <span class="ch-summary-label"><i class="bi bi-check-circle"></i> Paid</span>
+    <span class="ch-summary-value" data-stat="paid">—</span>
+  </div>
+  <div class="ch-summary-item ch-summary-unpaid">
+    <span class="ch-summary-label"><i class="bi bi-clock"></i> Unpaid</span>
+    <span class="ch-summary-value" data-stat="unpaid">—</span>
+  </div>
+  <div class="ch-summary-item ch-summary-overdue">
+    <span class="ch-summary-label"><i class="bi bi-exclamation-octagon"></i> Overdue</span>
+    <span class="ch-summary-value" data-stat="overdue">—</span>
+  </div>
+  <div class="ch-summary-item ch-summary-voided">
+    <span class="ch-summary-label"><i class="bi bi-slash-circle"></i> Voided</span>
+    <span class="ch-summary-value" data-stat="voided">—</span>
+  </div>
+</div>
+
+<!-- ============ REGISTER TABLE ============ -->
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-table"></i> Issued Challans
+    </span>
+    <span class="sc-badge sc-badge-blue">
+      <i class="bi bi-list-ol"></i>Showing {{ challans|length }} of {{ total|default:0|intcomma }}
+    </span>
+  </div>
+  <div class="sc-card-body">
+
+    {% if challans %}
+    {% if total > 200 %}
+    <div class="sc-banner sc-banner-warn">
+      <i class="bi bi-exclamation-triangle"></i>
+      <div>{{ total|intcomma }} challans match the current filters — the first 200 are listed below.
+        Narrow the filters to see older records.</div>
+    </div>
+    {% endif %}
+
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table" id="challanTable">
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>Plate</th>
+            <th>Violation</th>
+            <th>Owner</th>
+            <th>Fine</th>
+            <th>Status</th>
+            <th>Issued</th>
+            <th>Due</th>
+            <th>Location</th>
+            <th>Camera</th>
+            <th class="text-end">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in challans %}
+          <tr data-challan-row
+              data-status="{{ c.payment_status }}"
+              data-overdue="{% if c.is_overdue %}1{% else %}0{% endif %}">
+            <td class="sc-mono fw-bold">{{ c.ticket_no }}</td>
+            <td><span class="md-plate-tag">{{ c.plate_number }}</span></td>
+            <td>
+              <span class="sc-badge sc-badge-info"><i class="bi bi-signpost-2"></i>{{ c.get_violation_type_display }}</span>
+            </td>
+            <td class="sc-text-sm">{{ c.owner_name|default:"—" }}</td>
+            <td class="fw-bold ch-fine">PKR {{ c.fine_amount|floatformat:0|intcomma }}</td>
+            <td>
+              {% if c.payment_status == 'PAID' %}
+                <span class="sc-badge sc-badge-green"><i class="bi bi-check-circle-fill"></i>Paid</span>
+              {% elif c.payment_status == 'VOIDED' %}
+                <span class="sc-badge sc-badge-blue"><i class="bi bi-slash-circle"></i>Voided</span>
+              {% elif c.is_overdue %}
+                <span class="sc-badge sc-badge-red"><i class="bi bi-exclamation-octagon"></i>Overdue</span>
+              {% else %}
+                <span class="sc-badge sc-badge-red"><i class="bi bi-clock"></i>Unpaid</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-sm">{{ c.issue_date|date:"d M Y" }}</td>
+            <td class="sc-text-sm {% if c.is_overdue %}ch-due-overdue{% endif %}">{{ c.due_date|date:"d M Y" }}</td>
+            <td class="sc-text-sm ch-location">{{ c.location|default:"—" }}</td>
+            <td class="sc-text-sm sc-mono">
+              {% if c.camera %}{{ c.camera.camera_id }}{% else %}<span class="sc-text-faint">—</span>{% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'challans:challan_detail' c.id %}" class="sc-btn sc-btn-sm sc-btn-outline"
+                 title="Open public challan detail">
+                <i class="bi bi-box-arrow-up-right"></i> View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sc-banner mt-3 mb-0">
+      <i class="bi bi-shield-lock"></i>
+      <div>
+        <strong>Read-only register.</strong>
+        Fine adjustments, payment recording, voiding and deletions are performed from the
+        dedicated challan management pages — every such action is audit-logged.
+      </div>
+    </div>
+    {% else %}
+
+    {% if plate_filter or status_filter %}
+    <div class="sc-empty">
+      <i class="bi bi-search"></i>
+      No challans match
+      {% if plate_filter %}plate <strong class="sc-mono mx-1">{{ plate_filter|upper }}</strong>{% endif %}
+      {% if plate_filter and status_filter %}and{% endif %}
+      {% if status_filter %}status <strong class="mx-1">{{ status_filter }}</strong>{% endif %}.
+      <p class="mt-2"><a href="{% url portal_ns|add:':challan_list' %}" class="sc-btn sc-btn-sm"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear filters</a></p>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-receipt-cutoff"></i>
+      No challans have been issued yet. Records appear here as soon as violations are confirmed.
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-challan-list.js' %}" defer></script>
+{% endblock %}

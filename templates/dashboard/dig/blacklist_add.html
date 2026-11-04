@@ -1,13 +1,172 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Add to Blacklist{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Add to blacklist</b>{% endblock %}
+{% block title %}Add to Blacklist — Safe City{% endblock %}
+{% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-blacklist-add.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="sc-page-hero">
-<div>
-<h1>Add to blacklist</h1>
-<p class="sc-lead">Block a vehicle or individual.</p>
+  <div>
+    <h1><i class="bi bi-slash-circle me-2"></i>Add to Blacklist</h1>
+    <p class="sc-lead">
+      Flag a vehicle plate or a CNIC for priority enforcement. Blacklisted entries are
+      matched against incoming detections and highlighted on the enforcement register.
+    </p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url portal_ns|add:':blacklist_list' %}" class="sc-btn">
+      <i class="bi bi-list-check me-1"></i>Blacklist Register
+    </a>
+    <a href="{% url portal_ns|add:':dashboard' %}" class="sc-btn">
+      <i class="bi bi-speedometer2 me-1"></i>Dashboard
+    </a>
+  </div>
 </div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+
+    <!-- ============ ENTRY FORM ============ -->
+    <div class="sc-card">
+      <div class="sc-card-header d-flex align-items-center justify-content-between">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-shield-x"></i> New Blacklist Entry
+        </span>
+        <span class="sc-badge sc-badge-danger">
+          <i class="bi bi-exclamation-triangle"></i> Immediate effect
+        </span>
+      </div>
+      <div class="sc-card-body">
+        <form method="post" action="{% url portal_ns|add:':blacklist_add' %}" id="blacklistAddForm"
+              data-plate-placeholder="LEA-1100" data-cnic-placeholder="35202-1234567-8" novalidate>
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-md-5">
+              <div class="sc-form-group">
+                <label for="id-type">Entry type <span class="bl-req">*</span></label>
+                <select name="type" id="id-type" class="w-full" data-type-select>
+                  <option value="plate" selected>Vehicle plate</option>
+                  <option value="cnic">CNIC</option>
+                </select>
+                <p class="sc-hint">Phone and chassis entries are not supported yet.</p>
+              </div>
+            </div>
+            <div class="col-md-7">
+              <div class="sc-form-group">
+                <label for="id-value">
+                  Plate / CNIC value <span class="bl-req">*</span>
+                </label>
+                <input type="text" name="value" id="id-value" class="w-full sc-mono bl-value-input"
+                       placeholder="LEA-1100" maxlength="20" autocomplete="off" required
+                       data-uppercase-input data-label="Plate / CNIC value">
+                <p class="sc-hint">Stored in upper case — letters, digits and dashes only.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="sc-form-group">
+            <label for="id-reason">
+              Reason <span class="bl-req">*</span>
+              <span class="bl-counter" data-char-counter-for="id-reason" data-max-chars="255">0 / 255</span>
+            </label>
+            <textarea name="reason" id="id-reason" rows="3" class="w-full" maxlength="255"
+              placeholder="e.g. Stolen vehicle report #4417 — Rawalpindi region"
+              required data-label="Reason"></textarea>
+            <p class="sc-hint">
+              Shown on the blacklist register and in audit records. Keep it factual — 255 characters maximum.
+            </p>
+          </div>
+
+          <div class="bl-form-actions">
+            <button type="submit" class="sc-btn sc-btn-danger" data-submit-btn>
+              <i class="bi bi-shield-plus me-1"></i>Add to blacklist
+            </button>
+            <a href="{% url portal_ns|add:':blacklist_list' %}" class="sc-btn">
+              <i class="bi bi-x-circle me-1"></i>Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+
+    <!-- ============ POLICY PANEL ============ -->
+    <div class="sc-card bl-policy-card">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-info-circle"></i> Blacklist Policy
+      </div>
+      <div class="sc-card-body">
+        <div class="sc-banner">
+          <i class="bi bi-lightbulb"></i>
+          <div>
+            Blacklisting is a <strong>command-level enforcement action</strong>. Only add entries
+            backed by a verifiable report or investigation.
+          </div>
+        </div>
+
+        <ul class="bl-policy-list">
+          <li>
+            <i class="bi bi-lightning-charge-fill"></i>
+            <div>
+              <strong>Immediate effect.</strong>
+              <span>Entries apply as soon as they are saved — no further approval step is required.</span>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-arrow-repeat"></i>
+            <div>
+              <strong>Re-adding updates.</strong>
+              <span>Submitting a value that is already blacklisted updates the existing entry's reason and actor.</span>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-robot"></i>
+            <div>
+              <strong>Automatic blacklisting.</strong>
+              <span>The system can auto-blacklist a plate once it accumulates several unpaid challans
+              (threshold configured by IT Support under System&nbsp;Settings).</span>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-journal-check"></i>
+            <div>
+              <strong>Audit trail.</strong>
+              <span>Every add or update is recorded in the audit log with your account, the value and the reason.</span>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-input-cursor-text"></i>
+            <div>
+              <strong>Supported types.</strong>
+              <span>Vehicle plates and CNIC numbers. Phone / chassis blacklist entries are not enabled yet.</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="bl-next-steps">
+          <div class="bl-next-steps-title">
+            <i class="bi bi-diagram-3"></i> What happens next
+          </div>
+          <ol class="bl-steps">
+            <li>The entry is saved to the blacklist register.</li>
+            <li>Future detections matching the value are surfaced for priority action.</li>
+            <li>The register shows the entry with your name, timestamp and reason.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="sc-page-hero"><div><h1>Add to Blacklist</h1><p class="sc-lead">Block a vehicle or individual.</p></div></div><div class="sc-card" style="max-width:640px;"><form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="sc-grid sc-grid-2"><div class="sc-form-group"><label>Type *</label><select name="type" required class="w-full"><option value="plate">Vehicle plate</option><option value="cnic">CNIC</option><option value="phone">Phone</option><option value="chassis">Chassis</option></select></div><div class="sc-form-group"><label>Value *</label><input type="text" name="value" required class="w-full" placeholder="LEA-1100 or 35202-..."></div></div><div class="sc-form-group"><label>Reason *</label><textarea name="reason" rows="3" required class="w-full"></textarea></div><div class="sc-form-group"><label>Notes</label><textarea name="notes" rows="2" class="w-full"></textarea></div><div class="sc-flex sc-gap-2"><button type="submit" class="sc-btn sc-btn-danger">Add to blacklist</button><a class="sc-btn" href="{% url 'dig:blacklist_list' %}">Cancel</a></div></form></div>{% endblock %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-blacklist-add.js' %}" defer></script>
+{% endblock %}

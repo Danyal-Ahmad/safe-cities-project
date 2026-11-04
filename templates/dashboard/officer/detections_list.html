@@ -1,13 +1,159 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}All Detections{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>All detections</b>{% endblock %}
+{% block title %}All Detections — Officer Portal{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-detections-list.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-<div>
-<h1>All detections</h1>
-<p class="sc-lead">Browse every detection processed by the AI pipeline.</p>
+  <div>
+    <h1><i class="bi bi-collection"></i> All Detections</h1>
+    <p class="sc-lead">
+      Every detection processed by the automated enforcement pipeline &mdash; frame tracking,
+      five-step hard security checks and automatic e-challan generation.
+    </p>
+  </div>
+  <div class="sc-flex sc-flex-wrap sc-gap-2">
+    <a href="{% url 'officer_portal:review_queue' %}" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-inbox"></i> Review Queue</a>
+    <a href="{% url 'officer_portal:camera_feed' %}" class="sc-btn sc-btn-sm"><i class="bi bi-camera-video"></i> Camera Feed</a>
+  </div>
 </div>
+
+{# ---- Filters -------------------------------------------------------------- #}
+<div class="sc-card">
+  <div class="sc-card-head">
+    <span><i class="bi bi-funnel"></i> Filters</span>
+    {% if plate_q or status_q %}<span class="sc-badge sc-badge-blue"><i class="bi bi-funnel-fill"></i> active</span>{% endif %}
+  </div>
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="sc-form-label" for="plateInput">Plate number</label>
+      <input type="text" id="plateInput" name="plate" value="{{ plate_q }}" class="sc-form-control"
+             placeholder="e.g. LEA-1100" autocomplete="off">
+    </div>
+    <div class="col-md-3">
+      <label class="sc-form-label" for="statusInput">Status</label>
+      <select id="statusInput" name="status" class="sc-form-control">
+        <option value="">All statuses</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if status_q == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm w-100"><i class="bi bi-search"></i> Filter</button>
+    </div>
+    {% if plate_q or status_q %}
+    <div class="col-md-2">
+      <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-outline sc-btn-sm w-100"><i class="bi bi-x-lg"></i> Clear</a>
+    </div>
+    {% endif %}
+  </form>
 </div>
-<div class="sc-card"><h2>All Detections</h2><p class="sc-empty">Browse every detection processed by the AI pipeline.</p></div>{% endblock %}
+
+{# ---- Detections table ------------------------------------------------------ #}
+<div class="sc-card">
+  <div class="sc-card-head">
+    <span><i class="bi bi-list-ul"></i> Detections</span>
+    <span class="sc-flex sc-items-center sc-gap-2">
+      <span class="sc-badge sc-badge-muted">{{ detections|length|default:0 }} shown</span>
+      <span class="sc-badge sc-badge-ok sc-evidence-legend" data-bs-toggle="tooltip"
+            title="Hard security checks passed / total (click a row for the full evidence panel)">
+        <i class="bi bi-shield-fill-check"></i> Evidence 5-check
+      </span>
+    </span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if detections %}
+    <div class="sc-table-wrap sc-table-wrap-flush">
+      <table class="sc-table sc-data-table" data-table-id="officer-detections">
+        <thead>
+          <tr>
+            <th>Detection</th>
+            <th>Plate</th>
+            <th>Camera</th>
+            <th>Status</th>
+            <th>Confidence</th>
+            <th>Track</th>
+            <th>Evidence</th>
+            <th>Detected</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detections %}
+          <tr class="sc-row-link" data-href="{% url 'officer_portal:detection_detail' d.id %}">
+            <td class="sc-mono">#{{ d.id }}</td>
+            <td><strong class="sc-mono sc-plate-cell">{{ d.effective_plate|default:"UNREAD" }}</strong></td>
+            <td class="sc-text-sm">
+              {% if d.camera %}
+                {{ d.camera.camera_id }}{% if d.camera.location %} <span class="sc-text-faint">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}
+              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+            </td>
+            <td>
+              {% if d.status == 'confirmed' %}
+                <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> Confirmed</span>
+              {% elif d.status == 'rejected' %}
+                <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+              {% elif d.status == 'flagged_for_dig' %}
+                <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> Flagged</span>
+              {% else %}
+                <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if d.ai_confidence %}
+                <span class="sc-badge {% if d.ai_confidence >= 0.85 %}sc-badge-ok{% elif d.ai_confidence >= 0.6 %}sc-badge-amber{% else %}sc-badge-red{% endif %} sc-mono">
+                  {% widthratio d.ai_confidence 1 100 %}%
+                </span>
+              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+            </td>
+            <td class="sc-text-sm">
+              {% if d.track_id %}
+                <span class="sc-mono">{{ d.track_frames }}</span> frames
+              {% else %}<span class="sc-text-faint">no track</span>{% endif %}
+            </td>
+            <td>
+              {% with ev=d.evidence_summary %}
+                {% if ev.total %}
+                  {% if ev.all_passed %}
+                    <span class="sc-badge sc-badge-ok" data-bs-toggle="tooltip" title="All {{ ev.total }} hard security checks passed">
+                      <i class="bi bi-shield-fill-check"></i> {{ ev.passed }}/{{ ev.total }}
+                    </span>
+                  {% else %}
+                    <span class="sc-badge sc-badge-amber" data-bs-toggle="tooltip" title="{{ ev.passed }} of {{ ev.total }} hard security checks passed — open for details">
+                      <i class="bi bi-shield-fill-exclamation"></i> {{ ev.passed }}/{{ ev.total }}
+                    </span>
+                  {% endif %}
+                {% else %}
+                  <span class="sc-badge sc-badge-muted" data-bs-toggle="tooltip" title="No evidence checks recorded">—</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td class="sc-text-sm sc-text-muted">{{ d.created_at|date:"d M Y, H:i" }}</td>
+            <td>
+              <a href="{% url 'officer_portal:detection_detail' d.id %}" class="sc-btn sc-btn-sm sc-btn-outline">
+                <i class="bi bi-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-camera-video-off"></i>
+      No detections found{% if plate_q or status_q %} for the current filters{% endif %}.
+      New detections appear here automatically as cameras report violations.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-detections-list.js' %}" defer></script>
+{% endblock %}

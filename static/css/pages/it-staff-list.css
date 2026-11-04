@@ -1,0 +1,45 @@
+/* ==========================================================================
+   IT SUPPORT — Staff Directory (it-staff-list)
+   ========================================================================== */
+
+.it-staff-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--sc-navy-deep, #0F2557);
+}
+
+/* Role-coloured badges (aligned with system avatar colours) */
+.it-role-dig { background: #F1EDFC; color: #6D28D9; }
+.it-role-ssp { background: #FDF3F5; color: #BE123C; }
+.it-role-supv { background: #FDF6E7; color: #B45309; }
+.it-role-officer { background: #EEF3FC; color: #1E40AF; }
+.it-role-audit { background: #E8FAF7; color: #0F766E; }
+.it-role-it { background: #F1F4F9; color: #475569; }
+
+.it-staff-note {
+  border-top: 3px solid var(--sc-info-bg, #EEF3FC);
+}
+
+.it-staff-note-ic {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--sc-info-bg, #EEF3FC);
+  color: var(--sc-info, #2E5FB7);
+  font-size: 1.1rem;
+}
+
+.it-staff-note-t {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--sc-navy-deep, #0F2557);
+  margin-bottom: 2px;
+}
+
+@media (max-width: 720px) {
+  .sc-table th:nth-child(5), .sc-table td:nth-child(5) { display: none; }
+}

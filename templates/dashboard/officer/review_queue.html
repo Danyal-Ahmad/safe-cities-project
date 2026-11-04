@@ -30,7 +30,6 @@
       <span class="md-action-key" style="background:#0284c7;color:#fff;">C</span> Confirm
       <span class="md-action-key" style="background:#ef4444;color:#fff;">R</span> Reject
       <span class="md-action-key" style="background:#f59e0b;color:#fff;">F</span> Flag
-      <span class="md-action-key">A</span> Studio
     </div>
     <a href="{% url 'officer_portal:live_tracking' %}" class="md-btn md-btn-secondary md-btn-sm">
       <i class="bi bi-radar"></i> Live Radar
@@ -39,7 +38,7 @@
 </div>
 
 <!-- Main Split Triage Grid (Left Queue | Right Interactive Detail) -->
-<div class="md-triage-grid">
+<div class="md-triage-grid" {% if selected %}data-has-selected="1"{% endif %}>
 
   <!-- LEFT PANEL: Detection Items Queue -->
   <div class="md-card" style="padding: 0; overflow: hidden;">
@@ -63,7 +62,7 @@
           <!-- Frame Thumbnail -->
           <div style="width: 58px; height: 42px; background: #0f172a; border-radius: var(--md-radius-sm); overflow: hidden; flex-shrink: 0; position: relative;">
             {% if d.raw_image %}
-              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Frame" style="width: 100%; height: 100%; object-fit: cover; background:#0A0E14;" onerror="this.style.opacity='0.15';">
+              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Frame" style="width: 100%; height: 100%; object-fit: cover; background:#0A0E14;">
             {% else %}
               <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.65rem;">No Img</div>
             {% endif %}
@@ -120,65 +119,11 @@
   </div>
 
 </div>
+{% endblock %}
 
-<!-- Real-time Keyboard Shortcuts to Drastically Reduce Officer Effort -->
-<script>
-document.addEventListener('keydown', function(e) {
-  // If user is focused on an input or textarea, do not trigger single-key hotkeys
-  const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-  if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
-    return;
-  }
-
-  const key = e.key.toUpperCase();
-
-  // 'C' -> Confirm & Issue Challan
-  if (key === 'C') {
-    const btn = document.getElementById('btnConfirmTriage');
-    if (btn) {
-      e.preventDefault();
-      btn.click();
-    }
-  }
-  // 'R' -> Reject False Positive
-  else if (key === 'R') {
-    const btn = document.getElementById('btnRejectTriage');
-    if (btn) {
-      e.preventDefault();
-      btn.click();
-    }
-  }
-  // 'F' -> Flag for DIG Escalation
-  else if (key === 'F') {
-    const btn = document.getElementById('btnFlagTriage');
-    if (btn) {
-      e.preventDefault();
-      btn.click();
-    }
-  }
-  // 'A' -> Open Annotation Studio
-  else if (key === 'A') {
-    {% if selected %}
-      e.preventDefault();
-      window.location.href = "{% url 'officer_portal:manual_annotation' %}?camera_id={{ selected.camera.id }}&focus={{ selected.id }}";
-    {% endif %}
-  }
-  // Arrow Down / Arrow Up to navigate items in the queue
-  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    const queueLinks = Array.from(document.querySelectorAll('.md-queue-item'));
-    if (queueLinks.length === 0) return;
-
-    let currentIndex = queueLinks.findIndex(l => l.classList.contains('active'));
-    if (e.key === 'ArrowDown') {
-      const nextIndex = currentIndex < queueLinks.length - 1 ? currentIndex + 1 : 0;
-      queueLinks[nextIndex].click();
-      e.preventDefault();
-    } else if (e.key === 'ArrowUp') {
-      const prevIndex = currentIndex > 0 ? currentIndex - 1 : queueLinks.length - 1;
-      queueLinks[prevIndex].click();
-      e.preventDefault();
-    }
-  }
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/pages/officer-review-queue.js' %}" defer></script>
+{# JS for the included _detection_detail.html partial (idempotent, guarded #}
+{# against double-binding if the partial is included more than once). #}
+<script src="{% static 'js/pages/officer-triage-detail.js' %}" defer></script>
 {% endblock %}

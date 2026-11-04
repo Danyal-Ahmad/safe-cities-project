@@ -1,0 +1,144 @@
+/* ==========================================================================
+   Officer — Camera Feed (officer-camera-feed)
+   Monitoring wall: responsive grid of pending-detection image cards.
+   ========================================================================== */
+
+.sc-feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sc-feed-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  box-shadow: var(--sc-shadow);
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.sc-feed-card:hover,
+.sc-feed-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--sc-shadow-lg);
+  border-color: var(--sc-primary);
+  text-decoration: none;
+}
+
+.sc-feed-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #0B1220;
+  overflow: hidden;
+}
+
+.sc-feed-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.sc-feed-card:hover .sc-feed-thumb img {
+  transform: scale(1.04);
+}
+
+.sc-feed-thumb.is-broken::after {
+  content: "Frame unavailable";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7E8CA8;
+  font-size: 0.75rem;
+  background: #0B1220;
+}
+
+.sc-feed-noimg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #7E8CA8;
+  font-size: 0.72rem;
+}
+
+.sc-feed-noimg i {
+  font-size: 1.8rem;
+  color: #4A5A76;
+}
+
+.sc-feed-status {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.sc-feed-cam {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #E2E8F0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sc-feed-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px 4px;
+}
+
+.sc-feed-plate {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--sc-navy-deep);
+}
+
+.sc-feed-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 14px 12px;
+}
+
+.sc-feed-time {
+  font-size: 0.72rem;
+  color: var(--sc-text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sc-feed-empty {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .sc-feed-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}

@@ -23,7 +23,7 @@
  <div><i class="bi bi-circle"></i> All Feedback</div>
  <span class="badge bg-secondary">{{ feedback|length }}</span>
  </div>
- <div class="-b p-0 table-responsive">
+ <div class="p-0 table-responsive">
  {% if feedback %}
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -44,7 +44,7 @@
  {% if f.can_review_detections %}<span class="badge ">RD</span>{% endif %}
  {% if f.can_review_appeals %}<span class="badge ">RA</span>{% endif %}
  {% if f.can_flag_for_dig %}<span class="badge ">FD</span>{% endif %}
- {% if f.can_add_manual_challan %}<span class="badge ">MC</span>{% endif %}
+
  {% if f.can_view_own_performance %}<span class="badge ">VP</span>{% endif %}
  {% if f.can_add_internal_notes %}<span class="badge ">IN</span>{% endif %}
  </td>

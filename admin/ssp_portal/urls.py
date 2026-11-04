@@ -34,7 +34,8 @@ urlpatterns = [
     path('vehicle-search/', dig_views.vehicle_search, name='vehicle_search'),
     path('flagged-detections/', dig_views.flagged_detections, name='flagged_detections_alias'),
     path('live-monitor/', dig_views.live_monitor, name='live_monitor'),
-    path('officer-activity/', dig_views.officer_activity, name='officer_activity'),
+    path('officer-activity/', dig_views.officer_activity, name='officer_activity_list'),
+    path('officer-activity/<int:officer_id>/', dig_views.officer_activity, name='officer_activity'),
     path('heatmap/', dig_views.regional_heatmap, name='heatmap'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),

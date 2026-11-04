@@ -73,7 +73,7 @@
   <a href="{% url 'dig:officer_kpi' %}" class="sc-nav-link {% if request.path == '/portal/dig/officer-kpi/' %}sc-active{% endif %}"><i class="bi bi-trophy"></i> <span class="sc-nav-link-text">Officer KPI</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_officer_activity" %}
-  <a href="{% url 'dig:officer_activity' 0 %}" class="sc-nav-link"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Officer Activity</span></a>
+  <a href="{% url 'dig:officer_activity_list' %}" class="sc-nav-link"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Officer Activity</span></a>
   {% endif %}
   {% if request.user|has_perm:"officer_pki" %}
   <a href="{% url 'dig:officer_signatures' %}" class="sc-nav-link {% if request.path == '/portal/dig/officer-signatures/' %}sc-active{% endif %}"><i class="bi bi-vector-pen"></i> <span class="sc-nav-link-text">Officer Signatures</span></a>

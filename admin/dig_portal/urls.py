@@ -61,6 +61,7 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('revenue/',                      views.revenue_dashboard,       name='revenue_dashboard'),
     path('dashboard/officer/<int:officer_id>/activity/', views.officer_activity, name='officer_activity'),
+    path('officer-activity/', views.officer_activity, name='officer_activity_list'),
     path('appeal/<int:appeal_id>/override/', views.appeal_override,      name='appeal_override'),
     path('alerts/hub/',                          views.alerts_hub,              name='alerts_hub'),
     path('alerts/hub/add-alert/',                views.alerts_hub_add_alert,    name='alerts_hub_add_alert'),

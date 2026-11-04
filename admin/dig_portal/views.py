@@ -551,7 +551,18 @@ def admin_edit(request, user_id):
 
 
 @role_required('DIG', 'SSP')
-def officer_activity(request, officer_id):
+def officer_activity(request, officer_id=None):
+    if not officer_id:
+        officer = (
+            User.objects.filter(role=User.OFFICER, is_active=True)
+            .order_by('-last_login')
+            .first()
+        )
+        if officer is None:
+            messages.info(request, "No active officers to report on yet.")
+            return _safe_redirect(request)
+        ns = getattr(getattr(request, 'resolver_match', None), 'namespace', None) or 'dig'
+        return redirect(f'{ns}:officer_activity', officer.pk)
     officer = get_object_or_404(User, pk=officer_id, role=User.OFFICER)
     recent_actions = Detection.objects.filter(reviewed_by=officer).order_by('-reviewed_at')[:20]
     appeals_handled = ChallanAppeal.objects.filter(reviewed_by=officer).order_by('-reviewed_at')[:20]

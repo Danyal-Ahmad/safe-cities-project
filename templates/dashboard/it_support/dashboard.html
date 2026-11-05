@@ -25,7 +25,6 @@
         <div class="scr-rail-sub">Surveillance hardware, detection pipelines, gateway integrations and server telemetry health.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"system_health" %}
         <a href="{% url 'it_support_portal:system_health' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-activity"></i> Telemetry</a>
         {% endif %}

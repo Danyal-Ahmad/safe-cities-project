@@ -29,7 +29,6 @@
         </div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i" %}</span></span>
         {% if unpaid_count > 0 and request.user|has_perm:"pay_own_challans" %}
         <a href="{% url 'citizen_portal:pay_challan' challans.0.id %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-credit-card-2-front-fill"></i> Pay Now</a>
         {% endif %}

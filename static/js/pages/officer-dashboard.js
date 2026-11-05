@@ -3,14 +3,6 @@
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function() {
-    
-    setInterval(function() {
-      const el = document.getElementById('liveClock');
-      if (el) {
-        const now = new Date();
-        el.textContent = now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + now.toLocaleTimeString();
-      }
-    }, 1000);
 
     
     

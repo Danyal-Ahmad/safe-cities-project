@@ -57,19 +57,100 @@
     }
 
     function fmtDate(d) {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return months[d.getMonth()] + ' ' + pad(d.getDate()) + ', ' + d.getFullYear();
+        return days[d.getDay()] + ', ' + pad(d.getDate()) + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
     }
 
     function startClock() {
-        const el = document.getElementById('scClock');
-        if (!el) return;
+        const wrap = document.getElementById('scClock');
+        const timeEl = document.getElementById('scClockTime');
+        const dateEl = document.getElementById('scClockDate');
+        if (!wrap || !timeEl) return;
         function tick() {
             const d = new Date();
-            el.textContent = fmtTime(d) + '  ' + fmtDate(d);
+            timeEl.textContent = fmtTime(d);
+            if (dateEl) dateEl.textContent = fmtDate(d);
         }
         tick();
         setInterval(tick, 1000);
+    }
+
+    function isMobile() {
+        return window.matchMedia('(max-width: 1024px)').matches;
+    }
+
+    function initSidebar() {
+        const app = document.getElementById('scApp');
+        const sidebar = document.getElementById('scSidebar');
+        const toggle = document.getElementById('scSidebarToggle');
+        const collapseBtn = document.getElementById('scSidebarCollapse');
+        const backdrop = document.getElementById('scSidebarBackdrop');
+        if (!app || !sidebar || !toggle) return;
+
+        let collapsed = 'true' === (localStorage.getItem('scSidebarCollapsed') || 'false');
+        function apply() {
+            if (isMobile()) {
+                app.classList.remove('sc-collapsed');
+                app.classList.remove('sc-mobile-open');
+                if (backdrop) backdrop.hidden = true;
+            } else if (collapsed) {
+                app.classList.add('sc-collapsed');
+            } else {
+                app.classList.remove('sc-collapsed');
+            }
+            const open = !isMobile() && !collapsed;
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function setCollapsed(state) {
+            collapsed = state;
+            localStorage.setItem('scSidebarCollapsed', collapsed ? 'true' : 'false');
+            apply();
+        }
+
+        toggle.addEventListener('click', function () {
+            if (isMobile()) {
+                const opening = !app.classList.contains('sc-mobile-open');
+                app.classList.toggle('sc-mobile-open', opening);
+                if (backdrop) backdrop.hidden = !opening;
+            } else {
+                setCollapsed(!collapsed);
+            }
+        });
+
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', function () {
+                if (isMobile()) {
+                    app.classList.remove('sc-mobile-open');
+                    if (backdrop) backdrop.hidden = true;
+                } else {
+                    setCollapsed(!collapsed);
+                }
+            });
+        }
+
+        if (backdrop) {
+            backdrop.addEventListener('click', function () {
+                app.classList.remove('sc-mobile-open');
+                backdrop.hidden = true;
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && app.classList.contains('sc-mobile-open')) {
+                app.classList.remove('sc-mobile-open');
+                if (backdrop) backdrop.hidden = true;
+            }
+        });
+
+        let resizeTimer = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(apply, 120);
+        });
+
+        apply();
     }
 
     
@@ -78,13 +159,18 @@
 
     function closeUserMenu() {
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.remove('show');
+        if (dd) { dd.classList.remove('show'); dd.classList.remove('open'); }
     }
 
     function scToggleUserMenu(e) {
         if (e) e.stopPropagation();
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.toggle('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (!dd) return;
+        const willOpen = !(dd.classList.contains('show') || dd.classList.contains('open'));
+        dd.classList.toggle('show', willOpen);
+        dd.classList.toggle('open', willOpen);
+        if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     }
 
     function initUserMenu() {
@@ -270,6 +356,7 @@
 
     function init() {
         startClock();
+        initSidebar();
         initUserMenu();
         scInitTables();
         scInitTooltips();
@@ -294,6 +381,7 @@
         fetch: scFetch,
         postJSON: scPostJSON,
         startClock: startClock,
+        initSidebar: initSidebar,
         toggleUserMenu: scToggleUserMenu,
         closeUserMenu: closeUserMenu,
         alert: scAlert,

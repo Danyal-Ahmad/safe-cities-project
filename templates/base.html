@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script nonce="{{ request.csp_nonce }}">
@@ -20,12 +20,17 @@
       theme: {
         extend: {
           colors: {
-            safenavy: '#14213D',
-            safeblue: '#2E6BE6',
-            safeink: '#14213D',
-            safepage: '#FFFFFF'
+            safenavy: '#0F1F3D',
+            safeblue: { DEFAULT: '#2563EB', 50: '#EFF5FF', 100: '#DBE8FE', 200: '#BFD6FE', 300: '#93B8FD', 400: '#6094FA', 500: '#3B76F6', 600: '#2563EB', 700: '#1D4ED8', 800: '#1E40AF', 900: '#1E3A8A' },
+            safeink: '#0F1F3D',
+            safepage: '#F4F7FB'
           },
-          fontFamily: { sans: ['Inter', 'sans-serif'] }
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          boxShadow: {
+            card: '0 1px 3px rgba(15, 31, 61, 0.06), 0 1px 2px rgba(15, 31, 61, 0.04)',
+            pop: '0 12px 32px rgba(15, 31, 61, 0.14)',
+            glow: '0 6px 16px rgba(37, 99, 235, 0.25)'
+          }
         }
       }
     };
@@ -42,51 +47,73 @@
       data-env="{% if debug %}development{% else %}production{% endif %}"
       data-user-role="{{ user.role|lower }}">
 
-<div class="sc-app">
+<div class="sc-app" id="scApp">
 
   {% if user.is_authenticated %}
-  <aside class="sc-sidebar">
-    <a href="{% url 'challans:home' %}" class="sc-brand">
-      <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
-      <div class="sc-brand-text">
-        <span class="sc-brand-title">SAFE CITY</span>
-        <span class="sc-brand-sub">{{ user.role_label }}</span>
+  <header class="sc-navbar">
+    <div class="sc-navbar-inner">
+      <div class="sc-navbar-left">
+        <button type="button" class="sc-icon-btn sc-sidebar-toggle" id="scSidebarToggle" aria-label="Toggle sidebar" aria-controls="scSidebar" aria-expanded="true">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="{% url 'challans:home' %}" class="sc-navbar-brand">
+          <span class="sc-navbar-logos">
+            <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project" class="sc-navbar-logo">
+            <span class="sc-navbar-logo-sep" aria-hidden="true"></span>
+            <img src="{% static 'img/university_logo.png' %}" alt="Partner institution" class="sc-navbar-logo sc-navbar-logo--partner">
+          </span>
+          <span class="sc-navbar-brand-text">
+            <span class="sc-navbar-brand-title">SAFE CITIES PROJECT</span>
+            <span class="sc-navbar-brand-sub">
+              {% if user.role == 'DIG' %}DIG Command Portal
+              {% elif user.role == 'SSP' %}SSP Operations Portal
+              {% elif user.role == 'SUPV' %}Supervisor Portal
+              {% elif user.role == 'OFFICER' %}Officer Enforcement Portal
+              {% elif user.role == 'AUDIT' %}Audit Portal
+              {% elif user.role == 'IT' %}IT Support Portal
+              {% else %}Citizen Portal{% endif %}
+            </span>
+          </span>
+        </a>
       </div>
-    </a>
-    <nav class="sc-nav">
-      {% with user_role=user.role|lower %}
-        {% if user_role == 'dig' %}{% include "_sidebar/_dig.html" %}
-        {% elif user_role == 'it' or user_role == 'it_support' %}{% include "_sidebar/_it_support.html" %}
-        {% elif user_role == 'officer' %}{% include "_sidebar/_officer.html" %}
-        {% elif user_role == 'ssp' %}{% include "_sidebar/_ssp.html" %}
-        {% elif user_role == 'supv' or user_role == 'supervisor' %}{% include "_sidebar/_supervisor.html" %}
-        {% elif user_role == 'audit' %}{% include "_sidebar/_audit.html" %}
-        {% elif user_role == 'user' or user_role == 'citizen' %}{% include "_sidebar/_citizen.html" %}
-        {% endif %}
-      {% endwith %}
-    </nav>
-  </aside>
-  {% endif %}
 
-  <div class="sc-main">
-
-    {% if user.is_authenticated %}
-    <header class="sc-topbar">
-      <div class="sc-topbar-left">
-        <form class="sc-search" method="get" action="{% url 'challans:home' %}" role="search">
+      <div class="sc-navbar-center">
+        <form class="sc-navbar-search" method="get" action="{% url 'challans:home' %}" role="search">
           <i class="bi bi-search"></i>
-          <input type="search" name="q" placeholder="Search ticket, plate or CNIC" aria-label="Search" autocomplete="off">
+          <input type="search" name="q" placeholder="Search challan, plate or CNIC" aria-label="Search" autocomplete="off">
+          <kbd>Ctrl K</kbd>
         </form>
       </div>
-      <div class="sc-topbar-right">
-        <div class="sc-clock" id="scClock">--:--:--</div>
+
+      <div class="sc-navbar-right">
+        <div class="sc-clock" id="scClock" title="Live server time">
+          <i class="bi bi-clock-history"></i>
+          <span id="scClockTime">--:--:--</span>
+          <span class="sc-clock-date" id="scClockDate"></span>
+        </div>
+
+        <div class="sc-bell">
+          <button type="button" class="sc-icon-btn" id="scBellBtn" aria-label="Notifications" aria-expanded="false">
+            <i class="bi bi-bell"></i>
+            <span class="sc-bell-count" id="scBellCount" hidden>0</span>
+          </button>
+          <div class="sc-bell-panel" id="scBellPanel" role="dialog" aria-label="Notifications">
+            <div class="sc-bell-head">
+              <span>Notifications</span>
+              <button type="button" class="sc-bell-enable" id="scBellEnable"><i class="bi bi-broadcast"></i> Enable push</button>
+            </div>
+            <div class="sc-bell-list" id="scBellList"></div>
+            <div class="sc-bell-foot">Push notifications are delivered in real time.</div>
+          </div>
+        </div>
+
         <div class="sc-user-menu">
           <button type="button" class="sc-user-btn" id="scUserBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="sc-user-info">
-              <div class="sc-user-name">{{ user.display_name|default:user.username }}</div>
-              <div class="sc-user-role">{{ user.role_label }}</div>
-            </div>
-            <i class="bi bi-person-circle sc-user-avatar-icon"></i>
+            <span class="sc-user-avatar" aria-hidden="true">{{ user.display_name|default:user.username|slice:":1"|upper }}</span>
+            <span class="sc-user-info">
+              <span class="sc-user-name">{{ user.display_name|default:user.username }}</span>
+              <span class="sc-user-role">{{ user.role_label }}</span>
+            </span>
             <i class="bi bi-chevron-down"></i>
           </button>
           <div class="sc-user-dropdown" id="scUserMenu" role="menu">
@@ -98,16 +125,13 @@
             <a href="{% url 'citizen_portal:profile_edit' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-person"></i> My Profile
             </a>
-            {% else %}
-            <a href="{% url 'dig:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
-              <i class="bi bi-person"></i> My Profile
-            </a>
-            {% endif %}
-            {% if user.role == 'USER' %}
             <a href="{% url 'citizen_portal:password_change' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-key"></i> Change Password
             </a>
             {% else %}
+            <a href="{% url 'dig:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
             <a href="{% url 'dig:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-key"></i> Change Password
             </a>
@@ -122,46 +146,75 @@
           </div>
         </div>
       </div>
-    </header>
-
-    {% if ticker_ads %}
-    <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
-      <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
-      <div class="sc-ticker-viewport"><div class="sc-ticker-track">
-        {% for ad in ticker_ads %}
-        <span class="sc-ticker-item" data-id="tick-{{ ad.id }}">
-          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
-          {% if ad.html_content %}<span class="sc-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
-        </span>
-        {% endfor %}
-      </div></div>
     </div>
-    {% endif %}
-    {% endif %}
+  </header>
 
-    {% if user.is_authenticated and user.role != 'USER' %}
-    {% include '_partials/portal_ticker.html' %}
-    {% endif %}
+  <div class="sc-body">
+    <div class="sc-sidebar-backdrop" id="scSidebarBackdrop" hidden></div>
+    <aside class="sc-sidebar" id="scSidebar">
+      <nav class="sc-nav">
+        {% with user_role=user.role|lower %}
+          {% if user_role == 'dig' %}{% include "_sidebar/_dig.html" %}
+          {% elif user_role == 'it' or user_role == 'it_support' %}{% include "_sidebar/_it_support.html" %}
+          {% elif user_role == 'officer' %}{% include "_sidebar/_officer.html" %}
+          {% elif user_role == 'ssp' %}{% include "_sidebar/_ssp.html" %}
+          {% elif user_role == 'supv' or user_role == 'supervisor' %}{% include "_sidebar/_supervisor.html" %}
+          {% elif user_role == 'audit' %}{% include "_sidebar/_audit.html" %}
+          {% elif user_role == 'user' or user_role == 'citizen' %}{% include "_sidebar/_citizen.html" %}
+          {% endif %}
+        {% endwith %}
+      </nav>
+      <div class="sc-sidebar-foot">
+        <button type="button" class="sc-sidebar-collapse-btn" id="scSidebarCollapse" aria-label="Collapse sidebar">
+          <i class="bi bi-chevron-double-left"></i>
+          <span class="sc-nav-link-text">Collapse</span>
+        </button>
+      </div>
+    </aside>
+  {% endif %}
 
-    <main class="sc-content">
-      {% if messages %}
-      <div class="sc-messages">
-        {% for m in messages %}
-        <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
-          <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
-          <div class="sc-msg-body">{{ m }}</div>
-          <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
-        </div>
-        {% endfor %}
+  {% if not user.is_authenticated %}
+  <div class="sc-body sc-body--public">
+  {% endif %}
+
+    <div class="sc-main">
+      {% if user.is_authenticated %}
+      {% if ticker_ads %}
+      <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
+        <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
+        <div class="sc-ticker-viewport"><div class="sc-ticker-track">
+          {% for ad in ticker_ads %}
+          <span class="sc-ticker-item" data-id="tick-{{ ad.id }}">
+            {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
+            {% if ad.html_content %}<span class="sc-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
+          </span>
+          {% endfor %}
+        </div></div>
       </div>
       {% endif %}
-      {% block content %}{% endblock %}
-    </main>
+      {% include '_partials/portal_ticker.html' %}
+      {% endif %}
 
-    <footer class="sc-footer">
-      <span>&copy; 2026 SAFE CITIES PROJECT &middot; All Rights Reserved</span>
-      <span>v1.0 &middot; SAFE CITIES PROJECT</span>
-    </footer>
+      <main class="sc-content">
+        {% if messages %}
+        <div class="sc-messages">
+          {% for m in messages %}
+          <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
+            <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+            <div class="sc-msg-body">{{ m }}</div>
+            <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="sc-footer">
+        <span>&copy; 2026 SAFE CITIES PROJECT &middot; All Rights Reserved</span>
+        <span>E-Challan Enforcement Platform &middot; v2.0</span>
+      </footer>
+    </div>
   </div>
 </div>
 

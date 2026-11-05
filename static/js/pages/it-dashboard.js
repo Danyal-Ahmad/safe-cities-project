@@ -3,17 +3,6 @@
   'use strict';
 
   
-  function updateClock(){
-    const el = document.getElementById('live-clock');
-    if(el) {
-      const now = new Date();
-      const pad = n => String(n).padStart(2,'0');
-      el.textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
-        ' · ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    }
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
 
   
   async function initChartFromAPI(canvas){

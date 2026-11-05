@@ -13,11 +13,11 @@
     
 
     scCharts.palettes = {
-        navy: ['#2E6BE6', '#5B8BEF', '#87A9F3', '#AEC5F7', '#7FA8E9', '#4478E8', '#3A6BD9', '#6C9AEE'],
-        green: ['#1E9E5A', '#4CB87E', '#79D0A1', '#A5E2C4', '#2FA96C', '#187F4B', '#1E9E5A', '#53Bd8A'.toLowerCase()],
-        warm: ['#D9806A', '#E39A83', '#EDB59D', '#F2C8B7', '#C96A52', '#DE937B', '#E8AB94', '#D07B62'],
-        cool: ['#10998B', '#3FB3A6', '#6ECBC0', '#9BDFD6', '#0D8074', '#2AA595', '#10998B', '#55BFB2'],
-        all:  ['#2E6BE6', '#1E9E5A', '#C98A0A', '#6E56D8', '#10998B', '#D9364C', '#3B66C6', '#8A94B0']
+        navy: ['#2563EB', '#3B76F6', '#6094FA', '#93B8FD', '#1D4ED8', '#4A82EC', '#7FA8E9', '#AEC5F7'],
+        green: ['#059669', '#10B981', '#34D399', '#6EE7B7', '#047857', '#059669', '#10B981', '#34D399'],
+        warm: ['#D97706', '#F59E0B', '#FBBF24', '#FCD34D', '#B45309', '#D97706', '#F59E0B', '#FBBF24'],
+        cool: ['#0D9488', '#14B8A6', '#2DD4BF', '#5EEAD4', '#0F766E', '#0D9488', '#14B8A6', '#2DD4BF'],
+        all:  ['#2563EB', '#059669', '#D97706', '#7C3AED', '#0D9488', '#DC2626', '#0284C7', '#94A0B8']
     };
 
     
@@ -26,8 +26,8 @@
 
     scCharts.defaults = {
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        color: '#6B7891',
-        borderColor: '#E8ECF4',
+        color: '#64748B',
+        borderColor: '#EDF1F7',
     };
 
     function mergeOpts(opts) {
@@ -47,15 +47,17 @@
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(20, 33, 61, 0.92)',
+                    backgroundColor: 'rgba(15, 31, 61, 0.94)',
                     titleColor: '#ffffff',
                     bodyColor: '#e2e8f0',
-                    borderColor: '#334155',
+                    borderColor: 'rgba(148, 160, 184, 0.25)',
                     borderWidth: 1,
-                    padding: 10,
-                    cornerRadius: 6,
-                    titleFont: { family: scCharts.defaults.fontFamily, weight: '600' },
-                    bodyFont: { family: scCharts.defaults.fontFamily },
+                    padding: 12,
+                    cornerRadius: 10,
+                    displayColors: true,
+                    boxPadding: 4,
+                    titleFont: { family: scCharts.defaults.fontFamily, weight: '700', size: 12 },
+                    bodyFont: { family: scCharts.defaults.fontFamily, size: 12 },
                 }
             },
             scales: opts.scales || undefined
@@ -66,8 +68,27 @@
     if (typeof window.Chart !== 'undefined') {
         try {
             Chart.defaults.font.family = scCharts.defaults.fontFamily;
+            Chart.defaults.font.size = 11;
             Chart.defaults.color = scCharts.defaults.color;
             Chart.defaults.borderColor = scCharts.defaults.borderColor;
+            if (Chart.defaults.datasets && Chart.defaults.datasets.bar) {
+                Chart.defaults.datasets.bar.borderRadius = 6;
+                Chart.defaults.datasets.bar.borderSkipped = false;
+                Chart.defaults.datasets.bar.maxBarThickness = 42;
+            }
+            if (Chart.defaults.datasets && Chart.defaults.datasets.line) {
+                Chart.defaults.datasets.line.tension = 0.35;
+                Chart.defaults.datasets.line.borderWidth = 2.5;
+                Chart.defaults.datasets.line.pointRadius = 3;
+                Chart.defaults.datasets.line.pointHoverRadius = 5;
+                Chart.defaults.datasets.line.pointBackgroundColor = '#FFFFFF';
+                Chart.defaults.datasets.line.pointBorderWidth = 2;
+            }
+            if (Chart.defaults.datasets && Chart.defaults.datasets.doughnut) {
+                Chart.defaults.datasets.doughnut.cutout = '68%';
+                Chart.defaults.datasets.doughnut.borderWidth = 2;
+                Chart.defaults.datasets.doughnut.borderColor = '#FFFFFF';
+            }
         } catch (e) {  }
     }
 

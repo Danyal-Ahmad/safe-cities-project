@@ -21,7 +21,6 @@
         <div class="scr-rail-sub">Directorate-level operational overview, real-time revenue, network status and dispute escalations across every district desk.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_revenue_dashboard" %}
         <a href="{% url 'dig:revenue_dashboard' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-graph-up-arrow"></i> Revenue Analytics</a>
         {% endif %}

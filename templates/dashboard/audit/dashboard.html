@@ -25,7 +25,6 @@
         <div class="scr-rail-sub">Immutable system records, financial reconciliation, anomaly detection and administrative change tracking.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"export_audit_log" %}
         <a href="{% url 'audit_portal:audit_export' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-download"></i> Export Logs</a>
         {% endif %}

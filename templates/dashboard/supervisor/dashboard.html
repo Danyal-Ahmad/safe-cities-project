@@ -25,7 +25,6 @@
         <div class="scr-rail-sub">Field officer management, active shift rosters, review backlog and accuracy oversight.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_team_performance" %}
         <a href="{% url 'supervisor_portal:team_performance' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-people"></i> Team Performance</a>
         {% endif %}

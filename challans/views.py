@@ -9,6 +9,7 @@ from accounts.models import User
 
 from .models import Challan
 from .pdf_service import _needs_nadra_excise_integration
+from wrongway_system.security.rate_limit import rate_limit_response
 
 
 import re
@@ -16,6 +17,59 @@ import re
 
 RATE_LIMIT_MAX_REQUESTS = 20
 RATE_LIMIT_WINDOW = 60  # seconds
+
+# PDF download limit: 20/min per user (or per IP for guests). PDF generation
+# is the expensive operation here (regen=1 re-renders the document), so every
+# identity - staff included - gets its own bucket. Counted only AFTER the
+# auth/token gate passes, so rejected probes never consume budget.
+PDF_RATE_LIMIT = (20, 60)
+
+# Guest-appeal evidence uploads: extension whitelist + real image sniffing
+# (PIL) + size cap. Blocks .html/.php/polyglot uploads served from /media/.
+_EVIDENCE_EXT_WHITELIST = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
+_EVIDENCE_MAX_BYTES = 5 * 1024 * 1024
+
+
+def _pdf_rate_limited(request) -> bool:
+    """Sliding-window counter in the shared cache, keyed per user-or-IP."""
+    if request.user.is_authenticated:
+        ident = f'u{request.user.pk}'
+    else:
+        ident = 'i' + (
+            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            or request.META.get('REMOTE_ADDR', '127.0.0.1')
+        )
+    key = f'challan_pdf_rl:{ident}'
+    count = cache.get(key, 0)
+    if count >= PDF_RATE_LIMIT[0]:
+        return True
+    cache.set(key, count + 1, PDF_RATE_LIMIT[1])
+    return False
+
+
+def _validate_evidence_file(f):
+    """Return (ok, error). Extension whitelist + PIL content sniff + 5 MB cap.
+
+    The extension check is what stops stored-XSS uploads (a .html file would
+    be served from /media/ as text/html on the same origin); the PIL sniff
+    rejects anything that is not a decodable raster image (polyglots).
+    """
+    if f is None:
+        return True, ''
+    name = (getattr(f, 'name', '') or '').lower()
+    if not any(name.endswith(ext) for ext in _EVIDENCE_EXT_WHITELIST):
+        return False, 'Evidence must be an image (JPG, JPEG, PNG, WEBP, or GIF).'
+    if f.size > _EVIDENCE_MAX_BYTES:
+        return False, 'Evidence image must be under 5 MB.'
+    try:
+        from PIL import Image
+        f.seek(0)
+        with Image.open(f) as im:
+            im.verify()
+        f.seek(0)
+    except Exception:
+        return False, 'Evidence file is not a valid image.'
+    return True, ''
 
 
 def _check_rate_limit(request) -> bool:
@@ -37,7 +91,7 @@ def _check_rate_limit(request) -> bool:
 def _resolve_officer(challan):
     """Return the User who issued this challan: created_by, then detection officer.
 
-    H3 FIX: Detection only has ``reviewed_by`` — the previous code was reading
+    H3 FIX: Detection only has ``reviewed_by`` - the previous code was reading
     ``confirmed_by``, ``flagged_by``, ``auto_confirmed_by`` which don't exist on
     the model, so it always fell through to None.
     """
@@ -158,7 +212,7 @@ def home(request):
                 parts = c.owner_name.split()
                 c.display_owner = ' '.join([parts[0]] + [p[0] + '.' for p in parts[1:]]) if len(parts) > 1 else parts[0]
             else:
-                c.display_owner = c.owner_name or '—'
+                c.display_owner = c.owner_name or '-'
             try:
                 c.signed_token = signer.sign(str(c.id))
             except Exception:
@@ -246,7 +300,7 @@ def _citizen_owns_challan(user, challan):
 
 
 def _mask_challan_pii(challan):
-    """In-memory PII masking for anonymous visitors. Never persisted —
+    """In-memory PII masking for anonymous visitors. Never persisted -
     masking happens after all POST validation, only for the response."""
     def _mask_name(name):
         if not name:
@@ -323,6 +377,11 @@ def challan_detail(request, challan_id):
             if challan_cnic and guest_cnic != challan_cnic:
                 messages.error(request, "CNIC does not match this challan. Sign in with the owner account or use the correct CNIC.")
                 return redirect(f'/challan/{challan.id}/?tab=review')
+            evidence = request.FILES.get('evidence_file')
+            ok, err = _validate_evidence_file(evidence)
+            if not ok:
+                messages.error(request, err)
+                return redirect(f'/challan/{challan.id}/?tab=review')
             appeal = ChallanAppeal(
                 challan=challan,
                 submitted_by=None,
@@ -344,7 +403,13 @@ def challan_detail(request, challan_id):
                 status=ChallanAppeal.PENDING,
             )
         if request.FILES.get('evidence_file'):
-            appeal.evidence_file = request.FILES['evidence_file']
+            # Authenticated path goes through the same whitelist + sniffing.
+            evidence = request.FILES['evidence_file']
+            ok, err = _validate_evidence_file(evidence)
+            if not ok:
+                messages.error(request, err)
+                return redirect(f'/challan/{challan.id}/?tab=review')
+            appeal.evidence_file = evidence
         appeal.save()
         try:
             from admin.dig_portal.models import AuditLog
@@ -368,8 +433,8 @@ def challan_detail(request, challan_id):
         'officer_signature_name': _officer_signature_name(_resolve_officer(challan)),
         'officer_signature_designation': _officer_signature_designation(_resolve_officer(challan)),
         'officer_signature_stamp_url': _officer_signature_stamp_url(_resolve_officer(challan)),
-        'officer_staff_id': getattr(_resolve_officer(challan), 'staff_id', None) or '—',
-        'officer_region': getattr(_resolve_officer(challan), 'region', None) or '—',
+        'officer_staff_id': getattr(_resolve_officer(challan), 'staff_id', None) or '-',
+        'officer_region': getattr(_resolve_officer(challan), 'region', None) or '-',
         'has_active_appeal': has_active,
         'existing_appeals': existing_appeals,
         'active_tab': request.GET.get('tab') or 'base',
@@ -417,6 +482,13 @@ def challan_pdf(request, challan_id):
             return HttpResponseForbidden("Expired or invalid token.")
 
     force = (request.GET.get('regen') or '') == '1'
+
+    # Rate limit the expensive part: PDF generation/download. Applied after
+    # the auth/token gate so unauthorised probes are free and NEVER consume
+    # the download budget of a legitimate identity.
+    if _pdf_rate_limited(request):
+        return rate_limit_response(request)
+
     if force or not challan.pdf_file:
         from challans.pdf_service import save_challan_pdf
         try:
@@ -436,7 +508,7 @@ def challan_pdf(request, challan_id):
 
 
 def guest_pay(request, challan_id):
-    """Public pay — no login. Digital methods only.
+    """Public pay - no login. Digital methods only.
 
     The visitor is ALWAYS routed through the payment gateway. In demo mode the
     gateway is the local demo-checkout page where the visitor must explicitly
@@ -519,7 +591,7 @@ def guest_pay(request, challan_id):
 
 
 def guest_pay_done(request, challan_id):
-    """Gateway return URL — display only.
+    """Gateway return URL - display only.
 
     Payment status is mutated exclusively by the signed gateway webhook or the
     CSRF-protected demo checkout confirmation. This view never writes.

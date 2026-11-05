@@ -7,7 +7,7 @@ Flow (fully automated, no manual/officer annotation anywhere):
 Every challan is issued exclusively through this pipeline. A challan can only
 be generated when all five evidence security checks pass. Any failure blocks
 issuance: hard failures are rejected outright, ambiguous cases are parked in
-the review queue for DIG oversight.
+the OFFICER PORTAL review queue for human triage.
 """
 from __future__ import annotations
 
@@ -30,6 +30,7 @@ TRACK_MIN_CONSISTENCY = 0.60
 SINGLE_FRAME_HIGH_CONF = 0.90
 OCR_MIN_CONFIDENCE = 0.60
 PLATE_CROP_MIN_HEIGHT = 18
+SEQUENTIAL_EVIDENCE_MIN_FRAMES = 3
 
 
 def _normalize_plate(raw: str | None) -> str:
@@ -142,7 +143,7 @@ def _check_plate_readability(detection, raw) -> dict:
     ok_format = bool(PLATE_PATTERN.match(norm)) if norm else False
     passed = ok_format and ocr_conf >= OCR_MIN_CONFIDENCE and bool(plate)
     detail = (
-        f"plate={plate or '—'} format={'ok' if ok_format else 'invalid'} "
+        f"plate={plate or '-'} format={'ok' if ok_format else 'invalid'} "
         f"ocr_conf={ocr_conf:.2f} (min {OCR_MIN_CONFIDENCE:.2f})"
     )
     return {'check': 'plate_readability', 'passed': bool(passed), 'detail': detail}
@@ -152,15 +153,32 @@ def _check_frame_consistency(detection, track) -> dict:
     mode = track.get('mode')
     frames = int(track.get('frames') or 0)
     consistency = float(track.get('consistency') or 0.0)
+
+    # 3-frame sequential evidence (90FPS-style burst): verify the plate reads
+    # of the captured consecutive frames one-by-one against the primary read.
+    primary_plate = _normalize_plate(detection.ai_plate_text)
+    meta = [m for m in (detection.evidence_frames_meta or []) if m.get('slot', 1) > 1]
+    seq_total = len(meta)
+    seq_agree = sum(
+        1 for m in meta if _normalize_plate(m.get('plate')) == primary_plate and primary_plate
+    )
+    sequential_ok = seq_total > 0 and seq_agree == seq_total
+
     if mode == 'corroborated_track':
         passed = frames >= TRACK_MIN_FRAMES and consistency >= TRACK_MIN_CONSISTENCY
     elif mode == 'single_frame_high_confidence':
         passed = True
+    elif sequential_ok and seq_total >= SEQUENTIAL_EVIDENCE_MIN_FRAMES - 1:
+        # Consecutive-frame plate agreement corroborates a lone sampling hit.
+        passed = True
     else:
         passed = False
+    if sequential_ok:
+        mode = f"{mode}+sequential({seq_agree}/{seq_total})"
     detail = (
         f"mode={mode} frames={frames} (min {TRACK_MIN_FRAMES}) "
-        f"consistency={consistency:.2f} (min {TRACK_MIN_CONSISTENCY:.2f})"
+        f"consistency={consistency:.2f} (min {TRACK_MIN_CONSISTENCY:.2f}) "
+        f"sequential_frames={seq_total} agreeing={seq_agree}"
     )
     return {'check': 'frame_consistency', 'passed': bool(passed), 'detail': detail}
 
@@ -174,8 +192,8 @@ def _check_violation_logic(detection, camera, raw) -> dict:
     violation_flag = bool(detection.ai_detected_violation)
     passed = violation_flag and side == violation_side and side_conf >= 0.60
     detail = (
-        f"violation={violation_flag} side={side or '—'}/{side_conf:.2f} "
-        f"required_side={violation_side} legal_dir={legal or '—'} moving_dir={moving or '—'}"
+        f"violation={violation_flag} side={side or '-'}/{side_conf:.2f} "
+        f"required_side={violation_side} legal_dir={legal or '-'} moving_dir={moving or '-'}"
     )
     return {'check': 'violation_logic', 'passed': bool(passed), 'detail': detail}
 
@@ -219,7 +237,7 @@ def _check_chain_integrity(detection, checks, camera) -> dict:
         )
     passed = bool(digest) and not duplicate
     detail = (
-        f"chain_hash={digest[:16] if digest else '—'}… "
+        f"chain_hash={digest[:16] if digest else '-'}… "
         f"duplicate_24h={'yes' if duplicate else 'no'}"
     )
     return {'check': 'chain_integrity', 'passed': bool(passed), 'detail': detail}
@@ -322,6 +340,12 @@ def issue_challan(detection, camera, user=None):
         )
 
     try:
+        from detections.evidence_annotator import store_annotated_evidence
+        store_annotated_evidence(detection, camera)
+    except Exception as e:
+        logger.warning('evidence annotation deferred: %s', e)
+
+    try:
         from challans.pdf_service import save_challan_pdf
         save_challan_pdf(challan)
     except Exception as e:
@@ -345,13 +369,22 @@ def issue_challan(detection, camera, user=None):
 
 
 
+def _emit_realtime(detection, action: str):
+    """Push a detection event to the Socket.IO portal rooms (best effort)."""
+    try:
+        from realtime.realtime_events import emit_detection_event
+        emit_detection_event(detection, action)
+    except Exception:
+        pass
+
+
 def process_detection(detection, result: dict, camera=None, system_user=None):
     """Run the full enforcement pipeline for one detection record.
 
     Returns (detection, challan_or_None, action) where action is one of:
-      'challan_issued'   — all five evidence checks passed, challan created
-      'queued_review'    — evidence incomplete; parked for DIG oversight
-      'ignored'          — hard failure; rejected
+      'challan_issued'   - all five evidence checks passed, challan created
+      'queued_review'    - evidence incomplete; parked for officer triage
+      'ignored'          - hard failure; rejected
     """
     raw = result.get('raw_ai_response') or detection.ai_raw_response or {}
     conf = float(result.get('confidence') or detection.ai_confidence or 0.0)
@@ -383,7 +416,6 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         detection.save()
         logger.info('Detection %s IGNORED conf=%.2f', detection.id, conf)
         return detection, None, 'ignored'
-
     track = frame_tracking(detection, camera or detection.camera)
     detection.track_id = track.get('track_id')
     detection.track_frames = track.get('frames') or 0
@@ -400,7 +432,7 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         detection.status = Detection.CONFIRMED
         detection.reviewed_at = timezone.now()
         detection.review_notes = (
-            f"Evidence verified — {passed_count}/5 security checks passed "
+            f"Evidence verified - {passed_count}/5 security checks passed "
             f"(track={track.get('mode')}, frames={track.get('frames')}, "
             f"consistency={track.get('consistency'):.2f}). "
             f"Chain {evidence_hash[:16]}…"
@@ -408,23 +440,25 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         detection.save()
         challan = issue_challan(detection, camera or detection.camera, user=system_user)
         logger.info(
-            'Detection %s CHALLAN ISSUED %s — 5/5 checks, track=%s',
+            'Detection %s CHALLAN ISSUED %s - 5/5 checks, track=%s',
             detection.id, getattr(challan, 'ticket_no', None), track.get('mode'),
         )
+        _emit_realtime(detection, 'challan_issued')
         return detection, challan, 'challan_issued'
 
     detection.status = Detection.PENDING
     detection.review_notes = (
-        f"Evidence incomplete — {passed_count}/5 checks passed. "
-        f"Failed: {', '.join(c['check'] for c in checks if not c.get('passed')) or '—'}. "
+        f"Evidence incomplete - {passed_count}/5 checks passed. "
+        f"Failed: {', '.join(c['check'] for c in checks if not c.get('passed')) or '-'}. "
         f"Track={track.get('mode')} frames={track.get('frames')} "
-        f"consistency={track.get('consistency'):.2f}. Parked for DIG review."
+        f"consistency={track.get('consistency'):.2f}. Parked for officer review in the Officer Portal."
     )
     detection.save()
     logger.info(
-        'Detection %s QUEUED — %d/5 checks (track=%s)',
+        'Detection %s QUEUED - %d/5 checks (track=%s)',
         detection.id, passed_count, track.get('mode'),
     )
+    _emit_realtime(detection, 'queued_review')
     return detection, None, 'queued_review'
 
 

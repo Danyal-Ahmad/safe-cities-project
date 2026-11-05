@@ -1,6 +1,14 @@
+"""Video upload processing engine.
+
+For every sampled frame the AI pipeline runs; when a plate is detected the
+processor also captures the next two CONSECUTIVE frames (90FPS-style burst)
+and re-checks them one-by-one, building the 3-frame sequential evidence
+package stored on the Detection. Only frames whose plate reads agree across
+the sequence can pass evidence verification and issue a challan.
+"""
 import io
-import os
 import logging
+import os
 import tempfile
 import threading
 
@@ -10,6 +18,7 @@ from django.utils import timezone
 logger = logging.getLogger('wrongway.video_upload')
 
 MAX_FRAMES_PER_UPLOAD = 500
+SEQUENTIAL_EVIDENCE_FRAMES = 2  # extra consecutive frames captured per plate hit
 
 
 def _extract_frame_timestamps(duration_seconds, interval_seconds):
@@ -20,9 +29,36 @@ def _extract_frame_timestamps(duration_seconds, interval_seconds):
     return [i * interval_seconds for i in range(n) if i * interval_seconds < duration_seconds] or [0.0]
 
 
-def process_video_upload(upload_id):
+def _frame_to_jpeg_bytes(frame_bgr, quality=85):
     import cv2
     from PIL import Image
+    rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+    image = Image.fromarray(rgb)
+    out = io.BytesIO()
+    image.save(out, format='JPEG', quality=quality)
+    return out.getvalue(), image
+
+
+def _normalize_plate(raw):
+    import re
+    if not raw:
+        return ''
+    return re.sub(r'[^A-Z0-9]', '', str(raw).upper())
+
+
+def _capture_sequential_frames(cap, count):
+    """Read the next `count` truly consecutive frames from an open capture."""
+    frames = []
+    for _ in range(count):
+        ok, frame = cap.read()
+        if not ok or frame is None:
+            break
+        frames.append(frame)
+    return frames
+
+
+def process_video_upload(upload_id):
+    import cv2
     from video_processor.models import VideoUpload, VideoFrame
     from detections.models import Detection
     from detections.ai import run_pipeline
@@ -43,7 +79,7 @@ def process_video_upload(upload_id):
     try:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            raise RuntimeError("Could not open video file — unsupported or corrupt format.")
+            raise RuntimeError("Could not open video file: unsupported or corrupt format.")
 
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
         frame_count_total = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0
@@ -70,11 +106,9 @@ def process_video_upload(upload_id):
                 )
                 continue
 
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            image = Image.fromarray(rgb)
-
+            primary_bytes, image = _frame_to_jpeg_bytes(frame)
             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-                image.save(tmp, format='JPEG', quality=85)
+                tmp.write(primary_bytes)
                 tmp_path = tmp.name
 
             video_frame = VideoFrame(video_upload=upload, frame_number=idx, timestamp_secs=ts)
@@ -86,7 +120,7 @@ def process_video_upload(upload_id):
                         result = run_pipeline(tmp_path, camera)
                     except Exception as ai_err:
                         logger.warning("AI pipeline failed for upload %s frame @%ss: %s",
-                                        upload.id, ts, ai_err)
+                                       upload.id, ts, ai_err)
                         result = {}
 
                 plate_text = result.get('plate_text')
@@ -142,13 +176,59 @@ def process_video_upload(upload_id):
                             os.unlink(result['plate_crop_path'])
                         except Exception:
                             pass
+
+                    # --- 3-frame sequential evidence (90FPS-style burst) ---
+                    evidence_meta = [{
+                        'slot': 1,
+                        'timestamp': round(ts, 3),
+                        'plate': plate_text,
+                        'side': side,
+                        'confidence': round(float(confidence or 0.0), 3),
+                        'source': 'primary',
+                    }]
+                    if video_frame.plate_detected:
+                        seq_frames = _capture_sequential_frames(cap, SEQUENTIAL_EVIDENCE_FRAMES)
+                        for seq_idx, seq_bgr in enumerate(seq_frames, start=2):
+                            seq_bytes, _seq_img = _frame_to_jpeg_bytes(seq_bgr, quality=85)
+                            seq_plate, seq_side, seq_conf = None, None, None
+                            try:
+                                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as seq_tmp:
+                                    seq_tmp.write(seq_bytes)
+                                    seq_tmp_path = seq_tmp.name
+                                try:
+                                    seq_result = run_pipeline(seq_tmp_path, camera)
+                                    seq_plate = seq_result.get('plate_text')
+                                    seq_side = seq_result.get('side')
+                                    seq_conf = seq_result.get('confidence')
+                                finally:
+                                    try:
+                                        os.unlink(seq_tmp_path)
+                                    except Exception:
+                                        pass
+                            except Exception as seq_err:
+                                logger.debug("sequential frame check failed: %s", seq_err)
+                            field = 'evidence_frame_2' if seq_idx == 2 else 'evidence_frame_3'
+                            getattr(detection, field).save(
+                                f"seq{seq_idx}_{camera.camera_id}_upload{upload.id}_f{idx}.jpg",
+                                ContentFile(seq_bytes), save=False,
+                            )
+                            evidence_meta.append({
+                                'slot': seq_idx,
+                                'timestamp': round(ts + (seq_idx - 1) / max(fps, 1.0), 3),
+                                'plate': seq_plate,
+                                'side': seq_side,
+                                'confidence': round(float(seq_conf or 0.0), 3),
+                                'source': 'sequential',
+                            })
+                    detection.evidence_frames_meta = evidence_meta
+
                     detection.save()
                     try:
                         from detections.finalize import finalize_detection_from_ai
                         detection, challan, action = finalize_detection_from_ai(
                             detection, result, camera=camera,
                         )
-                        if action == 'auto_confirmed':
+                        if action == 'challan_issued':
                             video_frame.auto_processed = True
                             auto_challans_created += 1
                         elif action == 'queued_review':
@@ -186,8 +266,9 @@ def process_video_upload(upload_id):
         upload.save(update_fields=['auto_challans_created', 'status', 'completed_at'])
         if camera is not None:
             camera.mark_online()
-        logger.info("Video upload %s done: %d frames, %d with plates, %d sent to review",
-                     upload.id, len(timestamps), frames_with_plates, manual_review_created)
+        logger.info("Video upload %s done: %d frames, %d with plates, %d sent to review, %d challans",
+                     upload.id, len(timestamps), frames_with_plates, manual_review_created,
+                     auto_challans_created)
 
     except Exception as e:
         logger.exception("Video upload %s failed", upload.id)
@@ -204,4 +285,3 @@ def start_processing_async(upload_id):
     t = threading.Thread(target=process_video_upload, args=(upload_id,), daemon=True)
     t.start()
     return t
-

@@ -216,6 +216,7 @@ _IT_PERMS = {
 
 _DIG_PERMS = {
     'add_admin',
+    'view_live_monitor',
     'add_officer_feedback',
     'add_review_note',
     'add_to_blacklist',
@@ -284,6 +285,7 @@ _DIG_PERMS = {
 
 _SSP_PERMS = {
     'add_officer_feedback',
+    'view_live_monitor',
     'add_review_note',
     'add_to_blacklist',
     'approve_appeal',
@@ -336,6 +338,7 @@ _SUPERVISOR_PERMS = {
     'view_detections',    # H9 FIX: supervisor must view detections
     'view_analytics',     # H9 FIX: supervisor must view analytics
     'view_appeals',       # H9 FIX: supervisor must view appeals
+    'view_live_monitor',  # Senior-staff CCTV wall (supervisor portal re-exports the DIG live monitor route)
     'view_notifications',
     'view_officer_activity',
     'view_officer_feedback',
@@ -434,7 +437,7 @@ ROLE_HIERARCHY = OrderedDict([
     ('DIG', {
         'label': 'DIG (Super Admin)',
         'level': 100,
-        'description': 'Directorate-level super admin — full system control',
+        'description': 'Directorate-level super admin - full system control',
         'color': '#6D28D9',
         'reports_to': None,
         'manages': ('SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT'),
@@ -443,9 +446,9 @@ ROLE_HIERARCHY = OrderedDict([
         'login_url': '/auth/admin/login/',
     }),
     ('SSP', {
-        'label': 'SSP — Senior Superintendent',
+        'label': 'SSP | Senior Superintendent',
         'level': 80,
-        'description': 'Regional command — approvals, appeals, analytics',
+        'description': 'Regional command - approvals, appeals, analytics',
         'color': '#BE123C',
         'reports_to': 'DIG',
         'manages': ('SUPV', 'OFFICER'),
@@ -456,7 +459,7 @@ ROLE_HIERARCHY = OrderedDict([
     ('SUPV', {
         'label': 'Supervisor',
         'level': 60,
-        'description': 'Team lead — shifts, team performance, challan ops',
+        'description': 'Team lead - shifts, team performance, challan ops',
         'color': '#0369A1',
         'reports_to': 'SSP',
         'manages': ('OFFICER',),
@@ -467,7 +470,7 @@ ROLE_HIERARCHY = OrderedDict([
     ('OFFICER', {
         'label': 'Officer',
         'level': 40,
-        'description': 'Field officer — review queue, live tracking (1 camera)',
+        'description': 'Field officer - review queue, live tracking (1 camera)',
         'color': '#1E40AF',
         'reports_to': 'SUPV',
         'manages': (),
@@ -500,7 +503,7 @@ ROLE_HIERARCHY = OrderedDict([
     ('USER', {
         'label': 'Registered Citizen',
         'level': 10,
-        'description': 'Citizen portal — own challans, payments, appeals',
+        'description': 'Citizen portal - own challans, payments, appeals',
         'color': '#475569',
         'reports_to': None,
         'manages': (),

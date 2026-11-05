@@ -31,13 +31,33 @@ def upload_video(request):
         if video_file.size > 200 * 1024 * 1024:
             messages.error(request, "Video exceeds the 200 MB limit.")
             return redirect('video_processor:upload_video')
+        # Extension whitelist + magic-byte sniff (blocks renamed executables,
+        # HTML/polyglot uploads served back from /media/).
+        vname = (getattr(video_file, 'name', '') or '').lower()
+        if not any(vname.endswith(ext) for ext in ('.mp4', '.avi', '.mov', '.m4v')):
+            messages.error(request, "Only MP4, AVI or MOV videos are accepted.")
+            return redirect('video_processor:upload_video')
+        try:
+            head = video_file.read(64)
+            video_file.seek(0)
+            valid_magic = (
+                head[4:8] == b'ftyp'                     # MP4 / M4V
+                or head.startswith(b'RIFF')               # AVI container
+                or head.startswith(b'\x00\x00\x00') and head[4:12] in (b'moov', b'wide', b'mdat', b'free', b'skip')
+                or head.startswith(b'\x1aE\xdf\xa3')      # Matroska/WebM family
+            )
+        except Exception:
+            valid_magic = False
+        if not valid_magic:
+            messages.error(request, "File content is not a valid video container.")
+            return redirect('video_processor:upload_video')
 
         camera_id = (request.POST.get('camera_id') or '').strip()
         camera = None
         if camera_id:
             camera = Camera.objects.filter(pk=camera_id, is_active=True).first()
         if camera is None:
-            messages.error(request, "Please select the camera this video belongs to — detections need a camera.")
+            messages.error(request, "Please select the camera this video belongs to - detections need a camera.")
             return redirect('video_processor:upload_video')
         if user.role == 'OFFICER' and not CameraAssignment.objects.filter(
                 camera=camera, officer=user, is_active=True).exists():
@@ -55,7 +75,7 @@ def upload_video(request):
                     camera_location=camera.location or '',
                 )
                 LiveFeed.objects.create(
-                    title=f"{camera.camera_id} — upload {upload.id}",
+                    title=f"{camera.camera_id} | upload {upload.id}",
                     video_file=upload.video_file,
                     camera=camera,
                     location_label=camera.location,

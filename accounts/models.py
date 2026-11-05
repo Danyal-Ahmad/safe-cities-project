@@ -20,7 +20,7 @@ class User(AbstractUser):
 
     ROLE_CHOICES = [
         (DIG,        'DIG (Super Admin)'),
-        (SSP,        'SSP — Senior Superintendent'),
+        (SSP,        'SSP | Senior Superintendent'),
         (SUPERVISOR, 'Supervisor'),
         (OFFICER,    'Officer'),
         (AUDIT,      'Audit Officer'),
@@ -60,7 +60,7 @@ class User(AbstractUser):
     designation = models.CharField(max_length=100, null=True, blank=True,
                                     help_text="Official designation (e.g. 'Deputy Inspector General')")
     department = models.CharField(max_length=100, null=True, blank=True,
-                                   help_text="Department name (e.g. 'Traffic Police')")
+                                   help_text="Department name (e.g. 'Traffic Enforcement')")
 
     username = models.CharField(max_length=150, unique=True)
     USERNAME_FIELD = 'username'
@@ -267,7 +267,7 @@ class OfficerProfile(models.Model):
 
 
 class DigProfile(models.Model):
-    """DIG (Deputy Inspector General) — command authority profile."""
+    """DIG (Deputy Inspector General) - command authority profile."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='dig_profile',
                                 limit_choices_to={'role': User.DIG})
     badge_number = models.CharField(max_length=40, blank=True, default='')
@@ -296,7 +296,7 @@ class DigProfile(models.Model):
 
 
 class SspProfile(models.Model):
-    """SSP (Senior Superintendent of Police) — regional senior command."""
+    """SSP (Senior Superintendent of Police) - regional senior command."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ssp_profile',
                                 limit_choices_to={'role': User.SSP})
     badge_number = models.CharField(max_length=40, blank=True, default='')
@@ -326,7 +326,7 @@ class SspProfile(models.Model):
 
 
 class SupervisorProfile(models.Model):
-    """Shift Supervisor — team and shift oversight."""
+    """Shift Supervisor - team and shift oversight."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='supervisor_profile',
                                 limit_choices_to={'role': User.SUPERVISOR})
     badge_number = models.CharField(max_length=40, blank=True, default='')
@@ -355,7 +355,7 @@ class SupervisorProfile(models.Model):
 
 
 class ItProfile(models.Model):
-    """IT Support — systems, cameras, PDF, backups."""
+    """IT Support - systems, cameras, PDF, backups."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='it_profile',
                                 limit_choices_to={'role': User.IT_SUPPORT})
     employee_id = models.CharField(max_length=40, blank=True, default='')
@@ -385,7 +385,7 @@ class ItProfile(models.Model):
 
 
 class AuditorProfile(models.Model):
-    """Audit Officer — compliance and financial/operational audit."""
+    """Audit Officer - compliance and financial/operational audit."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='auditor_profile',
                                 limit_choices_to={'role': User.AUDIT})
     employee_id = models.CharField(max_length=40, blank=True, default='')
@@ -415,7 +415,7 @@ class AuditorProfile(models.Model):
 
 
 class CitizenProfile(models.Model):
-    """Registered citizen — owner details for challans and appeals."""
+    """Registered citizen - owner details for challans and appeals."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='citizen_profile',
                                 limit_choices_to={'role': User.USER})
     father_name = models.CharField(max_length=120, blank=True, default='')
@@ -489,7 +489,7 @@ class VehicleRegistration(models.Model):
         unique_together = ('owner', 'plate_number')
 
     def __str__(self):
-        return f"{self.plate_number} — {self.owner.display_name}"
+        return f"{self.plate_number} | {self.owner.display_name}"
 
 
 class PasswordResetToken(models.Model):
@@ -516,7 +516,7 @@ class PasswordResetToken(models.Model):
 
 class AdminPasswordResetRequest(models.Model):
     """Request from a staff/admin who forgot their password.
-    The user is NOT allowed to reset their own password directly — instead, a
+    The user is NOT allowed to reset their own password directly - instead, a
     request is created and DIG is notified to perform the reset."""
 
     STATUS_PENDING = 'PENDING'

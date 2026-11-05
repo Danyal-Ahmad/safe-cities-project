@@ -9,11 +9,27 @@ from django.views.decorators.http import require_POST
 from django.core.files.base import ContentFile
 from django.utils import timezone
 
+from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_response
+
 from .models import Camera
 from detections.models import Detection
 from detections.ai import run_pipeline
 
 logger = logging.getLogger('wrongway.ingest')
+
+
+# ---------------------------------------------------------------------------
+# Per-endpoint API rate limits (per IP, sliding window).
+# These are view-level limits - the global RateLimitMiddleware never covers
+# /api/ paths, so the layers never double-limit. The limits are checked
+# BEFORE authentication so flooding does not cost a DB lookup, and they are
+# plain in-view checks (no decorator wrapping) so @csrf_exempt on the Bearer
+# endpoints is untouched.
+# ---------------------------------------------------------------------------
+ENROLL_LIMIT = (5, 3600)      # 5 per hour per IP - enrollment tokens are rare
+INGEST_LIMIT = (300, 60)      # 300 per minute per IP - a camera pushes every few
+                               # seconds; must NOT break normal operation
+HEARTBEAT_LIMIT = (120, 60)   # 120 per minute per IP
 
 
 def _authenticate_camera(request):
@@ -33,6 +49,8 @@ def _authenticate_camera(request):
 @csrf_exempt
 @require_POST
 def enroll_camera(request):
+    if is_rate_limited(request, 'api_enroll', limit=ENROLL_LIMIT[0], window=ENROLL_LIMIT[1]):
+        return rate_limit_response(request)
     token = (request.POST.get('enrollment_token') or '').strip()
     if not token:
         return HttpResponseBadRequest("enrollment_token is required.")
@@ -70,6 +88,8 @@ def enroll_camera(request):
 @csrf_exempt
 @require_POST
 def ingest(request):
+    if is_rate_limited(request, 'api_ingest', limit=INGEST_LIMIT[0], window=INGEST_LIMIT[1]):
+        return rate_limit_response(request)
     camera = _authenticate_camera(request)
     if not camera:
         return HttpResponseForbidden("Invalid or inactive camera API key.")
@@ -159,6 +179,8 @@ def ingest(request):
 @csrf_exempt
 @require_POST
 def heartbeat(request):
+    if is_rate_limited(request, 'api_heartbeat', limit=HEARTBEAT_LIMIT[0], window=HEARTBEAT_LIMIT[1]):
+        return rate_limit_response(request)
     camera = _authenticate_camera(request)
     if not camera:
         return HttpResponseForbidden("Invalid or inactive camera API key.")

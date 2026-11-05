@@ -54,8 +54,9 @@ class Challan(models.Model):
     VOIDED = 'VOIDED'
     PAYMENT_CHOICES = [(UNPAID, 'Unpaid'), (PAID, 'Paid'), (VOIDED, 'Voided')]
 
-    detection = models.ForeignKey(Detection, on_delete=models.SET_NULL, null=True, blank=True,
-                                  related_name='challans')
+    detection = models.OneToOneField(Detection, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='challans',
+                                     help_text='One detection can produce at most one challan (DB-enforced).')
     ticket_no = models.CharField(max_length=30, unique=True, editable=False)
     plate_number = models.CharField(max_length=20)
     province = models.CharField(max_length=10, null=True, blank=True)
@@ -105,7 +106,7 @@ class Challan(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.ticket_no} — {self.plate_number} ({self.payment_status})"
+        return f"{self.ticket_no} | {self.plate_number} ({self.payment_status})"
 
     @property
     def is_overdue(self):
@@ -116,7 +117,7 @@ class Challan(models.Model):
     @property
     def psid(self):
         """Numeric Payment System ID only (digits). Stable per challan."""
-        tid = (self.ticket_no or str(self.pk or 0))
+        tid = str(self.ticket_no or self.pk or 0)
         digits = ''.join(ch for ch in tid if ch.isdigit()) or str(self.pk or 0)
         core = digits[-12:].zfill(12)
         total = 0

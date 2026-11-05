@@ -330,7 +330,7 @@ def _classify_side(image: Image.Image) -> Tuple[str, float]:
 
             if float(np.max(probs) - np.min(probs)) < 0.01:
                 logger.warning(
-                    "C3: Side classifier output is near-uniform (%.4f~%.4f) — model may be "
+                    "C3: Side classifier output is near-uniform (%.4f~%.4f) - model may be "
                     "defective (constant INT8 export). Returning unknown side.",
                     float(np.min(probs)), float(np.max(probs))
                 )
@@ -348,7 +348,7 @@ def _classify_side(image: Image.Image) -> Tuple[str, float]:
 
         val = float(out[0])
         if val == 0.0:
-            logger.warning("C3: Side classifier returned 0.0 — dead model output. Returning unknown side.")
+            logger.warning("C3: Side classifier returned 0.0 - dead model output. Returning unknown side.")
             return '', 0.0
         if val < 0.0 or val > 1.0:
             val = 1.0 / (1.0 + np.exp(-val))

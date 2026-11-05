@@ -21,7 +21,7 @@ class Camera(models.Model):
     legal_direction = models.CharField(max_length=10, choices=[
         ('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'),
     ], default='N', help_text="Pool / mounting direction of this camera (N/S/E/W). "
-                              "Used for physical placement labelling only — does NOT decide what counts as a violation.")
+                              "Used for physical placement labelling only - does NOT decide what counts as a violation.")
 
     VIOLATION_SIDE_BACK = 'back'
     VIOLATION_SIDE_FRONT = 'front'
@@ -77,7 +77,7 @@ class Camera(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.camera_id} — {self.location}"
+        return f"{self.camera_id} | {self.location}"
 
     def is_violation_side(self, classified_side: str) -> bool:
         return classified_side == self.violation_side

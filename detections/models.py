@@ -22,10 +22,20 @@ class Detection(models.Model):
                                null=True, blank=True,
                                help_text="Null for detections from video uploads, or after the source camera "
                                          "record has been deleted. Detections/evidence are preserved even if "
-                                         "the camera is removed (SET_NULL, not CASCADE) — deleting a camera "
+                                         "the camera is removed (SET_NULL, not CASCADE) - deleting a camera "
                                          "must never destroy violation evidence or challan history.")
     raw_image = models.ImageField(upload_to='detections/raw/%Y/%m/%d/')
     plate_crop_image = models.ImageField(upload_to='detections/plate/%Y/%m/%d/', null=True, blank=True)
+
+    # Three-frame sequential evidence (90FPS style): the primary frame is
+    # raw_image; these hold the two immediately consecutive frames captured
+    # around the violation instant so reviewers can step through the sequence.
+    evidence_frame_2 = models.ImageField(upload_to='detections/seq/%Y/%m/%d/', null=True, blank=True)
+    evidence_frame_3 = models.ImageField(upload_to='detections/seq/%Y/%m/%d/', null=True, blank=True)
+    evidence_frames_meta = models.JSONField(default=list, blank=True,
+                                            help_text="Per-frame capture metadata for the 3-frame evidence sequence.")
+    annotated_image = models.ImageField(upload_to='detections/annotated/%Y/%m/%d/', null=True, blank=True,
+                                        help_text="Court-ready annotated evidence frame (violation box, plate box, direction arrow).")
 
     ai_plate_text = models.CharField(max_length=20, null=True, blank=True)
     ai_province = models.CharField(max_length=10, null=True, blank=True)
@@ -61,9 +71,6 @@ class Detection(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    vehicle_image = models.ImageField(upload_to='detections/vehicle/%Y/%m/%d/', null=True, blank=True)
-    plate_image = models.ImageField(upload_to='detections/plate/%Y/%m/%d/', null=True, blank=True)
-
     class Meta:
         db_table = 'sc_detections'
         ordering = ['-created_at']
@@ -75,8 +82,8 @@ class Detection(models.Model):
         ]
 
     def __str__(self):
-        plate = self.ai_plate_text or '—'
-        return f"Detection {self.id} — {plate} ({self.get_status_display()})"
+        plate = self.ai_plate_text or '-'
+        return f"Detection {self.id} | {plate} ({self.get_status_display()})"
 
     @property
     def effective_plate(self):
@@ -88,7 +95,56 @@ class Detection(models.Model):
 
     @property
     def effective_plate_image(self):
-        return self.plate_crop_image or self.plate_image
+        return self.plate_crop_image
+
+    def evidence_frames(self):
+        """Return the sequential evidence frames (max 3) for officer review.
+
+        Frame 1 is always the primary raw capture. Frames 2 and 3 come from
+        the consecutive-frame capture for video uploads, or from the same
+        cross-frame vehicle track for live camera ingests.
+        """
+        frames = [{
+            'slot': 1,
+            'label': 'FRAME 01',
+            'image': self.raw_image,
+            'timestamp': self.created_at,
+            'plate': self.ai_plate_text,
+            'source': 'primary',
+        }]
+        for slot, field in ((2, 'evidence_frame_2'), (3, 'evidence_frame_3')):
+            img = getattr(self, field)
+            if img:
+                meta = {}
+                for row in (self.evidence_frames_meta or []):
+                    if int(row.get('slot') or 0) == slot:
+                        meta = row
+                        break
+                frames.append({
+                    'slot': slot,
+                    'label': f'FRAME {slot:02d}',
+                    'image': img,
+                    'timestamp': meta.get('timestamp'),
+                    'plate': meta.get('plate'),
+                    'source': 'sequential',
+                })
+        if len(frames) < 3 and self.track_id:
+            track_peers = Detection.objects.filter(
+                track_id=self.track_id,
+            ).exclude(pk=self.pk).order_by('created_at')[:3]
+            for peer in track_peers:
+                if len(frames) >= 3:
+                    break
+                if peer.raw_image:
+                    frames.append({
+                        'slot': len(frames) + 1,
+                        'label': f'FRAME {len(frames) + 1:02d}',
+                        'image': peer.raw_image,
+                        'timestamp': peer.created_at,
+                        'plate': peer.ai_plate_text,
+                        'source': 'track',
+                    })
+        return frames[:3]
 
     @property
     def evidence_summary(self):

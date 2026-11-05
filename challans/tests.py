@@ -178,8 +178,14 @@ class XssTests(TestCase):
         r = self.client.get('/', {'plate': "<script>alert(1)</script>"})
         self.assertEqual(r.status_code, 200)
         body = r.content.decode()
-        self.assertNotIn('<script>', body)
+        # The reflected user input must never inject executable markup.
         self.assertNotIn('alert(1)', body)
+        self.assertNotIn('&lt;script&gt;alert(1)', body.replace('&amp;', '&'))
+        import re
+        inline_scripts = re.findall(
+            r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', body, re.S)
+        for chunk in inline_scripts:
+            self.assertNotIn('alert', chunk)
 
     def test_sql_injection_is_harmless(self):
         make_challan(ticket='70000007', plate='LEA-700')

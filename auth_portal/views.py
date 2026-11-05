@@ -153,6 +153,11 @@ def citizen_signup(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.role = User.USER
+            # Found during the 2026 hardening pass: the form permits phone-only
+            # signup but sets email=None, while the DB column is NOT NULL -
+            # a phone-only signup 500'd with IntegrityError. Coerce to ''.
+            if user.email is None:
+                user.email = ''
             user.save()
             login(request, user, backend='accounts.backends.PhoneOrEmailBackend')
             messages.success(request, f"Welcome, {user.display_name}! Your account has been created.")
@@ -270,10 +275,21 @@ def citizen_reset_confirm(request, token):
                     'step': '2', 'token': token, 'user_name': tok.user.display_name,
                     'cnic': tok.user.cnic or '',
                 })
+            # Atomically claim the token BEFORE setting the password. The old
+            # flow was check-then-act (`used_at is None` read in
+            # _get_valid_token, then written back after) - two concurrent
+            # requests sharing a token link could BOTH pass and reset the
+            # password twice. The guarded UPDATE makes single-use airtight:
+            # only the first claimant proceeds.
+            claimed = PasswordResetToken.objects.filter(
+                pk=tok.pk, used_at__isnull=True,
+            ).update(used_at=timezone.now())
+            if not claimed:
+                return render(request, 'auth/citizen/forgot_password.html', {
+                    'step': 'invalid',
+                })
             tok.user.set_password(new_password)
             tok.user.save()
-            tok.used_at = timezone.now()
-            tok.save(update_fields=['used_at'])
             messages.success(request, "Password updated successfully! You can now sign in.")
             return redirect('auth_portal:citizen_login')
 
@@ -366,13 +382,13 @@ def _send_reset_email(request, user, token, kind='admin'):
         reset_url = request.build_absolute_uri(
             reverse('auth_portal:citizen_reset_confirm', args=[token.token])
         )
-    subject = "SafeCity FYP — Password Reset"
+    subject = "SafeCity FYP | Password Reset"
     body = (
         f"Hello {user.display_name},\n\n"
         f"We received a request to reset your SafeCity password.\n\n"
         f"Reset link (valid for {RESET_TOKEN_TTL_HOURS} hours):\n{reset_url}\n\n"
         f"If you did not request this reset, you can safely ignore this email.\n\n"
-        f"— SafeCity FYP"
+        f"- SafeCity FYP"
     )
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,

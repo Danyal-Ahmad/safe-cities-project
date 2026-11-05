@@ -39,7 +39,7 @@ class PaymentTransaction(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.ticket_no} — {self.provider} — {self.amount} ({self.status})"
+        return f"{self.ticket_no} | {self.provider} - {self.amount} ({self.status})"
 
     def mark_success(self, gateway_ref=None, raw_data=None):
         self.status = self.STATUS_SUCCESS

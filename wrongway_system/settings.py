@@ -90,6 +90,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise: compressed static serving with immutable cache headers.
+    # Wired 2026 hardening pass - previously a requirements.txt-only dependency.
+    # Must sit directly after SecurityMiddleware (see whitenoise docs).
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -182,6 +186,61 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# ---------------------------------------------------------------------------
+# Static file serving (WhiteNoise)
+# ---------------------------------------------------------------------------
+# WhiteNoise serves /static/ from STATIC_ROOT with far-future "immutable"
+# cache headers for fingerprinted files. Hashed URLs are produced by the
+# manifest storage below (Django appends a 12-hex md5 segment, e.g.
+# safe-city.1ab2cd3ef456.css), and WHITENOISE_IMMUTABLE_FILE_TEST matches
+# exactly that pattern, so fingerprinted assets get
+#   Cache-Control: max-age=31536000, public, immutable
+# while unfingerprinted files stay at a short max-age (no stale-deploy risk).
+#
+# The storage subclass sets manifest_strict = False: if collectstatic has not
+# been run yet (fresh clone, CI, first boot) {% static %} falls back to the
+# plain unhashed URL instead of raising "Missing staticfiles manifest entry".
+# Run `python3 manage.py collectstatic` in production (launcher.py already
+# does this automatically). MEDIA (/uploads) is NOT handled by WhiteNoise -
+# see docs/SECURITY_AUDIT.md "Static & media serving" for the nginx recipe
+# that never serves uploads with executable content types.
+WHITENOISE_MAX_AGE = 0 if DEBUG else 60      # non-fingerprinted files
+WHITENOISE_IMMUTABLE_FILE_MAX_AGE = 31536000  # fingerprinted files
+WHITENOISE_IMMUTABLE_FILE_TEST = r'\.[0-9a-f]{12}\.'  # Django md5[:12]
+
+try:
+    from whitenoise.storage import CompressedManifestStaticFilesStorage as _WNBase
+
+    class _GracefulManifestStaticFilesStorage(_WNBase):
+        """Compressed manifest storage that degrades gracefully.
+
+        Missing manifest entries fall back to an on-the-fly hashed URL
+        (computed from the collected source copy in STATIC_ROOT) instead of
+        raising ValueError, so a stale/partial manifest never takes the site
+        down. In DEBUG, {% static %} returns unhashed URLs (Django's
+        HashedFilesMixin._url DEBUG guard), so runserver + WhiteNoise's
+        finder mode keep working unchanged.
+        """
+
+        manifest_strict = False
+
+    # NOTE: this must be STORAGES (not the STORAGE alias) - STORAGE only
+    # touches the *default* (upload) storage and would silently leave
+    # staticfiles on the unhashed backend. Uploads stay on plain
+    # FileSystemStorage → MEDIA_ROOT; only /static/ uses WhiteNoise.
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {
+            "BACKEND": "wrongway_system.settings._GracefulManifestStaticFilesStorage",
+        },
+    }
+    del _WNBase
+except ImportError:  # pragma: no cover - whitenoise is a pinned dependency
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'uploads'
 
@@ -221,7 +280,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_FAILURE_VIEW = 'admin.dig_portal.views.csrf_failure'
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = 'DENY'  # SecurityHeadersMiddleware relaxes to SAMEORIGIN for ?embed=1 fragments
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -230,21 +289,81 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-if not DEBUG:
+# ---------------------------------------------------------------------------
+# Content Security Policy - SINGLE SOURCE OF TRUTH.
+# ---------------------------------------------------------------------------
+# These tuples are consumed by admin.dig_portal.middleware.SecurityHeadersMiddleware,
+# which composes the final header per request (adds the per-request nonce to
+# script-src and applies the ?embed=1 frame-ancestors exception on /profile/
+# pages). The middleware previously hard-coded its own copy of this policy -
+# that drift risk is gone: edit CSP_* here only.
+#
+# Production script-src decisions (2026 hardening pass):
+#   * 'unsafe-eval' - REMOVED. Nothing in the JS assets uses eval/new
+#     Function (verified by grep over static/ and templates/).
+#   * 'unsafe-inline' - KEPT, documented residual risk. Removing it would
+#     break 16+ templates that are outside this change's file ownership:
+#     inline event handlers exist on public pages (login eye-toggle
+#     onclick, chart.js onerror="this.remove()") and staff pages (DIG appeal
+#     override onclick=..., camera_add onchange=..., penalty_config
+#     onchange=..., banner delete onsubmit=confirm(...)). Nonce coverage
+#     for the ONE owned inline script (tailwind.config in base.html) is in
+#     place, so the residual risk can be retired template-by-template; see
+#     docs/SECURITY_AUDIT.md "Residual risks".
+#   * https://code.jquery.com - REMOVED (dead host; jQuery is served from
+#     cdn.jsdelivr.net).
+#
+# form-action allows external https POSTs because the payment integrations
+# POST to JazzCash (sandbox|payments.jazzcash.com.pk) and EasyPaisa
+# (easypaystg|easypay.easypaisa.com.pk) - all https. http: is NOT allowed.
+#
+# connect-src 'self' also covers the Socket.IO websocket channel: the client
+# connects to window.location.origin with path /ws/socket.io (same origin;
+# CSP maps ws/wss origins to their http/https equivalents).
+
+if DEBUG:
+    # Permissive development variant (kept from the previous policy).
+    CSP_DEFAULT_SRC = ("'self'", "*")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "*")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "*")
+    CSP_FONT_SRC = ("'self'", "*", "data:")
+    CSP_IMG_SRC = ("'self'", "*", "data:", "blob:")
+    CSP_CONNECT_SRC = ("'self'", "*")
+    CSP_FORM_ACTION = ("'self'", "http:", "https:")
+else:
     CSP_DEFAULT_SRC = ("'self'",)
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'",
-                       'https://unpkg.com', 'https://cdn.jsdelivr.net',
-                       'https://cdnjs.cloudflare.com', 'https://code.jquery.com')
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'",
-                     'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com',
-                     'https://unpkg.com', 'https://cdn.jsdelivr.net')
-    CSP_FONT_SRC = ("'self'", 'data:', 'https://fonts.gstatic.com',
-                    'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com')
-    CSP_IMG_SRC = ("'self'", 'data:', 'blob:', 'https:')
-    CSP_CONNECT_SRC = ("'self'", 'https:')
-    CSP_FRAME_ANCESTORS = ("'none'",)
-    CSP_OBJECT_SRC = ("'none'",)
-    CSP_BASE_URI = ("'self'",)
+    CSP_SCRIPT_SRC = (
+        "'self'", "'unsafe-inline'",  # residual risk - see note above
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://unpkg.com",
+        "https://cdn.tailwindcss.com",
+        "https://fonts.googleapis.com",
+    )
+    CSP_STYLE_SRC = (  # 'unsafe-inline' accepted risk: templates use heavy
+        "'self'", "'unsafe-inline'",  # inline styles/style= attributes
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com",
+        "https://unpkg.com",
+        "https://cdn.jsdelivr.net",
+    )
+    CSP_FONT_SRC = (
+        "'self'", "data:",
+        "https://fonts.gstatic.com",
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com",
+    )
+    CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
+    CSP_CONNECT_SRC = ("'self'",)  # same-origin Socket.IO included
+    CSP_FORM_ACTION = ("'self'", "https:")
+
+# Mode-independent directives.
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+# frame-ancestors is composed per request by SecurityHeadersMiddleware
+# ('none' everywhere except the ?embed=1 profile fragments, which get 'self').
+CSP_FRAME_ANCESTORS = ("'none'",)
+CSP_FRAME_ANCESTORS_EMBED = ("'self'",)
 
 EMAIL_NOTIFICATIONS_ENABLED = _env_bool('EMAIL_NOTIFICATIONS_ENABLED', False)
 _EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
@@ -263,7 +382,11 @@ else:
 MODELS_DIR = BASE_DIR / 'models'
 PLATE_DETECTOR_MODEL = MODELS_DIR / 'NumberPlate_detection_model_int8.onnx'
 SIDE_CLASSIFIER_MODEL = MODELS_DIR / 'car_side_Classifier_model_int8.onnx'
-AI_CONFIDENCE_THRESHOLD = 0.25
+# NOTE: AI_CONFIDENCE_THRESHOLD and CAMERA_WORKER_INTERVAL were removed in the
+# 2026 hardening pass. Grep-verified dead config: no code ever read them
+# (detections thresholds live in SystemSettings.ai_config; the camera worker
+# loop uses Camera.capture_interval from the DB). launcher.py still writes a
+# CAMERA_WORKER_INTERVAL line into generated .env files - harmless, ignored.
 
 RATELIMIT_USE_CACHE = 'default'
 RATELIMIT_ENABLE = True
@@ -277,8 +400,6 @@ CACHES = {'default': {
 
 ACCOUNT_LOCKOUT_THRESHOLD = _env_int('ACCOUNT_LOCKOUT_THRESHOLD', 5)
 ACCOUNT_LOCKOUT_DURATION = _env_int('ACCOUNT_LOCKOUT_DURATION', 900)
-
-CAMERA_WORKER_INTERVAL = _env_int('CAMERA_WORKER_INTERVAL', 5)
 
 LOG_DIR = BASE_DIR / 'logs'
 LOG_DIR.mkdir(exist_ok=True)

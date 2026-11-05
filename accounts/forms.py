@@ -79,11 +79,11 @@ class UserSignupForm(UserCreationForm):
 class DigCreateUserForm(forms.Form):
     ROLE_CHOICES = [
         ('DIG',        'DIG (Super Admin)'),
-        ('SSP',        'SSP — Senior Superintendent'),
+        ('SSP',        'SSP | Senior Superintendent'),
         ('SUPV',       'Supervisor'),
-        ('OFFICER',    'Officer (issue challan only — NO appeal approval)'),
+        ('OFFICER',    'Officer (issue challan only - NO appeal approval)'),
         ('AUDIT',      'Audit Officer'),
-        ('IT',         'IT Support (dev/testing only — NO operational access)'),
+        ('IT',         'IT Support (dev/testing only - NO operational access)'),
         ('USER',       'Registered Citizen'),
     ]
     first_name = forms.CharField(max_length=80, required=True,

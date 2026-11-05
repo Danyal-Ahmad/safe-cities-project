@@ -20,9 +20,9 @@
     <header class="ps-header">
       <div class="ps-brand">
         <a href="{% url 'challans:home' %}" class="ps-brand-logos" aria-label="Safe Cities Project home">
-          <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
+          <span class="ps-logo-tile"><img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project"></span>
           <span class="ps-brand-sep" aria-hidden="true"></span>
-          <img src="{% static 'img/university_logo.png' %}" alt="Partner">
+          <span class="ps-logo-tile ps-logo-tile--partner"><img src="{% static 'img/university_logo.png' %}" alt="Partner"></span>
         </a>
         <div class="ps-brand-text">
           <span class="ps-brand-title">SAFE CITIES PROJECT</span>
@@ -33,30 +33,12 @@
         {% block header_actions %}
           {% if user.is_authenticated %}
             {% if user.role == 'USER' %}
-            <a href="{% url 'citizen_portal:home' %}" class="ps-citizen-entry">
-              <span class="ps-citizen-logo"><i class="bi bi-speedometer2"></i></span>
-              <span class="ps-citizen-text">
-                <span class="ps-citizen-title">MY DASHBOARD</span>
-                <span class="ps-citizen-sub">Citizen Portal</span>
-              </span>
-            </a>
+            <a href="{% url 'citizen_portal:home' %}" class="ps-portal-btn ps-portal-btn--solid">MY PORTAL</a>
             {% else %}
-            <a href="{% url 'auth_portal:role_redirect' %}" class="ps-citizen-entry">
-              <span class="ps-citizen-logo"><i class="bi bi-shield-lock"></i></span>
-              <span class="ps-citizen-text">
-                <span class="ps-citizen-title">STAFF DASHBOARD</span>
-                <span class="ps-citizen-sub">Command Portal</span>
-              </span>
-            </a>
+            <a href="{% url 'auth_portal:role_redirect' %}" class="ps-portal-btn ps-portal-btn--solid">STAFF PORTAL</a>
             {% endif %}
           {% else %}
-          <a href="{% url 'auth_portal:citizen_login' %}" class="ps-citizen-entry">
-            <span class="ps-citizen-logo"><i class="bi bi-person-badge"></i></span>
-            <span class="ps-citizen-text">
-              <span class="ps-citizen-title">CITIZEN LOGIN</span>
-              <span class="ps-citizen-sub">E-Challan Account</span>
-            </span>
-          </a>
+          <a href="{% url 'auth_portal:citizen_login' %}" class="ps-portal-btn ps-portal-btn--solid">CITIZEN PORTAL</a>
           {% endif %}
         {% endblock %}
       </div>

@@ -23,7 +23,7 @@
             safenavy: '#0F1F3D',
             safeblue: { DEFAULT: '#2563EB', 50: '#EFF5FF', 100: '#DBE8FE', 200: '#BFD6FE', 300: '#93B8FD', 400: '#6094FA', 500: '#3B76F6', 600: '#2563EB', 700: '#1D4ED8', 800: '#1E40AF', 900: '#1E3A8A' },
             safeink: '#0F1F3D',
-            safepage: '#F4F7FB'
+            safepage: '#F5F7FB'
           },
           fontFamily: { sans: ['Inter', 'sans-serif'] },
           boxShadow: {
@@ -53,14 +53,14 @@
   <header class="sc-navbar">
     <div class="sc-navbar-inner">
       <div class="sc-navbar-left">
-        <button type="button" class="sc-icon-btn sc-sidebar-toggle" id="scSidebarToggle" aria-label="Toggle sidebar" aria-controls="scSidebar" aria-expanded="true">
+        <button type="button" class="sc-sidebar-toggle" id="scSidebarToggle" aria-label="Toggle sidebar" aria-controls="scSidebar" aria-expanded="true">
           <i class="bi bi-list"></i>
         </button>
         <a href="{% url 'challans:home' %}" class="sc-navbar-brand">
           <span class="sc-navbar-logos">
-            <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project" class="sc-navbar-logo">
+            <span class="sc-navbar-logo-tile"><img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project" class="sc-navbar-logo"></span>
             <span class="sc-navbar-logo-sep" aria-hidden="true"></span>
-            <img src="{% static 'img/university_logo.png' %}" alt="Partner institution" class="sc-navbar-logo sc-navbar-logo--partner">
+            <span class="sc-navbar-logo-tile sc-navbar-logo-tile--partner"><img src="{% static 'img/university_logo.png' %}" alt="Partner institution" class="sc-navbar-logo"></span>
           </span>
           <span class="sc-navbar-brand-text">
             <span class="sc-navbar-brand-title">SAFE CITIES PROJECT</span>
@@ -78,11 +78,31 @@
       </div>
 
       <div class="sc-navbar-center">
+        {% if user.role == 'OFFICER' %}
+        <form class="sc-navbar-search" method="get" action="{% url 'officer_portal:detections_list' %}" role="search">
+          <i class="bi bi-search"></i>
+          <input type="search" name="plate" placeholder="Search detections by plate number" aria-label="Search detections" autocomplete="off">
+          <button type="submit" class="sc-navbar-search-btn" aria-label="Run search"><i class="bi bi-arrow-right"></i></button>
+        </form>
+        {% elif user.role == 'IT' %}
+        <form class="sc-navbar-search" method="get" action="{% url 'it_support_portal:staff_list' %}" role="search">
+          <i class="bi bi-search"></i>
+          <input type="search" name="q" placeholder="Search staff accounts" aria-label="Search staff" autocomplete="off">
+          <button type="submit" class="sc-navbar-search-btn" aria-label="Run search"><i class="bi bi-arrow-right"></i></button>
+        </form>
+        {% elif user.role == 'USER' %}
         <form class="sc-navbar-search" method="get" action="{% url 'challans:home' %}" role="search">
           <i class="bi bi-search"></i>
-          <input type="search" name="q" placeholder="Search challan, plate or CNIC" aria-label="Search" autocomplete="off">
-          <kbd>Ctrl K</kbd>
+          <input type="search" name="plate" placeholder="Search your challans by plate" aria-label="Search challans" autocomplete="off">
+          <button type="submit" class="sc-navbar-search-btn" aria-label="Run search"><i class="bi bi-arrow-right"></i></button>
         </form>
+        {% else %}
+        <form class="sc-navbar-search" method="get" action="{% url 'dig:vehicle_search' %}" role="search">
+          <i class="bi bi-search"></i>
+          <input type="search" name="q" placeholder="Search challan, plate or CNIC" aria-label="Search records" autocomplete="off">
+          <button type="submit" class="sc-navbar-search-btn" aria-label="Run search"><i class="bi bi-arrow-right"></i></button>
+        </form>
+        {% endif %}
       </div>
 
       <div class="sc-navbar-right">
@@ -179,6 +199,19 @@
 
     <div class="sc-main">
       {% if user.is_authenticated %}
+      <div class="sc-flash-zone">
+        {% if messages %}
+        <div class="sc-messages">
+          {% for m in messages %}
+          <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
+            <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+            <div class="sc-msg-body">{{ m }}</div>
+            <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
       {% if ticker_ads %}
       <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
         <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
@@ -192,11 +225,10 @@
         </div></div>
       </div>
       {% endif %}
-      {% include '_partials/portal_ticker.html' %}
       {% endif %}
 
       <main class="sc-content">
-        {% if messages %}
+        {% if not user.is_authenticated and messages %}
         <div class="sc-messages">
           {% for m in messages %}
           <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">

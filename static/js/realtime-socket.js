@@ -53,71 +53,55 @@
         return map[String(severity || 'info').toLowerCase()] || 'info';
     }
 
-    function showToast(title, message, severity) {
-        if (hasSwal()) {
-            var Toast = window.Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 4200,
-                timerProgressBar: true,
-                customClass: { popup: 'sc-toast' }
-            });
-            Toast.fire({ icon: swalIcon(severity), title: title, text: message || '' });
-            return;
+    function flashZone() {
+        var zone = document.querySelector('.sc-flash-zone');
+        if (!zone) {
+            var main = document.querySelector('.sc-main');
+            if (!main) { return null; }
+            zone = document.createElement('div');
+            zone.className = 'sc-flash-zone';
+            main.insertBefore(zone, main.firstChild);
         }
-        fallbackToast(title, message, severity);
+        return zone;
     }
 
-    
-    function fallbackToast(title, message, severity) {
-        if (!document.body) { return; }
-        var colors = {
-            info: '#0369a1', success: '#15803d',
-            warning: '#b45309', error: '#b91c1c'
-        };
-        var bar = colors[swalIcon(severity)] || colors.info;
-
-        var stack = document.getElementById('sc-realtime-toasts');
-        if (!stack) {
-            stack = document.createElement('div');
-            stack.id = 'sc-realtime-toasts';
-            stack.style.cssText = 'position:fixed;top:16px;right:16px;z-index:10800;' +
-                'display:flex;flex-direction:column;gap:8px;max-width:340px;';
-            document.body.appendChild(stack);
-        }
-
-        var el = document.createElement('div');
-        el.setAttribute('role', 'status');
-        el.style.cssText = 'background:#0f172a;color:#f8fafc;border-left:4px solid ' + bar +
-            ';border-radius:8px;padding:10px 14px;box-shadow:0 8px 24px rgba(2,6,23,.35);' +
-            'font:13px/1.45 system-ui,Segoe UI,Arial,sans-serif;opacity:0;' +
-            'transition:opacity .2s ease;';
-
+    function showToast(title, message, severity) {
+        var zone = flashZone();
+        if (!zone) { return; }
+        var icon = {
+            info: 'bi-info-circle-fill', success: 'bi-check-circle-fill',
+            warning: 'bi-exclamation-triangle-fill', error: 'bi-x-circle-fill'
+        }[swalIcon(severity)] || 'bi-info-circle-fill';
+        var box = document.createElement('div');
+        box.className = 'sc-messages';
+        box.setAttribute('role', 'status');
+        var item = document.createElement('div');
+        item.className = 'sc-msg sc-msg-' + swalIcon(severity) + ' is-visible';
+        item.innerHTML = '<i class="bi ' + icon + '"></i>';
+        var body = document.createElement('div');
+        body.className = 'sc-msg-body';
         var strong = document.createElement('strong');
         strong.textContent = title || 'Notification';
         strong.style.display = 'block';
-        strong.style.marginBottom = '2px';
-
         var span = document.createElement('span');
         span.textContent = message || '';
-
-        
-        el.appendChild(strong);
-        el.appendChild(span);
-        stack.appendChild(el);
-        window.requestAnimationFrame(function () { el.style.opacity = '1'; });
+        body.appendChild(strong);
+        body.appendChild(span);
+        item.appendChild(body);
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'sc-msg-close';
+        close.setAttribute('aria-label', 'Dismiss');
+        close.innerHTML = '<i class="bi bi-x-lg"></i>';
+        close.addEventListener('click', function () { box.remove(); });
+        item.appendChild(close);
+        box.appendChild(item);
+        zone.appendChild(box);
         window.setTimeout(function () {
-            el.style.opacity = '0';
-            window.setTimeout(function () {
-                if (el.parentNode) { el.parentNode.removeChild(el); }
-            }, 250);
-        }, 4200);
+            item.classList.remove('is-visible');
+            window.setTimeout(function () { box.remove(); }, 400);
+        }, 6500);
     }
-
-    
-    
-    
 
     function onDetection(payload) {
         dispatch('safecity:detection', payload);
@@ -140,7 +124,6 @@
     }
 
     function onChallan(payload) {
-        
         dispatch('safecity:challan', payload);
     }
 

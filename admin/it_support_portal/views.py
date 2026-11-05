@@ -283,11 +283,19 @@ def staff_list(request):
     region_filter = request.GET.get('region')
     if region_filter:
         staff = staff.filter(region__icontains=region_filter)
+    q = (request.GET.get('q') or '').strip()
+    if q:
+        from django.db.models import Q as _Q
+        staff = staff.filter(
+            _Q(username__icontains=q) | _Q(email__icontains=q) |
+            _Q(first_name__icontains=q) | _Q(last_name__icontains=q)
+        )
     return render(request, 'dashboard/it_support/staff_list.html', {
         'staff': staff,
         'role_filter': role_filter,
         'dept_filter': dept_filter,
         'region_filter': region_filter,
+        'q': q,
         'role_choices': User.ROLE_CHOICES,
         'total_count': User.objects.filter(role__in=User.STAFF_ROLES).count(),
     })

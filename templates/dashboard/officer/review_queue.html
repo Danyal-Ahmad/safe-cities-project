@@ -15,9 +15,9 @@
   <div class="sc-flex sc-gap-2 sc-items-center">
     <div class="sc-flex sc-items-center" style="gap: 0.4rem; padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid var(--sc-border); background: var(--sc-bg-soft); color: var(--sc-text-muted);">
       <span style="color: var(--sc-text-faint);">Hotkeys:</span>
-      <span class="md-action-key" style="background:#0284c7;color:#fff;">C</span> Confirm
       <span class="md-action-key" style="background:#ef4444;color:#fff;">R</span> Reject
       <span class="md-action-key" style="background:#f59e0b;color:#fff;">F</span> Flag
+      <span class="md-action-key" style="background:#0284c7;color:#fff;">↑↓</span> Navigate
     </div>
     <a href="{% url 'officer_portal:live_tracking' %}" class="sc-btn">
       <i class="bi bi-camera-video me-1"></i>Live Tracking
@@ -59,7 +59,7 @@
                 {{ d.effective_plate|default:"UNREAD" }}
               </span>
               <span class="md-badge md-badge-amber" style="font-size: 0.65rem; padding: 1px 5px;">
-                {{ d.effective_violation_type|default:"wrong_way"|truncatechars:12 }}
+                {{ d.violation_label_en|default:"Wrong Way" }}
               </span>
             </div>
             <div class="sc-flex sc-items-center sc-justify-between" style="font-size: 0.72rem; color: var(--md-text-muted); margin-top: 2px;">

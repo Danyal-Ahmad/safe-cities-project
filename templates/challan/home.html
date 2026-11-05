@@ -102,35 +102,11 @@
     </section>
     {% endif %}
 
-    <section class="ph-steps">
-      <div class="ph-steps-head">
-        <h2><i class="bi bi-signpost-split"></i> How the portal works</h2>
-        <p>Three steps from notice to clearance, fully online.</p>
-      </div>
-      <div class="ph-steps-grid">
-        <div class="ph-step">
-          <div class="ph-step-num">1</div>
-          <div class="ph-step-icon"><i class="bi bi-search"></i></div>
-          <div class="ph-step-title">Search</div>
-          <p class="ph-step-text">Enter your vehicle plate number or CNIC to pull up every e-challan issued against the record.</p>
-        </div>
-        <div class="ph-step">
-          <div class="ph-step-num">2</div>
-          <div class="ph-step-icon"><i class="bi bi-ui-checks"></i></div>
-          <div class="ph-step-title">Verify</div>
-          <p class="ph-step-text">Open the challan to review the evidence frames, violation details, penalty amount and due date.</p>
-        </div>
-        <div class="ph-step">
-          <div class="ph-step-num">3</div>
-          <div class="ph-step-icon"><i class="bi bi-credit-card-2-front"></i></div>
-          <div class="ph-step-title">Pay</div>
-          <p class="ph-step-text">Clear the fine online with the generated PSID and receive instant confirmation of settlement.</p>
-        </div>
-      </div>
-    </section>
-
-    {% if homepage_banners or popup_banners %}
+    {% if static_post_ads or popup_ads %}
     <section class="ph-ads" aria-label="Public service announcements">
+      <div class="ph-ads-head">
+        <h2><i class="bi bi-megaphone"></i> Public Notices</h2>
+      </div>
       {% include 'challan/_public_ads.html' %}
     </section>
     {% endif %}

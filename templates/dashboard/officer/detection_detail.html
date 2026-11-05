@@ -13,7 +13,6 @@
     <p class="sc-lead">
       {% if detection.camera %}{{ detection.camera.camera_id }}{% if detection.camera.location %} &middot; {{ detection.camera.location }}{% endif %}{% else %}No camera assigned{% endif %}
       &middot; detected {{ detection.created_at|date:"d M Y, H:i" }}
-      &middot; pipeline {{ detection.ai_workflow_version|default:"v1" }}
     </p>
   </div>
   <div class="sc-flex sc-flex-wrap sc-items-center sc-gap-2">
@@ -26,6 +25,10 @@
     {% else %}
       <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> {{ detection.get_status_display }}</span>
     {% endif %}
+    {% if detection.status == 'pending_review' %}
+    <a href="#officer-actions" class="sc-btn sc-btn-sm sc-btn-danger"><i class="bi bi-x-circle-fill"></i> Reject</a>
+    <a href="#officer-actions" class="sc-btn sc-btn-sm sc-btn-flag"><i class="bi bi-flag-fill"></i> Flag for DIG</a>
+    {% endif %}
     <a href="{% url 'officer_portal:review_queue' %}" class="sc-btn sc-btn-sm"><i class="bi bi-inbox"></i> Review Queue</a>
     <a href="{% url 'officer_portal:detections_list' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-collection"></i> All Detections</a>
   </div>
@@ -36,7 +39,11 @@
   <i class="bi bi-clipboard-check"></i>
   <div>
     <strong>{{ detection.get_status_display }}</strong> |
-    reviewed by {{ detection.reviewed_by.display_name|default:detection.reviewed_by|default:"unknown officer" }}{% if detection.reviewed_at %} on {{ detection.reviewed_at|date:"d M Y, H:i" }}{% endif %}.
+    {% if detection.reviewed_by %}
+      reviewed by {{ detection.reviewed_by.display_name|default:detection.reviewed_by|default:"unknown officer" }}{% if detection.reviewed_at %} on {{ detection.reviewed_at|date:"d M Y, H:i" }}{% endif %}.
+    {% else %}
+      confirmed automatically by the evidence pipeline (all 5 checks passed){% if detection.reviewed_at %} on {{ detection.reviewed_at|date:"d M Y, H:i" }}{% endif %}.
+    {% endif %}
     {% if detection.review_notes %}<br><span class="sc-text-sm">Review notes: {{ detection.review_notes }}</span>{% endif %}
   </div>
 </div>
@@ -84,8 +91,8 @@
 
     <div class="sc-card" style="margin-top:1rem;">
       <div class="sc-card-head">
-        <span><i class="bi bi-collection-play"></i> Sequential Evidence Frames (3-Frame Check)</span>
-        <span class="sc-badge sc-badge-info"><i class="bi bi-lightning-charge"></i> 90FPS-style burst</span>
+        <span><i class="bi bi-collection-play"></i> Sequential Evidence Frames</span>
+        <span class="sc-badge sc-badge-info"><i class="bi bi-lightning-charge"></i> 3 consecutive frames</span>
       </div>
       <div class="sc-evidence-grid" style="grid-template-columns:repeat(3, 1fr);">
         {% with frames=detection.evidence_frames %}
@@ -245,8 +252,74 @@
   </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-4" id="officer-actions">
     <div class="col-lg-7">
+    <div class="sc-card sc-actions-card h-100">
+      <div class="sc-card-head">
+        <span><i class="bi bi-shield-exclamation"></i> Officer Actions</span>
+        <span class="sc-badge {% if detection.status == 'pending_review' %}sc-badge-amber{% else %}sc-badge-muted{% endif %}">{{ detection.get_status_display }}</span>
+      </div>
+      {% if detection.status == 'pending_review' %}
+        <div class="sc-banner">
+          <i class="bi bi-info-circle"></i>
+          <div>
+            Challans are issued <strong>automatically</strong> once evidence passes all five checks.
+            You may <strong>reject</strong> a false positive or <strong>flag</strong> an ambiguous case for the DIG.
+            Notes are mandatory (min 20 characters) and are written to the audit log.
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <form method="post" action="{% url 'officer_portal:reject_detection' detection.id %}"
+                  class="sc-action-form" data-notes-form data-notes-min="20"
+                  data-confirm-title="Reject this detection?"
+                  data-confirm-text="The detection will be marked as a false positive. The decision and your notes are permanently recorded in the audit log."
+                  data-confirm-button="Yes, reject">
+              {% csrf_token %}
+              <div class="sc-form-group">
+                <label class="sc-form-label" for="rejectNotes"><i class="bi bi-x-circle sc-text-danger"></i> Reject | False Positive</label>
+                <textarea id="rejectNotes" name="notes" rows="3" class="sc-form-control"
+                          placeholder="Why is this a false positive? e.g. &quot;Plate obscured by tow bar - vehicle was executing a legal U-turn at the junction.&quot;"
+                          data-notes-input data-notes-min="20" required></textarea>
+                <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
+              </div>
+              <button type="submit" class="sc-btn sc-btn-danger sc-btn-block">
+                <i class="bi bi-x-circle-fill"></i> Reject as False Positive
+              </button>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <form method="post" action="{% url 'officer_portal:flag_detection' detection.id %}"
+                  class="sc-action-form" data-notes-form data-notes-min="20"
+                  data-confirm-title="Flag this detection for DIG?"
+                  data-confirm-text="The detection will be escalated for senior review. A DIG officer will make the final decision."
+                  data-confirm-button="Yes, escalate">
+              {% csrf_token %}
+              <div class="sc-form-group">
+                <label class="sc-form-label" for="flagNotes"><i class="bi bi-flag sc-text-flag"></i> Flag | Escalate to DIG</label>
+                <textarea id="flagNotes" name="notes" rows="3" class="sc-form-control"
+                          placeholder="Why does this need senior review? e.g. &quot;Ambiguous plate lighting across track frames - requesting DIG verification before challan.&quot;"
+                          data-notes-input data-notes-min="20" required></textarea>
+                <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
+              </div>
+              <button type="submit" class="sc-btn sc-btn-flag sc-btn-block">
+                <i class="bi bi-flag-fill"></i> Flag for DIG Escalation
+              </button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="sc-empty">
+          <i class="bi bi-lock"></i>
+          This detection has already been reviewed - no further officer actions are available.
+          You can still add internal notes for the audit trail.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+    <div class="col-lg-5">
     <div class="sc-card h-100">
       <div class="sc-card-head">
         <span><i class="bi bi-journal-text"></i> Review Notes</span>
@@ -282,64 +355,6 @@
           <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm"><i class="bi bi-journal-plus"></i> Add Note</button>
         </div>
       </form>
-    </div>
-  </div>
-
-    <div class="col-lg-5">
-    <div class="sc-card sc-actions-card h-100">
-      <div class="sc-card-head"><span><i class="bi bi-shield-exclamation"></i> Officer Actions</span></div>
-      {% if detection.status == 'pending_review' %}
-        <div class="sc-banner">
-          <i class="bi bi-info-circle"></i>
-          <div>
-            Challans are issued <strong>automatically</strong> once evidence passes all five checks.
-            You may <strong>reject</strong> a false positive or <strong>flag</strong> an ambiguous case for the DIG.
-            Notes are mandatory (min 20 characters) and are written to the audit log.
-          </div>
-        </div>
-
-        <form method="post" action="{% url 'officer_portal:reject_detection' detection.id %}"
-              class="sc-action-form" data-notes-form data-notes-min="20"
-              data-confirm-title="Reject this detection?"
-              data-confirm-text="The detection will be marked as a false positive. The decision and your notes are permanently recorded in the audit log."
-              data-confirm-button="Yes, reject">
-          {% csrf_token %}
-          <div class="sc-form-group">
-            <label class="sc-form-label" for="rejectNotes"><i class="bi bi-x-circle sc-text-danger"></i> Reject | False Positive</label>
-            <textarea id="rejectNotes" name="notes" rows="3" class="sc-form-control"
-                      placeholder="Why is this a false positive? e.g. &quot;Plate obscured by tow bar - vehicle was executing a legal U-turn at the junction.&quot;"
-                      data-notes-input data-notes-min="20" required></textarea>
-            <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
-          </div>
-          <button type="submit" class="sc-btn sc-btn-danger sc-btn-block">
-            <i class="bi bi-x-circle-fill"></i> Reject as False Positive
-          </button>
-        </form>
-
-        <form method="post" action="{% url 'officer_portal:flag_detection' detection.id %}"
-              class="sc-action-form" data-notes-form data-notes-min="20"
-              data-confirm-title="Flag this detection for DIG?"
-              data-confirm-text="The detection will be escalated for senior review. A DIG officer will make the final decision."
-              data-confirm-button="Yes, escalate">
-          {% csrf_token %}
-          <div class="sc-form-group">
-            <label class="sc-form-label" for="flagNotes"><i class="bi bi-flag sc-text-flag"></i> Flag | Escalate to DIG</label>
-            <textarea id="flagNotes" name="notes" rows="3" class="sc-form-control"
-                      placeholder="Why does this need senior review? e.g. &quot;Ambiguous plate lighting across track frames - requesting DIG verification before challan.&quot;"
-                      data-notes-input data-notes-min="20" required></textarea>
-            <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
-          </div>
-          <button type="submit" class="sc-btn sc-btn-flag sc-btn-block">
-            <i class="bi bi-flag-fill"></i> Flag for DIG Escalation
-          </button>
-        </form>
-      {% else %}
-        <div class="sc-empty">
-          <i class="bi bi-lock"></i>
-          This detection has already been reviewed - no further officer actions are available.
-          You can still add internal notes for the audit trail.
-        </div>
-      {% endif %}
     </div>
   </div>
 </div>

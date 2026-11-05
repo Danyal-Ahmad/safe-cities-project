@@ -166,11 +166,21 @@ def _check_plate_readability(detection, raw) -> dict:
     ok_format = bool(PLATE_PATTERN.match(norm)) if norm else False
     known_series = bool(raw.get('known_pk_series'))
     passed = ok_format and ocr_conf >= OCR_MIN_CONFIDENCE and bool(plate)
-    detail = (
-        f"plate={plate or '-'} pk_format={'ok' if ok_format else 'invalid'} "
-        f"known_series={'yes' if known_series else 'no'} "
-        f"ocr_conf={ocr_conf:.2f} (min {OCR_MIN_CONFIDENCE:.2f})"
-    )
+    if passed:
+        detail = (
+            f"Plate '{plate}' read with {ocr_conf:.0%} OCR confidence. "
+            f"Valid Pakistan plate format{' and a recognized series' if known_series else ''}."
+        )
+    else:
+        reasons = []
+        if not plate:
+            reasons.append("no plate text was read")
+        else:
+            if not ok_format:
+                reasons.append("the text does not match the Pakistan plate format")
+            if ocr_conf < OCR_MIN_CONFIDENCE:
+                reasons.append(f"OCR confidence {ocr_conf:.0%} is below the {OCR_MIN_CONFIDENCE:.0%} minimum")
+        detail = "Failed: " + "; ".join(reasons) + "."
     return {'check': 'plate_readability', 'passed': bool(passed), 'detail': detail}
 
 
@@ -195,11 +205,22 @@ def _check_frame_consistency(detection, track) -> dict:
         )
     else:
         passed = False
-    detail = (
-        f"mode={mode} frames={frames}/{EVIDENCE_FRAMES_REQUIRED} required "
-        f"burst_frames={len(frame_evidence)} per_frame_1by1={'ok' if per_frame_ok or not frame_evidence else 'mismatch'} "
-        f"consistency={consistency:.2f} (min {TRACK_MIN_CONSISTENCY:.2f})"
-    )
+    if passed:
+        detail = (
+            f"The same plate was verified across {frames} consecutive frames "
+            f"with {consistency:.0%} track consistency (minimum {TRACK_MIN_CONSISTENCY:.0%})."
+        )
+    else:
+        reasons = []
+        if mode != 'corroborated_track':
+            reasons.append("frames could not be corroborated into one track")
+        if frames < EVIDENCE_FRAMES_REQUIRED:
+            reasons.append(f"only {frames} of {EVIDENCE_FRAMES_REQUIRED} required frames were captured")
+        if frame_evidence and not per_frame_ok:
+            reasons.append("the plate read differs between frames")
+        if consistency < TRACK_MIN_CONSISTENCY:
+            reasons.append(f"track consistency {consistency:.0%} is below the {TRACK_MIN_CONSISTENCY:.0%} minimum")
+        detail = "Failed: " + "; ".join(reasons) + "."
     return {'check': 'frame_consistency', 'passed': bool(passed), 'detail': detail}
 
 
@@ -214,11 +235,23 @@ def _check_violation_logic(detection, camera, raw) -> dict:
     vehicle_class = raw.get('vehicle_class') or 'car'
     car_ok = vehicle_class == 'car'
     passed = violation_flag and side == violation_side and side_conf >= 0.60 and car_ok
-    detail = (
-        f"violation={violation_flag} side={side or '-'}/{side_conf:.2f} "
-        f"required_side={violation_side} legal_dir={legal or '-'} moving_dir={moving or '-'} "
-        f"vehicle_class={vehicle_class} car_gate={'passed' if car_ok else 'REJECTED (car-only model)'}"
-    )
+    if passed:
+        detail = (
+            f"Wrong-way movement against the legal direction"
+            f"{' ' + legal if legal else ''}, captured from the {violation_side} side "
+            f"with {side_conf:.0%} certainty. Vehicle classified as a car."
+        )
+    else:
+        reasons = []
+        if not violation_flag:
+            reasons.append("no violation was detected")
+        if side != violation_side:
+            reasons.append(f"vehicle was captured from the {side or 'unknown'} side instead of the {violation_side} side")
+        if side_conf < 0.60:
+            reasons.append(f"side certainty {side_conf:.0%} is below the 60% minimum")
+        if not car_ok:
+            reasons.append("the vehicle is not a car and the enforcement model is car-only")
+        detail = "Failed: " + "; ".join(reasons) + "."
     return {'check': 'violation_logic', 'passed': bool(passed), 'detail': detail}
 
 
@@ -240,11 +273,22 @@ def _check_image_evidence(detection) -> dict:
     raw = detection.ai_raw_response or {}
     plate_complete = bool(raw.get('plate_complete', True))
     passed = has_raw and has_crop and crop_ok_size and plate_complete
-    detail = (
-        f"raw_image={has_raw} plate_crop={has_crop} "
-        f"crop_height_ok={crop_ok_size} (min {PLATE_CROP_MIN_HEIGHT}px) "
-        f"plate_complete={plate_complete} (no half/cut plates)"
-    )
+    if passed:
+        detail = (
+            "Full-frame capture and complete plate crop stored at usable resolution. "
+            "No half or edge-clipped plates."
+        )
+    else:
+        reasons = []
+        if not has_raw:
+            reasons.append("no raw frame was stored")
+        if not has_crop:
+            reasons.append("no plate crop was stored")
+        elif not crop_ok_size:
+            reasons.append(f"the plate crop is too small (minimum height {PLATE_CROP_MIN_HEIGHT}px)")
+        if not plate_complete:
+            reasons.append("the plate was not fully visible in the crop")
+        detail = "Failed: " + "; ".join(reasons) + "."
     return {'check': 'image_evidence', 'passed': bool(passed), 'detail': detail}
 
 
@@ -265,10 +309,13 @@ def _check_chain_integrity(detection, checks, camera) -> dict:
             _normalize_plate(p) == plate for p in recent if p
         )
     passed = bool(digest) and not duplicate
-    detail = (
-        f"chain_hash={digest[:16] if digest else '-'}… "
-        f"duplicate_24h={'yes' if duplicate else 'no'}"
-    )
+    if passed:
+        detail = "Evidence chain hash sealed. No duplicate challan for this plate on this camera in the last 24 hours."
+    else:
+        detail = "Failed: " + (
+            "a duplicate challan already exists for this plate on this camera within 24 hours."
+            if duplicate else "the evidence hash could not be sealed."
+        )
     return {'check': 'chain_integrity', 'passed': bool(passed), 'detail': detail}
 
 
@@ -541,11 +588,21 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         return detection, None, 'queued_review'
 
     detection.status = Detection.PENDING
+    check_names = {
+        'plate_readability': 'Plate Readability',
+        'frame_consistency': 'Frame Consistency',
+        'violation_logic': 'Violation Logic',
+        'image_evidence': 'Image Evidence',
+        'chain_integrity': 'Chain Integrity',
+    }
+    failed_names = [
+        check_names.get(c['check'], c['check'].replace('_', ' ').title())
+        for c in checks if not c.get('passed')
+    ]
     detection.review_notes = (
-        f"Evidence incomplete - {passed_count}/5 checks passed. "
-        f"Failed: {', '.join(c['check'] for c in checks if not c.get('passed')) or '-'}. "
-        f"Track={track.get('mode')} frames={track.get('frames')}/{EVIDENCE_FRAMES_REQUIRED} required "
-        f"consistency={track.get('consistency'):.2f}. Parked in the Officer Portal review queue."
+        f"Evidence incomplete - {passed_count} of 5 checks passed."
+        + (f" Failed checks: {', '.join(failed_names)}." if failed_names else "")
+        + " Parked in the Officer Portal review queue for manual verification."
     )
     detection.save()
     logger.info(

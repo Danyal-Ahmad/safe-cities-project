@@ -45,30 +45,17 @@
       const chartType = canvas.dataset.chartType || 'bar';
       const indexAxis = canvas.dataset.indexAxis || 'x';
       const json = await scFetch(apiUrl);
+      const palette = canvas.dataset.palette || 'navy';
 
-      const opts = {
-        type: chartType,
-        data: json,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 600, easing: 'easeOutQuart' },
-          plugins: { legend: { display: chartType === 'line' } },
-          scales: {
-            x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-            y: { grid: { color: 'rgba(0,0,0,0.05)' } }
-          }
-        }
-      };
-      if(indexAxis === 'y') {
-        opts.options.indexAxis = 'y';
-        opts.options.scales.x.grid = { color: 'rgba(0,0,0,0.05)' };
+      if (chartType === 'line') {
+        scCharts.line(canvas, json.labels, json.datasets, { palette: palette });
+        return;
       }
-      if(chartType === 'line') {
-        opts.options.scales.y.beginAtZero = true;
+      if (indexAxis === 'y') {
+        scCharts.horizontalBar(canvas, json.labels, json.datasets, { palette: palette });
+        return;
       }
-
-      new Chart(canvas, opts);
+      scCharts.bar(canvas, json.labels, json.datasets, { palette: palette });
     } catch(e) {
       console.warn('Chart init failed:', e);
     }

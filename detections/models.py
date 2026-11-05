@@ -169,9 +169,87 @@ class Detection(models.Model):
                     })
         return frames[:3]
 
+    @staticmethod
+    def _readable_check_detail(check):
+        detail = (check.get('detail') or '').strip()
+        if not detail or '=' not in detail:
+            return detail or 'No detail recorded.'
+        import re as _re
+        pairs = dict(_re.findall(r'(\w+)=([^\s]+)', detail))
+        name = check.get('check')
+        passed = bool(check.get('passed'))
+
+        def pct(v):
+            try:
+                return f"{float(v):.0%}"
+            except Exception:
+                return '-'
+
+        if name == 'plate_readability':
+            if passed:
+                return "The plate was read cleanly and matches the Pakistan plate format."
+            reasons = []
+            if pairs.get('plate') in ('-', 'None', ''):
+                reasons.append("no plate text could be read from the frame")
+            else:
+                if pairs.get('pk_format') != 'ok':
+                    reasons.append("the text does not match the Pakistan plate format")
+                if pairs.get('known_series') != 'yes':
+                    reasons.append("the series is not recognized")
+                conf = pairs.get('ocr_conf', '0')
+                if pct(conf) not in ('-', '100%') and float(conf or 0) < 0.6:
+                    reasons.append(f"OCR confidence {pct(conf)} is below the 60% minimum")
+            return "Failed: " + "; ".join(reasons) + "."
+        if name == 'frame_consistency':
+            if passed:
+                return "The same plate was verified across consecutive frames with consistent track data."
+            reasons = []
+            if pairs.get('mode') != 'corroborated_track':
+                reasons.append("the frames could not be corroborated into a single track")
+            frames = pairs.get('frames', '0')
+            if frames and frames[0].isdigit() and int(frames[0]) < 3:
+                reasons.append(f"only {frames.split('/')[0]} of 3 required frames were captured")
+            if pairs.get('per_frame_1by1') == 'mismatch':
+                reasons.append("the plate read differs between frames")
+            return "Failed: " + "; ".join(reasons) + "."
+        if name == 'violation_logic':
+            if passed:
+                return "A wrong-way violation was detected against the camera's legal direction."
+            reasons = []
+            if pairs.get('violation') == 'False':
+                reasons.append("no violation was detected")
+            side = pairs.get('side', '-')
+            if side in ('-', 'None', 'front') and pairs.get('violation') != 'False':
+                reasons.append(f"the vehicle was captured from the {side} side instead of the back")
+            if pairs.get('vehicle_class') not in ('car', None, '-'):
+                reasons.append("the vehicle is not a car and the model is car-only")
+            return "Failed: " + "; ".join(reasons) + "."
+        if name == 'image_evidence':
+            if passed:
+                return "The full frame and a complete plate crop are stored at usable resolution."
+            reasons = []
+            if pairs.get('raw_image') != 'True':
+                reasons.append("no raw frame was stored")
+            if pairs.get('plate_crop') != 'True':
+                reasons.append("no plate crop was stored")
+            if pairs.get('plate_complete') == 'False':
+                reasons.append("the plate was not fully visible in the crop")
+            return "Failed: " + "; ".join(reasons) + "."
+        if name == 'chain_integrity':
+            if passed:
+                return "The evidence hash is sealed and no duplicate challan exists in the last 24 hours."
+            if pairs.get('duplicate_24h') == 'yes':
+                return "Failed: a duplicate challan already exists for this plate within 24 hours."
+            return "Failed: the evidence hash could not be sealed."
+        return detail
+
     @property
     def evidence_summary(self):
-        checks = self.evidence_checks or []
+        checks = []
+        for c in (self.evidence_checks or []):
+            item = dict(c)
+            item['detail'] = self._readable_check_detail(c)
+            checks.append(item)
         passed = sum(1 for c in checks if c.get('passed'))
         return {
             'checks': checks,

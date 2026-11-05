@@ -27,12 +27,19 @@
 
     <div style="background: #0f172a; border-radius: var(--md-radius-md); overflow: hidden; border: 1px solid #1e293b; position: relative;">
       <div style="position: relative; min-height: 320px; display: flex; align-items: center; justify-content: center; background: #000;">
+        {% if detection.raw_image %}
         {% with frames=detection.evidence_frames %}
-        <img src="{% if detection.raw_image %}{{ detection.raw_image.url }}{% endif %}" alt="Violation Target #{{ detection.id }}" id="detailTargetImage" data-frame-count="{{ frames|length }}" style="max-width: 100%; max-height: 420px; object-fit: contain; display: block; background:#0A0E14;">
+        <img src="{{ detection.raw_image.url }}" alt="Violation Target #{{ detection.id }}" id="detailTargetImage" data-frame-count="{{ frames|length }}" style="max-width: 100%; max-height: 420px; object-fit: contain; display: block; background:#0A0E14;">
         {% for f in frames %}
           <img src="{{ f.image.url }}" alt="{{ f.label }}" class="seq-frame-src" data-frame-slot="{{ f.slot }}" data-frame-label="{{ f.label }}" data-frame-plate="{{ f.plate|default:'-' }}" data-frame-ts="{% if f.timestamp %}{{ f.timestamp|date:'Y-m-d H:i:s' }}{% else %}sequential{% endif %}" style="display:none;">
         {% endfor %}
         {% endwith %}
+        {% else %}
+        <div style="text-align:center; color:#64748B; padding:2rem;">
+          <i class="bi bi-camera-video-off" style="font-size:2.4rem; display:block; margin-bottom:0.5rem; color:#334155;"></i>
+          <span style="font-size:0.8rem;">No raw frame stored for this detection</span>
+        </div>
+        {% endif %}
 
         <div style="position: absolute; top: 10px; left: 10px; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 4px; border-left: 3px solid #38bdf8; font-family: monospace; font-size: 0.72rem; color: #f8fafc; pointer-events: none;">
           CAM: {{ detection.camera.camera_id|default:"FEED" }} | {{ detection.created_at|date:"Y-m-d H:i:s" }}
@@ -81,7 +88,7 @@
         <div class="sc-flex sc-items-center sc-justify-between" style="margin-top: 0.5rem; font-size: 0.75rem;">
           <span style="color: #94a3b8;">Violation:</span>
           <span class="md-badge md-badge-amber" style="font-size: 0.7rem;">
-            {{ detection.effective_violation_type|default:"wrong_way"|upper }}
+            {{ detection.violation_label_en|default:"Wrong Way"|upper }}
           </span>
         </div>
       </div>
@@ -91,11 +98,7 @@
         <input type="hidden" name="detection_id" value="{{ detection.id }}">
 
         <div class="md-form-group" style="margin-bottom: 0.75rem;">
-          <label style="font-size: 0.72rem;">Plate Correction</label>
-        </div>
-
-        <div class="md-form-group" style="margin-bottom: 0.75rem;">
-          <label style="font-size: 0.72rem;">Review Observations / Quick Reason</label>
+          <label style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--md-text-muted);">Review Observations / Quick Reason</label>
           <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
             <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="Plate obscured by mud or tow hook">Blurry Plate</button>
             <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="Authorized emergency response vehicle on duty">Emergency Unit</button>

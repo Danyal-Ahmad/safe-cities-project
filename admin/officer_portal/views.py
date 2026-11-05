@@ -257,8 +257,29 @@ def flagged_list(request):
 
 @officer_or_dig_required
 def challans_list(request):
-    challans = Challan.objects.select_related('camera').order_by('-created_at')[:100]
-    return render(request, 'dashboard/officer/challans_list.html', {'challans': challans})
+    qs = Challan.objects.select_related('camera').order_by('-created_at')
+    q = (request.GET.get('q') or '').strip()
+    status_q = (request.GET.get('status') or '').strip().upper()
+    if q:
+        from django.db.models import Q as _Q
+        qs = qs.filter(_Q(plate_number__icontains=q) | _Q(ticket_no__icontains=q))
+    if status_q in ('UNPAID', 'PAID', 'VOIDED'):
+        qs = qs.filter(payment_status=status_q)
+    challans = qs[:100]
+    from appeals.models import ChallanAppeal
+    totals = Challan.objects.aggregate(
+        total=Count('id'),
+        unpaid=Count('id', filter=Q(payment_status='UNPAID')),
+        paid=Count('id', filter=Q(payment_status='PAID')),
+        appealed=Count('id', filter=Q(appeals__isnull=False)),
+    )
+    return render(request, 'dashboard/officer/challans_list.html', {
+        'challans': challans,
+        'total_challans': totals['total'],
+        'unpaid_count': totals['unpaid'],
+        'paid_count': totals['paid'],
+        'appealed_count': totals['appealed'],
+    })
 
 
 @officer_or_dig_required

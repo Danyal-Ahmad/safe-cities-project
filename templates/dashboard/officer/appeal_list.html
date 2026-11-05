@@ -55,7 +55,7 @@
         <tbody>
           {% for ap in appeals %}
           <tr>
-            <td><code>{{ ap.challan.ticket_no }}</code></td>
+            <td><span class="sc-mono sc-plate-cell">{{ ap.challan.ticket_no }}</span></td>
             <td>{{ ap.submitted_by.display_name|default:ap.guest_name|default:"Guest" }}</td>
             <td>
               <span class="sc-badge {% if ap.current_stage == 'ssp' %}sc-badge-amber{% elif ap.current_stage == 'dig' %}sc-badge-purple{% else %}sc-badge-muted{% endif %}">

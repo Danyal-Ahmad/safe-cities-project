@@ -87,7 +87,7 @@
             <td><strong class="sc-mono sc-plate-cell">{{ d.effective_plate|default:"UNREAD" }}</strong></td>
             <td class="sc-text-sm">
               {% if d.camera %}
-                {{ d.camera.camera_id }}{% if d.camera.location %} <span class="sc-text-faint">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}
+                <span title="{{ d.camera.camera_id }}{% if d.camera.location %} — {{ d.camera.location }}{% endif %}">{{ d.camera.camera_id }}</span>{% if d.camera.location %} <span class="sc-text-faint" title="{{ d.camera.location }}">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}
               {% else %}<span class="sc-text-faint">-</span>{% endif %}
             </td>
             <td>

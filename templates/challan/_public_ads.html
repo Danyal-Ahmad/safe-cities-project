@@ -1,7 +1,7 @@
 
-{% if homepage_banners %}
+{% if static_post_ads %}
   <div class="scf-public-ads-banner">
-    {% for ad in homepage_banners %}
+    {% for ad in static_post_ads %}
       {% if ad.html_content %}
         <div class="scf-ad-chip">{{ ad.html_content|safe }}</div>
       {% elif ad.image %}
@@ -18,8 +18,8 @@
   </div>
 {% endif %}
 
-{% if popup_banners %}
-  {% with ad=popup_banners.0 %}
+{% if popup_ads %}
+  {% with ad=popup_ads.0 %}
   <div class="scf-popup-overlay" id="scfPopupOverlay" data-ad-id="{{ ad.id }}">
     <div class="scf-popup-modal">
       <button class="scf-popup-close" data-dismiss-popup aria-label="Close">&times;</button>

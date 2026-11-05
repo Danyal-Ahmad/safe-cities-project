@@ -61,7 +61,7 @@ def process_video_upload(upload_id):
     import cv2
     from video_processor.models import VideoUpload, VideoFrame
     from detections.models import Detection
-    from detections.ai import run_pipeline
+    from detections.ai import is_valid_pk_plate, run_pipeline
 
     try:
         upload = VideoUpload.objects.select_related('camera').get(pk=upload_id)
@@ -94,6 +94,7 @@ def process_video_upload(upload_id):
         auto_challans_created = 0
         manual_review_created = 0
         frames_ignored = 0
+        burst_evidence_collected = 0
 
         for idx, ts in enumerate(timestamps):
             cap.set(cv2.CAP_PROP_POS_MSEC, ts * 1000)
@@ -127,6 +128,7 @@ def process_video_upload(upload_id):
                 confidence = result.get('confidence')
                 side = result.get('side')
                 is_violation = bool(result.get('detected_violation'))
+                plate_format_ok = bool(plate_text and is_valid_pk_plate(plate_text))
 
                 video_frame.plate_detected = bool(result.get('plate_crop_path'))
                 video_frame.side_classification = side
@@ -134,7 +136,7 @@ def process_video_upload(upload_id):
                 video_frame.ocr_text = plate_text
 
                 frame_io = io.BytesIO()
-                image.save(frame_io, format='JPEG', quality=80)
+                image.save(frame_io, format='JPEG', quality=88)
                 video_frame.frame_image.save(
                     f"{upload.id}_frame{idx}_{ts:.1f}s.jpg",
                     ContentFile(frame_io.getvalue()), save=False,
@@ -143,9 +145,11 @@ def process_video_upload(upload_id):
                 if video_frame.plate_detected:
                     frames_with_plates += 1
 
-                if camera is not None:
+                if camera is None:
+                    frames_ignored += 1
+                else:
                     raw_io = io.BytesIO()
-                    image.save(raw_io, format='JPEG', quality=85)
+                    image.save(raw_io, format='JPEG', quality=92)
 
                     detection = Detection(
                         camera=camera,
@@ -156,7 +160,7 @@ def process_video_upload(upload_id):
                         ai_side_classification=side,
                         ai_confidence=confidence,
                         ai_detected_violation=is_violation,
-                        ai_workflow_version="onnx-plate+onnx-side (video-upload)",
+                        ai_workflow_version="onnx-plate+onnx-side (video-upload, 3-frame burst)",
                         ai_raw_response=result.get('raw_ai_response', {}) or {},
                         status=Detection.PENDING,
                         source_video_upload=upload,
@@ -188,6 +192,7 @@ def process_video_upload(upload_id):
                     }]
                     if video_frame.plate_detected:
                         seq_frames = _capture_sequential_frames(cap, SEQUENTIAL_EVIDENCE_FRAMES)
+                        burst_evidence_collected += len(seq_frames)
                         for seq_idx, seq_bgr in enumerate(seq_frames, start=2):
                             seq_bytes, _seq_img = _frame_to_jpeg_bytes(seq_bgr, quality=85)
                             seq_plate, seq_side, seq_conf = None, None, None
@@ -221,6 +226,20 @@ def process_video_upload(upload_id):
                                 'source': 'sequential',
                             })
                     detection.evidence_frames_meta = evidence_meta
+                    # Strict-evidence contract: expose the per-frame reads and
+                    # the car-only gate in the raw AI response the pipeline reads.
+                    raw_resp = detection.ai_raw_response or {}
+                    raw_resp['frame_evidence'] = [
+                        {'plate': m.get('plate'), 'confidence': m.get('confidence'),
+                         'ocr_confidence': m.get('confidence'),
+                         'timestamp': str(m.get('timestamp')), 'plate_complete': True,
+                         'plate_format_ok': is_valid_pk_plate(m.get('plate') or '')}
+                        for m in evidence_meta
+                    ]
+                    raw_resp['vehicle_class'] = 'car' if (side and (result.get('raw_ai_response', {}) or {}).get('side_confidence', 0) >= 0.60) else 'unknown'
+                    raw_resp['plate_complete'] = bool(plate_text)
+                    raw_resp['plate_format_ok'] = plate_format_ok
+                    detection.ai_raw_response = raw_resp
 
                     detection.save()
                     try:
@@ -244,21 +263,17 @@ def process_video_upload(upload_id):
                     video_frame.detection = detection
                     if is_violation:
                         violations_detected += 1
-                else:
-                    frames_ignored += 1
             finally:
                 video_frame.save()
-                try:
-                    os.unlink(tmp_path)
-                except Exception:
-                    pass
 
             upload.frames_with_plates = frames_with_plates
             upload.violations_detected = violations_detected
             upload.manual_review_created = manual_review_created
             upload.frames_ignored = frames_ignored
+            upload.burst_evidence_collected = burst_evidence_collected
             upload.save(update_fields=['frames_with_plates', 'violations_detected',
-                                        'manual_review_created', 'frames_ignored'])
+                                        'manual_review_created', 'frames_ignored',
+                                        'burst_evidence_collected'])
 
         upload.auto_challans_created = auto_challans_created
         upload.status = VideoUpload.STATUS_COMPLETED

@@ -6,7 +6,7 @@ os.environ.setdefault('SECRET_KEY', 'test-secret-key-not-for-production')
 from wrongway_system.settings import *  # noqa: F401,F403
 
 _db = DATABASES['default'].copy()
-_db['NAME'] = os.environ.get('PG_TEST_DB', 'SAFE_CITY_FYP_TEST')
+_db['NAME'] = os.environ.get('PG_TEST_DB', 'SAFE_CITIES_PROJECT_TEST')
 DATABASES = {'default': _db}
 
 PASSWORD_HASHERS = [

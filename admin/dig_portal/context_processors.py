@@ -49,18 +49,31 @@ def active_alerts(request):
     return {'active_alerts': alerts}
 
 
-def active_banners(request):
-    popup_banners = []
+def ads_delivery(request):
+    """Audience-scoped advertising channels.
+
+    Channel map:
+      home (public)  -> static_post_ads (hidden staging), popup_ads, ticker_ads
+      staff portals   -> ticker_ads, push_ads
+      other public pages -> none (kept clean)
+    """
+    ctx = {
+        'static_post_ads': [],
+        'popup_ads': [],
+        'ticker_ads': [],
+        'push_ads': [],
+    }
     try:
         path = (request.path or '').lower()
         if any(x in path for x in (
             '/login', '/signup', '/sign-up', '/forgot', '/reset-password',
             '/password', '/auth/',
         )):
-            return {'popup_banners': []}
+            return ctx
 
         from .models import Banner
         from django.utils import timezone
+        from django.urls import reverse
 
         now = timezone.now()
         active_q = (
@@ -70,31 +83,36 @@ def active_banners(request):
         )
 
         try:
-            from django.urls import reverse
-            home_path = reverse('challans:home')
-            is_home = request.path.rstrip('/') in (home_path.rstrip('/'), '', '/') or request.path in ('/', '/challan/', '/challan')
+            home_path = reverse('challans:home').rstrip('/')
+            is_home = request.path.rstrip('/') in (home_path, '')
         except Exception:
-            is_home = request.path in ('/', '/challan/', '/challan')
+            is_home = request.path.rstrip('/') in ('', '/challan')
 
-        if request.user.is_authenticated:
-            banners_qs = Banner.get_for_user(request.user, placement='popup')
-            if not is_home:
-                banners_qs = banners_qs.filter(show_on_home_only=False)
-            popup_banners = list(banners_qs.order_by('-priority', '-created_at')[:3])
-        else:
-            if is_home:
-                popup_banners = list(Banner.objects.filter(
-                    active_q, placement='popup',
-                ).filter(
-                    Q(audience='all') | Q(audience='citizens')
-                ).order_by('-priority', '-created_at')[:3])
-            else:
-                popup_banners = []
+        staff = request.user.is_authenticated and getattr(request.user, 'role', '') in (
+            'DIG', 'SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT')
 
+        if is_home:
+            qs = Banner.objects.filter(active_q)
+            if request.user.is_authenticated and not staff:
+                qs = qs.filter(audience__in=['all', 'citizens'])
+            elif not request.user.is_authenticated:
+                qs = qs.filter(audience__in=['all', 'citizens'])
+            ctx['static_post_ads'] = list(
+                qs.filter(placement=Banner.PLACEMENT_STATIC_POST).order_by('-priority', '-created_at')[:8])
+            ctx['popup_ads'] = list(
+                qs.filter(placement=Banner.PLACEMENT_POPUP).order_by('-priority', '-created_at')[:3])
+            ctx['ticker_ads'] = list(
+                qs.filter(placement=Banner.PLACEMENT_TICKER).order_by('-priority', '-created_at')[:6])
+        elif staff:
+            ctx['ticker_ads'] = list(
+                Banner.get_for_user(request.user, placement=Banner.PLACEMENT_TICKER)
+                .order_by('-priority', '-created_at')[:6])
+            ctx['push_ads'] = list(
+                Banner.get_for_user(request.user, placement=Banner.PLACEMENT_PUSH)
+                .order_by('-priority', '-created_at')[:10])
     except Exception:
         pass
-
-    return {'popup_banners': popup_banners}
+    return ctx
 
 
 def sidebar_badge_counts(request):

@@ -24,6 +24,10 @@ urlpatterns = [
     path('export/pdf/<str:kind>/', views.export_pdf,         name='export_pdf'),
     path('templates/',           views.templates_select,     name='templates_select'),
 
+    path('login-events/',        views.login_events,         name='login_events'),
+    path('login-events/export/', views.login_events_export,  name='login_events_export'),
+    path('uploads/',             views.uploads_log,          name='uploads_log'),
+
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),
@@ -33,13 +37,9 @@ urlpatterns = [
 
     path('alerts/hub/',                        dig_views.alerts_hub,                name='alerts_hub'),
     path('alerts/hub/add-alert/',               dig_views.alerts_hub_add_alert,      name='alerts_hub_add_alert'),
-    path('alerts/hub/add-banner/',              dig_views.alerts_hub_add_banner,     name='alerts_hub_add_banner'),
     path('alerts/hub/add-broadcast/',           dig_views.alerts_hub_add_broadcast,  name='alerts_hub_add_broadcast'),
     path('alerts/hub/alert/<int:alert_id>/toggle/',  dig_views.alerts_hub_toggle_alert,  name='alerts_hub_toggle_alert'),
     path('alerts/hub/alert/<int:alert_id>/edit/',   dig_views.alerts_hub_edit_alert,    name='alerts_hub_edit_alert'),
     path('alerts/hub/alert/<int:alert_id>/delete/',  dig_views.alerts_hub_delete_alert,  name='alerts_hub_delete_alert'),
-    path('alerts/hub/banner/<int:banner_id>/toggle/', dig_views.alerts_hub_toggle_banner, name='alerts_hub_toggle_banner'),
-    path('alerts/hub/banner/<int:banner_id>/edit/',  dig_views.alerts_hub_edit_banner,   name='alerts_hub_edit_banner'),
-    path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner, name='alerts_hub_delete_banner'),
 ]
 

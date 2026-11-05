@@ -4,11 +4,11 @@ from accounts.models import User
 ROLE_PROFILES = {
     User.DIG: {
         'designation': 'Inspector General of Police',
-        'department':  'Safe City Authority',
+        'department':  'Safe Cities Project',
         'region':      'Provincial HQ',
         'staff_id_prefix': 'PSC-DIG',
         'rank':        'BPS-21',
-        'default_office': 'Central Police Office',
+        'default_office': 'Central Command Office',
     },
     User.SSP: {
         'designation': 'Senior Superintendent of Police',
@@ -16,18 +16,18 @@ ROLE_PROFILES = {
         'region':      'City Region',
         'staff_id_prefix': 'PSC-SSP',
         'rank':        'BPS-19',
-        'default_office': 'Capital City Police Office',
+        'default_office': 'Capital City Command Office',
     },
     User.SUPERVISOR: {
         'designation': 'Supervisor of Police',
-        'department':  'Traffic Enforcement Wing',
+        'department':  'Enforcement Wing',
         'region':      'Central Region',
         'staff_id_prefix': 'PSC-SUPV',
         'rank':        'BPS-17',
-        'default_office': 'Town Police Office',
+        'default_office': 'Town Enforcement Office',
     },
     User.OFFICER: {
-        'designation': 'Traffic Officer',
+        'designation': 'Enforcement Officer',
         'department':  'Field Enforcement Unit',
         'region':      'Sector-1',
         'staff_id_prefix': 'PSC-OFC',
@@ -40,7 +40,7 @@ ROLE_PROFILES = {
         'region':      'Provincial HQ',
         'staff_id_prefix': 'PSC-AUD',
         'rank':        'BPS-17',
-        'default_office': 'Audit Wing, Central Police Office',
+        'default_office': 'Audit Wing, Central Command Office',
     },
     User.IT_SUPPORT: {
         'designation': 'IT Support Engineer',
@@ -48,7 +48,7 @@ ROLE_PROFILES = {
         'region':      'Provincial HQ',
         'staff_id_prefix': 'PSC-IT',
         'rank':        'BPS-16',
-        'default_office': 'IT Wing, Central Police Office',
+        'default_office': 'IT Wing, Central Command Office',
     },
 }
 
@@ -114,7 +114,7 @@ DESIGNATION_CHOICES = [
     ('sp',           'Superintendent of Police'),
     ('supv',         'Supervisor of Police'),
     ('auditor',      'Audit Officer'),
-    ('officer',      'Traffic Officer'),
+    ('officer',      'Enforcement Officer'),
     ('it-engineer',  'IT Support Engineer'),
     ('analyst',      'Operations Analyst'),
 ]

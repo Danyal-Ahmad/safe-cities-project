@@ -7,12 +7,12 @@ class Detection(models.Model):
     PENDING = 'pending_review'
     CONFIRMED = 'confirmed'
     REJECTED = 'rejected'
-    FLAGGED = 'flagged_for_dig'
+    FLAGGED = 'flagged_officer'
     STATUS_CHOICES = [
         (PENDING, 'Pending Review'),
         (CONFIRMED, 'Confirmed'),
         (REJECTED, 'Rejected (False Positive)'),
-        (FLAGGED, 'Flagged for DIG'),
+        (FLAGGED, 'Flagged for Officer Review'),
     ]
     SIDE_FRONT = 'front'
     SIDE_BACK = 'back'

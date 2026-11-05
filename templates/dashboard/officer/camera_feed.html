@@ -30,7 +30,7 @@
     <div class="cctv-cap-head">
       <span class="cctv-cap-cam"><i class="bi bi-camera3"></i> {% if d.camera %}{{ d.camera.camera_id }}{% else %}FEED{% endif %}</span>
       <span class="cctv-cap-loc">{% if d.camera %}{{ d.camera.location }}{% else %}Unassigned{% endif %}</span>
-      <span class="cctv-cap-status {% if d.status == 'flagged_for_dig' %}is-flagged{% endif %}">{{ d.get_status_display|upper }}</span>
+      <span class="cctv-cap-status {% if d.status == 'flagged_officer' %}is-flagged{% endif %}">{{ d.get_status_display|upper }}</span>
     </div>
     <div class="cctv-cap-viewport">
       {% if d.raw_image %}

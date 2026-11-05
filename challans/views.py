@@ -15,8 +15,12 @@ from wrongway_system.security.rate_limit import rate_limit_response
 import re
 
 
-RATE_LIMIT_MAX_REQUESTS = 20
-RATE_LIMIT_WINDOW = 60  # seconds
+import os as _os
+
+# Per-IP public search guard. Tunable for deployments behind a trusted
+# proxy; defaults keep the public portal safe from single-source floods.
+RATE_LIMIT_MAX_REQUESTS = int(_os.environ.get('SEARCH_RATE_LIMIT', 20))
+RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))  # seconds
 
 # PDF download limit: 20/min per user (or per IP for guests). PDF generation
 # is the expensive operation here (regen=1 re-renders the document), so every
@@ -218,59 +222,8 @@ def home(request):
             except Exception:
                 c.signed_token = ''
 
-    homepage_banners = []
-    popup_banners = []
-    active_alerts = []
-    try:
-        from admin.dig_portal.models import Banner, Alert
-        from django.utils import timezone
-
-        now = timezone.now()
-        active_q = (
-            Q(is_active=True)
-            & (Q(start_at__isnull=True) | Q(start_at__lte=now))
-            & (Q(expires_at__isnull=True) | Q(expires_at__gt=now))
-        )
-
-        if not request.user.is_authenticated or request.user.role == 'USER':
-            if request.user.is_authenticated:
-                homepage_banners = list(Banner.get_for_user(request.user, placement='ad')[:5])
-            else:
-                homepage_banners = list(Banner.objects.filter(
-                    active_q, placement='ad', audience='all'
-                ).order_by('-priority', '-created_at')[:5])
-
-        if request.user.is_authenticated:
-            popup_banners = list(Banner.get_for_user(request.user, placement='popup')[:3])
-        else:
-            popup_banners = list(Banner.objects.filter(
-                active_q, placement='popup', audience='all'
-            ).order_by('-priority', '-created_at')[:3])
-
-        active_alerts = list(Alert.objects.filter(
-            is_active=True, audience__in=['all', 'citizens'],
-        ).filter(
-            Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
-        ).order_by('-created_at')[:5])
-
-        if request.user.is_authenticated and request.user.role in ('DIG', 'SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT'):
-            staff_alerts = list(Alert.objects.filter(
-                is_active=True, audience__in=['all', 'staff'],
-            ).filter(
-                Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
-            ).order_by('-created_at')[:5])
-            alert_ids = {a.id for a in active_alerts}
-            for a in staff_alerts:
-                if a.id not in alert_ids:
-                    active_alerts.append(a)
-
-    except Exception:
-        pass
-
     return render(request, 'challan/home.html', {
         'challans': challans, 'plate': plate, 'cnic': cnic, 'searched': searched,
-        'homepage_banners': homepage_banners,
-        'popup_banners': popup_banners, 'active_alerts': active_alerts,
     })
 
 

@@ -1,4 +1,4 @@
-"""V10 QUEUE_07 — Initial migration for PaymentMethod model.
+"""V10 QUEUE_07 - Initial migration for PaymentMethod model.
 
 Creates the `it_support_portal_paymentmethod` table for DB-backed
 payment method management owned by IT-Support.

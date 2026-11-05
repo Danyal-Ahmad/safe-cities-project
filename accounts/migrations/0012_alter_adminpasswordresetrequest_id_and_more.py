@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='department',
-            field=models.CharField(blank=True, help_text="Department name (e.g. 'Traffic Police')", max_length=100, null=True),
+            field=models.CharField(blank=True, help_text="Department name (e.g. 'Safe Cities Project')", max_length=100, null=True),
         ),
         migrations.AlterField(
             model_name='user',

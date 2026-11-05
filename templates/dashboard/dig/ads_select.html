@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ad Selection{% endblock %}
+{% block page_title %}Ad Selection{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-ads-select.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-badge-ad me-2"></i>Ad Selection</h1>
+    <p class="sc-lead">Choose which prepared ads are served on each channel and in what order. Ad content, uploads and design are managed exclusively by IT Support in the Ads Studio.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-shield-lock me-1"></i>Select-only access</span>
+    <span class="sc-badge sc-badge-muted"><i class="bi bi-people me-1"></i>{{ active_count }} active</span>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-collection"></i></div>
+    <div class="sc-kpi-label">Total Ads</div>
+    <div class="sc-kpi-value">{{ banners|length }}</div>
+    <div class="sc-kpi-foot">all channels</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check2-square"></i></div>
+    <div class="sc-kpi-label">Active Now</div>
+    <div class="sc-kpi-value">{{ active_count }}</div>
+    <div class="sc-kpi-foot">serving to audiences</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-columns-gap"></i></div>
+    <div class="sc-kpi-label">Channels</div>
+    <div class="sc-kpi-value">4</div>
+    <div class="sc-kpi-foot">static post / popup / ticker / push</div>
+  </div>
+</div>
+
+{% if messages %}
+<div class="sc-messages">
+  {% for message in messages %}
+  <div class="sc-msg sc-msg-{{ message.tags|default:'info' }}" data-msg-type="{{ message.tags|default:'info' }}">
+    <i class="bi bi-info-circle-fill"></i>
+    <div class="sc-msg-body">{{ message }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-list-check"></i>
+    <span>Ad Serving List</span>
+    <span class="ms-auto sc-text-xs sc-text-muted">Toggle to activate an ad / set priority to order serving (higher first)</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Ad</th>
+            <th>Channel</th>
+            <th>Audience</th>
+            <th>Type</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in banners %}
+          <tr>
+            <td style="font-weight:700;color:var(--sc-heading);">
+              {{ b.title|default:"(untitled)" }}
+              {% if b.image %}<div class="sc-text-xs sc-text-muted">image ad</div>{% endif %}
+            </td>
+            <td>
+              {% if b.placement == 'static_post' %}<span class="sc-badge sc-badge-blue">Static post</span>
+              {% elif b.placement == 'popup' %}<span class="sc-badge sc-badge-amber">Popup</span>
+              {% elif b.placement == 'ticker' %}<span class="sc-badge sc-badge-green">Ticker</span>
+              {% elif b.placement == 'push' %}<span class="sc-badge sc-badge-purple">Push</span>
+              {% else %}<span class="sc-badge sc-badge-muted">{{ b.placement }}</span>{% endif %}
+            </td>
+            <td>{{ b.get_audience_display|default:b.audience }}</td>
+            <td><span class="sc-badge sc-badge-muted">{{ b.banner_type|default:"html"|title }}</span></td>
+            <td>
+              <form method="post" action="{% url 'dig:ads_select' %}" class="ads-priority-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="priority">
+                <input type="hidden" name="banner_id" value="{{ b.id }}">
+                <input type="number" name="priority" value="{{ b.priority }}" min="-100" max="1000" class="ads-priority-input" aria-label="Priority for {{ b.title }}">
+                <button type="submit" class="sc-btn sc-btn-sm" title="Save priority"><i class="bi bi-save"></i></button>
+              </form>
+            </td>
+            <td>{% if b.is_active %}<span class="sc-badge sc-badge-green">Active</span>{% else %}<span class="sc-badge sc-badge-muted">Off</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'dig:ads_select' %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="banner_id" value="{{ b.id }}">
+                <button type="submit" class="sc-btn sc-btn-sm" title="Activate or deactivate this ad">
+                  <i class="bi bi-power"></i> {% if b.is_active %}Deactivate{% else %}Activate{% endif %}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--sc-text-muted);">No ads prepared yet. IT Support creates ad content in the Ads Studio.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Chart.js Wrapper Module
+ * SafeCities Project - Chart.js Wrapper Module
  * Provides a consistent API for line/bar/doughnut charts with
  * prebuilt color palettes and an auto-fetch helper.
  * Requires Chart.js v4 to be loaded globally.

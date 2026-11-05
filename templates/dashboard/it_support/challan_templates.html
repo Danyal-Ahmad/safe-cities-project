@@ -33,7 +33,7 @@
   <div class="sc-kpi {% if any_custom_active %}sc-kpi-ok{% else %}sc-kpi-info{% endif %}">
     <div class="sc-kpi-icon"><i class="bi bi-check2-square"></i></div>
     <div class="sc-kpi-label">Active Print Layout</div>
-    <div class="sc-kpi-value" style="font-size:1.05rem;"><span class="sc-mono">{{ active_template_key|default:"modern_a4" }}</span></div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;"><span class="sc-mono">{{ active_template_key|default:"standard_a4" }}</span></div>
     <div class="sc-kpi-foot">{% if any_custom_active %}a custom database template is active{% else %}built-in file layout in use{% endif %}</div>
   </div>
 </div>
@@ -46,7 +46,7 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="set_challan_template">
       <input type="hidden" name="active_template" value="default">
-      <button type="submit" class="sc-btn sc-btn-sm" data-it-confirm="Restore the default official layout (modern_a4)?">
+      <button type="submit" class="sc-btn sc-btn-sm" data-it-confirm="Restore the default official layout (standard_a4)?">
         <i class="bi bi-arrow-counterclockwise me-1"></i>Restore Default
       </button>
     </form>

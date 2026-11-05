@@ -39,7 +39,6 @@
     });
   }
   bindFilter('alertSearch', 'alertSevFilter', 'alertStatusFilter', ['alertGrid', 'alertTableWrap']);
-  bindFilter('bannerSearch', null, 'bannerStatusFilter', ['bannerGrid', 'bannerTableWrap']);
   bindFilter('broadcastSearch', null, null, ['broadcastGrid', 'broadcastTableWrap']);
 
   // Edit alert modal - prefill

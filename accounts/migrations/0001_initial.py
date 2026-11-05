@@ -1,4 +1,4 @@
-"""accounts migration 0001 — User + OfficerProfile + VehicleRegistration models.
+"""accounts migration 0001 - User + OfficerProfile + VehicleRegistration models.
 
 This migration was regenerated after the project restructure.
 """
@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
                 ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('role', models.CharField(choices=[('DIG', 'DIG (Super Admin)'), ('SSP', 'SSP — Senior Superintendent'), ('SUPV', 'Supervisor'), ('OFFICER', 'Officer'), ('AUDIT', 'Audit Officer'), ('IT', 'IT Support'), ('USER', 'Registered Citizen')], default='USER', max_length=10)),
+                ('role', models.CharField(choices=[('DIG', 'DIG (Super Admin)'), ('SSP', 'SSP - Senior Superintendent'), ('SUPV', 'Supervisor'), ('OFFICER', 'Officer'), ('AUDIT', 'Audit Officer'), ('IT', 'IT Support'), ('USER', 'Registered Citizen')], default='USER', max_length=10)),
                 ('phone', models.CharField(blank=True, help_text='E.164 format, e.g. +923001234567', max_length=20, null=True, unique=True)),
                 ('cnic', models.CharField(blank=True, help_text='Optional. Used only for challan matching, never for login.', max_length=20, null=True)),
                 ('is_guest_verified', models.BooleanField(default=False)),
@@ -39,10 +39,10 @@ class Migration(migrations.Migration):
                 ('failed_login_attempts', models.IntegerField(default=0)),
                 ('locked_until', models.DateTimeField(blank=True, null=True)),
                 ('last_login_ip', models.GenericIPAddressField(blank=True, null=True)),
-                ('staff_id', models.CharField(blank=True, help_text='Official police staff ID, e.g. PSC-2026-DIG-001', max_length=30, null=True)),
-                ('region', models.CharField(blank=True, help_text="Operational region for SSP/Supervisor (e.g. 'Lahore Central')", max_length=60, null=True)),
+                ('staff_id', models.CharField(blank=True, help_text='Official staff ID, e.g. SC-2026-DIG-001', max_length=30, null=True)),
+                ('region', models.CharField(blank=True, help_text="Operational region for SSP/Supervisor (e.g. 'Central')", max_length=60, null=True)),
                 ('designation', models.CharField(blank=True, help_text="Official designation (e.g. 'Deputy Inspector General')", max_length=100, null=True)),
-                ('department', models.CharField(blank=True, help_text="Department name (e.g. 'Traffic Police Punjab')", max_length=100, null=True)),
+                ('department', models.CharField(blank=True, help_text="Department name (e.g. 'Safe Cities Project')", max_length=100, null=True)),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
             ],

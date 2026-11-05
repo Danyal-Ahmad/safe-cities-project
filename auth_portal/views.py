@@ -19,6 +19,15 @@ from accounts.models import User, PasswordResetToken
 from accounts.backends import find_user_by_identifier
 
 
+def _record_login(request, username, success, portal='admin', user=None, reason=''):
+    try:
+        from admin.dig_portal.models import LoginEvent
+        LoginEvent.record(request, username, success, portal=portal,
+                          user=user, failure_reason=reason)
+    except Exception:
+        pass
+
+
 ADMIN_ROLE_DASHBOARD_URLS = {
     User.DIG:         'dig:dashboard',
     User.SSP:         'ssp_portal:dashboard',
@@ -53,9 +62,13 @@ def admin_login(request):
         if form.is_valid():
             user = form.get_user()
             if user.is_locked:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              reason='account_locked')
                 messages.error(request, "Your account is locked. Please contact your administrator.")
                 return render(request, 'auth/admin/admin_login.html', {'form': form})
             if user.role not in ALLOWED_ADMIN_ROLES:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              reason='wrong_portal')
                 messages.error(request, "Citizens must use the citizen login page.")
                 return render(request, 'auth/admin/admin_login.html', {'form': form})
 
@@ -67,20 +80,25 @@ def admin_login(request):
                 ip = request.META.get('REMOTE_ADDR')
             user.last_login_ip = ip
             user.reset_failed_login()
+            _record_login(request, form.cleaned_data.get('username') or '', True,
+                          user=user)
             messages.success(request, f"Welcome, {user.display_name}.")
             return _login_redirect(request, default='auth_portal:role_redirect')
 
         identifier = (request.POST.get('username') or '').strip()
         candidate = find_user_by_identifier(identifier)
         if candidate and candidate.is_locked:
+            _record_login(request, identifier, False, reason='account_locked')
             messages.error(
                 request,
                 "Your account is temporarily locked due to multiple failed login "
                 "attempts. Please try again later or contact your administrator."
             )
         elif candidate and candidate.role not in ALLOWED_ADMIN_ROLES:
+            _record_login(request, identifier, False, reason='wrong_portal')
             messages.error(request, "Citizens must use the citizen login page.")
         else:
+            _record_login(request, identifier, False, reason='invalid_credentials')
             messages.error(request, "Invalid credentials.")
     else:
         form = LoginForm(request)
@@ -119,26 +137,39 @@ def citizen_login(request):
         if form.is_valid():
             user = form.get_user()
             if user.role != User.USER:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              portal='citizen', reason='wrong_portal')
                 messages.error(request, "Staff must use the staff login page.")
                 return render(request, 'auth/citizen/citizen_login.html', {'form': form})
             if user.is_locked:
+                _record_login(request, form.cleaned_data.get('username') or '', False,
+                              portal='citizen', reason='account_locked')
                 messages.error(request, "Your account is temporarily locked due to multiple failed login attempts. Please try again later.")
                 return render(request, 'auth/citizen/citizen_login.html', {'form': form})
             login(request, user, backend='accounts.backends.PhoneOrEmailBackend')
+            user.last_login_ip = (
+                (request.META.get('HTTP_X_FORWARDED_FOR') or '').split(',')[0].strip()
+                or request.META.get('REMOTE_ADDR'))
+            user.reset_failed_login()
+            _record_login(request, form.cleaned_data.get('username') or '', True,
+                          portal='citizen', user=user)
             messages.success(request, f"Welcome, {user.display_name}.")
             return _login_redirect(request, default='/portal/citizen/')
 
         identifier = (request.POST.get('username') or '').strip()
         candidate = find_user_by_identifier(identifier)
         if candidate and candidate.is_locked:
+            _record_login(request, identifier, False, portal='citizen', reason='account_locked')
             messages.error(
                 request,
                 "Your account is temporarily locked due to multiple failed login "
                 "attempts. Please try again later or contact your administrator."
             )
         elif candidate and candidate.role != User.USER:
+            _record_login(request, identifier, False, portal='citizen', reason='wrong_portal')
             messages.error(request, "Staff must use the staff login page.")
         else:
+            _record_login(request, identifier, False, portal='citizen', reason='invalid_credentials')
             messages.error(request, "Invalid CNIC or password.")
     else:
         form = LoginForm(request)
@@ -410,3 +441,55 @@ def logout_view(request):
         return redirect('auth_portal:admin_login')
     return redirect('challans:home')
 
+
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils import timezone as _tz
+
+
+@login_required
+def notifications_feed(request):
+    """JSON feed for the portal ticker + push notification bell.
+
+    Serves audience-scoped ticker ads and push notifications to
+    authenticated staff. Citizens get an empty feed.
+    """
+    from admin.dig_portal.models import Banner
+
+    data = {'ticker': [], 'push': []}
+    user = request.user
+    staff = getattr(user, 'role', '') in ('DIG', 'SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT')
+    if not staff:
+        return JsonResponse(data)
+
+    now = _tz.now()
+    active = Banner.objects.filter(is_active=True)
+    active = active.filter(start_at__isnull=True) | active.filter(start_at__lte=now)
+    active = active.filter(expires_at__isnull=True) | active.filter(expires_at__gt=now)
+
+    ticker_qs = active.filter(placement=Banner.PLACEMENT_TICKER).order_by('-priority', '-created_at')[:6]
+    push_qs = active.filter(placement=Banner.PLACEMENT_PUSH).order_by('-priority', '-created_at')[:10]
+
+    def _audience_match(banner):
+        aud = banner.audience
+        if aud == 'all':
+            return True
+        role = user.role
+        role_aud = {
+            'DIG': 'dig', 'SSP': 'ssp', 'SUPV': 'supervisor',
+            'OFFICER': 'officer', 'AUDIT': 'audit', 'IT': 'it',
+        }.get(role)
+        if aud == 'staff' and staff:
+            return True
+        return role_aud == aud
+
+    data['ticker'] = [
+        {'id': 't%d' % b.id, 'title': b.title, 'body': (b.html_content or '')[:160]}
+        for b in ticker_qs if _audience_match(b)
+    ]
+    data['push'] = [
+        {'id': 'p%d' % b.id, 'title': b.title, 'body': (b.html_content or '')[:280]}
+        for b in push_qs if _audience_match(b)
+    ]
+    return JsonResponse(data)

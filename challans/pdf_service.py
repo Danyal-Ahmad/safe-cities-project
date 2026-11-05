@@ -260,7 +260,6 @@ def _render_html_to_pdf(html_string):
             _WEASYPRINT_STATE = False
             logger.warning('WeasyPrint unavailable (%s) | using fallback PDF engine.', e)
     try:
-        import re
         from xhtml2pdf import pisa
         clean_html = re.sub(r'<link[^>]+rel=["\']stylesheet["\'][^>]*>', '', html_string, flags=re.IGNORECASE)
         buf = BytesIO()

@@ -42,11 +42,11 @@ def _env_list(name, default):
     return [x.strip() for x in v.split(',') if x.strip()]
 
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'safe-city-fyp-demo-CHANGE-THIS-IN-PRODUCTION-2026')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'safe-cities-project-demo-CHANGE-THIS-IN-PRODUCTION-2026')
 DEBUG = _env_bool('DEBUG', True)
 ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', ['*'])
 
-if not DEBUG and SECRET_KEY.startswith('safe-city-fyp-demo'):
+if not DEBUG and SECRET_KEY.startswith('safe-cities-project-demo'):
     raise SystemExit(
         "[SafeCity] SECURITY: Set a strong SECRET_KEY in .env before running with DEBUG=False."
     )
@@ -121,7 +121,7 @@ TEMPLATES = [{
         'django.contrib.messages.context_processors.messages',
         'admin.dig_portal.context_processors.system_settings',
         'admin.dig_portal.context_processors.active_alerts',
-        'admin.dig_portal.context_processors.active_banners',
+        'admin.dig_portal.context_processors.ads_delivery',
         'admin.dig_portal.context_processors.sidebar_badge_counts',
         'admin.dig_portal.context_processors.user_notifications',
         'admin.dig_portal.context_processors.portal_namespace',
@@ -283,7 +283,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'  # SecurityHeadersMiddleware relaxes to SAMEORIGIN for ?embed=1 fragments
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # TLS termination usually happens at the reverse proxy. Keep the
+    # redirect on by default; set SSL_REDIRECT=off only when the proxy
+    # already enforces HTTPS end to end.
+    SECURE_SSL_REDIRECT = _env_bool('SSL_REDIRECT', True)
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
@@ -374,7 +377,7 @@ if EMAIL_NOTIFICATIONS_ENABLED and _EMAIL_HOST:
     EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
     EMAIL_USE_TLS = _env_bool('EMAIL_USE_TLS', True)
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@safecity.fyp')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@safecities.project')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'noreply@wrongway.fyp'

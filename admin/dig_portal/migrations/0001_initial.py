@@ -1,4 +1,4 @@
-"""dig_portal migration 0001 — SystemSettings + AuditLog + Alert + Banner.
+"""dig_portal migration 0001 - SystemSettings + AuditLog + Alert + Banner.
 
 NOTE: This migration was originally authored when the app was named `core`.
 Index names have been regenerated for the `dig_portal` app_label so they no

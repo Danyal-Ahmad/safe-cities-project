@@ -19,7 +19,7 @@ class SystemSettings(models.Model):
         help_text="ONNX model runtime settings (input sizes, thresholds, class filters)")
     pdf_logo = models.ImageField(upload_to='settings/', null=True, blank=True)
     pdf_template = models.CharField(
-        max_length=100, default='safecityfyp_classic', blank=True,
+        max_length=100, default='standard_a4', blank=True,
         help_text="Active PDF template key. File template = filename under "
                    "templates/challan/challan_templates/ without .html. "
                    "DB template = 'db:<ChallanTemplate id>'."
@@ -150,6 +150,9 @@ class AuditLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     details = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=400, blank=True, default="")
+    device = models.CharField(max_length=120, blank=True, default="",
+                              help_text="Human-readable device summary (browser / OS / type).")
 
     class Meta:
         db_table = 'sc_audit_logs'
@@ -165,19 +168,122 @@ class AuditLog(models.Model):
 
     @classmethod
     def write(cls, request, action, target_model='', target_id=None, **details):
-        actor = request.user if request.user.is_authenticated else None
+        actor = None
         ip = None
-        if request:
+        ua_str = ''
+        device = ''
+        if request is not None:
+            user = getattr(request, 'user', None)
+            if user is not None and getattr(user, 'is_authenticated', False):
+                actor = user
             ip = request.META.get('HTTP_X_FORWARDED_FOR')
             if ip:
                 ip = ip.split(',')[0].strip()
             else:
                 ip = request.META.get('REMOTE_ADDR')
+            ua_str = (request.META.get('HTTP_USER_AGENT') or '')[:400]
+            if ua_str:
+                device, _ = cls.parse_device(ua_str)
         return cls.objects.create(
             actor=actor, action=action,
             target_model=target_model, target_id=target_id,
             details=details, ip_address=ip,
+            user_agent=ua_str, device=device or '',
         )
+
+
+class LoginEvent(models.Model):
+    """Immutable record of every authentication attempt on the platform.
+
+    Captures the account, portal, outcome, source IP and full device
+    fingerprint (browser / OS / device type) so auditors can reconstruct
+    who accessed the system, from where and with what device.
+    """
+    PORTAL_ADMIN = 'admin'
+    PORTAL_CITIZEN = 'citizen'
+    PORTAL_CHOICES = [(PORTAL_ADMIN, 'Staff Portal'), (PORTAL_CITIZEN, 'Citizen Portal')]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name='login_events')
+    username_attempted = models.CharField(max_length=150)
+    portal = models.CharField(max_length=10, choices=PORTAL_CHOICES, default=PORTAL_ADMIN)
+    success = models.BooleanField(default=False)
+    failure_reason = models.CharField(max_length=120, blank=True, default="")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=400, blank=True, default="")
+    browser = models.CharField(max_length=120, blank=True, default="")
+    os = models.CharField(max_length=120, blank=True, default="")
+    device_type = models.CharField(max_length=30, blank=True, default="")
+    device_brand = models.CharField(max_length=80, blank=True, default="")
+    device_summary = models.CharField(max_length=160, blank=True, default="")
+    session_key = models.CharField(max_length=64, blank=True, default="")
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'sc_login_events'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['success', 'timestamp']),
+            models.Index(fields=['ip_address', 'timestamp']),
+        ]
+
+    def __str__(self):
+        who = self.user.username if self.user else self.username_attempted
+        return f"{self.timestamp:%Y-%m-%d %H:%M} - {who} - {'OK' if self.success else 'FAIL'}"
+
+    @classmethod
+    def record(cls, request, username, success, portal=PORTAL_ADMIN,
+               user=None, failure_reason=''):
+        ip = None
+        ua_str = ''
+        parsed = ('', '', '', '', '')
+        if request is not None:
+            ip = request.META.get('HTTP_X_FORWARDED_FOR')
+            if ip:
+                ip = ip.split(',')[0].strip()
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            ua_str = (request.META.get('HTTP_USER_AGENT') or '')[:400]
+            parsed = cls._parse_ua(ua_str)
+        browser, os_name, device_type, device_brand, device_summary = parsed
+        session_key = ''
+        if success and request is not None and hasattr(request, 'session'):
+            session_key = request.session.session_key or ''
+        try:
+            return cls.objects.create(
+                user=user if (user is not None and getattr(user, 'is_authenticated', False)) else None,
+                username_attempted=(username or '')[:150],
+                portal=portal, success=success,
+                failure_reason=(failure_reason or '')[:120],
+                ip_address=ip, user_agent=ua_str,
+                browser=browser[:120], os=os_name[:120],
+                device_type=device_type[:30], device_brand=device_brand[:80],
+                device_summary=device_summary[:160],
+                session_key=session_key[:64],
+            )
+        except Exception:
+            return None
+
+    @staticmethod
+    def _parse_ua(ua_str):
+        try:
+            import user_agents
+            ua = user_agents.parse(ua_str or '')
+            browser = getattr(ua.browser, 'family', '') or 'Unknown'
+            os_name = getattr(ua.os, 'family', '') or 'Unknown'
+            device_type = ('Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else
+                           'Bot' if ua.is_bot else 'Desktop')
+            brand = getattr(ua.device, 'brand', '') or ''
+            family = getattr(ua.device, 'family', '') or ''
+            summary_parts = [device_type]
+            if brand:
+                summary_parts.append(brand)
+            if family and family.lower() != 'other':
+                summary_parts.append(family)
+            return browser, os_name, device_type, brand, ' / '.join(summary_parts)
+        except Exception:
+            return ('', '', '', '', '')
 
 
 class Alert(models.Model):
@@ -262,11 +368,17 @@ class Banner(models.Model):
     PLACEMENT_BOTTOM = 'bottom'
     PLACEMENT_AD = 'ad'
     PLACEMENT_POPUP = 'popup'
+    PLACEMENT_STATIC_POST = 'static_post'
+    PLACEMENT_TICKER = 'ticker'
+    PLACEMENT_PUSH = 'push'
     PLACEMENT_CHOICES = [
-        (PLACEMENT_TOP, 'Top of page'),
-        (PLACEMENT_BOTTOM, 'Bottom of page'),
-        (PLACEMENT_AD, 'Banner | Public Service Announcement Space'),
-        (PLACEMENT_POPUP, 'POPUP banner'),
+        (PLACEMENT_STATIC_POST, 'Static post ad (home, hidden staging)'),
+        (PLACEMENT_POPUP, 'Popup ad (home only)'),
+        (PLACEMENT_TICKER, 'Ticker ad (portals + home)'),
+        (PLACEMENT_PUSH, 'Push notification (portals)'),
+        (PLACEMENT_TOP, 'Top strip (legacy)'),
+        (PLACEMENT_BOTTOM, 'Bottom strip (legacy)'),
+        (PLACEMENT_AD, 'Legacy ad space (retired)'),
     ]
     AUDIENCE_ALL = 'all'
     AUDIENCE_STAFF = 'staff'
@@ -299,7 +411,7 @@ class Banner(models.Model):
     image = models.ImageField(upload_to='banners/', null=True, blank=True, help_text="Upload banner image")
     image_link = models.URLField(max_length=500, blank=True, default='', help_text="URL to open when banner is clicked")
     html_content = models.TextField(blank=True, default='', help_text="Raw HTML content (for custom code banners)")
-    placement = models.CharField(max_length=10, choices=PLACEMENT_CHOICES, default=PLACEMENT_TOP)
+    placement = models.CharField(max_length=20, choices=PLACEMENT_CHOICES, default=PLACEMENT_TICKER)
     audience = models.CharField(max_length=20, choices=AUDIENCE_CHOICES, default=AUDIENCE_ALL)
     bg_color = models.CharField(max_length=20, default='#1F4E79', help_text="CSS color for banner background")
     text_color = models.CharField(max_length=20, default='#FFFFFF', help_text="CSS color for banner text")
@@ -503,11 +615,15 @@ class Shift(models.Model):
 
 class ChallanTemplate(models.Model):
     name = models.CharField(max_length=120)
+    description = models.CharField(max_length=255, blank=True, default="")
     file = models.FileField(upload_to="challan_templates/%Y/%m/", blank=True, null=True)
     html_content = models.TextField(blank=True, default="")
+    design_json = models.TextField(blank=True, default="",
+                                   help_text="Challan Studio structured document (blocks + theme).")
     is_active = models.BooleanField(default=False)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'sc_challan_templates'

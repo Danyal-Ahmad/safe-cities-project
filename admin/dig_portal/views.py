@@ -1287,7 +1287,7 @@ def challan_templates_manage(request):
                     messages.success(request, f"Active template set to '{obj.name}'.")
             else:
                 ChallanTemplate.objects.update(is_active=False)
-                sys_settings.pdf_template = 'modern_a4'
+                sys_settings.pdf_template = 'standard_a4'
                 sys_settings.save(update_fields=['pdf_template'])
                 messages.success(request, "Default official template activated.")
             return redirect('it_support_portal:challan_templates')
@@ -1331,17 +1331,22 @@ def challan_templates_manage(request):
         obj.preview_html = (obj.html_content or '')[:4000]
     any_custom_active = any(getattr(t, 'is_active', False) for t in templates)
 
+    from challans.pdf_service import TEMPLATE_MAP
     active_key = sys_settings.pdf_template or 'modern_a4'
+    if active_key not in TEMPLATE_MAP and not active_key.startswith('db:'):
+        active_key = 'modern_a4'
+        sys_settings.pdf_template = active_key
+        sys_settings.save(update_fields=['pdf_template'])
 
     from django.conf import settings as dj_settings
     from pathlib import Path
     file_templates = []
     fs_dir = Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
     if fs_dir.is_dir():
-        for fp in sorted(fs_dir.glob('*.html')):
-            if fp.name.lower() == 'readme.md':
+        for key in TEMPLATE_MAP:
+            fp = fs_dir / f'{key}.html'
+            if not fp.is_file():
                 continue
-            key = fp.stem
             try:
                 raw_html = fp.read_text(encoding='utf-8', errors='ignore')
             except OSError:
@@ -1724,12 +1729,6 @@ def vehicle_search(request):
         'detections': detections,
         'challans': challans,
     })
-
-
-@senior_staff_required
-def flagged_detections(request):
-    flagged = Detection.objects.filter(status=Detection.FLAGGED).order_by('-created_at')[:200]
-    return render(request, 'dashboard/dig/flagged_detections.html', {'flagged': flagged})
 
 
 @senior_staff_required
@@ -2946,12 +2945,10 @@ def officer_kpi(request):
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT', 'IT')
 def alerts_hub(request):
     alerts = Alert.objects.all().order_by('-created_at')[:50]
-    banners = Banner.objects.all().order_by('-created_at')[:50]
     broadcasts = AuditLog.objects.filter(action='broadcast.send').order_by('-timestamp')[:50]
     active_tab = request.GET.get('tab', 'alerts')
     return render(request, 'dashboard/dig/alerts_hub.html', {
         'alerts': alerts,
-        'banners': banners,
         'broadcasts': broadcasts,
         'active_tab': active_tab,
         'alerts_active_count': Alert.objects.filter(is_active=True).count(),
@@ -3005,55 +3002,7 @@ def alerts_hub_add_alert(request):
     return redirect(_alerts_hub_url('alerts', request))
 
 
-@role_required('DIG', 'IT')
-def alerts_hub_add_banner(request):
-    if request.method != 'POST':
-        messages.info(request, "Use the form on the Alerts Hub to create a banner.")
-        return redirect(_alerts_hub_url('banners', request))
-    title = request.POST.get('title', '').strip()
-    banner_type = request.POST.get('banner_type', 'image')
-    placement = request.POST.get('placement', 'top')
-    audience = request.POST.get('audience', 'all')
-    if placement in ('ad', 'psa'):
-        placement = 'ad'
-        audience = 'all'
-    bg_color = request.POST.get('bg_color', '#1F4E79')
-    text_color = request.POST.get('text_color', '#FFFFFF')
-    html_content = request.POST.get('html_content', '').strip()
-    image_link = request.POST.get('image_link', '').strip()
-    image = request.FILES.get('image')
-    expires_at = request.POST.get('expires_at') or None
-    is_active = request.POST.get('is_active') == 'on'
-    if not title:
-        messages.error(request, "Title is required.")
-        return redirect(_alerts_hub_url('banners', request))
-    if expires_at:
-        from django.utils.timezone import make_aware, get_current_timezone
-        from datetime import datetime
-        try:
-            dt = datetime.fromisoformat(expires_at)
-            if timezone.is_naive(dt):
-                dt = make_aware(dt, get_current_timezone())
-            expires_at = dt
-        except ValueError:
-            expires_at = None
-    banner = Banner.objects.create(
-        title=title, banner_type=banner_type,
-        placement=placement, audience=audience,
-        bg_color=bg_color, text_color=text_color,
-        html_content=html_content, image_link=image_link,
-        is_active=is_active, expires_at=expires_at,
-        created_by=request.user,
-    )
-    if image and banner_type == 'image':
-        banner.image = image
-        banner.save()
-    AuditLog.write(request, 'banner.create', 'Banner', banner.id, title=title[:80])
-    messages.success(request, f"Banner '{title}' created.")
-    return redirect(_alerts_hub_url('banners', request))
 
-
-@role_required('DIG', 'IT')
 def alerts_hub_add_broadcast(request):
     if request.method != 'POST':
         messages.info(request, "Use the form on the Alerts Hub to send a broadcast.")
@@ -3148,59 +3097,9 @@ def alerts_hub_edit_alert(request, alert_id):
     return redirect(_alerts_hub_url('alerts', request))
 
 
-@role_required('DIG', 'IT')
-def alerts_hub_edit_banner(request, banner_id):
-    banner = get_object_or_404(Banner, pk=banner_id)
-    if request.method != 'POST':
-        messages.info(request, "Use the edit form on the Alerts Hub to update a banner.")
-        return redirect(_alerts_hub_url('banners', request))
-    banner.title = request.POST.get('title', banner.title).strip()
-    banner.html_content = request.POST.get('html_content', banner.html_content)
-    if request.FILES.get('image'):
-        banner.image = request.FILES['image']
-    banner.placement = request.POST.get('placement', banner.placement)
-    banner.audience = request.POST.get('audience', banner.audience)
-    banner.banner_type = request.POST.get('banner_type', banner.banner_type)
-    banner.show_on_home_only = request.POST.get('show_on_home_only') == 'on'
-    banner.is_active = request.POST.get('is_active') == 'on'
-    banner.save()
-    AuditLog.write(request, 'banner.edit', 'Banner', banner.id, title=(banner.title or '')[:80])
-    messages.success(request, f"Banner '{banner.title or banner.id}' updated.")
-    return redirect(_alerts_hub_url('banners', request))
 
 
-@role_required('DIG', 'IT')
-def alerts_hub_toggle_banner(request, banner_id):
-    banner = get_object_or_404(Banner, pk=banner_id)
-    banner.is_active = not banner.is_active
-    banner.save()
-    AuditLog.write(request, 'banner.toggle', 'Banner', banner.id, active=banner.is_active)
-    messages.success(request, f"Banner '{banner.title}' {'activated' if banner.is_active else 'deactivated'}.")
-    return redirect(_alerts_hub_url('banners', request))
 
-
-@role_required('DIG', 'IT')
-def alerts_hub_delete_banner(request, banner_id):
-    banner = get_object_or_404(Banner, pk=banner_id)
-    if request.method == 'POST':
-        AuditLog.write(request, 'banner.delete', 'Banner', banner.id, title=banner.title)
-        banner.delete()
-        messages.success(request, "Banner deleted.")
-        return redirect(_alerts_hub_url('banners', request))
-    return render(request, 'dashboard/dig/alerts_hub_confirm_delete.html', {
-        'kind': 'banner',
-        'object': banner,
-        'cancel_url': _alerts_hub_url('banners', request),
-        'confirm_url': reverse(
-            f"{getattr(getattr(request, 'resolver_match', None), 'namespace', None) or 'dig'}:alerts_hub_delete_banner",
-            args=[banner.id],
-        ),
-    })
-
-
-@dig_required
-
-@role_required('DIG', 'IT')
 def alerts_hub_delete_broadcast(request, log_id):
     """Delete a broadcast log entry (AuditLog action=broadcast.send)."""
     entry = get_object_or_404(AuditLog, pk=log_id, action='broadcast.send')
@@ -3365,7 +3264,7 @@ PAYMENT_METHOD_DEFAULTS = {
     'bank_transfer': {
         'label': 'Bank Transfer', 'enabled': True,
         'bank_name': 'National Bank of Pakistan',
-        'account_title': 'Safe City Authority',
+        'account_title': 'Safe Cities Project',
         'account_number': '0000000000000000',
         'iban': 'PK36NBPA0000000000000000',
         'branch': 'Main Branch',
@@ -3416,101 +3315,49 @@ def payment_settings(request):
     })
 
 
-@role_required('DIG', 'IT')
-def banner_list(request):
-    banners = Banner.objects.all().order_by('-priority', '-created_at')
-    return render(request, 'dashboard/dig/banner_list.html', {'banners': banners})
+@role_required('DIG')
+def ads_select(request):
+    """DIG ad selection: activate/deactivate ads and set serving priority.
 
-
-@role_required('DIG', 'IT')
-def banner_add(request):
+    Content editing is restricted to IT Support (Ads Studio). DIG only
+    selects which prepared ads are served and in what order.
+    """
     if request.method == 'POST':
-        banner = Banner(
-            title=request.POST.get('title', '').strip(),
-            banner_type=request.POST.get('banner_type', Banner.BANNER_TYPE_IMAGE),
-            html_content=request.POST.get('html_content', ''),
-            image_link=request.POST.get('image_link', ''),
-            placement=request.POST.get('placement', Banner.PLACEMENT_POPUP),
-            audience=request.POST.get('audience', Banner.AUDIENCE_ALL),
-            bg_color=request.POST.get('bg_color', '#1F4E79'),
-            text_color=request.POST.get('text_color', '#FFFFFF'),
-            is_active=request.POST.get('is_active') == 'on',
-            priority=int(request.POST.get('priority') or 0),
-            show_on_home_only=request.POST.get('show_on_home_only') == 'on',
-            auto_hide_after_search=request.POST.get('auto_hide_after_search') == 'on',
-            created_by=request.user,
-        )
-        if request.FILES.get('image'):
-            banner.image = request.FILES['image']
-        for field in ('start_at', 'expires_at'):
-            val = request.POST.get(field, '').strip()
-            if val:
-                try:
-                    from datetime import datetime
-                    setattr(banner, field, datetime.strptime(val, '%Y-%m-%dT%H:%M'))
-                except ValueError:
-                    pass
-        banner.save()
-        AuditLog.write(request, 'banner.create', 'Banner', banner.id, title=banner.title)
-        messages.success(request, f"Banner '{banner.title}' created.")
-        return redirect('dig:banner_list')
-    return render(request, 'dashboard/dig/banner_edit.html', {
-        'banner': None, 'is_add': True,
-        'placements': Banner.PLACEMENT_CHOICES,
-        'audiences': Banner.AUDIENCE_CHOICES,
-        'types': Banner.BANNER_TYPE_CHOICES,
+        action = request.POST.get('action', '')
+        banner_id = request.POST.get('banner_id')
+        banner = Banner.objects.filter(pk=banner_id).first()
+        if banner is None:
+            messages.error(request, "Ad not found.")
+            return redirect('dig:ads_select')
+        if action == 'toggle':
+            banner.is_active = not banner.is_active
+            banner.save(update_fields=['is_active'])
+            AuditLog.write(request, 'ad.toggle', 'Banner', banner.pk,
+                           title=banner.title[:80], active=banner.is_active)
+            messages.success(request, f"'{banner.title}' is now {'active' if banner.is_active else 'inactive'}.")
+        elif action == 'priority':
+            try:
+                banner.priority = max(-100, min(1000, int(request.POST.get('priority', 0))))
+                banner.save(update_fields=['priority'])
+                AuditLog.write(request, 'ad.priority', 'Banner', banner.pk,
+                               title=banner.title[:80], priority=banner.priority)
+                messages.success(request, f"Priority for '{banner.title}' updated to {banner.priority}.")
+            except (TypeError, ValueError):
+                messages.error(request, "Priority must be a number.")
+        return redirect('dig:ads_select')
+
+    banners = Banner.objects.all().order_by('-is_active', '-priority', '-created_at')
+    channels = {
+        'static_post': 'Static post ad (home)',
+        'popup': 'Popup ad (home)',
+        'ticker': 'Ticker ad (portals + home)',
+        'push': 'Push notification (portals)',
+    }
+    return render(request, 'dashboard/dig/ads_select.html', {
+        'banners': banners,
+        'channels': channels,
+        'active_count': banners.filter(is_active=True).count(),
     })
-
-
-@role_required('DIG', 'IT')
-def banner_edit(request, banner_id):
-    banner = get_object_or_404(Banner, id=banner_id)
-    if request.method == 'POST':
-        banner.title = request.POST.get('title', '').strip()
-        banner.banner_type = request.POST.get('banner_type', Banner.BANNER_TYPE_IMAGE)
-        banner.html_content = request.POST.get('html_content', '')
-        banner.image_link = request.POST.get('image_link', '')
-        banner.placement = request.POST.get('placement', Banner.PLACEMENT_TOP)
-        banner.audience = request.POST.get('audience', Banner.AUDIENCE_ALL)
-        banner.bg_color = request.POST.get('bg_color', '#1F4E79')
-        banner.text_color = request.POST.get('text_color', '#FFFFFF')
-        banner.is_active = request.POST.get('is_active') == 'on'
-        banner.priority = int(request.POST.get('priority') or 0)
-        banner.show_on_home_only = request.POST.get('show_on_home_only') == 'on'
-        banner.auto_hide_after_search = request.POST.get('auto_hide_after_search') == 'on'
-        if request.FILES.get('image'):
-            banner.image = request.FILES['image']
-        for field in ('start_at', 'expires_at'):
-            val = request.POST.get(field, '').strip()
-            if val:
-                try:
-                    from datetime import datetime
-                    setattr(banner, field, datetime.strptime(val, '%Y-%m-%dT%H:%M'))
-                except ValueError:
-                    pass
-            else:
-                setattr(banner, field, None)
-        banner.save()
-        AuditLog.write(request, 'banner.update', 'Banner', banner.id, title=banner.title)
-        messages.success(request, f"Banner '{banner.title}' updated.")
-        return redirect('dig:banner_list')
-    return render(request, 'dashboard/dig/banner_edit.html', {
-        'banner': banner, 'is_add': False,
-        'placements': Banner.PLACEMENT_CHOICES,
-        'audiences': Banner.AUDIENCE_CHOICES,
-        'types': Banner.BANNER_TYPE_CHOICES,
-    })
-
-
-@role_required('DIG', 'IT')
-def banner_delete(request, banner_id):
-    banner = get_object_or_404(Banner, id=banner_id)
-    if request.method == 'POST':
-        title = banner.title
-        banner.delete()
-        AuditLog.write(request, 'banner.delete', 'Banner', banner_id, title=title)
-        messages.success(request, f"Banner '{title}' deleted.")
-    return redirect('dig:banner_list')
 
 
 @dig_required
@@ -4093,3 +3940,114 @@ def audit_templates_select(request):
         'builtin_count': len(BUILTIN_TEMPLATES),
         'db_count': sum(1 for t in templates if not t['is_builtin']),
     })
+
+
+@role_required('DIG')
+def challan_template_select(request):
+    """DIG template selection page - pick the active challan layout only.
+
+    DIG can select which template is active for every challan, but cannot
+    create, edit or delete templates (the Challan Studio is IT Support
+    exclusive). Mirrors the IT registry with the 7 verified layouts.
+    """
+    from .models import ChallanTemplate
+    from challans.pdf_service import TEMPLATE_MAP
+    import pathlib
+    from django.conf import settings as dj_settings
+    from django.template import Context, Template
+
+    sys_settings = SystemSettings.get()
+    active_key = sys_settings.pdf_template or 'modern_a4'
+
+    if request.method == 'POST':
+        action = request.POST.get('action') or ''
+        if action == 'set_active':
+            tid = (request.POST.get('template_key') or '').strip()
+            if tid.startswith('db:'):
+                obj = ChallanTemplate.objects.filter(pk=tid[3:]).first()
+                if obj:
+                    ChallanTemplate.objects.exclude(pk=obj.pk).update(is_active=False)
+                    obj.is_active = True
+                    obj.save()
+                    sys_settings.pdf_template = f'db:{obj.id}'
+                    sys_settings.save(update_fields=['pdf_template'])
+                    AuditLog.write(request, 'challan_template.select', 'ChallanTemplate', obj.id, name=obj.name)
+                    messages.success(request, f"Active challan template set to '{obj.name}'.")
+            elif tid in TEMPLATE_MAP:
+                ChallanTemplate.objects.update(is_active=False)
+                sys_settings.pdf_template = tid
+                sys_settings.save(update_fields=['pdf_template'])
+                AuditLog.write(request, 'challan_template.select_file', 'ChallanTemplateFile', 0, key=tid)
+                messages.success(request, f"Active challan template set to '{tid}'.")
+            else:
+                messages.error(request, "Unknown template.")
+            return redirect('dig:challan_template_select')
+
+    def _sample_context():
+        import datetime as _dt
+        return {
+            'challan': type('SampleChallan', (), {
+                'ticket_no': '202600001', 'plate_number': 'LEA-1234', 'province': 'LEA',
+                'owner_name': 'Sample Owner', 'cnic': '35202-1234567-1',
+                'address': 'Sample Address', 'phone': '0300-1234567',
+                'vehicle_type': 'Car', 'make_year': '2022', 'color': 'White',
+                'violation_type': 'wrong_way', 'fine_amount': 500,
+                'location': 'Main Boulevard', 'ai_confidence': 0.93,
+                'legal_direction': 'north', 'moving_direction': 'south',
+                'issue_date': _dt.date.today(), 'due_date': _dt.date.today() + _dt.timedelta(days=10),
+                'payment_status': 'UNPAID', 'is_overdue': False, 'psid': '0002026000014',
+                'camera': None, 'detection': None, 'locale': 'en',
+            })(),
+            'evidence_summary': {'checks': [{'check': c, 'passed': True} for c in
+                                ('plate_readability', 'frame_consistency', 'violation_logic',
+                                 'image_evidence', 'chain_integrity')],
+                                'passed': 5, 'total': 5, 'all_passed': True, 'hash': 'ab12cd34' * 8,
+                                'track_id': 'TRK-1-LEA-0001', 'track_frames': 3, 'track_consistency': 1.0},
+            'payment_icons': [], 'barcode_svg': None, 'qr_svg': None,
+            'logo_left_path': str(dj_settings.BASE_DIR / 'static' / 'img' / 'project_logo.png'),
+            'logo_right_path': str(dj_settings.BASE_DIR / 'static' / 'img' / 'university_logo.png'),
+            'needs_nadra_excise': False,
+        }
+
+    TEMPLATE_META = {
+        'modern_a4': ('Modern A4 | Official E-Challan', 'Modern layout with KPI band, evidence frame and PSID strip'),
+        'classic_a4': ('Classic A4 | Government-Style Form', 'Bordered bureaucratic form with sections A to D'),
+        'legal_notice_99a': ('Legal Notice 99-A', 'Serif legal notice under Section 99-A, Motor Vehicles Ordinance 1965'),
+        'digital_slip': ('Digital Slip', 'Dark digital challan slip with barcode strip'),
+        'compact_receipt': ('Compact Receipt', 'Minimal monospace receipt layout (also the overflow guard)'),
+        'enforcement_notice': ('Enforcement Notice', 'Bold red-accent notice with violation callout'),
+        'urdu_a4': ('Urdu A4 | Urdu-Primary', 'Urdu right-to-left layout with English captions'),
+    }
+    sample_ctx = Context(_sample_context())
+    layouts = []
+    fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
+    for key in TEMPLATE_MAP:
+        fp = fs_dir / f'{key}.html'
+        if not fp.is_file():
+            continue
+        try:
+            preview = Template(fp.read_text(encoding='utf-8', errors='ignore')).render(sample_ctx)
+        except Exception:
+            preview = ''
+        name, blurb = TEMPLATE_META.get(key, (key, ''))
+        layouts.append({'key': key, 'name': name, 'blurb': blurb,
+                        'is_active': (key == active_key), 'preview_html': preview})
+    for t in ChallanTemplate.objects.order_by('-created_at'):
+        try:
+            preview = Template(t.html_content or '').render(sample_ctx) if t.html_content else ''
+        except Exception:
+            preview = ''
+        layouts.append({'key': f'db:{t.id}', 'name': t.name,
+                        'blurb': 'Studio design by IT Support', 'is_active': (active_key == f'db:{t.id}'),
+                        'preview_html': preview})
+    return render(request, 'dashboard/dig/challan_template_select.html', {
+        'layouts': layouts,
+        'active_key': active_key,
+    })
+
+
+@role_required('DIG', 'SSP')
+def flagged_detections(request):
+    """Detections flagged by officers, awaiting senior-staff review."""
+    qs = Detection.objects.filter(status=Detection.FLAGGED).select_related('camera', 'reviewed_by').order_by('-created_at')[:200]
+    return render(request, 'dashboard/dig/flagged_detections.html', {'flagged': qs})

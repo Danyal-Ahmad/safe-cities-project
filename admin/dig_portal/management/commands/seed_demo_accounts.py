@@ -6,12 +6,12 @@ User = get_user_model()
 
 DEMO_ACCOUNTS = [
     ('role', 'email', 'first', 'last', 'password'),
-    ('SSP', 'ssp@safecity.fyp', 'Sana', 'Raza', 'Demo@SSP-2026secure'),
-    ('SUPV', 'supervisor@safecity.fyp', 'Bilal', 'Ahmed', 'Demo@SUPV-2026secure'),
-    ('OFFICER', 'officer@safecity.fyp', 'Adnan', 'Khan', 'Demo@OFFCR-2026secure'),
-    ('AUDIT', 'audit@safecity.fyp', 'Farah', 'Nawaz', 'Demo@AUDT-2026secure'),
-    ('IT', 'itsupport@safecity.fyp', 'Hamza', 'Sheikh', 'Demo@ITSP-2026secure'),
-    ('USER', 'citizen@safecity.fyp', 'Danyal', 'Ahmad', 'Demo@CZN-2026secure'),
+    ('SSP', 'ssp@safecities.project', 'Sana', 'Raza', 'Demo@SSP-2026secure'),
+    ('SUPV', 'supervisor@safecities.project', 'Bilal', 'Ahmed', 'Demo@SUPV-2026secure'),
+    ('OFFICER', 'officer@safecities.project', 'Adnan', 'Khan', 'Demo@OFFCR-2026secure'),
+    ('AUDIT', 'audit@safecities.project', 'Farah', 'Nawaz', 'Demo@AUDT-2026secure'),
+    ('IT', 'itsupport@safecities.project', 'Hamza', 'Sheikh', 'Demo@ITSP-2026secure'),
+    ('USER', 'citizen@safecities.project', 'Danyal', 'Ahmad', 'Demo@CZN-2026secure'),
 ]
 
 

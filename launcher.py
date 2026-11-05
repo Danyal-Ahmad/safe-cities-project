@@ -20,20 +20,20 @@ SETTINGS_MODULE = 'wrongway_system.settings'
 
 MIN_PY = (3, 10)
 
-PG_DB = os.environ.get('PG_DB', 'SAFE_CITY_FYP')
+PG_DB = os.environ.get('PG_DB', 'SAFE_CITIES_PROJECT')
 PG_USER = os.environ.get('PG_USER', 'postgres')
 PG_PASSWORD = os.environ.get('PG_PASSWORD', 'Admin@2026')
 PG_HOST = os.environ.get('PG_HOST', '127.0.0.1')
 PG_PORT = os.environ.get('PG_PORT', '5432')
 
 
-DEFAULT_ENV_EXAMPLE = """# ===== Safe City FYP -- Environment Configuration =====
+DEFAULT_ENV_EXAMPLE = """# ===== Safe Cities Project -- Environment Configuration =====
 
 DEBUG=True
-SECRET_KEY=safe-city-fyp-demo-CHANGE-THIS-IN-PRODUCTION-2026
+SECRET_KEY=safe-cities-project-demo-CHANGE-THIS-IN-PRODUCTION-2026
 ALLOWED_HOSTS=*
 
-PG_DB=SAFE_CITY_FYP
+PG_DB=SAFE_CITIES_PROJECT
 PG_USER=postgres
 PG_PASSWORD=Admin@2026
 PG_HOST=127.0.0.1
@@ -48,7 +48,7 @@ EMAIL_PORT=587
 EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=noreply@safecity.fyp
+DEFAULT_FROM_EMAIL=noreply@safecities.project
 
 CAMERA_WORKER_INTERVAL=5
 """
@@ -424,7 +424,7 @@ def postgres_preflight(py: Path) -> bool:
             print('          3) Or run PostgreSQL in Docker:')
             print('             docker run -d --name pg -p 5432:5432 '
                   '-e POSTGRES_PASSWORD=Admin@2026 '
-                  '-e POSTGRES_DB=safe_city_fyp postgres:15')
+                  '-e POSTGRES_DB=safe_cities_project postgres:15')
         return False
 
     warn(f'PostgreSQL preflight issue: {err}')
@@ -470,7 +470,7 @@ def create_database_if_missing(py: Path) -> bool:
 
 
 def setup() -> None:
-    banner('SAFE CITY FYP -- Setup')
+    banner('SAFE CITIES PROJECT -- Setup')
     check_python_version()
 
     ensure_env_file()

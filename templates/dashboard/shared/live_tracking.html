@@ -47,9 +47,9 @@
       <label class="sc-text-xs sc-text-muted fw-bold text-uppercase mb-1 d-block">Status Filter</label>
       <select name="status" class="md-select form-select-sm">
         <option value="">All statuses</option>
-        <option value="pending" {% if status_q == 'pending' %}selected{% endif %}>Pending Review</option>
+        <option value="pending_review" {% if status_q == 'pending_review' %}selected{% endif %}>Pending Review</option>
         <option value="confirmed" {% if status_q == 'confirmed' %}selected{% endif %}>Confirmed Violations</option>
-        <option value="flagged" {% if status_q == 'flagged' %}selected{% endif %}>Flagged for DIG</option>
+        <option value="flagged_officer" {% if status_q == 'flagged_officer' %}selected{% endif %}>Flagged for Officer Review</option>
       </select>
     </div>
     <div class="col-md-2 d-flex align-items-end gap-2">

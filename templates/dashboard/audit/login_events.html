@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login Events Audit{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/audit-login-events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-shield-lock me-2"></i>Login Events Audit</h1>
+    <p class="sc-lead">Every authentication attempt on the platform - account, portal, outcome, source IP and full device fingerprint (browser, OS, device type).</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'audit_portal:login_events_export' %}" class="sc-btn sc-btn-primary"><i class="bi bi-download me-1"></i>Export CSV</a>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-key"></i></div>
+    <div class="sc-kpi-label">Matching Events</div>
+    <div class="sc-kpi-value">{{ total }}</div>
+    <div class="sc-kpi-foot">under current filters</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check-circle"></i></div>
+    <div class="sc-kpi-label">Successful</div>
+    <div class="sc-kpi-value">{{ success_count }}</div>
+    <div class="sc-kpi-foot">in latest {{ events|length }} rows</div>
+  </div>
+  <div class="sc-kpi sc-kpi-danger">
+    <div class="sc-kpi-icon"><i class="bi bi-x-circle"></i></div>
+    <div class="sc-kpi-label">Failed</div>
+    <div class="sc-kpi-value">{{ failed_count }}</div>
+    <div class="sc-kpi-foot">wrong password / locked / wrong portal</div>
+  </div>
+  <div class="sc-kpi sc-kpi-info">
+    <div class="sc-kpi-icon"><i class="bi bi-hdd-network"></i></div>
+    <div class="sc-kpi-label">Unique IPs / Accounts</div>
+    <div class="sc-kpi-value">{{ unique_ips }} / {{ unique_users }}</div>
+    <div class="sc-kpi-foot">in latest rows</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header"><i class="bi bi-funnel"></i> Filters</div>
+  <div class="sc-card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="sc-text-xs sc-text-muted d-block mb-1">Account (username / email / phone)</label>
+        <input type="text" name="user" value="{{ filters.user }}" class="form-control form-control-sm" placeholder="e.g. itsupport">
+      </div>
+      <div class="col-md-2">
+        <label class="sc-text-xs sc-text-muted d-block mb-1">Outcome</label>
+        <select name="outcome" class="form-select form-select-sm">
+          <option value="">All</option>
+          <option value="success" {% if filters.outcome == 'success' %}selected{% endif %}>Successful</option>
+          <option value="failed" {% if filters.outcome == 'failed' %}selected{% endif %}>Failed</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="sc-text-xs sc-text-muted d-block mb-1">IP address</label>
+        <input type="text" name="ip" value="{{ filters.ip }}" class="form-control form-control-sm" placeholder="e.g. 127.0.0.1">
+      </div>
+      <div class="col-md-2">
+        <label class="sc-text-xs sc-text-muted d-block mb-1">Last N days</label>
+        <input type="number" name="days" min="1" max="365" value="{{ filters.days }}" class="form-control form-control-sm" placeholder="30">
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-search me-1"></i>Apply</button>
+        <a href="{% url 'audit_portal:login_events' %}" class="sc-btn sc-btn-sm">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-list-check"></i><span>Authentication Log (latest {{ events|length }})</span>
+  </div>
+  <div class="sc-card-body p-0">
+    <div class="table-responsive">
+      <table class="table sc-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Account</th>
+            <th>Portal</th>
+            <th>Outcome</th>
+            <th>Reason</th>
+            <th>IP Address</th>
+            <th>Device</th>
+            <th>Browser / OS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in events %}
+          <tr class="{% if not e.success %}ale-row-failed{% endif %}">
+            <td class="sc-mono sc-text-xs">{{ e.timestamp|date:"d M Y H:i:s" }}</td>
+            <td>
+              {% if e.user %}
+              <span class="sc-badge sc-badge-blue">{{ e.user.username }}</span>
+              {% else %}
+              <span class="sc-mono sc-text-xs">{{ e.username_attempted }}</span>
+              {% endif %}
+            </td>
+            <td><span class="sc-badge {% if e.portal == 'admin' %}sc-badge-gray{% else %}sc-badge-green{% endif %}">{{ e.get_portal_display }}</span></td>
+            <td>
+              {% if e.success %}
+              <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill me-1"></i>Success</span>
+              {% else %}
+              <span class="sc-badge sc-badge-danger"><i class="bi bi-x-circle-fill me-1"></i>Failed</span>
+              {% endif %}
+            </td>
+            <td class="sc-text-xs">{{ e.failure_reason|default:"-" }}</td>
+            <td class="sc-mono sc-text-xs">{{ e.ip_address|default:"-" }}</td>
+            <td class="sc-text-xs">{{ e.device_summary|default:"-" }}</td>
+            <td class="sc-text-xs">{{ e.browser }} / {{ e.os }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No login events match the filters.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

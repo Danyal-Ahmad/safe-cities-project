@@ -7,7 +7,7 @@ which violated the model's schema definition (Django doesn't enforce choices at
 the DB level, but the schema mismatch was still a bug). This migration aligns
 the schema with the actual data being written.
 
-This is a safe AlterField — max_length is unchanged (20), only the choices
+This is a safe AlterField - max_length is unchanged (20), only the choices
 metadata is updated. No data is modified or deleted.
 """
 from django.db import migrations, models

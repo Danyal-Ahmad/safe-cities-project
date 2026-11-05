@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title Safe City FYP - Server
+title Safe Cities Project - Server
 
 if not exist ".venv\Scripts\python.exe" (
   echo [ERROR] Virtual environment missing. Run setup.bat first.
@@ -17,7 +17,7 @@ if not exist ".env" (
 )
 
 echo ========================================
-echo   SAFE CITY FYP - DEVELOPMENT SERVER
+echo   SAFE CITIES PROJECT - DEVELOPMENT SERVER
 echo ========================================
 echo   Public:  http://127.0.0.1:8000/
 echo   Staff:   http://127.0.0.1:8000/auth/admin/login/

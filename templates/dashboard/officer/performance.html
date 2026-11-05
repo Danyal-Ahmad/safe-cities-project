@@ -103,7 +103,7 @@
               <span class="sc-badge sc-badge-ok">Confirmed</span>
               {% elif det.status == 'rejected' %}
               <span class="sc-badge sc-badge-danger">Rejected</span>
-              {% elif det.status == 'flagged_for_dig' %}
+              {% elif det.status == 'flagged_officer' %}
               <span class="sc-badge sc-badge-amber">Flagged</span>
               {% else %}
               <span class="sc-badge sc-badge-muted">{{ det.get_status_display }}</span>

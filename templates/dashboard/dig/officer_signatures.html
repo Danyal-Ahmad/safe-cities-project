@@ -42,7 +42,7 @@
 {% for o in officers %}
 <div class="sc-card" style="border:1px solid var(--sc-border-soft);">
   <div class="sc-flex sc-gap-2 sc-items-center sc-mb-2">
-    {% if o.avatar %}<img src="{{ o.avatar.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">{% else %}
+    {% if o.avatar %}<img alt="Officer avatar" src="{{ o.avatar.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">{% else %}
     <div style="width:40px;height:40px;border-radius:50%;background:{{ o.avatar_color }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">{{ o.first_name|slice:":1"|upper|default:o.username|slice:":1"|upper }}</div>{% endif %}
     <div style="flex:1;">
       <div style="font-weight:700;">{{ o.get_full_name|default:o.first_name|default:o.username }}</div>
@@ -66,12 +66,12 @@
         <div class="sc-form-group">
           <label>Signature image (PNG with transparent background)</label>
           <input type="file" name="signature" accept="image/*" class="w-full">
-          {% if o.signature %}<div class="sc-mt-2 sc-text-xs">Current: <img src="{{ o.signature.url }}" style="max-height:32px;max-width:120px;background:#fff;padding:2px;border:1px solid #ddd;"></div>{% endif %}
+          {% if o.signature %}<div class="sc-mt-2 sc-text-xs">Current: <img alt="Officer signature" src="{{ o.signature.url }}" style="max-height:32px;max-width:120px;background:#fff;padding:2px;border:1px solid #ddd;"></div>{% endif %}
         </div>
         <div class="sc-form-group">
           <label>Stamp (optional)</label>
           <input type="file" name="stamp" accept="image/*" class="w-full">
-          {% if o.signature_stamp %}<div class="sc-mt-2 sc-text-xs">Current: <img src="{{ o.signature_stamp.url }}" style="max-height:32px;max-width:120px;"></div>{% endif %}
+          {% if o.signature_stamp %}<div class="sc-mt-2 sc-text-xs">Current: <img alt="Officer stamp" src="{{ o.signature_stamp.url }}" style="max-height:32px;max-width:120px;"></div>{% endif %}
         </div>
       </div>
       <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm">Save</button>

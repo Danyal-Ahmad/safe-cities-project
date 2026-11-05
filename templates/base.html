@@ -154,6 +154,20 @@
         </div>
       </div>
     </header>
+
+    {% if ticker_ads %}
+    <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
+      <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
+      <div class="sc-ticker-viewport"><div class="sc-ticker-track">
+        {% for ad in ticker_ads %}
+        <span class="sc-ticker-item" data-id="tick-{{ ad.id }}">
+          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
+          {% if ad.html_content %}<span class="sc-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
+        </span>
+        {% endfor %}
+      </div></div>
+    </div>
+    {% endif %}
     {% endif %}
 
     {% if user.is_authenticated and user.role != 'USER' %}
@@ -216,6 +230,7 @@
 <script src="{% static 'js/safe-city-live.js' %}" defer></script>
 <script src="{% static 'js/safe-city-print.js' %}" defer></script>
 <script src="{% static 'js/safe-city-charts-data.js' %}" defer></script>
+<script src="{% static 'js/safe-city-notifications.js' %}" defer></script>
 
 <!-- Console / DevTools inspection guard. Defense-in-depth only; real
      enforcement is server-side (CSP headers, auth, validation). Loaded for

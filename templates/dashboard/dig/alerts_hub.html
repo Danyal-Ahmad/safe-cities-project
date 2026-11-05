@@ -15,7 +15,6 @@
   </div>
   <div class="sc-flex sc-gap-2">
     <button type="button" class="sc-btn sc-btn-primary" data-bs-toggle="modal" data-bs-target="#newAlertModal"><i class="bi bi-plus-circle"></i> New Alert</button>
-    <button type="button" class="sc-btn" data-bs-toggle="modal" data-bs-target="#newBannerModal"><i class="bi bi-badge-ad"></i> New Banner</button>
     <button type="button" class="sc-btn" data-bs-toggle="modal" data-bs-target="#newBroadcastModal"><i class="bi bi-megaphone"></i> New Broadcast</button>
   </div>
 </div>
@@ -46,18 +45,17 @@
     </div>
   </div>
   <div class="md-kpi-card kpi-warning">
-    <div class="md-kpi-icon-box"><i class="bi bi-badge-ad"></i></div>
+    <div class="md-kpi-icon-box"><i class="bi bi-broadcast-pin"></i></div>
     <div class="md-kpi-body">
-      <div class="md-kpi-label">Popup Banners</div>
-      <div class="md-kpi-value">{{ banners|length }}</div>
-      <div class="md-kpi-foot">Public announcements</div>
+      <div class="md-kpi-label">Broadcasts</div>
+      <div class="md-kpi-value">{{ broadcasts|length }}</div>
+      <div class="md-kpi-foot">Recent log entries</div>
     </div>
   </div>
 </div>
 
 <div class="sc-tabs">
   <a class="{% if active_tab == 'alerts' %}sc-active{% endif %}" href="?tab=alerts"><i class="bi bi-bell me-1"></i> Alerts ({{ alerts|length }})</a>
-  <a class="{% if active_tab == 'banners' %}sc-active{% endif %}" href="?tab=banners"><i class="bi bi-badge-ad me-1"></i> Banners ({{ banners|length }})</a>
   <a class="{% if active_tab == 'broadcasts' %}sc-active{% endif %}" href="?tab=broadcasts"><i class="bi bi-broadcast-pin me-1"></i> Broadcast Log ({{ broadcasts|length }})</a>
 </div>
 

@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - DataTables Wrapper
+ * SafeCities Project - DataTables Wrapper
  * Works WITH or WITHOUT jQuery/DataTables plugin.
  * Falls back to native JS sorting/filtering/pagination when DataTables is absent.
  */

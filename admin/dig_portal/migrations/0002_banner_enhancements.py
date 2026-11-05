@@ -1,6 +1,6 @@
-# Migration 0002 — adds banner_type, image, image_link fields to Banner
+# Migration 0002 - adds banner_type, image, image_link fields to Banner
 # and updates field choices on Alert, AuditLog, Banner.
-# NO RenameIndex operations — they cause "relation does not exist" on PostgreSQL
+# NO RenameIndex operations - they cause "relation does not exist" on PostgreSQL
 # when the index name in the DB doesn't match what Django expects.
 
 import django.db.models.deletion

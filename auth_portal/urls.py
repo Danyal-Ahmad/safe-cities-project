@@ -5,6 +5,7 @@ app_name = 'auth_portal'
 
 urlpatterns = [
     path('admin/login/',                    views.admin_login,           name='admin_login'),
+    path('notifications/feed/',             views.notifications_feed,    name='notifications_feed'),
     path('admin/logout/',                   views.logout_view,           name='logout'),
     path('admin/redirect/',                 views.role_redirect,         name='role_redirect'),
 

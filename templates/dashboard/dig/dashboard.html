@@ -195,7 +195,7 @@
       <div class="md-kpi-body">
         <div class="md-kpi-label">Flagged Detections</div>
         <div class="md-kpi-value" id="kpi-flagged-detections" data-key="flagged_detections" style="color: #ef4444;">0</div>
-        <div class="md-kpi-foot"><a href="{% url 'dig:flagged_detections' %}" style="color: #ef4444;">Review Ambiguous →</a></div>
+        <div class="md-kpi-foot" style="color: #ef4444;">Officer Portal review queue</div>
       </div>
     </div>
   {% endif %}
@@ -392,9 +392,6 @@
         <i class="bi bi-radar" style="color: var(--md-brand-cyan);"></i>
         <h3>Latest Camera Inferences</h3>
       </div>
-      <a href="{% url 'dig:flagged_detections' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-flag"></i> Flagged Cases
-      </a>
     </div>
     <div style="overflow-x: auto;">
       <table class="md-table" id="recent-detections-table"

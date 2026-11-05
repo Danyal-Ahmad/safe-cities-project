@@ -157,7 +157,7 @@
       '      <div style="font-size:9px;color:#6b7280;">{{ officer_signature_designation|default:"Traffic Enforcement" }}</div>',
       '    </div>',
       '    <div class="ds-sig">',
-      '      <div class="ds-line">SAFE CITY FYP</div>',
+      '      <div class="ds-line">SAFE CITIES PROJECT</div>',
       '      <div style="font-size:9px;color:#6b7280;">System-generated document</div>',
       '    </div>',
       '  </div>',

@@ -1,6 +1,6 @@
 """Repair over-tight AI detector thresholds stored in existing SystemSettings rows.
 
-The shipped default plate confidence_threshold was 0.90 — the int8 plate
+The shipped default plate confidence_threshold was 0.90 - the int8 plate
 detector almost never scores that high on real safe-city footage, so no
 vehicle was ever detected (empty review queue, dead live tracking).
 """
@@ -29,7 +29,7 @@ def repair_ai_config(apps, schema_editor):
                 changed = True
             # Class-map repair: class 1 of the shipped model is the plate
             # class; the old config zeroed it as "person" and scanned class 0
-            # (never fired) — so nothing was ever detected.
+            # (never fired) - so nothing was ever detected.
             if pd.get('person_class_id') == 1:
                 pd['person_class_id'] = -1
                 changed = True
@@ -45,7 +45,7 @@ def repair_ai_config(apps, schema_editor):
 
 
 def unapply(apps, schema_editor):
-    # Leave repaired values in place on rollback — they are strictly safer.
+    # Leave repaired values in place on rollback - they are strictly safer.
     pass
 
 

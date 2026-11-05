@@ -47,14 +47,14 @@ class User(AbstractUser):
     signature_name = models.CharField(max_length=120, null=True, blank=True,
                                         help_text="Printed name beside the signature (defaults to display_name).")
     signature_designation = models.CharField(max_length=120, null=True, blank=True,
-                                              help_text="Printed designation under the signature (e.g. 'Traffic Officer').")
+                                              help_text="Printed designation under the signature (e.g. 'Enforcement Officer').")
     signature_stamp = models.ImageField(upload_to='stamps/', null=True, blank=True,
                                           help_text="Optional official rubber-stamp image.")
     failed_login_attempts = models.IntegerField(default=0)
     locked_until = models.DateTimeField(null=True, blank=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     staff_id = models.CharField(max_length=30, null=True, blank=True,
-                                help_text="Official police staff ID, e.g. PSC-2026-DIG-001")
+                                help_text="Official staff ID, e.g. SC-2026-DIG-001")
     region = models.CharField(max_length=60, null=True, blank=True,
                               help_text="Operational region for SSP/Supervisor (e.g. 'Central Region')")
     designation = models.CharField(max_length=100, null=True, blank=True,
@@ -238,7 +238,7 @@ class OfficerProfile(models.Model):
     can_manage_blacklist = models.BooleanField(default=False)
     badge_number = models.CharField(max_length=40, blank=True, default='')
     belt_number = models.CharField(max_length=40, blank=True, default='')
-    rank = models.CharField(max_length=60, blank=True, default='Traffic Officer')
+    rank = models.CharField(max_length=60, blank=True, default='Enforcement Officer')
     unit = models.CharField(max_length=100, blank=True, default='')
     station = models.CharField(max_length=100, blank=True, default='')
     shift_preference = models.CharField(max_length=20, blank=True, default='DAY',

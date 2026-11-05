@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Chart Data & Helper Module
+ * SafeCities Project - Chart Data & Helper Module
  * Reusable data shapes, color palettes, and formatters for charts
  * and KPI displays.
  */

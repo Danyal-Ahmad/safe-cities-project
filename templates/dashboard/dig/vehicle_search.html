@@ -117,8 +117,8 @@
                     <span class="sc-badge sc-badge-green"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
                   {% elif d.status == 'rejected' %}
                     <span class="sc-badge sc-badge-gray"><i class="bi bi-dash-circle"></i>Rejected</span>
-                  {% elif d.status == 'flagged_for_dig' %}
-                    <span class="sc-badge sc-badge-red"><i class="bi bi-flag-fill"></i>Flagged for DIG</span>
+                  {% elif d.status == 'flagged_officer' %}
+                    <span class="sc-badge sc-badge-red"><i class="bi bi-flag-fill"></i>Flagged for Officer Review</span>
                   {% else %}
                     <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i>Pending Review</span>
                   {% endif %}

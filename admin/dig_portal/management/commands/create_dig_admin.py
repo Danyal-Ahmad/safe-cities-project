@@ -14,7 +14,7 @@ class Command(BaseCommand):
         parser.add_argument('--first-name', default='Safe City')
 
     def handle(self, *args, **options):
-        email = (options.get('email') or 'dig@safecity.fyp').strip().lower()
+        email = (options.get('email') or 'dig@safecities.project').strip().lower()
         if User.objects.filter(email__iexact=email).exists():
             self.stdout.write(self.style.WARNING(f"DIG admin already exists: {email}"))
             return

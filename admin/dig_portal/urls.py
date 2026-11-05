@@ -9,12 +9,12 @@ urlpatterns = [
     path('dashboard/',                    views.dashboard,               name='dashboard_alt'),
 
     path('violations/',                   views.violation_stats,         name='violation_stats'),
-    path('flagged-detections/',           views.flagged_detections,      name='flagged_detections'),
     path('escalations/',                  views.escalation_list,         name='escalation_list'),
     path('vehicle-search/',               views.vehicle_search,          name='vehicle_search'),
     path('blacklist/',                    views.blacklist_list,          name='blacklist_list'),
     path('blacklist/add/',                views.blacklist_add,           name='blacklist_add'),
     path('challans/',                     views.challan_list,            name='challan_list'),
+    path('challan-template-select/',       views.challan_template_select, name='challan_template_select'),
     path('challan/<int:challan_id>/delete/',          views.delete_challan,          name='delete_challan'),
     path('challan/<int:challan_id>/delete-confirm/',  views.challan_confirm_delete,  name='challan_confirm_delete'),
     path('challan/<int:challan_id>/fine/',            views.edit_challan_fine,       name='edit_challan_fine'),
@@ -65,15 +65,12 @@ path('analytics/',                    views.analytics,               name='analy
     path('officer-activity/', views.officer_activity, name='officer_activity_list'),
     path('appeal/<int:appeal_id>/override/', views.appeal_override,      name='appeal_override'),
     path('alerts/hub/',                          views.alerts_hub,              name='alerts_hub'),
+    path('ads/select/',                          views.ads_select,              name='ads_select'),
     path('alerts/hub/add-alert/',                views.alerts_hub_add_alert,    name='alerts_hub_add_alert'),
-    path('alerts/hub/add-banner/',               views.alerts_hub_add_banner,   name='alerts_hub_add_banner'),
     path('alerts/hub/add-broadcast/',            views.alerts_hub_add_broadcast, name='alerts_hub_add_broadcast'),
     path('alerts/hub/alert/<int:alert_id>/toggle/',  views.alerts_hub_toggle_alert,  name='alerts_hub_toggle_alert'),
     path('alerts/hub/alert/<int:alert_id>/edit/',   views.alerts_hub_edit_alert,    name='alerts_hub_edit_alert'),
     path('alerts/hub/alert/<int:alert_id>/delete/',  views.alerts_hub_delete_alert,  name='alerts_hub_delete_alert'),
-    path('alerts/hub/banner/<int:banner_id>/toggle/', views.alerts_hub_toggle_banner, name='alerts_hub_toggle_banner'),
-    path('alerts/hub/banner/<int:banner_id>/edit/',  views.alerts_hub_edit_banner,   name='alerts_hub_edit_banner'),
-    path('alerts/hub/banner/<int:banner_id>/delete/', views.alerts_hub_delete_banner, name='alerts_hub_delete_banner'),
     path('alerts/hub/broadcast/<int:log_id>/delete/', views.alerts_hub_delete_broadcast, name='alerts_hub_delete_broadcast'),
 
     path('change-password/',              views.staff_change_password,   name='staff_change_password'),
@@ -87,6 +84,7 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('broadcast/',                    views.broadcast_notification,  name='broadcast_notification'),
     path('compliance/',                   views.compliance,              name='compliance'),
+    path('flagged-detections/',            views.flagged_detections,      name='flagged_detections'),
 
     path('cameras-status/',               views.cameras_status,          name='cameras_status'),
 
@@ -102,7 +100,6 @@ path('analytics/',                    views.analytics,               name='analy
     path('regional-access/',              views.regional_access,         name='regional_access'),
 
 
-    path('detections/bulk/',              views.bulk_detections,         name='bulk_detections'),
 
 
 
@@ -113,10 +110,6 @@ path('analytics/',                    views.analytics,               name='analy
     path('live-monitor/feed/',            views.live_monitor_feed,       name='live_monitor_feed'),
     path('live-tracking/timeline/',       officer_views.frame_timeline,  name='live_tracking_timeline'),
 
-    path('banners/',                      views.banner_list,             name='banner_list'),
-    path('banners/add/',                  views.banner_add,              name='banner_add'),
-    path('banners/<int:banner_id>/edit/', views.banner_edit,             name='banner_edit'),
-    path('banners/<int:banner_id>/delete/', views.banner_delete,         name='banner_delete'),
 
     path('cameras/',                      views.camera_list,             name='camera_list'),
     path('cameras/list/',                 views.camera_list,             name='camera_list_alt'),

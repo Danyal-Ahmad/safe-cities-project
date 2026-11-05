@@ -1,4 +1,4 @@
-/* Live Tracking Radar Workstation — extracted from templates/dashboard/shared/live_tracking.html */
+/* Live Tracking Radar Workstation - extracted from templates/dashboard/shared/live_tracking.html */
 (function () {
   'use strict';
 

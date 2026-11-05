@@ -65,7 +65,7 @@ class CameraStreamWorker:
             self._cap.grab()
         ret, frame = self._cap.read()
         if not ret or frame is None:
-            log.warning("[%s] Frame grab failed — reopening stream", self.camera.camera_id)
+            log.warning("[%s] Frame grab failed - reopening stream", self.camera.camera_id)
             try:
                 if self._cap: self._cap.release()
             except Exception: pass
@@ -109,14 +109,14 @@ class CameraStreamWorker:
             if resp.status_code == 201:
                 try:
                     j = resp.json()
-                    log.info("[%s] Frame posted — detection #%s (side=%s, conf=%.3f, violation=%s)",
+                    log.info("[%s] Frame posted - detection #%s (side=%s, conf=%.3f, violation=%s)",
                              self.camera.camera_id, j.get('detection_id'),
                              j.get('side'), j.get('confidence') or 0, j.get('detected_violation'))
                 except Exception:
                     log.info("[%s] Frame posted (201)", self.camera.camera_id)
                 return True
             else:
-                log.warning("[%s] Ingest failed: HTTP %s — %s",
+                log.warning("[%s] Ingest failed: HTTP %s - %s",
                             self.camera.camera_id, resp.status_code, resp.text[:200])
                 return False
         except Exception as e:
@@ -141,7 +141,7 @@ class CameraStreamWorker:
 
     def run_forever(self):
         self.running = True
-        log.info("[%s] Worker started — interval=%ds", self.camera.camera_id, self.interval)
+        log.info("[%s] Worker started - interval=%ds", self.camera.camera_id, self.interval)
         while self.running:
             try:
                 self.run_once()
@@ -161,7 +161,7 @@ class CameraStreamWorker:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Safe City Camera Worker — real RTSP/HTTP camera integration')
+    parser = argparse.ArgumentParser(description='Safe City Camera Worker - real RTSP/HTTP camera integration')
     parser.add_argument('--server', default='http://127.0.0.1:8000',
                         help='Django server URL (default: http://127.0.0.1:8000)')
     parser.add_argument('--once', action='store_true',

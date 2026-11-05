@@ -1,4 +1,4 @@
-"""appeals migration 0001 — ChallanAppeal model."""
+"""appeals migration 0001 - ChallanAppeal model."""
 from django.db import migrations, models
 import django.db.models.deletion
 

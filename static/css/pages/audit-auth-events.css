@@ -1,8 +1,8 @@
 /* ==========================================================================
-   AUDIT PORTAL — Authentication Events (audit-auth-events)
+   AUDIT PORTAL - Authentication Events (audit-auth-events)
    ========================================================================== */
 
-/* Action badges — monospace so dotted actions align nicely ------------- */
+/* Action badges - monospace so dotted actions align nicely ------------- */
 
 .audit-action-badge {
   font-family: var(--sc-mono, monospace);
@@ -10,7 +10,7 @@
   white-space: nowrap;
 }
 
-/* Details cell — single line with ellipsis; full text on hover via title */
+/* Details cell - single line with ellipsis; full text on hover via title */
 
 .audit-details-cell {
   max-width: 380px;
@@ -23,7 +23,7 @@
   display: inline;
 }
 
-/* Actor cell — name + username stacked */
+/* Actor cell - name + username stacked */
 
 .audit-actor-name {
   font-weight: 600;

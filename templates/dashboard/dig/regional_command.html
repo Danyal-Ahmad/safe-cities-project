@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Regional Command — Safe City{% endblock %}
+{% block title %}Regional Command{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -74,7 +74,7 @@
  <tbody>
  {% for r in regions %}
  <tr>
- <td class="fw-semibold">{{ r.name|default:"—" }}</td>
+ <td class="fw-semibold">{{ r.name|default:"-" }}</td>
  <td>{{ r.cameras|default:0 }}</td>
  <td>{{ r.online|default:0 }}</td>
  <td>{{ r.violations|default:0 }}</td>

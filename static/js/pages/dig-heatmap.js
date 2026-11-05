@@ -1,4 +1,4 @@
-/* Violation Heatmap — extracted from templates/dashboard/dig/heatmap.html */
+/* Violation Heatmap - extracted from templates/dashboard/dig/heatmap.html */
 (function () {
   'use strict';
 

@@ -17,7 +17,7 @@ def generate_signed_view_link(challan, request=None):
 
 def send_challan_notification(challan, request=None):
     if not settings.EMAIL_NOTIFICATIONS_ENABLED:
-        logger.info("Email notifications disabled — skipping for %s", challan.ticket_no)
+        logger.info("Email notifications disabled - skipping for %s", challan.ticket_no)
         return False
     recipient_email = getattr(challan, 'owner_email', None) or None
     if not recipient_email:
@@ -29,10 +29,10 @@ def send_challan_notification(challan, request=None):
             except User.DoesNotExist:
                 pass
     if not recipient_email:
-        logger.info("Owner has no email — skipping for %s", challan.ticket_no)
+        logger.info("Owner has no email - skipping for %s", challan.ticket_no)
         return False
     view_link = generate_signed_view_link(challan, request)
-    subject = f"New E-Challan Issued — {challan.ticket_no}"
+    subject = f"New E-Challan Issued - {challan.ticket_no}"
     body = (
         f"A new e-challan has been issued for vehicle {challan.plate_number}.\n\n"
         f"Challan No: {challan.ticket_no}\n"
@@ -41,7 +41,7 @@ def send_challan_notification(challan, request=None):
         f"Due Date: {challan.due_date}\n"
         f"Location: {challan.location}\n\n"
         f"View your challan (link valid for 30 days):\n{view_link}\n\n"
-        f"Safe City — Traffic Enforcement"
+        f"Safe City - Traffic Enforcement"
     )
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [recipient_email])

@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Master App JS
+ * SafeCities Project - Master App JS
  * Core application functionality:
  * - CSRF token handling for fetch
  * - Live topbar clock

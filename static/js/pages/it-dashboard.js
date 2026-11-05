@@ -1,4 +1,4 @@
-/* IT Infrastructure Command dashboard — extracted from templates/dashboard/it_support/dashboard.html */
+/* IT Infrastructure Command dashboard - extracted from templates/dashboard/it_support/dashboard.html */
 (function () {
   'use strict';
 

@@ -1,4 +1,4 @@
-/* Officer triage detail partial (_detection_detail.html) — extracted JS.
+/* Officer triage detail partial (_detection_detail.html) - extracted JS.
  * Idempotent: guards against double-binding if the partial is included more
  * than once or this file is loaded multiple times. */
 (function () {

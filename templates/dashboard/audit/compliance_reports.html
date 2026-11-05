@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Compliance Reports — Audit Portal{% endblock %}
+{% block title %}Compliance Reports - Audit Portal{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-compliance.css' %}">
@@ -107,7 +107,7 @@
       {% else %}
       <div class="sc-empty p-4">
         <i class="bi bi-tags"></i>
-        No violation data yet — challans will appear here once issued.
+        No violation data yet - challans will appear here once issued.
       </div>
       {% endif %}
     </div>
@@ -156,7 +156,7 @@
       <div class="sc-card-header d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
           <i class="bi bi-geo-alt"></i>
-          <span>By location — top {{ by_location|length|default:15 }}</span>
+          <span>By location - top {{ by_location|length|default:15 }}</span>
         </div>
         <span class="sc-badge sc-badge-teal">{{ by_location|length|default:0 }} locations</span>
       </div>

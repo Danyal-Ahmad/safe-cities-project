@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}All Detections — Officer Portal{% endblock %}
+{% block title %}All Detections - Officer Portal{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/officer-detections-list.css' %}">
 {% endblock %}
@@ -11,7 +11,7 @@
   <div>
     <h1><i class="bi bi-collection"></i> All Detections</h1>
     <p class="sc-lead">
-      Every detection processed by the automated enforcement pipeline &mdash; frame tracking,
+      Every detection processed by the automated enforcement pipeline - frame tracking,
       five-step hard security checks and automatic e-challan generation.
     </p>
   </div>
@@ -88,14 +88,14 @@
             <td class="sc-text-sm">
               {% if d.camera %}
                 {{ d.camera.camera_id }}{% if d.camera.location %} <span class="sc-text-faint">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}
-              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+              {% else %}<span class="sc-text-faint">-</span>{% endif %}
             </td>
             <td>
               {% if d.status == 'confirmed' %}
                 <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> Confirmed</span>
               {% elif d.status == 'rejected' %}
                 <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> Rejected</span>
-              {% elif d.status == 'flagged_for_dig' %}
+              {% elif d.status == 'flagged_officer' %}
                 <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> Flagged</span>
               {% else %}
                 <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> Pending</span>
@@ -106,7 +106,7 @@
                 <span class="sc-badge {% if d.ai_confidence >= 0.85 %}sc-badge-ok{% elif d.ai_confidence >= 0.6 %}sc-badge-amber{% else %}sc-badge-red{% endif %} sc-mono">
                   {% widthratio d.ai_confidence 1 100 %}%
                 </span>
-              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+              {% else %}<span class="sc-text-faint">-</span>{% endif %}
             </td>
             <td class="sc-text-sm">
               {% if d.track_id %}
@@ -121,12 +121,12 @@
                       <i class="bi bi-shield-fill-check"></i> {{ ev.passed }}/{{ ev.total }}
                     </span>
                   {% else %}
-                    <span class="sc-badge sc-badge-amber" data-bs-toggle="tooltip" title="{{ ev.passed }} of {{ ev.total }} hard security checks passed — open for details">
+                    <span class="sc-badge sc-badge-amber" data-bs-toggle="tooltip" title="{{ ev.passed }} of {{ ev.total }} hard security checks passed - open for details">
                       <i class="bi bi-shield-fill-exclamation"></i> {{ ev.passed }}/{{ ev.total }}
                     </span>
                   {% endif %}
                 {% else %}
-                  <span class="sc-badge sc-badge-muted" data-bs-toggle="tooltip" title="No evidence checks recorded">—</span>
+                  <span class="sc-badge sc-badge-muted" data-bs-toggle="tooltip" title="No evidence checks recorded">-</span>
                 {% endif %}
               {% endwith %}
             </td>

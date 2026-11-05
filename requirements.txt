@@ -1,8 +1,8 @@
 # =============================================================================
-# SAFE CITY FYP — complete dependency list
+# SAFE CITIES PROJECT - complete dependency list
 # Database: PostgreSQL ONLY (no SQLite)
 # AI: ONNX plate detector + side classifier + OCR (EasyOCR / optional Paddle / Tesseract)
-# Python: 3.10 – 3.12 recommended on Windows. 3.13/3.14: use EasyOCR or Tesseract only.
+# Python: 3.10 - 3.12 recommended on Windows. 3.13/3.14: use EasyOCR or Tesseract only.
 # =============================================================================
 
 # ----- Core web -----
@@ -19,6 +19,9 @@ psycopg2-binary>=2.9,<3
 gunicorn>=21.2,<24
 whitenoise>=6.6,<7
 
+# ----- Device fingerprinting (login audit) -----
+user-agents>=2.2
+
 # ----- Security / hashing -----
 argon2-cffi>=23.1
 cffi>=1.16
@@ -29,7 +32,7 @@ numpy>=1.24
 Pillow>=10.0
 opencv-python-headless>=4.8
 
-# ----- OCR (plate text) — core path that works on most Windows Pythons -----
+# ----- OCR (plate text) - core path that works on most Windows Pythons -----
 # EasyOCR (primary when Paddle is unavailable)
 easyocr>=1.7.0
 # Optional OS Tesseract binding (install Tesseract binary separately on Windows)

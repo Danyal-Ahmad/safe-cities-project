@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}My Performance — Officer Portal{% endblock %}
+{% block title %}My Performance - Officer Portal{% endblock %}
 {% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>My Performance</b>{% endblock %}
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
@@ -36,7 +36,7 @@
   <div class="sc-kpi sc-kpi-amber">
     <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
     <div class="sc-kpi-label">Avg Response</div>
-    <div class="sc-kpi-value">{{ avg_review_hours|default:"—" }}{% if avg_review_hours %}<small class="fs-6">h</small>{% endif %}</div>
+    <div class="sc-kpi-value">{{ avg_review_hours|default:"-" }}{% if avg_review_hours %}<small class="fs-6">h</small>{% endif %}</div>
     <div class="sc-kpi-foot">hours per review</div>
   </div>
 </div>
@@ -97,13 +97,13 @@
           {% for det in recent_reviews %}
           <tr>
             <td><a href="{% url 'officer_portal:detection_detail' det.id %}">#{{ det.id }}</a></td>
-            <td>{{ det.effective_plate|default:"—" }}</td>
+            <td>{{ det.effective_plate|default:"-" }}</td>
             <td>
               {% if det.status == 'confirmed' %}
               <span class="sc-badge sc-badge-ok">Confirmed</span>
               {% elif det.status == 'rejected' %}
               <span class="sc-badge sc-badge-danger">Rejected</span>
-              {% elif det.status == 'flagged_for_dig' %}
+              {% elif det.status == 'flagged_officer' %}
               <span class="sc-badge sc-badge-amber">Flagged</span>
               {% else %}
               <span class="sc-badge sc-badge-muted">{{ det.get_status_display }}</span>
@@ -115,9 +115,9 @@
                 <div class="progress-bar bg-primary" style="width:{% widthratio det.ai_confidence 1 100 %}%"></div>
               </div>
               <small class="sc-text-muted">{{ det.ai_confidence|floatformat:0 }}%</small>
-              {% else %}—{% endif %}
+              {% else %}-{% endif %}
             </td>
-            <td class="sc-text-sm sc-text-muted">{{ det.reviewed_at|date:"d M Y H:i"|default:"—" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ det.reviewed_at|date:"d M Y H:i"|default:"-" }}</td>
           </tr>
           {% endfor %}
         </tbody>

@@ -115,7 +115,7 @@ def dashboard(request):
 
 @it_required
 def pdf_settings(request):
-    """Legacy URL — PDF settings live under System Settings tab."""
+    """Legacy URL - PDF settings live under System Settings tab."""
     from django.shortcuts import redirect
     return redirect('/portal/it/settings/?tab=pdf-settings')
 
@@ -395,14 +395,14 @@ def _studio_sample_context():
                          ]},
         raw_image=None, plate_crop_image=None, vehicle_image=None, plate_image=None,
     )
-    camera = SimpleNamespace(camera_id='CAM-001-FYP', location='Canal Road, Lahore')
+    camera = SimpleNamespace(camera_id='CAM-001-SCP', location='Main Boulevard')
     challan = SimpleNamespace(
         ticket_no='20990001', plate_number='LEA-1234', owner_name='Ahmed Khan',
-        cnic='35202-1234567-1', address='House 12, Street 4, Gulberg III, Lahore',
+        cnic='35202-1234567-1', address='House 12, Street 4, Sector 7',
         phone='0300-1234567', vehicle_type='Car', make_year='2023', color='White',
         chassis_no='CHS-99887766', violation_type='wrong_way',
         get_violation_type_display=lambda: 'Wrong Way', fine_amount=2000,
-        location='Canal Road, Lahore', ai_confidence=0.93, moving_direction='DOWN',
+        location='Main Boulevard', ai_confidence=0.93, moving_direction='DOWN',
         legal_direction='UP', issue_date=datetime.date(2026, 11, 5),
         due_date=datetime.date(2026, 12, 5), payment_status='UNPAID',
         get_payment_status_display=lambda: 'Unpaid', created_at=datetime.datetime(2026, 11, 5, 14, 25, 0),
@@ -612,12 +612,12 @@ def _audit_studio_sample_context():
 
     sys_settings = SystemSettings.get()
     auditor = SimpleNamespace(
-        id=5, username='audit@safecity.fyp', get_full_name=lambda: 'Ayesha Audit',
+        id=5, username='audit@safecities.project', get_full_name=lambda: 'Ayesha Audit',
         designation='Audit Officer', staff_id='PSC-2026-AUD-005',
         signature=None, signature_stamp=None, get_role_display=lambda: 'Audit Officer',
     )
     dig = SimpleNamespace(
-        id=1, username='dig@safecity.fyp', get_full_name=lambda: 'Aamir DIG',
+        id=1, username='dig@safecities.project', get_full_name=lambda: 'Aamir DIG',
         designation='Deputy Inspector General (Traffic)', staff_id='PSC-2026-DIG-001',
         signature=None, signature_stamp=None, get_role_display=lambda: 'DIG',
     )
@@ -814,3 +814,106 @@ def audit_studio_preview(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="audit-studio-preview.pdf"'
     return response
+
+
+# ---------------------------------------------------------------------------
+# Ads Studio: full CRUD for all advertising channels.
+# IT Support owns ad content. DIG only selects/prioritizes (dig:ads_select).
+# ---------------------------------------------------------------------------
+@it_required
+def ads_studio(request):
+    from admin.dig_portal.models import Banner
+
+    banners = Banner.objects.all().order_by('-priority', '-created_at')
+    channel_counts = {}
+    for code, _label in Banner.PLACEMENT_CHOICES:
+        channel_counts[code] = Banner.objects.filter(placement=code).count()
+
+    return render(request, 'dashboard/it_support/ads_studio.html', {
+        'banners': banners,
+        'channel_counts': channel_counts,
+        'placements': Banner.PLACEMENT_CHOICES,
+        'audiences': Banner.AUDIENCE_CHOICES,
+        'banner_types': Banner.BANNER_TYPE_CHOICES,
+        'active_count': Banner.objects.filter(is_active=True).count(),
+    })
+
+
+@it_required
+def ads_studio_action(request):
+    """Single POST endpoint for ad create/update/delete/toggle."""
+    from admin.dig_portal.models import Banner
+    from django.utils import timezone as dj_tz
+
+    if request.method != 'POST':
+        return redirect('it_support_portal:ads_studio')
+
+    action = request.POST.get('action', '')
+    banner_id = request.POST.get('banner_id')
+
+    def _parse_dt(raw):
+        raw = (raw or '').strip()
+        if not raw:
+            return None
+        try:
+            from datetime import datetime
+            dt = datetime.fromisoformat(raw)
+            if dj_tz.is_naive(dt):
+                dt = dj_tz.make_aware(dt)
+            return dt
+        except ValueError:
+            return None
+
+    def _form_banner(b):
+        b.title = (request.POST.get('title') or '').strip() or b.title
+        b.banner_type = request.POST.get('banner_type') or b.banner_type
+        b.html_content = request.POST.get('html_content') or ''
+        b.image_link = (request.POST.get('image_link') or '').strip()
+        b.placement = request.POST.get('placement') or b.placement
+        b.audience = request.POST.get('audience') or b.audience
+        b.bg_color = (request.POST.get('bg_color') or b.bg_color or '#1F4E79')[:20]
+        b.text_color = (request.POST.get('text_color') or b.text_color or '#FFFFFF')[:20]
+        b.is_active = request.POST.get('is_active') == 'on'
+        try:
+            b.priority = max(-100, min(1000, int(request.POST.get('priority') or 0)))
+        except (TypeError, ValueError):
+            pass
+        b.start_at = _parse_dt(request.POST.get('start_at'))
+        b.expires_at = _parse_dt(request.POST.get('expires_at'))
+        if request.FILES.get('image'):
+            b.image = request.FILES['image']
+        return b
+
+    if action == 'create':
+        title = (request.POST.get('title') or '').strip()
+        placement = request.POST.get('placement') or ''
+        if not title or placement not in dict(Banner.PLACEMENT_CHOICES):
+            messages.error(request, "Title and a valid channel are required.")
+            return redirect('it_support_portal:ads_studio')
+        banner = Banner(title=title, placement=placement, created_by=request.user)
+        banner = _form_banner(banner)
+        banner.save()
+        AuditLog.write(request, 'ad.create', 'Banner', banner.pk,
+                       title=banner.title[:80], placement=banner.placement)
+        messages.success(request, f"Ad '{banner.title}' created in the {banner.placement} channel.")
+        return redirect('it_support_portal:ads_studio')
+
+    banner = get_object_or_404(Banner, pk=banner_id)
+    if action == 'edit':
+        banner = _form_banner(banner)
+        banner.save()
+        AuditLog.write(request, 'ad.edit', 'Banner', banner.pk, title=banner.title[:80])
+        messages.success(request, f"Ad '{banner.title}' updated.")
+    elif action == 'toggle':
+        banner.is_active = not banner.is_active
+        banner.save(update_fields=['is_active'])
+        AuditLog.write(request, 'ad.toggle', 'Banner', banner.pk,
+                       title=banner.title[:80], active=banner.is_active)
+        messages.success(request, f"'{banner.title}' is now {'active' if banner.is_active else 'inactive'}.")
+    elif action == 'delete':
+        AuditLog.write(request, 'ad.delete', 'Banner', banner.pk, title=banner.title[:80])
+        messages.success(request, f"Ad '{banner.title}' deleted.")
+        banner.delete()
+    else:
+        messages.error(request, "Unknown ad action.")
+    return redirect('it_support_portal:ads_studio')

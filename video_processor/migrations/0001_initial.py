@@ -1,4 +1,4 @@
-"""video_processor migration 0001 — VideoUpload + VideoFrame."""
+"""video_processor migration 0001 - VideoUpload + VideoFrame."""
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='VideoUpload',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('video_file', models.FileField(help_text='MP4, AVI, MOV — max 200 MB', upload_to='videos/%Y/%m/%d/')),
+                ('video_file', models.FileField(help_text='MP4, AVI, MOV - max 200 MB', upload_to='videos/%Y/%m/%d/')),
                 ('original_filename', models.CharField(blank=True, max_length=255, null=True)),
                 ('status', models.CharField(choices=[('uploaded', 'Uploaded'), ('processing', 'Processing'), ('completed', 'Completed'), ('failed', 'Failed')], default='uploaded', max_length=20)),
                 ('total_frames_extracted', models.IntegerField(default=0)),

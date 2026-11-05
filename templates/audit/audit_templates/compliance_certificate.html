@@ -77,14 +77,14 @@
   </header>
   <div class="refbar">
     <span>Certificate No: <b>{{ doc_no }}</b></span>
-    <span>Classification: <b>Official — Compliance</b></span>
+    <span>Classification: <b>Official - Compliance</b></span>
     <span>Issued: <b>{{ generated_at|date:"d M Y" }}</b></span>
   </div>
 
   <div class="doctype"><h3>Certificate of Compliance</h3></div>
 
   <div class="meta">
-    <div class="m"><div class="l">Compliance Period</div><div class="v">{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}</div></div>
+    <div class="m"><div class="l">Compliance Period</div><div class="v">{{ period_from|date:"d M Y" }} - {{ period_to|date:"d M Y" }}</div></div>
     <div class="m"><div class="l">Certified By</div><div class="v">{{ generated_by_ctx.name }}</div></div>
     <div class="m"><div class="l">Scope</div><div class="v">Enforcement Pipeline &amp; Records</div></div>
   </div>
@@ -128,19 +128,19 @@
       <div class="line"></div>
       <div class="nm">{{ generated_by_ctx.name }}</div>
       <div class="ds">{{ generated_by_ctx.designation }} · {{ generated_by_ctx.staff_id }}</div>
-      <div class="dt">Audit Officer — {{ generated_at|date:"d M Y" }}</div>
+      <div class="dt">Audit Officer - {{ generated_at|date:"d M Y" }}</div>
     </div>
     <div class="sigbox">
       <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
       <div class="line"></div>
       <div class="nm">{{ countersigned_by_ctx.name }}</div>
       <div class="ds">{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}</div>
-      <div class="dt">Countersigned — Deputy Inspector General</div>
+      <div class="dt">Countersigned - Deputy Inspector General</div>
     </div>
   </div>
 
   <div class="ft">
-    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.authority_name_en }} - {{ branding.office_name }}</span>
     <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
     <span>System generated · verifiable via document hash</span>
   </div>

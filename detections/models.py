@@ -7,12 +7,12 @@ class Detection(models.Model):
     PENDING = 'pending_review'
     CONFIRMED = 'confirmed'
     REJECTED = 'rejected'
-    FLAGGED = 'flagged_for_dig'
+    FLAGGED = 'flagged_officer'
     STATUS_CHOICES = [
         (PENDING, 'Pending Review'),
         (CONFIRMED, 'Confirmed'),
         (REJECTED, 'Rejected (False Positive)'),
-        (FLAGGED, 'Flagged for DIG'),
+        (FLAGGED, 'Flagged for Officer Review'),
     ]
     SIDE_FRONT = 'front'
     SIDE_BACK = 'back'
@@ -22,7 +22,7 @@ class Detection(models.Model):
                                null=True, blank=True,
                                help_text="Null for detections from video uploads, or after the source camera "
                                          "record has been deleted. Detections/evidence are preserved even if "
-                                         "the camera is removed (SET_NULL, not CASCADE) — deleting a camera "
+                                         "the camera is removed (SET_NULL, not CASCADE): deleting a camera "
                                          "must never destroy violation evidence or challan history.")
     raw_image = models.ImageField(upload_to='detections/raw/%Y/%m/%d/')
     plate_crop_image = models.ImageField(upload_to='detections/plate/%Y/%m/%d/', null=True, blank=True)
@@ -75,8 +75,8 @@ class Detection(models.Model):
         ]
 
     def __str__(self):
-        plate = self.ai_plate_text or '—'
-        return f"Detection {self.id} — {plate} ({self.get_status_display()})"
+        plate = self.ai_plate_text or '-'
+        return f"Detection {self.id} - {plate} ({self.get_status_display()})"
 
     @property
     def effective_plate(self):

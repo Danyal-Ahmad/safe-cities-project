@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Vehicle Tracking — Officer Portal{% endblock %}
+{% block title %}Vehicle Tracking - Officer Portal{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/officer-vehicle-tracking.css' %}">
 {% endblock %}
@@ -11,8 +11,8 @@
   <div>
     <h1><i class="bi bi-geo-alt"></i> Vehicle Tracking</h1>
     <p class="sc-lead">
-      Search a registration plate to see its full detection history &mdash; with track IDs,
-      frame counts and evidence results &mdash; plus every challan issued against it.
+      Search a registration plate to see its full detection history - with track IDs,
+      frame counts and evidence results - plus every challan issued against it.
     </p>
   </div>
   <div class="sc-flex sc-flex-wrap sc-gap-2">
@@ -41,7 +41,7 @@
     </div>
     {% endif %}
   </form>
-  <div class="sc-hint"><i class="bi bi-info-circle"></i> Partial plates work too &mdash; e.g. <span class="sc-mono">LEA</span> matches every plate containing that series.</div>
+  <div class="sc-hint"><i class="bi bi-info-circle"></i> Partial plates work too - e.g. <span class="sc-mono">LEA</span> matches every plate containing that series.</div>
 </div>
 
 {% if not plate %}
@@ -96,7 +96,7 @@
     <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
     <div class="sc-kpi-label">Latest Activity</div>
     <div class="sc-kpi-value sc-kpi-value-sm">
-      {% if detections %}{{ detections.0.created_at|date:"d M" }}{% elif challans %}{{ challans.0.issue_date|date:"d M" }}{% else %}—{% endif %}
+      {% if detections %}{{ detections.0.created_at|date:"d M" }}{% elif challans %}{{ challans.0.issue_date|date:"d M" }}{% else %}-{% endif %}
     </div>
     <div class="sc-kpi-foot">most recent detection / challan</div>
   </div>
@@ -104,7 +104,7 @@
     <div class="sc-kpi-icon"><i class="bi bi-calendar-range"></i></div>
     <div class="sc-kpi-label">First Seen</div>
     <div class="sc-kpi-value sc-kpi-value-sm">
-      {% if detections %}{% with oldest=detections|last %}{{ oldest.created_at|date:"d M" }}{% endwith %}{% else %}—{% endif %}
+      {% if detections %}{% with oldest=detections|last %}{{ oldest.created_at|date:"d M" }}{% endwith %}{% else %}-{% endif %}
     </div>
     <div class="sc-kpi-foot">earliest detection on record</div>
   </div>
@@ -136,7 +136,7 @@
                 <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> Confirmed</span>
               {% elif d.status == 'rejected' %}
                 <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> Rejected</span>
-              {% elif d.status == 'flagged_for_dig' %}
+              {% elif d.status == 'flagged_officer' %}
                 <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> Flagged</span>
               {% else %}
                 <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> Pending</span>
@@ -144,7 +144,7 @@
             </div>
             <div class="sc-vt-meta">
               <span><i class="bi bi-clock"></i> {{ d.created_at|date:"d M Y, H:i" }}</span>
-              <span><i class="bi bi-camera3"></i> {% if d.camera %}{{ d.camera.camera_id }}{% else %}—{% endif %}</span>
+              <span><i class="bi bi-camera3"></i> {% if d.camera %}{{ d.camera.camera_id }}{% else %}-{% endif %}</span>
               <span><i class="bi bi-film"></i> {% if d.track_id %}{{ d.track_frames }} frames{% else %}no track{% endif %}</span>
               {% if d.track_id %}<span class="sc-mono"><i class="bi bi-link-45deg"></i> {{ d.track_id }}</span>{% endif %}
             </div>
@@ -152,7 +152,7 @@
               <span>
                 {% if d.ai_confidence %}
                   AI confidence <strong class="sc-mono">{{ d.ai_confidence|floatformat:2 }}</strong>
-                {% else %}AI confidence —{% endif %}
+                {% else %}AI confidence -{% endif %}
               </span>
               {% with ev=d.evidence_summary %}
                 {% if ev.total %}

@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Live Workstation Module
+ * SafeCities Project - Live Workstation Module
  * Camera stream handling, AI detection overlay, frame snapshots,
  * detection polling, and timeline management.
  */

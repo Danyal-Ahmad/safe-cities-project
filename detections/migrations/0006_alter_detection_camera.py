@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='detection',
             name='camera',
-            field=models.ForeignKey(blank=True, help_text='Null for detections from video uploads, or after the source camera record has been deleted. Detections/evidence are preserved even if the camera is removed (SET_NULL, not CASCADE) — deleting a camera must never destroy violation evidence or challan history.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='detections', to='cameras.camera'),
+            field=models.ForeignKey(blank=True, help_text='Null for detections from video uploads, or after the source camera record has been deleted. Detections/evidence are preserved even if the camera is removed (SET_NULL, not CASCADE) - deleting a camera must never destroy violation evidence or challan history.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='detections', to='cameras.camera'),
         ),
     ]

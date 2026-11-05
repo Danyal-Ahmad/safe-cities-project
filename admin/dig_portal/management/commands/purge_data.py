@@ -15,7 +15,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--include-systemsettings', action='store_true',
-            help='Also delete the SystemSettings singleton (not recommended — will be re-created on next access).'
+            help='Also delete the SystemSettings singleton (not recommended - will be re-created on next access).'
         )
         parser.add_argument(
             '--include-media', action='store_true',
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         if not confirm:
             self.stdout.write(self.style.WARNING(
                 "\n========================================\n"
-                "  PURGE DATA — DESTRUCTIVE OPERATION\n"
+                "  PURGE DATA - DESTRUCTIVE OPERATION\n"
                 "========================================\n"
                 "\n"
                 "This will DELETE all data from the database EXCEPT:\n"
@@ -139,7 +139,7 @@ class Command(BaseCommand):
             OfficerProfile.objects.all().delete()
             n = User.objects.all().delete()[0]
             self.stdout.write(self.style.ERROR(
-                f"  - Users:                {n} deleted (INCLUDE ACCOUNTS — full reset)"
+                f"  - Users:                {n} deleted (INCLUDE ACCOUNTS - full reset)"
             ))
         else:
             self.stdout.write(self.style.SUCCESS(

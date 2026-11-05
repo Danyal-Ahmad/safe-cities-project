@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='signature_designation',
-            field=models.CharField(blank=True, help_text="Printed designation under the signature (e.g. 'Traffic Officer').", max_length=120, null=True),
+            field=models.CharField(blank=True, help_text="Printed designation under the signature (e.g. 'Enforcement Officer').", max_length=120, null=True),
         ),
         migrations.AddField(
             model_name='user',

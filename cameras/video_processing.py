@@ -86,7 +86,7 @@ def process_video_upload(upload_id):
     try:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            raise RuntimeError("Could not open video file — unsupported or corrupt format.")
+            raise RuntimeError("Could not open video file - unsupported or corrupt format.")
 
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
         frame_count_total = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0

@@ -45,19 +45,19 @@ class LoginEventTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.it = User.objects.create_user(
-            username='it_studio@safecity.fyp', email='it_studio@safecity.fyp',
+            username='it_studio@safecities.project', email='it_studio@safecities.project',
             password=IT_PW, role='IT')
         cls.audit = User.objects.create_user(
-            username='aud@safecity.fyp', email='aud@safecity.fyp',
+            username='aud@safecities.project', email='aud@safecities.project',
             password=IT_PW, role='AUDIT')
         cls.dig = User.objects.create_user(
-            username='dg@safecity.fyp', email='dg@safecity.fyp',
+            username='dg@safecities.project', email='dg@safecities.project',
             password=IT_PW, role='DIG')
 
     def test_failed_login_records_device_and_ip(self):
         c = Client(HTTP_USER_AGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0')
-        c.post('/auth/admin/login/', {'username': 'it_studio@safecity.fyp', 'password': 'nope'})
-        ev = LoginEvent.objects.filter(username_attempted='it_studio@safecity.fyp').first()
+        c.post('/auth/admin/login/', {'username': 'it_studio@safecities.project', 'password': 'nope'})
+        ev = LoginEvent.objects.filter(username_attempted='it_studio@safecities.project').first()
         self.assertIsNotNone(ev)
         self.assertFalse(ev.success)
         self.assertEqual(ev.failure_reason, 'invalid_credentials')
@@ -67,8 +67,8 @@ class LoginEventTests(TestCase):
 
     def test_successful_login_records_user(self):
         c = Client(HTTP_USER_AGENT='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1')
-        c.post('/auth/admin/login/', {'username': 'it_studio@safecity.fyp', 'password': IT_PW})
-        ev = LoginEvent.objects.filter(username_attempted='it_studio@safecity.fyp', success=True).first()
+        c.post('/auth/admin/login/', {'username': 'it_studio@safecities.project', 'password': IT_PW})
+        ev = LoginEvent.objects.filter(username_attempted='it_studio@safecities.project', success=True).first()
         self.assertIsNotNone(ev)
         self.assertEqual(ev.user, self.it)
         self.assertEqual(ev.portal, 'admin')
@@ -76,7 +76,7 @@ class LoginEventTests(TestCase):
 
     def test_audit_portal_can_view_login_events(self):
         c = Client()
-        c.login(username='aud@safecity.fyp', password=IT_PW)
+        c.login(username='aud@safecities.project', password=IT_PW)
         r = c.get('/portal/audit/login-events/')
         self.assertEqual(r.status_code, 200)
         r2 = c.get('/portal/audit/login-events/export/')
@@ -88,24 +88,24 @@ class StudioPermissionTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.it = User.objects.create_user(
-            username='studio_it@safecity.fyp', email='studio_it@safecity.fyp',
+            username='studio_it@safecities.project', email='studio_it@safecities.project',
             password=IT_PW, role='IT')
         cls.dig = User.objects.create_user(
-            username='studio_dig@safecity.fyp', email='studio_dig@safecity.fyp',
+            username='studio_dig@safecities.project', email='studio_dig@safecities.project',
             password=IT_PW, role='DIG')
         cls.officer = User.objects.create_user(
-            username='studio_off@safecity.fyp', email='studio_off@safecity.fyp',
+            username='studio_off@safecities.project', email='studio_off@safecities.project',
             password=IT_PW, role='OFFICER')
 
     def test_it_can_access_challan_studio(self):
         c = Client()
-        c.login(username='studio_it@safecity.fyp', password=IT_PW)
+        c.login(username='studio_it@safecities.project', password=IT_PW)
         self.assertEqual(c.get('/portal/it/challan-studio/').status_code, 200)
         self.assertEqual(c.get('/portal/it/audit-studio/').status_code, 200)
 
     def test_dig_select_only_pages(self):
         c = Client()
-        c.login(username='studio_dig@safecity.fyp', password=IT_PW)
+        c.login(username='studio_dig@safecities.project', password=IT_PW)
         r = c.get('/portal/dig/challan-template-select/')
         self.assertEqual(r.status_code, 200)
         r2 = c.get('/portal/dig/audit-template-select/')
@@ -116,14 +116,14 @@ class StudioPermissionTests(TestCase):
 
     def test_officer_blocked_from_studios(self):
         c = Client()
-        c.login(username='studio_off@safecity.fyp', password=IT_PW)
+        c.login(username='studio_off@safecities.project', password=IT_PW)
         self.assertEqual(c.get('/portal/it/challan-studio/').status_code, 302)
         self.assertEqual(c.get('/portal/it/audit-studio/').status_code, 302)
         self.assertEqual(c.get('/portal/audit/generate-document/').status_code, 302)
 
     def test_studio_save_and_activate(self):
         c = Client()
-        c.login(username='studio_it@safecity.fyp', password=IT_PW)
+        c.login(username='studio_it@safecities.project', password=IT_PW)
         html = ('<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>'
                 '<div>Challan {{ challan.ticket_no }} {{ challan.plate_number }}</div></body></html>')
         r = c.post('/portal/it/challan-studio/', {
@@ -142,7 +142,7 @@ class AuditDocumentTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.audit = User.objects.create_user(
-            username='auditor@safecity.fyp', email='auditor@safecity.fyp',
+            username='auditor@safecities.project', email='auditor@safecities.project',
             password=IT_PW, role='AUDIT')
 
     def test_all_five_audit_templates_render(self):
@@ -162,7 +162,7 @@ class AuditDocumentTests(TestCase):
 
     def test_auditor_generate_page_flow(self):
         c = Client()
-        c.login(username='auditor@safecity.fyp', password=IT_PW)
+        c.login(username='auditor@safecities.project', password=IT_PW)
         r = c.post('/portal/audit/generate-document/', {
             'period_from': '2026-03-01', 'period_to': '2026-03-31',
             'title': 'March Audit', 'template_key': 'financial_audit_statement'})

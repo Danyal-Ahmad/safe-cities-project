@@ -1,41 +1,48 @@
-{% extends 'base.html' %}
+{% extends 'public_base.html' %}
 {% load static %}
 {% load humanize %}
 {% block title %}Pay E-Challan{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Pay Challan</b>{% endblock %}
+
 {% block content %}
-<div class="sc-public-main">
-<div class="sc-public-card" style="max-width:520px;">
-<div class="sc-public-head">
-<img src="{% static 'img/project_logo.png' %}" alt="SAFE CITY FYP">
-<h1>Pay E-Challan</h1>
-<p class="sc-lead">{{ challan.ticket_no }} · {{ challan.plate_number }} · PKR {{ challan.fine_amount|floatformat:0|intcomma }}</p>
-</div>
-{% if has_active %}<div class="sc-banner sc-banner-warn"><i class="bi bi-exclamation-triangle"></i> You have an active appeal. Payment is still required.</div>{% endif %}
-<div class="sc-psid-box">
-<div class="sc-psid-info">
-<div class="sc-psid-label">Payment System ID (PSID)</div>
-<div class="sc-psid-code">{{ challan.psid }}</div>
-</div>
-</div>
-<form method="post" class="sc-search-form">
-{% csrf_token %}
-<div class="sc-form-group">
-<label>Payment method *</label>
-<select name="payment_method" required class="w-full">
-<option value="">-- Select payment method --</option>
-{% for pm in payment_methods %}
-<option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
-{% endfor %}
-</select>
-</div>
-<div class="sc-form-group">
-<label>Transaction reference (optional)</label>
-<input type="text" name="txn_ref" placeholder="Transaction ID from your payment receipt">
-</div>
-<button type="submit" name="action" value="initiate" class="sc-btn sc-btn-primary sc-btn-block">Pay via gateway</button>
-<a href="{% url 'challans:challan_detail' challan.id %}" class="sc-btn sc-btn-block">Back to challan</a>
-</form>
-</div>
+<div class="ps-center" style="max-width:540px;text-align:left;">
+  <div class="ps-card"><div class="ps-card-pad" style="text-align:center;">
+    <div class="ps-hero-logos" style="margin-bottom:20px;">
+      <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
+      <span class="ps-brand-sep" aria-hidden="true"></span>
+      <img src="{% static 'img/university_logo.png' %}" alt="Partner">
+    </div>
+    <h1 class="ps-hero-title" style="font-size:20px;">PAY E-CHALLAN</h1>
+    <p class="ps-hint" style="margin:8px 0 22px;">
+      <span class="ps-mono">{{ challan.ticket_no }}</span> &middot; <span class="ps-mono">{{ challan.plate_number }}</span> &middot; PKR {{ challan.fine_amount|floatformat:0|intcomma }}
+    </p>
+
+    {% if has_active %}
+    <div class="ps-alert ps-alert-warn" style="text-align:left;"><i class="bi bi-exclamation-triangle"></i> You have an active appeal. Payment is still required.</div>
+    {% endif %}
+
+    <div class="ps-psid">
+      <div class="ps-psid-label">Payment System ID (PSID)</div>
+      <div class="ps-psid-code">{{ challan.psid }}</div>
+    </div>
+
+    <form method="post" style="text-align:left;">
+      {% csrf_token %}
+      <div class="ps-field">
+        <label for="pmSelect">Payment method <span class="req">*</span></label>
+        <select class="ps-input" id="pmSelect" name="payment_method" required>
+          <option value="">Select a payment method</option>
+          {% for pm in payment_methods %}
+          <option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="ps-field">
+        <label for="txnRef">Transaction reference (optional)</label>
+        <input class="ps-input" id="txnRef" type="text" name="txn_ref" placeholder="Transaction ID from your payment receipt">
+      </div>
+      <button type="submit" name="action" value="initiate" class="ps-search-cta"><i class="bi bi-credit-card"></i> Pay via gateway</button>
+      <a href="{% url 'challans:challan_detail' challan.id %}" class="ps-btn ps-btn-block" style="margin-top:10px;"><i class="bi bi-arrow-left"></i> Back to challan</a>
+    </form>
+  </div></div>
 </div>
 {% endblock %}

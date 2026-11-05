@@ -3,7 +3,7 @@
    Loaded by templates/dashboard/video/upload_list.html
    ========================================================================== */
 
-/* Numeric stat columns — tabular figures, right-aligned for easy scanning */
+/* Numeric stat columns - tabular figures, right-aligned for easy scanning */
 .vul-table th.vul-num,
 .vul-table td.vul-num {
   text-align: right;
@@ -17,7 +17,7 @@
 }
 
 /* KPI fallback: when the regroup loop finds no matching status group the
-   .md-kpi-value renders truly empty — display 0 instead of a blank card.
+   .md-kpi-value renders truly empty - display 0 instead of a blank card.
    (Counts are computed in-template via {% regroup %}; template tags emit no
    whitespace, so the element is reliably :empty in that case.) */
 .md-kpi-value:empty::before {

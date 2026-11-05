@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Login Events Audit — Safe City{% endblock %}
+{% block title %}Login Events Audit{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-login-events.css' %}">
 {% endblock %}
@@ -9,7 +9,7 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-shield-lock me-2"></i>Login Events Audit</h1>
-    <p class="sc-lead">Every authentication attempt on the platform — account, portal, outcome, source IP and full device fingerprint (browser, OS, device type).</p>
+    <p class="sc-lead">Every authentication attempt on the platform - account, portal, outcome, source IP and full device fingerprint (browser, OS, device type).</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <a href="{% url 'audit_portal:login_events_export' %}" class="sc-btn sc-btn-primary"><i class="bi bi-download me-1"></i>Export CSV</a>
@@ -113,9 +113,9 @@
               <span class="sc-badge sc-badge-danger"><i class="bi bi-x-circle-fill me-1"></i>Failed</span>
               {% endif %}
             </td>
-            <td class="sc-text-xs">{{ e.failure_reason|default:"—" }}</td>
-            <td class="sc-mono sc-text-xs">{{ e.ip_address|default:"—" }}</td>
-            <td class="sc-text-xs">{{ e.device_summary|default:"—" }}</td>
+            <td class="sc-text-xs">{{ e.failure_reason|default:"-" }}</td>
+            <td class="sc-mono sc-text-xs">{{ e.ip_address|default:"-" }}</td>
+            <td class="sc-text-xs">{{ e.device_summary|default:"-" }}</td>
             <td class="sc-text-xs">{{ e.browser }} / {{ e.os }}</td>
           </tr>
           {% empty %}

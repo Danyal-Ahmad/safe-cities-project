@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Generate Audit Document — Safe City{% endblock %}
+{% block title %}Generate Audit Document{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-generate-document.css' %}">
 {% endblock %}
@@ -74,7 +74,7 @@
                 <td class="sc-text-xs"><b>{{ d.title }}</b></td>
                 <td class="sc-text-xs">{{ d.period_from|date:"d-m-Y" }} → {{ d.period_to|date:"d-m-Y" }}</td>
                 <td><span class="sc-mono sc-text-xs">{{ d.template_key }}</span></td>
-                <td class="sc-text-xs">{{ d.generated_by.username|default:"—" }}</td>
+                <td class="sc-text-xs">{{ d.generated_by.username|default:"-" }}</td>
                 <td class="sc-mono sc-text-xs">{{ d.sha256|slice:":12" }}…</td>
                 <td><a href="{% url 'audit_portal:audit_document_download' d.id %}" class="sc-btn sc-btn-sm" title="Download signed PDF"><i class="bi bi-download"></i></a></td>
               </tr>

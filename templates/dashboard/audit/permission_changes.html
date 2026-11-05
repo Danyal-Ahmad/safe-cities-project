@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Permission Changes — Audit Portal{% endblock %}
+{% block title %}Permission Changes - Audit Portal{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-permission-changes.css' %}">
@@ -34,7 +34,7 @@
     <div class="sc-kpi-foot">{{ latest.timestamp|date:"H:i" }} &middot; most recent entry</div>
     {% endwith %}
     {% else %}
-    <div class="sc-kpi-value">&mdash;</div>
+    <div class="sc-kpi-value">-</div>
     <div class="sc-kpi-foot">no entries yet</div>
     {% endif %}
   </div>
@@ -95,9 +95,9 @@
             </span>
           </td>
           <td class="sc-mono sc-text-sm">{{ l.target_model }}{% if l.target_id %} #{{ l.target_id }}{% endif %}</td>
-          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"—" }}</td>
+          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"-" }}</td>
           <td class="sc-text-sm sc-text-muted audit-details-cell">
-            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}&mdash;{% endif %}
+            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}-{% endif %}
           </td>
         </tr>
         {% endfor %}

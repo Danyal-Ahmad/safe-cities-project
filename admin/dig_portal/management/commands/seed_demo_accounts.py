@@ -6,19 +6,19 @@ User = get_user_model()
 
 DEMO_ACCOUNTS = [
     ('role', 'email', 'first', 'last', 'password'),
-    ('SSP', 'ssp@safecity.fyp', 'Sana', 'Raza', 'Demo@SSP-2026secure'),
-    ('SUPV', 'supervisor@safecity.fyp', 'Bilal', 'Ahmed', 'Demo@SUPV-2026secure'),
-    ('OFFICER', 'officer@safecity.fyp', 'Adnan', 'Khan', 'Demo@OFFCR-2026secure'),
-    ('AUDIT', 'audit@safecity.fyp', 'Farah', 'Nawaz', 'Demo@AUDT-2026secure'),
-    ('IT', 'itsupport@safecity.fyp', 'Hamza', 'Sheikh', 'Demo@ITSP-2026secure'),
-    ('USER', 'citizen@safecity.fyp', 'Danyal', 'Ahmad', 'Demo@CZN-2026secure'),
+    ('SSP', 'ssp@safecities.project', 'Sana', 'Raza', 'Demo@SSP-2026secure'),
+    ('SUPV', 'supervisor@safecities.project', 'Bilal', 'Ahmed', 'Demo@SUPV-2026secure'),
+    ('OFFICER', 'officer@safecities.project', 'Adnan', 'Khan', 'Demo@OFFCR-2026secure'),
+    ('AUDIT', 'audit@safecities.project', 'Farah', 'Nawaz', 'Demo@AUDT-2026secure'),
+    ('IT', 'itsupport@safecities.project', 'Hamza', 'Sheikh', 'Demo@ITSP-2026secure'),
+    ('USER', 'citizen@safecities.project', 'Danyal', 'Ahmad', 'Demo@CZN-2026secure'),
 ]
 
 
 class Command(BaseCommand):
     help = (
         "Seed one demo account per role for development/demo runs. "
-        "DEMO ONLY — never run in production."
+        "DEMO ONLY - never run in production."
     )
 
     def add_arguments(self, parser):
@@ -28,7 +28,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not options.get('yes'):
             self.stdout.write(self.style.WARNING(
-                "Refusing to run without --yes. Demo accounts use fixed passwords — "
+                "Refusing to run without --yes. Demo accounts use fixed passwords - "
                 "development/demo only."))
             return
         created = []
@@ -48,6 +48,6 @@ class Command(BaseCommand):
             for line in created:
                 self.stdout.write(self.style.SUCCESS(line))
             self.stdout.write(self.style.WARNING(
-                "Demo accounts with fixed passwords — development use only."))
+                "Demo accounts with fixed passwords - development use only."))
         else:
             self.stdout.write("All demo accounts already exist.")

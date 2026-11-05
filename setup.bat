@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title Safe City FYP - Setup
+title Safe Cities Project - Setup
 
 echo ========================================
-echo   SAFE CITY FYP - FIRST-TIME SETUP
+echo   SAFE CITIES PROJECT - FIRST-TIME SETUP
 echo ========================================
 echo.
 

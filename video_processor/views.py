@@ -37,7 +37,7 @@ def upload_video(request):
         if camera_id:
             camera = Camera.objects.filter(pk=camera_id, is_active=True).first()
         if camera is None:
-            messages.error(request, "Please select the camera this video belongs to — detections need a camera.")
+            messages.error(request, "Please select the camera this video belongs to - detections need a camera.")
             return redirect('video_processor:upload_video')
         if user.role == 'OFFICER' and not CameraAssignment.objects.filter(
                 camera=camera, officer=user, is_active=True).exists():
@@ -62,7 +62,7 @@ def upload_video(request):
                     file_sha256=file_sha256,
                 )
                 LiveFeed.objects.create(
-                    title=f"{camera.camera_id} — upload {upload.id}",
+                    title=f"{camera.camera_id} - upload {upload.id}",
                     video_file=upload.video_file,
                     camera=camera,
                     location_label=camera.location,

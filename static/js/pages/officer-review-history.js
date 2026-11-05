@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Review History (officer-review-history.js)
+   Officer - Review History (officer-review-history.js)
    Clickable rows + quick date-range presets on the filter form.
    ========================================================================== */
 (function () {

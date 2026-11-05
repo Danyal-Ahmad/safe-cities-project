@@ -16,7 +16,7 @@ def _render_error(request, status_code, title, message):
     """Render the shared error page.
 
     Deliberately uses ``loader`` + a plain (non-Request) context so that
-    context processors never run — the 500 handler must work even when the
+    context processors never run - the 500 handler must work even when the
     database / auth machinery is the thing that is broken.
     """
     context = {
@@ -31,7 +31,7 @@ def _render_error(request, status_code, title, message):
 def custom_400(request, exception=None):
     return _render_error(
         request, 400, 'Bad Request',
-        'The server could not understand your request — the address or the '
+        'The server could not understand your request - the address or the '
         'submitted data may be malformed. Please go back, check the input '
         'and try again.',
     )
@@ -75,7 +75,7 @@ def custom_500(request):
     return _render_error(
         request, 500, 'Internal Server Error',
         'Something went wrong on our side while processing your request. '
-        'The issue has been logged — please try again in a few moments.',
+        'The issue has been logged - please try again in a few moments.',
     )
 
 
@@ -91,7 +91,7 @@ def custom_502(request, exception=None):
     return _render_error(
         request, 502, 'Bad Gateway',
         'The server received an invalid response from an upstream service. '
-        'This is usually temporary — please go back and try again shortly.',
+        'This is usually temporary - please go back and try again shortly.',
     )
 
 
@@ -99,6 +99,6 @@ def custom_503(request, exception=None):
     return _render_error(
         request, 503, 'Service Unavailable',
         'The service is temporarily unavailable, most likely for scheduled '
-        'maintenance. Please check back soon — we are restoring it as '
+        'maintenance. Please check back soon - we are restoring it as '
         'quickly as possible.',
     )

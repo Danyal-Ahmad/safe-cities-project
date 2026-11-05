@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ads Studio{% endblock %}
+{% block page_title %}Ads Studio{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-ads-studio.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-palette-fill me-2"></i>Ads Studio</h1>
+    <p class="sc-lead">Create, edit, redesign and retire ads for every channel. Full studio access is restricted to IT Support. DIG can only activate ads and set serving priority.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <button type="button" class="sc-btn sc-btn-primary" data-bs-toggle="modal" data-bs-target="#adFormModal" data-mode="create">
+      <i class="bi bi-plus-lg me-1"></i>New Ad
+    </button>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-collection"></i></div>
+    <div class="sc-kpi-label">Total Ads</div>
+    <div class="sc-kpi-value">{{ banners|length }}</div>
+    <div class="sc-kpi-foot">all channels</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check2-square"></i></div>
+    <div class="sc-kpi-label">Active</div>
+    <div class="sc-kpi-value">{{ active_count }}</div>
+    <div class="sc-kpi-foot">currently serving</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-postcard"></i></div>
+    <div class="sc-kpi-label">Static Post</div>
+    <div class="sc-kpi-value">{{ channel_counts.static_post }}</div>
+    <div class="sc-kpi-foot">hidden home staging</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-window-plus"></i></div>
+    <div class="sc-kpi-label">Popup</div>
+    <div class="sc-kpi-value">{{ channel_counts.popup }}</div>
+    <div class="sc-kpi-foot">home only</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-megaphone"></i></div>
+    <div class="sc-kpi-label">Ticker</div>
+    <div class="sc-kpi-value">{{ channel_counts.ticker }}</div>
+    <div class="sc-kpi-foot">portals + home</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-bell"></i></div>
+    <div class="sc-kpi-label">Push</div>
+    <div class="sc-kpi-value">{{ channel_counts.push }}</div>
+    <div class="sc-kpi-foot">portals</div>
+  </div>
+</div>
+
+{% if messages %}
+<div class="sc-messages">
+  {% for message in messages %}
+  <div class="sc-msg sc-msg-{{ message.tags|default:'info' }}" data-msg-type="{{ message.tags|default:'info' }}">
+    <i class="bi bi-info-circle-fill"></i>
+    <div class="sc-msg-body">{{ message }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-badge-ad"></i>
+    <span>Ad Library</span>
+    <span class="ms-auto sc-text-xs sc-text-muted">Channel: static post serves the hidden home staging area, popup opens on the public home, ticker runs on portals + home, push notifies portal staff</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Ad</th>
+            <th>Channel</th>
+            <th>Audience</th>
+            <th>Type</th>
+            <th>Schedule</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in banners %}
+          <tr>
+            <td style="font-weight:700;color:var(--sc-heading);">
+              {{ b.title|default:"(untitled)" }}
+              {% if b.image %}
+              <div class="sc-text-xs sc-text-muted">
+                <img src="{{ b.image.url }}" alt="" class="ads-thumb"> image upload
+              </div>
+              {% endif %}
+            </td>
+            <td>
+              {% if b.placement == 'static_post' %}<span class="sc-badge sc-badge-blue">Static post</span>
+              {% elif b.placement == 'popup' %}<span class="sc-badge sc-badge-amber">Popup</span>
+              {% elif b.placement == 'ticker' %}<span class="sc-badge sc-badge-green">Ticker</span>
+              {% elif b.placement == 'push' %}<span class="sc-badge sc-badge-purple">Push</span>
+              {% else %}<span class="sc-badge sc-badge-muted">{{ b.placement }}</span>{% endif %}
+            </td>
+            <td>{{ b.get_audience_display|default:b.audience }}</td>
+            <td><span class="sc-badge sc-badge-muted">{{ b.banner_type|default:"html"|title }}</span></td>
+            <td class="sc-text-xs">
+              {% if b.start_at %}from {{ b.start_at|date:"d M Y H:i" }}{% else %}immediate{% endif %}
+              <br>
+              {% if b.expires_at %}until {{ b.expires_at|date:"d M Y H:i" }}{% else %}no expiry{% endif %}
+            </td>
+            <td><span class="sc-mono">{{ b.priority }}</span></td>
+            <td>{% if b.is_active %}<span class="sc-badge sc-badge-green">Active</span>{% else %}<span class="sc-badge sc-badge-muted">Off</span>{% endif %}</td>
+            <td>
+              <button type="button" class="sc-btn sc-btn-sm" title="Edit ad"
+                data-bs-toggle="modal" data-bs-target="#adFormModal" data-mode="edit"
+                data-id="{{ b.id }}" data-title="{{ b.title|default:'' }}"
+                data-type="{{ b.banner_type }}" data-placement="{{ b.placement }}"
+                data-audience="{{ b.audience }}" data-html="{{ b.html_content|default:'' }}"
+                data-link="{{ b.image_link }}" data-bg="{{ b.bg_color }}" data-fg="{{ b.text_color }}"
+                data-priority="{{ b.priority }}" data-active="{% if b.is_active %}1{% else %}0{% endif %}"
+                data-start="{{ b.start_at|date:'Y-m-d\TH:i' }}" data-expires="{{ b.expires_at|date:'Y-m-d\TH:i' }}"
+                ><i class="bi bi-pencil"></i></button>
+              <form method="post" action="{% url 'it_support_portal:ads_studio_action' %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="banner_id" value="{{ b.id }}">
+                <button type="submit" class="sc-btn sc-btn-sm" title="Activate or deactivate"><i class="bi bi-power"></i></button>
+              </form>
+              <button type="button" class="sc-btn sc-btn-sm sc-btn-danger" title="Delete ad"
+                data-bs-toggle="modal" data-bs-target="#adDeleteModal"
+                data-id="{{ b.id }}" data-title="{{ b.title|default:'this ad' }}"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--sc-text-muted);">No ads yet. Create the first ad with the New Ad button.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="{% url 'it_support_portal:ads_studio_action' %}" enctype="multipart/form-data" id="adFormSubmitForm">
+{% csrf_token %}
+<div class="modal fade" id="adFormModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adFormTitle"><i class="bi bi-plus-circle me-2"></i>New Ad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="action" id="adFormAction" value="create">
+        <input type="hidden" name="banner_id" id="adFormId" value="">
+        <div class="sc-form-group">
+          <label>Internal title *</label>
+          <input type="text" name="title" id="adFormName" required maxlength="200" placeholder="Eid traffic advisory">
+        </div>
+        <div class="ads-form-grid">
+          <div class="sc-form-group">
+            <label>Channel *</label>
+            <select name="placement" id="adFormPlacement">
+              {% for code, label in placements %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="sc-form-group">
+            <label>Audience *</label>
+            <select name="audience" id="adFormAudience">
+              {% for code, label in audiences %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="sc-form-group">
+            <label>Type</label>
+            <select name="banner_type" id="adFormType">
+              {% for code, label in banner_types %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="sc-form-group">
+            <label>Priority</label>
+            <input type="number" name="priority" id="adFormPriority" value="0" min="-100" max="1000">
+          </div>
+          <div class="sc-form-group">
+            <label>Scheduled start</label>
+            <input type="datetime-local" name="start_at" id="adFormStart">
+          </div>
+          <div class="sc-form-group">
+            <label>Expires at</label>
+            <input type="datetime-local" name="expires_at" id="adFormExpires">
+          </div>
+        </div>
+        <div class="sc-form-group">
+          <label>HTML content (text or announcement markup)</label>
+          <textarea name="html_content" id="adFormHtml" rows="3" placeholder="Announcement text shown in the ad"></textarea>
+        </div>
+        <div class="ads-form-grid">
+          <div class="sc-form-group">
+            <label>Image upload</label>
+            <input type="file" name="image" id="adFormImage" accept="image/*">
+          </div>
+          <div class="sc-form-group">
+            <label>Click-through link</label>
+            <input type="url" name="image_link" id="adFormLink" placeholder="https://">
+          </div>
+          <div class="sc-form-group">
+            <label>Background color</label>
+            <input type="color" name="bg_color" id="adFormBg" value="#1F4E79">
+          </div>
+          <div class="sc-form-group">
+            <label>Text color</label>
+            <input type="color" name="text_color" id="adFormFg" value="#FFFFFF">
+          </div>
+        </div>
+        <label class="ads-check"><input type="checkbox" name="is_active" id="adFormActive" checked> Active immediately</label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="sc-btn" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="sc-btn sc-btn-primary" id="adFormSave">Save Ad</button>
+      </div>
+    </div>
+  </div>
+</div>
+</form>
+
+<form method="post" action="{% url 'it_support_portal:ads_studio_action' %}" id="adDeleteForm">
+{% csrf_token %}
+<div class="modal fade" id="adDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Delete Ad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="banner_id" id="adDeleteId" value="">
+        Delete <b id="adDeleteTitle"></b>? This cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="sc-btn" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="sc-btn sc-btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-ads-studio.js' %}" defer></script>
+{% endblock %}

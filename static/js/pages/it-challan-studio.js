@@ -8,8 +8,8 @@
   var IS_DJANGO = false;
 
   var SAMPLE = {
-    authority_en: 'SAFE CITY TRAFFIC POLICE',
-    authority_ur: 'سیف سٹی ٹریفک پولیس',
+    authority_en: 'SAFE CITIES PROJECT',
+    authority_ur: 'سیف سٹیز پروجیکٹ',
     tagline: 'SERVICE · SECURITY · SAFETY',
     tagline_ur: 'خدمت · حفاظت · سیکورٹی',
     ticket_no: '20990001',
@@ -22,24 +22,24 @@
     fine_words: 'Two Thousand Rupees Only',
     owner: 'Ahmed Khan',
     cnic: '35202-1234567-1',
-    address: 'House 12, Street 4, Gulberg III, Lahore',
+    address: 'House 12, Street 4, Sector 7',
     phone: '0300-1234567',
     vehicle_type: 'Car',
     make: '2023',
     color: 'White',
     chassis: 'CHS-99887766',
-    location: 'Canal Road, Lahore',
+    location: 'Main Boulevard',
     datetime: '2026-11-05 14:23:01',
-    camera: 'CAM-001-FYP',
+    camera: 'CAM-001-SCP',
     moving: 'DOWN',
     legal: 'UP',
     conf: '0.93',
     due: '05-Dec-2026',
     due_days: '30',
     helpline: '15',
-    website: 'safecity.gov.pk',
+    website: 'portal.safecities.project',
     officer: 'Omar Officer',
-    designation: 'Traffic Officer',
+    designation: 'Enforcement Officer',
     staff_id: 'PSC-2026-OFF-004',
     hash: 'ab12cd34ef56',
     track: 'TRK-1-LEA-0001',
@@ -56,7 +56,7 @@
     plate_img: 'data:image/svg+xml;utf8,' + encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="70"><rect width="220" height="70" rx="6" fill="#f8fafc" stroke="#111" stroke-width="3"/><rect x="6" y="6" width="14" height="58" fill="#0b3a78"/><text x="50%" y="55%" font-family="Arial" font-size="34" font-weight="bold" text-anchor="middle" fill="#0b172a">LEA-1234</text></svg>'),
     cam_img: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="270"><rect width="480" height="270" fill="#3a3d42"/><circle cx="240" cy="135" r="70" fill="#4b5563"/><rect x="150" y="90" width="180" height="90" rx="8" fill="#6b7280"/><rect x="0" y="0" width="480" height="20" fill="#111"/><text x="10" y="14" font-family="monospace" font-size="12" fill="#eee">CAM-001-FYP 2026-11-05 14:23:01</text><rect x="160" y="95" width="160" height="80" fill="none" stroke="#e22" stroke-width="2"/></svg>')
+      '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="270"><rect width="480" height="270" fill="#3a3d42"/><circle cx="240" cy="135" r="70" fill="#4b5563"/><rect x="150" y="90" width="180" height="90" rx="8" fill="#6b7280"/><rect x="0" y="0" width="480" height="20" fill="#111"/><text x="10" y="14" font-family="monospace" font-size="12" fill="#eee">CAM-001-SCP 2026-11-05 14:23:01</text><rect x="160" y="95" width="160" height="80" fill="none" stroke="#e22" stroke-width="2"/></svg>')
   };
 
   function esc(s) {
@@ -70,7 +70,7 @@
     standard_a4: ['header', 'meta_bar', 'vehicle_owner', 'violation', 'fine_payment', 'evidence', 'frame_table', 'instructions', 'signature', 'footer'],
     bilingual_a4: ['header', 'meta_bar', 'vehicle_owner', 'violation', 'evidence', 'fine_payment', 'instructions', 'signature', 'footer'],
     notice_classic_a4: ['header', 'meta_bar', 'vehicle_owner', 'violation', 'evidence', 'fine_payment', 'urdu_notice', 'signature', 'footer'],
-    psca_urdu_a4: ['header', 'meta_bar', 'vehicle_owner', 'violation', 'evidence', 'frame_table', 'urdu_notice', 'po_copy', 'signature', 'footer'],
+    urdu_rtl_a4: ['header', 'meta_bar', 'vehicle_owner', 'violation', 'evidence', 'frame_table', 'urdu_notice', 'po_copy', 'signature', 'footer'],
     government_grid_a4: ['header', 'meta_bar', 'vehicle_owner', 'violation', 'evidence', 'frame_table', 'instructions', 'signature', 'barcode', 'po_copy', 'footer']
   };
 
@@ -80,7 +80,7 @@
 
   block('header', {
     label: 'Authority Header', icon: 'bi-heading', desc: 'Logos + EN/UR titles + tagline',
-    props: { title_en: 'SAFE CITY TRAFFIC POLICE', title_ur: 'سیف سٹی ٹریفک پولیس', tagline: 'SERVICE · SECURITY · SAFETY', tagline_ur: 'خدمت · حفاظت · سیکورٹی', show_logos: true, show_urdu: true },
+    props: { title_en: 'SAFE CITIES PROJECT', title_ur: 'سیف سٹیز پروجیکٹ', tagline: 'SERVICE · SECURITY · SAFETY', tagline_ur: 'خدمت · حفاظت · سیکورٹی', show_logos: true, show_urdu: true },
     schema: [
       { k: 'title_en', t: 'text', l: 'Title (English)' },
       { k: 'title_ur', t: 'text', l: 'Title (Urdu)' },
@@ -142,16 +142,16 @@
       function veh() {
         return '<div class="cst-panel"><div class="cst-panel-h">Vehicle Information</div><div class="cst-kv">' +
           '<div class="cst-kv-r"><span>Registration No</span><b>' + v(SAMPLE.plate, '{{ challan.plate_number }}') + '</b></div>' +
-          '<div class="cst-kv-r"><span>Type / Make</span><b>' + v(SAMPLE.vehicle_type + ' · ' + SAMPLE.make, '{{ challan.vehicle_type|default:"Car" }} · {{ challan.make_year|default:"—" }}') + '</b></div>' +
-          '<div class="cst-kv-r"><span>Color</span><b>' + v(SAMPLE.color, '{{ challan.color|default:"—" }}') + '</b></div>' +
-          '<div class="cst-kv-r"><span>Chassis No</span><b>' + v(SAMPLE.chassis, '{{ challan.chassis_no|default:"—" }}') + '</b></div>' +
+          '<div class="cst-kv-r"><span>Type / Make</span><b>' + v(SAMPLE.vehicle_type + ' · ' + SAMPLE.make, '{{ challan.vehicle_type|default:"Car" }} · {{ challan.make_year|default:"-" }}') + '</b></div>' +
+          '<div class="cst-kv-r"><span>Color</span><b>' + v(SAMPLE.color, '{{ challan.color|default:"-" }}') + '</b></div>' +
+          '<div class="cst-kv-r"><span>Chassis No</span><b>' + v(SAMPLE.chassis, '{{ challan.chassis_no|default:"-" }}') + '</b></div>' +
           '</div></div>';
       }
       function own() {
         return '<div class="cst-panel"><div class="cst-panel-h">Owner Information</div><div class="cst-kv">' +
           '<div class="cst-kv-r"><span>Name</span><b>' + v(SAMPLE.owner, '{{ challan.owner_name|default:"Awaiting Excise Integration" }}') + '</b></div>' +
           '<div class="cst-kv-r"><span>CNIC</span><b>' + v(SAMPLE.cnic, '{{ challan.cnic|default:"Awaiting Excise Integration" }}') + '</b></div>' +
-          '<div class="cst-kv-r"><span>Phone</span><b>' + v(SAMPLE.phone, '{{ challan.phone|default:"—" }}') + '</b></div>' +
+          '<div class="cst-kv-r"><span>Phone</span><b>' + v(SAMPLE.phone, '{{ challan.phone|default:"-" }}') + '</b></div>' +
           '<div class="cst-kv-r"><span>Address</span><b>' + v(SAMPLE.address, '{{ challan.address|default:"Awaiting Excise Integration" }}') + '</b></div>' +
           '</div></div>';
       }
@@ -176,9 +176,9 @@
       var qr = p.show_qr ? BLOCKS.qr_box.html({ caption: 'Scan to Pay' }, th, pv) : '';
       return '<div class="cst-cols cst-cols-2"><div class="cst-panel"><div class="cst-panel-h cst-panel-red">Violation Details</div><div class="cst-kv">' +
         '<div class="cst-kv-r"><span>Violation Type</span><b class="cst-red">' + v(SAMPLE.violation.toUpperCase(), '{{ challan.get_violation_type_display|upper }}') + '</b></div>' +
-        '<div class="cst-kv-r"><span>Location</span><b>' + v(SAMPLE.location, '{{ challan.location|default:"—" }}') + '</b></div>' +
+        '<div class="cst-kv-r"><span>Location</span><b>' + v(SAMPLE.location, '{{ challan.location|default:"-" }}') + '</b></div>' +
         '<div class="cst-kv-r"><span>Date &amp; Time</span><b>' + v(SAMPLE.datetime, '{{ camera_meta.timestamp }}') + '</b></div>' +
-        '<div class="cst-kv-r"><span>Moving / Legal Dir</span><b>' + v(SAMPLE.moving + ' / ' + SAMPLE.legal, '{{ challan.moving_direction|default:"—" }} / {{ challan.legal_direction|default:"—" }}') + '</b></div>' +
+        '<div class="cst-kv-r"><span>Moving / Legal Dir</span><b>' + v(SAMPLE.moving + ' / ' + SAMPLE.legal, '{{ challan.moving_direction|default:"-" }} / {{ challan.legal_direction|default:"-" }}') + '</b></div>' +
         '<div class="cst-kv-r"><span>AI Confidence</span><b>' + v(SAMPLE.conf, '{{ challan.ai_confidence|floatformat:2 }}') + '</b></div>' +
         speed +
         '<div class="cst-kv-r"><span>Fine Amount</span><b class="cst-red">PKR ' + v(SAMPLE.fine, '{{ challan.fine_amount|floatformat:"0" }}') + '/-</b></div>' +
@@ -213,7 +213,7 @@
 
   block('evidence', {
     label: 'Evidence Frame', icon: 'bi-camera-video', desc: 'Camera frame + plate crop + OSD',
-    props: { show_osd: true, show_plate: true, height_mm: 58, title: 'Evidence — 3-Frame Verified' },
+    props: { show_osd: true, show_plate: true, height_mm: 58, title: 'Evidence - 3-Frame Verified' },
     schema: [
       { k: 'title', t: 'text', l: 'Section title' },
       { k: 'show_osd', t: 'check', l: 'Show OSD overlay' },
@@ -294,7 +294,7 @@
       var seal = p.show_seal ? '<div class="cst-seal"><span>SEAL</span></div>' : '';
       return '<div class="cst-sigrow"><div class="cst-sig">' + sig +
         '<div class="cst-sig-name">' + v(SAMPLE.officer, '{{ officer_signature_name|default:"System Generated" }}') + '</div>' +
-        '<div class="cst-sig-des">' + v(SAMPLE.designation, '{{ officer_signature_designation|default:"Traffic Officer" }}') + ' · ' + v(SAMPLE.staff_id, '{{ officer_staff_id|default:"—" }}') + '</div>' +
+        '<div class="cst-sig-des">' + v(SAMPLE.designation, '{{ officer_signature_designation|default:"Enforcement Officer" }}') + ' · ' + v(SAMPLE.staff_id, '{{ officer_staff_id|default:"-" }}') + '</div>' +
         '</div>' + seal + '</div>';
     }
   });
@@ -350,11 +350,11 @@
         '<div class="cst-po-grid">' +
         '<div><span class="cst-k">TICKET NO.</span><b>' + v(SAMPLE.ticket_no, '{{ challan.ticket_no }}') + '</b></div>' +
         '<div><span class="cst-k">REG. NO.</span><b>' + v(SAMPLE.plate, '{{ challan.plate_number }}') + '</b></div>' +
-        '<div><span class="cst-k">NAME</span><b>' + v(SAMPLE.owner, '{{ challan.owner_name|default:"—" }}') + '</b></div>' +
+        '<div><span class="cst-k">NAME</span><b>' + v(SAMPLE.owner, '{{ challan.owner_name|default:"-" }}') + '</b></div>' +
         '<div><span class="cst-k">AMOUNT</span><b>PKR ' + v(SAMPLE.fine, '{{ challan.fine_amount|floatformat:"0" }}') + '/-</b></div>' +
         '<div><span class="cst-k">DUE DATE</span><b>' + v(SAMPLE.due, '{{ challan.due_date|date:"d-M-Y" }}') + '</b></div>' +
         '<div><span class="cst-k">ACCOUNT</span><b>C0263A E-Challans</b></div>' +
-        '</div><div class="cst-po-foot"><i>System-generated challan — Safe City enforcement pipeline.</i><span class="cst-po-sig">Cashier: ______________</span></div></div>';
+        '</div><div class="cst-po-foot"><i>System-generated challan - Safe City enforcement pipeline.</i><span class="cst-po-sig">Cashier: ______________</span></div></div>';
     }
   });
 
@@ -378,13 +378,13 @@
   });
 
   var AUDIT_SAMPLE = {
-    authority_en: 'SAFE CITY — TRAFFIC ENFORCEMENT',
-    authority_ur: 'سیف سٹی ٹریفک پولیس',
-    office: 'Safe City Authority — Audit & Compliance Wing',
+    authority_en: 'SAFE CITY - TRAFFIC ENFORCEMENT',
+    authority_ur: 'سیف سٹیز پروجیکٹ',
+    office: 'Safe Cities Project - Audit & Compliance Wing',
     office_ur: 'آڈٹ و ویژلنس وِنگ',
     doc_no: 'AUD-2026-1011-SUM-005',
     title: 'Periodic Audit Summary Report',
-    period: '01 Oct 2026 — 05 Nov 2026',
+    period: '01 Oct 2026 - 05 Nov 2026',
     officer: 'Ayesha Audit',
     designation: 'Audit Officer',
     staff_id: 'PSC-2026-AUD-005',
@@ -454,7 +454,7 @@
     html: function (p, th, pv) {
       var v = function (s, d) { return pv ? s : d; };
       return '<div class="cst-cols cst-cols-3">' +
-        '<div class="cst-panel"><div class="cst-kv" style="padding:2mm 2.6mm"><div class="cst-kv-r" style="border:0"><span>Period</span><b>' + v(AUDIT_SAMPLE.period, '{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}') + '</b></div></div></div>' +
+        '<div class="cst-panel"><div class="cst-kv" style="padding:2mm 2.6mm"><div class="cst-kv-r" style="border:0"><span>Period</span><b>' + v(AUDIT_SAMPLE.period, '{{ period_from|date:"d M Y" }} - {{ period_to|date:"d M Y" }}') + '</b></div></div></div>' +
         '<div class="cst-panel"><div class="cst-kv" style="padding:2mm 2.6mm"><div class="cst-kv-r" style="border:0"><span>Officer</span><b>' + v(AUDIT_SAMPLE.officer, '{{ generated_by_ctx.name }}') + '</b></div></div></div>' +
         '<div class="cst-panel"><div class="cst-kv" style="padding:2mm 2.6mm"><div class="cst-kv-r" style="border:0"><span>Prepared</span><b>' + v(AUDIT_SAMPLE.prepared, '{{ generated_at|date:"d M Y H:i" }}') + '</b></div></div></div>' +
         '</div>';
@@ -489,10 +489,10 @@
       var rows = pv
         ? '<tr><td>Confirmed detections audited</td><td class="n">' + AUDIT_SAMPLE.evidence_total + '</td></tr>' +
           '<tr><td>Full 5/5 pass rate</td><td class="n">' + AUDIT_SAMPLE.evidence_rate + '%</td></tr>' +
-          '<tr><td>Flagged for DIG oversight</td><td class="n">' + AUDIT_SAMPLE.detections_flagged + '</td></tr>'
+          '<tr><td>Flagged for officer review</td><td class="n">' + AUDIT_SAMPLE.detections_flagged + '</td></tr>'
         : '<tr><td>Confirmed detections audited</td><td class="n">{{ stats.evidence_total }}</td></tr>' +
           '<tr><td>Full 5/5 pass rate</td><td class="n">{{ stats.evidence_pass_rate }}%</td></tr>' +
-          '<tr><td>Flagged for DIG oversight</td><td class="n">{{ stats.detections_flagged }}</td></tr>';
+          '<tr><td>Flagged for officer review</td><td class="n">{{ stats.detections_flagged }}</td></tr>';
       return '<div class="cst-panel"><div class="cst-panel-h">' + esc(p.title) + '</div>' +
         '<table class="cst-table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
     }
@@ -540,7 +540,7 @@
 
   ablock('a_finding', {
     label: 'Observation / Finding', icon: 'bi-card-checklist', desc: 'Bordered finding box',
-    props: { label: 'F1 — Chain integrity.', text: 'Every confirmed detection carries a SHA-256 evidence-chain digest; no tampering signals detected.' },
+    props: { label: 'F1 - Chain integrity.', text: 'Every confirmed detection carries a SHA-256 evidence-chain digest; no tampering signals detected.' },
     schema: [
       { k: 'label', t: 'text', l: 'Finding label' },
       { k: 'text', t: 'text', l: 'Finding text' }
@@ -577,7 +577,7 @@
         '<div class="cst-sigbox"><div class="cst-sigwrap">' + csig + '</div>' +
         '<div class="cst-sig-name">' + v(AUDIT_SAMPLE.dig, '{{ countersigned_by_ctx.name }}') + '</div>' +
         '<div class="cst-sig-des">' + v(AUDIT_SAMPLE.dig_designation, '{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}') + '</div>' +
-        '<div class="cst-sig-des">Countersigned — DIG</div></div></div>';
+        '<div class="cst-sig-des">Countersigned - DIG</div></div></div>';
     }
   });
 
@@ -735,7 +735,7 @@
     var inner = doc.blocks.map(function (b) { return blockHtml(b, doc.theme, preview); }).join('\n');
     if (preview) {
       return '<style>' + shellCss(doc.theme, false) + '</style>' +
-        '<div class="cst-sheet">' + (inner || '<div style="text-align:center;color:#94a3b8;padding-top:120mm">Empty canvas — add blocks from the left palette</div>') + '</div>';
+        '<div class="cst-sheet">' + (inner || '<div style="text-align:center;color:#94a3b8;padding-top:120mm">Empty canvas - add blocks from the left palette</div>') + '</div>';
     }
     return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>E-Challan {{ challan.ticket_no }}</title>\n' +
       '<style>\n' + shellCss(doc.theme, true) + '\n</style>\n</head>\n<body>\n<div class="cst-sheet">\n' + inner + '\n</div>\n</body>\n</html>\n';
@@ -994,14 +994,14 @@
 
   function branchBuiltin(key) {
     var comp = ACTIVE_STARTERS[key] || null;
-    openEditor(newDoc(key.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + ' — Redesign', comp));
+    openEditor(newDoc(key.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + ' - Redesign', comp));
   }
 
   function thumbs() {
     document.querySelectorAll('[data-cs-thumb]').forEach(function (el) {
       var raw = el.dataset.csThumb || '';
       if (!raw) {
-        el.innerHTML = '<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#94a3b8;font-size:.75rem">No preview (structured design — open editor)</div>';
+        el.innerHTML = '<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#94a3b8;font-size:.75rem">No preview (structured design - open editor)</div>';
         return;
       }
       var f = document.createElement('iframe');

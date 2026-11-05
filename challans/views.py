@@ -14,8 +14,12 @@ from .pdf_service import _needs_nadra_excise_integration
 import re
 
 
-RATE_LIMIT_MAX_REQUESTS = 20
-RATE_LIMIT_WINDOW = 60  # seconds
+import os as _os
+
+# Per-IP public search guard. Tunable for deployments behind a trusted
+# proxy; defaults keep the public portal safe from single-source floods.
+RATE_LIMIT_MAX_REQUESTS = int(_os.environ.get('SEARCH_RATE_LIMIT', 20))
+RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))  # seconds
 
 
 def _check_rate_limit(request) -> bool:
@@ -37,7 +41,7 @@ def _check_rate_limit(request) -> bool:
 def _resolve_officer(challan):
     """Return the User who issued this challan: created_by, then detection officer.
 
-    H3 FIX: Detection only has ``reviewed_by`` — the previous code was reading
+    H3 FIX: Detection only has ``reviewed_by`` - the previous code was reading
     ``confirmed_by``, ``flagged_by``, ``auto_confirmed_by`` which don't exist on
     the model, so it always fell through to None.
     """
@@ -158,65 +162,14 @@ def home(request):
                 parts = c.owner_name.split()
                 c.display_owner = ' '.join([parts[0]] + [p[0] + '.' for p in parts[1:]]) if len(parts) > 1 else parts[0]
             else:
-                c.display_owner = c.owner_name or '—'
+                c.display_owner = c.owner_name or '-'
             try:
                 c.signed_token = signer.sign(str(c.id))
             except Exception:
                 c.signed_token = ''
 
-    homepage_banners = []
-    popup_banners = []
-    active_alerts = []
-    try:
-        from admin.dig_portal.models import Banner, Alert
-        from django.utils import timezone
-
-        now = timezone.now()
-        active_q = (
-            Q(is_active=True)
-            & (Q(start_at__isnull=True) | Q(start_at__lte=now))
-            & (Q(expires_at__isnull=True) | Q(expires_at__gt=now))
-        )
-
-        if not request.user.is_authenticated or request.user.role == 'USER':
-            if request.user.is_authenticated:
-                homepage_banners = list(Banner.get_for_user(request.user, placement='ad')[:5])
-            else:
-                homepage_banners = list(Banner.objects.filter(
-                    active_q, placement='ad', audience='all'
-                ).order_by('-priority', '-created_at')[:5])
-
-        if request.user.is_authenticated:
-            popup_banners = list(Banner.get_for_user(request.user, placement='popup')[:3])
-        else:
-            popup_banners = list(Banner.objects.filter(
-                active_q, placement='popup', audience='all'
-            ).order_by('-priority', '-created_at')[:3])
-
-        active_alerts = list(Alert.objects.filter(
-            is_active=True, audience__in=['all', 'citizens'],
-        ).filter(
-            Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
-        ).order_by('-created_at')[:5])
-
-        if request.user.is_authenticated and request.user.role in ('DIG', 'SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT'):
-            staff_alerts = list(Alert.objects.filter(
-                is_active=True, audience__in=['all', 'staff'],
-            ).filter(
-                Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
-            ).order_by('-created_at')[:5])
-            alert_ids = {a.id for a in active_alerts}
-            for a in staff_alerts:
-                if a.id not in alert_ids:
-                    active_alerts.append(a)
-
-    except Exception:
-        pass
-
     return render(request, 'challan/home.html', {
         'challans': challans, 'plate': plate, 'cnic': cnic, 'searched': searched,
-        'homepage_banners': homepage_banners,
-        'popup_banners': popup_banners, 'active_alerts': active_alerts,
     })
 
 
@@ -246,7 +199,7 @@ def _citizen_owns_challan(user, challan):
 
 
 def _mask_challan_pii(challan):
-    """In-memory PII masking for anonymous visitors. Never persisted —
+    """In-memory PII masking for anonymous visitors. Never persisted -
     masking happens after all POST validation, only for the response."""
     def _mask_name(name):
         if not name:
@@ -368,8 +321,8 @@ def challan_detail(request, challan_id):
         'officer_signature_name': _officer_signature_name(_resolve_officer(challan)),
         'officer_signature_designation': _officer_signature_designation(_resolve_officer(challan)),
         'officer_signature_stamp_url': _officer_signature_stamp_url(_resolve_officer(challan)),
-        'officer_staff_id': getattr(_resolve_officer(challan), 'staff_id', None) or '—',
-        'officer_region': getattr(_resolve_officer(challan), 'region', None) or '—',
+        'officer_staff_id': getattr(_resolve_officer(challan), 'staff_id', None) or '-',
+        'officer_region': getattr(_resolve_officer(challan), 'region', None) or '-',
         'has_active_appeal': has_active,
         'existing_appeals': existing_appeals,
         'active_tab': request.GET.get('tab') or 'base',
@@ -436,7 +389,7 @@ def challan_pdf(request, challan_id):
 
 
 def guest_pay(request, challan_id):
-    """Public pay — no login. Digital methods only.
+    """Public pay - no login. Digital methods only.
 
     The visitor is ALWAYS routed through the payment gateway. In demo mode the
     gateway is the local demo-checkout page where the visitor must explicitly
@@ -519,7 +472,7 @@ def guest_pay(request, challan_id):
 
 
 def guest_pay_done(request, challan_id):
-    """Gateway return URL — display only.
+    """Gateway return URL - display only.
 
     Payment status is mutated exclusively by the signed gateway webhook or the
     CSRF-protected demo checkout confirmation. This view never writes.

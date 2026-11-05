@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}System Settings — Safe City{% endblock %}
+{% block title %}System Settings{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 
 {% block extra_head %}
@@ -14,7 +14,7 @@
   <div>
     <h1><i class="bi bi-sliders me-2"></i>System Settings</h1>
     <p class="sc-lead">
-      Central configuration for the Safe City enforcement platform — violation fines, deadlines,
+      Central configuration for the Safe City enforcement platform - violation fines, deadlines,
       AI thresholds, NADRA / Excise integration and challan branding. Every save is audit-logged.
     </p>
   </div>
@@ -96,7 +96,7 @@
             <label for="id-grace-hours">Grace hours</label>
             <input type="number" name="grace_hours" id="id-grace-hours" class="w-full"
                    min="0" step="1" value="{{ settings.template_config.grace_hours|default:'' }}"
-                   placeholder="—"
+                   placeholder="-"
                    data-label="Grace hours">
             <p class="sc-hint">Optional grace window recorded in the system config.</p>
           </div>
@@ -106,7 +106,7 @@
             <label for="id-live-refresh-sec">Live refresh (seconds)</label>
             <input type="number" name="live_refresh_sec" id="id-live-refresh-sec" class="w-full"
                    min="1" step="1" value="{{ settings.template_config.live_refresh_sec|default:'' }}"
-                   placeholder="—"
+                   placeholder="-"
                    data-label="Live refresh">
             <p class="sc-hint">Live monitor refresh interval recorded in the system config.</p>
           </div>
@@ -116,7 +116,7 @@
             <label for="id-max-trail-frames">Max trail frames</label>
             <input type="number" name="max_trail_frames" id="id-max-trail-frames" class="w-full"
                    min="0" step="1" value="{{ settings.template_config.max_trail_frames|default:'' }}"
-                   placeholder="—"
+                   placeholder="-"
                    data-label="Max trail frames">
             <p class="sc-hint">Frames retained per vehicle track in the system config.</p>
           </div>
@@ -154,12 +154,12 @@
       <div class="set-model-strip">
         <div class="set-model-item">
           <span class="set-model-label">Plate detector</span>
-          <span class="set-model-value sc-mono">{{ model_info.plate_detector.file|default:"—" }}</span>
+          <span class="set-model-value sc-mono">{{ model_info.plate_detector.file|default:"-" }}</span>
           <span class="set-model-meta">{{ model_info.plate_detector.size_mb|default:0 }} MB · OCR {{ model_info.ocr_backend|default:"easyocr" }}</span>
         </div>
         <div class="set-model-item">
           <span class="set-model-label">Side classifier</span>
-          <span class="set-model-value sc-mono">{{ model_info.side_classifier.file|default:"—" }}</span>
+          <span class="set-model-value sc-mono">{{ model_info.side_classifier.file|default:"-" }}</span>
           <span class="set-model-meta">{{ model_info.side_classifier.size_mb|default:0 }} MB · threshold {{ model_info.side_classifier.back_threshold|default:"0.50" }}</span>
         </div>
       </div>
@@ -285,8 +285,8 @@
       <div class="sc-form-group">
         <label for="id-integration-mode">Integration mode <span class="set-req">*</span></label>
         <select name="integration_mode" id="id-integration-mode" data-mode-select>
-          <option value="demo" {% if settings.integration_mode != 'real' %}selected{% endif %}>Demo — sandboxed responses</option>
-          <option value="real" {% if settings.integration_mode == 'real' %}selected{% endif %}>Real — live endpoints</option>
+          <option value="demo" {% if settings.integration_mode != 'real' %}selected{% endif %}>Demo - sandboxed responses</option>
+          <option value="real" {% if settings.integration_mode == 'real' %}selected{% endif %}>Real - live endpoints</option>
         </select>
         <p class="sc-hint">Demo mode serves deterministic sandbox data for demos and training. Real mode calls the configured endpoints below.</p>
       </div>
@@ -311,7 +311,7 @@
               <button type="button" class="set-secret-toggle" data-secret-toggle="id-nadra-key"
                       aria-label="Show or hide NADRA API key"><i class="bi bi-eye"></i></button>
             </div>
-            <p class="sc-hint">Secret — stored in the settings record and never displayed in exports.</p>
+            <p class="sc-hint">Secret - stored in the settings record and never displayed in exports.</p>
           </div>
         </div>
         <div class="col-md-6">
@@ -333,7 +333,7 @@
               <button type="button" class="set-secret-toggle" data-secret-toggle="id-excise-key"
                       aria-label="Show or hide Excise API key"><i class="bi bi-eye"></i></button>
             </div>
-            <p class="sc-hint">Secret — treat like a password.</p>
+            <p class="sc-hint">Secret - treat like a password.</p>
           </div>
         </div>
       </div>
@@ -353,7 +353,7 @@
             <label for="id-header-text">Header text</label>
             <input type="text" name="header_text" id="id-header-text" class="w-full"
                    value="{{ settings.template_config.header_text|default:'' }}" maxlength="120"
-                   placeholder="SAFE CITY — TRAFFIC ENFORCEMENT"
+                   placeholder="SAFE CITY - TRAFFIC ENFORCEMENT"
                    data-label="Header text">
             <p class="sc-hint">Printed at the top of every challan PDF.</p>
           </div>
@@ -382,7 +382,7 @@
       <div class="sc-banner mb-0">
         <i class="bi bi-palette"></i>
         <div>PDF layout templates are managed on the
-          <strong>Challan Templates</strong> page — {{ challan_templates|length }} database template{{ challan_templates|length|pluralize }} currently on file.</div>
+          <strong>Challan Templates</strong> page - {{ challan_templates|length }} database template{{ challan_templates|length|pluralize }} currently on file.</div>
       </div>
     </div>
   </section>
@@ -390,7 +390,7 @@
   <!-- ================= NOTIFICATIONS ================= -->
   <section class="sc-card" id="set-notifications">
     <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <span class="d-flex align-items-center gap-2"><i class="bi bi-envelope"></i>Notifications — Email &amp; SMS</span>
+      <span class="d-flex align-items-center gap-2"><i class="bi bi-envelope"></i>Notifications - Email &amp; SMS</span>
       <span class="sc-badge {% if settings.email_enabled %}sc-badge-ok{% else %}sc-badge-muted{% endif %}">
         <i class="bi bi-power"></i>Email {% if settings.email_enabled %}enabled{% else %}disabled{% endif %}
       </span>
@@ -466,7 +466,7 @@
           <div class="sc-form-group">
             <label for="id-smtp-from">Envelope from</label>
             <input type="text" name="smtp_from" id="id-smtp-from" class="w-full"
-                   value="{{ settings.template_config.smtp_from|default:'' }}" placeholder="no-reply@safecity.gov.pk"
+                   value="{{ settings.template_config.smtp_from|default:'' }}" placeholder="no-reply@portal.safecities.project"
                    data-label="Envelope from">
           </div>
         </div>
@@ -578,7 +578,7 @@
     <div class="set-savebar-meta">
       <i class="bi bi-clock-history"></i>
       Last saved
-      {% if settings.updated_at %}{{ settings.updated_at|date:"d M Y, H:i" }}{% else %}—{% endif %}
+      {% if settings.updated_at %}{{ settings.updated_at|date:"d M Y, H:i" }}{% else %}-{% endif %}
       {% if settings.updated_by %} · by {{ settings.updated_by.display_name|default:settings.updated_by.username }}{% endif %}
     </div>
     <div class="set-savebar-actions">

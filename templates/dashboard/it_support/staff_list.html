@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Staff Directory — Safe City{% endblock %}
+{% block title %}Staff Directory{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-staff-list.css' %}">
 {% endblock %}
@@ -10,7 +10,7 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-people me-2"></i>Staff Directory</h1>
-    <p class="sc-lead">Read-only directory of every non-citizen account on the Safe City portal &mdash; roles, departments and account status.</p>
+    <p class="sc-lead">Read-only directory of every non-citizen account on the Safe City portal - roles, departments and account status.</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <span class="sc-badge sc-badge-blue"><i class="bi bi-person-badge"></i>{{ total_count|default:0 }} staff accounts</span>
@@ -59,7 +59,7 @@
       </div>
       <div class="col-md-3">
         <label class="form-label sc-text-sm" for="fltDept">Department</label>
-        <input type="text" name="department" id="fltDept" value="{{ dept_filter }}" class="form-control form-control-sm" placeholder="e.g. Traffic Police">
+        <input type="text" name="department" id="fltDept" value="{{ dept_filter }}" class="form-control form-control-sm" placeholder="e.g. Safe Cities Project">
       </div>
       <div class="col-md-3">
         <label class="form-label sc-text-sm" for="fltRegion">Region</label>
@@ -99,10 +99,10 @@
               <div class="it-staff-name">{{ s.display_name|default:s.username }}</div>
               <div class="sc-text-xs sc-text-muted sc-mono">{{ s.username }}</div>
             </td>
-            <td class="sc-text-sm">{{ s.email|default:"&mdash;" }}</td>
+            <td class="sc-text-sm">{{ s.email|default:"-" }}</td>
             <td><span class="sc-badge it-role-{{ s.role|lower }}"><i class="bi bi-person-badge"></i>{{ s.role_label|default:s.role }}</span></td>
-            <td class="sc-text-sm">{{ s.phone|default:"&mdash;" }}</td>
-            <td class="sc-text-sm">{{ s.department|default:"&mdash;" }}</td>
+            <td class="sc-text-sm">{{ s.phone|default:"-" }}</td>
+            <td class="sc-text-sm">{{ s.department|default:"-" }}</td>
             <td>
               {% if s.is_active %}
               <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active</span>

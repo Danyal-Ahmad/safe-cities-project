@@ -26,7 +26,7 @@ class Command(BaseCommand):
     def handle(self, *args, **opts):
         self.stdout.write(self.style.SQL_TABLE(
             "\n" + "=" * 72 + "\n"
-            "SAFE CITY — ROLE PERMISSION SYNC\n"
+            "SAFE CITY - ROLE PERMISSION SYNC\n"
             "=" * 72
         ))
 
@@ -64,7 +64,7 @@ class Command(BaseCommand):
                     self.stdout.write(f"      • {p}")
 
         self.stdout.write(self.style.SUCCESS(
-            "\n✓ All users verified. Permissions are auto-derived from role — "
+            "\n✓ All users verified. Permissions are auto-derived from role - "
             "no per-user grants to sync.\n"
             "  To change a user's permissions, change their role at "
             "/dig/admins/<id>/ (DIG-only).\n"

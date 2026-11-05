@@ -1,4 +1,4 @@
-# Safe City — AI Traffic E-Challan Enforcement System
+# SAFE CITIES PROJECT - AI Traffic E-Challan Enforcement System
 
 Django-based automated traffic-violation enforcement platform: a public E-Challan
 lookup portal, a multi-role command dashboard, live AI camera detection, and a
@@ -10,14 +10,14 @@ fully automated enforcement pipeline.
 DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHALLAN
 ```
 
-1. **Detection** — ONNX plate detector + side classifier run on camera frames
+1. **Detection** - ONNX plate detector + side classifier run on camera frames
    (live cameras and uploaded videos).
-2. **Frame tracking** — the plate is matched across the camera's recent frames
+2. **Frame tracking** - the plate is matched across the camera's recent frames
    to build a corroborated vehicle track. Videos are processed with a
    **90fps-density burst sampler**: on a candidate violation frame the
    processor reads consecutive frames and verifies the plate **one-by-one in
    at least 3 frames** before evidence is accepted.
-3. **Evidence** — five hard security checks must ALL pass before any challan
+3. **Evidence** - five hard security checks must ALL pass before any challan
    can be issued:
    | # | Check | Requirement |
    |---|-------|-------------|
@@ -28,11 +28,11 @@ DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHA
    | 5 | `chain_integrity` | SHA-256 chain digest over camera/plate/images/checks + no duplicate challan for the same plate on the same camera within 24 h |
 
    Failures never issue a challan: hard failures are rejected, ambiguous cases
-   are parked in the review queue for DIG oversight. There is **no manual or
-   officer annotation anywhere** — every challan is issued exclusively by this
+   are parked in the Officer Portal review queue. There is **no manual or
+   officer annotation anywhere** - every challan is issued exclusively by this
    pipeline. The five check results, track metadata and the chain digest are
    stored on the detection record and printed on the challan PDF.
-4. **Challan** — auto-issued e-challan with PDF (five government layouts),
+4. **Challan** - auto-issued e-challan with PDF (five government layouts),
    PSID payment ID, QR payload, Excise/NADRA owner lookup, email notification,
    audit log. Layouts are controlled by **IT Support in the Challan Studio**
    (create / edit / duplicate / redesign / activate); the **DIG selects** the
@@ -50,12 +50,44 @@ DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHA
 - Bootstrap the first DIG admin: `python manage.py create_dig_admin`
 - Optional demo accounts for development: `python manage.py seed_demo_accounts --yes`
 
+## Advertising & Notification Channels
+
+Four audience-scoped channels, managed by IT Support in the **Ads Studio**
+(`/portal/it/ads-studio/`); DIG only selects serving state and priority
+(`/portal/dig/ads/select/`):
+
+| Channel | Where it appears |
+| --- | --- |
+| Static post ads | public home, hidden staging section below the search card (slot index `-100`, never rendered) |
+| Popup ads | public home only, once per browser session |
+| Ticker ads | every staff portal + the public home |
+| Push notifications | every staff portal (bell menu + browser notifications, 45s feed) |
+
+## Public Portal Redesign
+
+All public pages (`home`, `detail`, `guest_pay`, `pay_redirect`,
+`signed_link_expired`, `_public_ads`) share `templates/public_base.html`
+and a lean design system (`static/css/public-shell.css`) matching the login
+pages: deep navy background with overlay, glass cards, Inter typography.
+The home page carries exactly two logos, the citizen sign-in button, two
+inputs (plate + CNIC), the search button and the footer.
+
+## Performance
+
+Load profile and Pakistan-scale sizing: `loadtest/LOAD_TEST_REPORT.md`
+(~60 req/s per 2-vCPU node; 9 ms median home, 49 ms p99 search).
+
+## Engineering Audit
+
+The 22-role audit covering every file, page, section, button and input:
+`docs/QA_AUDIT_REPORT.md`.
+
 ## Challan Studio & Audit Documents
 
-- **Challan Studio** (`/portal/it/challan-studio/`) — Canva-style block editor
+- **Challan Studio** (`/portal/it/challan-studio/`) - Canva-style block editor
   for challan print layouts. IT Support has full studio access; the DIG portal
   has a select-only page (`/portal/dig/challan-template-select/`).
-- **Audit Studio** (`/portal/it/audit-studio/`) — same studio engine for audit
+- **Audit Studio** (`/portal/it/audit-studio/`) - same studio engine for audit
   document layouts (5 built-in government templates: Audit Summary Report,
   Compliance Certificate, Financial Audit Statement, Security & Authentication
   Incident Report, Operational Review Letter). DIG selects the active audit
@@ -66,7 +98,7 @@ DETECTION  →  FRAME TRACKING  →  EVIDENCE (5 hard security checks)  →  CHA
 ## Audit & Accountability
 
 Every authentication attempt (account, portal, outcome, **IP address and full
-device fingerprint** — browser, OS, device type) is recorded in the login
+device fingerprint** - browser, OS, device type) is recorded in the login
 events ledger (`/portal/audit/login-events/`). Every upload (videos with
 tamper-evident SHA-256 digests, template changes) is audited at
 `/portal/audit/uploads/`. All staff mutations are written to the audit log
@@ -133,7 +165,7 @@ Copy `.env.example` to `.env` and set:
 DEBUG=True
 SECRET_KEY=<generate a strong key>
 ALLOWED_HOSTS=127.0.0.1,localhost
-PG_DB=SAFE_CITY_FYP
+PG_DB=SAFE_CITIES_PROJECT
 PG_USER=postgres
 PG_PASSWORD=<your password>
 PG_HOST=127.0.0.1
@@ -143,7 +175,7 @@ PG_PORT=5432
 Government integrations (Excise, NADRA, payments) run in **sandbox mode** by
 default; configure live endpoints in IT Support → System Settings. Payment
 settlement only happens through the signed gateway webhook or the
-CSRF-protected checkout — no view can mark a challan PAID on its own.
+CSRF-protected checkout - no view can mark a challan PAID on its own.
 
 ## Project Layout
 

@@ -1,5 +1,5 @@
 """
-Payment gateway integrations — JazzCash, EasyPaisa, bank, card.
+Payment gateway integrations - JazzCash, EasyPaisa, bank, card.
 Cash is never accepted online.
 
 If merchant keys are missing, initiate_payment returns mode='demo' with a
@@ -201,7 +201,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'action_url': return_url or '',
             'fields': {
                 'bank_name': cfg.get('bank_name') or cfg.get('name') or '',
-                'account_title': cfg.get('account_title') or cfg.get('title') or 'Safe City Authority',
+                'account_title': cfg.get('account_title') or cfg.get('title') or 'Safe Cities Project',
                 'account_number': cfg.get('account_number') or cfg.get('account') or '',
                 'iban': cfg.get('iban') or '',
                 'branch': cfg.get('branch') or '',
@@ -222,7 +222,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'action_url': return_url,
             'fields': {},
             'reference': reference,
-            'message': 'Card gateway configured — complete on return URL.',
+            'message': 'Card gateway configured - complete on return URL.',
         }
 
     return _demo_payload(challan, method, reference, return_url, type_key or 'wallet')

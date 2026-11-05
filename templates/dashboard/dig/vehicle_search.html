@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Vehicle Search — Safe City{% endblock %}
+{% block title %}Vehicle Search{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 
 {% block extra_head %}
@@ -14,7 +14,7 @@
   <div>
     <h1><i class="bi bi-car-front me-2"></i>Vehicle Search</h1>
     <p class="sc-lead">
-      Trace any vehicle across the platform — raw AI detections and issued challans in one
+      Trace any vehicle across the platform - raw AI detections and issued challans in one
       lookup by plate, owner name or CNIC.
     </p>
   </div>
@@ -64,7 +64,7 @@
 <div class="sc-banner vs-result-banner">
   <i class="bi bi-binoculars"></i>
   <div>
-    Results for <strong class="sc-mono">{{ q }}</strong> —
+    Results for <strong class="sc-mono">{{ q }}</strong> -
     <strong>{{ detections|length }}</strong> detection{{ detections|length|pluralize }} and
     <strong>{{ challans|length }}</strong> challan{{ challans|length|pluralize }} found.
   </div>
@@ -101,24 +101,24 @@
             <tbody>
               {% for d in detections %}
               <tr>
-                <td><span class="md-plate-tag">{{ d.effective_plate|default:"—" }}</span></td>
+                <td><span class="md-plate-tag">{{ d.effective_plate|default:"-" }}</span></td>
                 <td class="sc-text-sm sc-mono">
-                  {% if d.camera %}{{ d.camera.camera_id }}{% else %}<span class="sc-text-faint">—</span>{% endif %}
+                  {% if d.camera %}{{ d.camera.camera_id }}{% else %}<span class="sc-text-faint">-</span>{% endif %}
                 </td>
                 <td>
                   {% if d.ai_side_classification %}
                     <span class="sc-badge {% if d.ai_side_classification == 'back' %}sc-badge-teal{% else %}sc-badge-purple{% endif %}">
                       <i class="bi bi-arrow-left-right"></i>{{ d.ai_side_classification|capfirst }}
                     </span>
-                  {% else %}<span class="sc-text-faint">—</span>{% endif %}
+                  {% else %}<span class="sc-text-faint">-</span>{% endif %}
                 </td>
                 <td>
                   {% if d.status == 'confirmed' %}
                     <span class="sc-badge sc-badge-green"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
                   {% elif d.status == 'rejected' %}
                     <span class="sc-badge sc-badge-gray"><i class="bi bi-dash-circle"></i>Rejected</span>
-                  {% elif d.status == 'flagged_for_dig' %}
-                    <span class="sc-badge sc-badge-red"><i class="bi bi-flag-fill"></i>Flagged for DIG</span>
+                  {% elif d.status == 'flagged_officer' %}
+                    <span class="sc-badge sc-badge-red"><i class="bi bi-flag-fill"></i>Flagged for Officer Review</span>
                   {% else %}
                     <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i>Pending Review</span>
                   {% endif %}
@@ -131,13 +131,13 @@
                     </div>
                     <span class="vs-conf-value sc-mono">{{ d.ai_confidence|floatformat:2 }}</span>
                   </div>
-                  {% else %}<span class="sc-text-faint">—</span>{% endif %}
+                  {% else %}<span class="sc-text-faint">-</span>{% endif %}
                 </td>
                 <td>
                   {% with es=d.evidence_summary %}
                     {% if es.total %}
                       <span class="sc-badge {% if es.all_passed %}sc-badge-ok{% else %}sc-badge-amber{% endif %}"
-                            title="{% if es.all_passed %}All evidence checks passed{% else %}Some evidence checks failed{% endif %}{% if es.hash %} — hash {{ es.hash|slice:':12' }}…{% endif %}">
+                            title="{% if es.all_passed %}All evidence checks passed{% else %}Some evidence checks failed{% endif %}{% if es.hash %} - hash {{ es.hash|slice:':12' }}…{% endif %}">
                         <i class="bi bi-shield-{% if es.all_passed %}check{% else %}exclamation{% endif %}"></i>
                         {{ es.passed }}/{{ es.total }} checks
                       </span>
@@ -197,7 +197,7 @@
               <tr>
                 <td class="sc-mono fw-bold">{{ c.ticket_no }}</td>
                 <td><span class="md-plate-tag">{{ c.plate_number }}</span></td>
-                <td class="sc-text-sm">{{ c.owner_name|default:"—" }}</td>
+                <td class="sc-text-sm">{{ c.owner_name|default:"-" }}</td>
                 <td>
                   {% if c.payment_status == 'PAID' %}
                     <span class="sc-badge sc-badge-green"><i class="bi bi-check-circle-fill"></i>Paid</span>
@@ -245,7 +245,7 @@
       <i class="bi bi-binoculars"></i>
       <h2 class="vs-empty-title">Start a vehicle lookup</h2>
       <p>
-        Enter a plate number, owner name or CNIC above to pull the full enforcement history —
+        Enter a plate number, owner name or CNIC above to pull the full enforcement history -
         raw detections with AI confidence and tamper-evident evidence checks, plus every challan issued.
       </p>
       <div class="vs-empty-quick">

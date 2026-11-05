@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Anomaly Alerts — Audit Portal{% endblock %}
+{% block title %}Anomaly Alerts - Audit Portal{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-anomalies.css' %}">
@@ -49,7 +49,7 @@
     <p class="audit-anomaly-desc">{{ a.description|default:"Anomaly detected." }}</p>
     <div class="audit-anomaly-meta">
       <i class="bi bi-crosshair"></i>
-      <span>Target: <b>{{ a.target|default:"—" }}</b></span>
+      <span>Target: <b>{{ a.target|default:"-" }}</b></span>
     </div>
   </div>
   {% endfor %}
@@ -58,7 +58,7 @@
 <div class="sc-card">
   <div class="sc-empty p-5">
     <i class="bi bi-shield-check"></i>
-    No anomalies detected — all integrity checks passed.
+    No anomalies detected - all integrity checks passed.
   </div>
 </div>
 {% endif %}

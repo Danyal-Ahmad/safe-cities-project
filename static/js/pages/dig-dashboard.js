@@ -1,4 +1,4 @@
-/* DIG Command Center dashboard — extracted from templates/dashboard/dig/dashboard.html */
+/* DIG Command Center dashboard - extracted from templates/dashboard/dig/dashboard.html */
 (function () {
   'use strict';
 

@@ -1,4 +1,4 @@
-/* Live CCTV Monitor — extracted from templates/dashboard/dig/live_monitor.html */
+/* Live CCTV Monitor - extracted from templates/dashboard/dig/live_monitor.html */
 (function () {
   'use strict';
 

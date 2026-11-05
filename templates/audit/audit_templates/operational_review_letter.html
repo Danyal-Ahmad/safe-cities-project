@@ -86,7 +86,7 @@
   <div class="body-text">
     <p class="noindent">Respected Sir,</p>
     <p>In partial compliance with the standing orders governing periodic audit of the automated traffic enforcement system, the Audit &amp; Vigilance Wing has completed its operational review of the e-challan pipeline for the above period. The salient position is placed below for kind perusal and orders.</p>
-    <p>The enforcement pipeline processed <b>{{ stats.detections_total }}</b> detections during the period, of which <b>{{ stats.detections_confirmed }}</b> were auto-confirmed after passing the full five-step evidence verification and resulted in <b>{{ stats.challans_issued }}</b> e-challans. <b>{{ stats.detections_pending }}</b> detections remain parked for DIG review and <b>{{ stats.detections_flagged }}</b> were escalated for flag-level oversight.</p>
+    <p>The enforcement pipeline processed <b>{{ stats.detections_total }}</b> detections during the period, of which <b>{{ stats.detections_confirmed }}</b> were auto-confirmed after passing the full five-step evidence verification and resulted in <b>{{ stats.challans_issued }}</b> e-challans. <b>{{ stats.detections_pending }}</b> detections remain parked in the Officer Portal review queue and <b>{{ stats.detections_flagged }}</b> were escalated for flag-level oversight.</p>
     <p>Evidence integrity remains satisfactory: of the confirmed population audited ({{ stats.evidence_total }} records), <b>{{ stats.evidence_pass_rate }}%</b> passed all five security checks, and each record carries a SHA-256 tamper-evident chain digest which was found intact.</p>
   </div>
 
@@ -119,21 +119,21 @@
       <div class="line"></div>
       <div class="nm">{{ generated_by_ctx.name }}</div>
       <div class="ds">{{ generated_by_ctx.designation }} · {{ generated_by_ctx.staff_id }}</div>
-      <div class="dt">Audit Officer — {{ generated_at|date:"d M Y" }}</div>
+      <div class="dt">Audit Officer - {{ generated_at|date:"d M Y" }}</div>
     </div>
     <div class="sigbox">
       <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
       <div class="line"></div>
       <div class="nm">{{ countersigned_by_ctx.name }}</div>
       <div class="ds">{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}</div>
-      <div class="dt">Countersigned — Deputy Inspector General</div>
+      <div class="dt">Countersigned - Deputy Inspector General</div>
     </div>
   </div>
 
-  <div class="cc"><b>CC:</b> 1. SSP (Traffic Enforcement) &nbsp; 2. IT Support — for necessary action on para A-2 &nbsp; 3. Office copy</div>
+  <div class="cc"><b>CC:</b> 1. SSP (Traffic Enforcement) &nbsp; 2. IT Support - for necessary action on para A-2 &nbsp; 3. Office copy</div>
 
   <div class="ft">
-    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.authority_name_en }} - {{ branding.office_name }}</span>
     <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
     <span>System generated · verifiable via document hash</span>
   </div>

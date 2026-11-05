@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Chart Data & Helper Module
+ * SafeCities Project - Chart Data & Helper Module
  * Reusable data shapes, color palettes, and formatters for charts
  * and KPI displays.
  */
@@ -112,7 +112,7 @@
     // ============================================================
 
     scChartsData.formatKPI = function (value, suffix) {
-        if (value === null || value === undefined || isNaN(value)) return '—';
+        if (value === null || value === undefined || isNaN(value)) return '-';
         suffix = suffix != null ? suffix : '';
         const num = Number(value);
         const abs = Math.abs(num);
@@ -125,12 +125,12 @@
     };
 
     scChartsData.formatNumber = function (value) {
-        if (value === null || value === undefined || isNaN(value)) return '—';
+        if (value === null || value === undefined || isNaN(value)) return '-';
         return Number(value).toLocaleString();
     };
 
     scChartsData.formatPercent = function (value, decimals) {
-        if (value === null || value === undefined || isNaN(value)) return '—';
+        if (value === null || value === undefined || isNaN(value)) return '-';
         decimals = decimals != null ? decimals : 1;
         return Number(value).toFixed(decimals) + '%';
     };

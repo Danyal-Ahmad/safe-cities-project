@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DIG — Add to Blacklist  (dashboard/dig/blacklist_add.html)
+   DIG - Add to Blacklist  (dashboard/dig/blacklist_add.html)
    ========================================================================== */
 
 .bl-req {
@@ -7,7 +7,7 @@
   font-weight: 800;
 }
 
-/* Value input — enforced uppercase, mono */
+/* Value input - enforced uppercase, mono */
 .bl-value-input {
   text-transform: uppercase;
   letter-spacing: 0.08em;

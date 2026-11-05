@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Upload Video — Safe City{% endblock %}
+{% block title %}Upload Video{% endblock %}
 {% block body_class %}page-officer{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/video-upload.css' %}">
@@ -34,7 +34,7 @@
             <select name="camera_id" id="id_camera_id" class="vp-camera-select" required>
               <option value="" disabled selected>Select the camera this video belongs to…</option>
               {% for c in cameras %}
-              <option value="{{ c.id }}">{{ c.camera_id }} — {{ c.location|default:"Unknown location"|truncatechars:40 }}</option>
+              <option value="{{ c.id }}">{{ c.camera_id }} - {{ c.location|default:"Unknown location"|truncatechars:40 }}</option>
               {% endfor %}
             </select>
             <div class="sc-hint">Detections are attributed to this camera, so pick the one that recorded the footage.</div>
@@ -46,7 +46,7 @@
               <input class="vp-file-input" type="file" name="video_file" id="id_video_file" accept="video/*" required>
               <i class="bi bi-camera-video vp-file-icon"></i>
               <span class="vp-file-text"><strong>Choose a video file</strong> or click to browse</span>
-              <span class="vp-file-hint">MP4 · AVI · MOV · MKV — maximum 200 MB</span>
+              <span class="vp-file-hint">MP4 · AVI · MOV · MKV - maximum 200 MB</span>
             </label>
           </div>
 
@@ -59,7 +59,7 @@
           <i class="bi bi-camera-video-off fs-1 opacity-25 d-block mb-3"></i>
           No active cameras are available to you.
           {% if user.role == 'OFFICER' %}
-          You need an active camera assignment before uploading footage — contact IT support.
+          You need an active camera assignment before uploading footage - contact IT support.
           {% else %}
           Activate a camera first, then come back to upload footage against it.
           {% endif %}
@@ -103,12 +103,12 @@
             <span class="vp-step-num">4</span>
             <span>
               <span class="vp-step-title d-block">Review &amp; challans</span>
-              <span class="vp-step-text">Detections appear in the review queue — confirmed ones become e-challans automatically.</span>
+              <span class="vp-step-text">Detections appear in the review queue - confirmed ones become e-challans automatically.</span>
             </span>
           </li>
         </ol>
         <div class="sc-hint mt-3 mb-0">
-          <i class="bi bi-lightbulb me-1"></i> Processing runs in the background — you can safely leave this page.
+          <i class="bi bi-lightbulb me-1"></i> Processing runs in the background - you can safely leave this page.
         </div>
       </div>
     </div>
@@ -136,8 +136,8 @@
         <tbody>
           {% for u in recent_uploads %}
           <tr>
-            <td class="sc-mono sc-text-sm">{{ u.original_filename|default:"—"|truncatechars:48 }}</td>
-            <td>{{ u.camera.camera_id|default:"—" }}</td>
+            <td class="sc-mono sc-text-sm">{{ u.original_filename|default:"-"|truncatechars:48 }}</td>
+            <td>{{ u.camera.camera_id|default:"-" }}</td>
             <td>
               {% if u.status == 'completed' %}
               <span class="sc-badge sc-badge-ok">Completed</span>

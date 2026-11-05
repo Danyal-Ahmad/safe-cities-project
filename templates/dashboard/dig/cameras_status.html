@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Camera Status — Safe City{% endblock %}
+{% block title %}Camera Status{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -47,7 +47,7 @@
  <span class="metric-label">Last Check</span>
  <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
  </div>
- <div class="metric-value">{{ now|date:"H:i"|default:"—" }}</div>
+ <div class="metric-value">{{ now|date:"H:i"|default:"-" }}</div>
  </div>
  </div>
 </div>
@@ -75,7 +75,7 @@
  {% for c in cameras %}
  <tr>
  <td class="form-control font-monospace">{{ c.camera_id|default:c.id }}</td>
- <td>{{ c.location|default:"—" }}</td>
+ <td>{{ c.location|default:"-" }}</td>
  <td>
  {% if c.health_status == 'online' %}
  <span class="badge ">Online</span>
@@ -89,12 +89,12 @@
  {% if c.is_active %}<span class="badge ">Yes</span>
  {% else %}<span class="badge ">No</span>{% endif %}
  </td>
- <td class="small ">{{ c.last_health_check|date:"d M Y H:i"|default:"—" }}</td>
+ <td class="small ">{{ c.last_health_check|date:"d M Y H:i"|default:"-" }}</td>
  <td>
  {% if request.resolver_match.namespace == 'it_support_portal' or request.resolver_match.namespace == 'it' %}
  <a href="{% url portal_ns|add:':camera_edit' c.id %}" class="sc-btn sc-btn-primary" title="Edit"><i class="bi bi-circle"></i>
  {% else %}
- <span class=" small">—</span>
+ <span class=" small">-</span>
  {% endif %}
  </td>
  </tr>

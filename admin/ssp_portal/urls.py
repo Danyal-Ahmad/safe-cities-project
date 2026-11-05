@@ -12,7 +12,6 @@ urlpatterns = [
     path('appeal/<int:appeal_id>/decide/', views.decide_appeal, name='decide_appeal'),
 
     path('challans/', dig_views.challan_list, name='challan_list'),
-    path('flagged/', dig_views.flagged_detections, name='flagged_detections'),
     path('blacklist/', dig_views.blacklist_list, name='blacklist_list'),
     path('blacklist/add/', dig_views.blacklist_add, name='blacklist_add'),
 
@@ -32,7 +31,6 @@ urlpatterns = [
     path('analytics/', dig_views.analytics, name='analytics'),
     path('reports/', dig_views.reports, name='reports'),
     path('vehicle-search/', dig_views.vehicle_search, name='vehicle_search'),
-    path('flagged-detections/', dig_views.flagged_detections, name='flagged_detections_alias'),
     path('live-monitor/', dig_views.live_monitor, name='live_monitor'),
     path('officer-activity/', dig_views.officer_activity, name='officer_activity_list'),
     path('officer-activity/<int:officer_id>/', dig_views.officer_activity, name='officer_activity'),
@@ -45,14 +43,10 @@ urlpatterns = [
 
     path('alerts/hub/',                        dig_views.alerts_hub,                name='alerts_hub'),
     path('alerts/hub/add-alert/',               dig_views.alerts_hub_add_alert,      name='alerts_hub_add_alert'),
-    path('alerts/hub/add-banner/',              dig_views.alerts_hub_add_banner,     name='alerts_hub_add_banner'),
     path('alerts/hub/add-broadcast/',           dig_views.alerts_hub_add_broadcast,  name='alerts_hub_add_broadcast'),
     path('alerts/hub/alert/<int:alert_id>/toggle/',  dig_views.alerts_hub_toggle_alert,  name='alerts_hub_toggle_alert'),
     path('alerts/hub/alert/<int:alert_id>/edit/',   dig_views.alerts_hub_edit_alert,    name='alerts_hub_edit_alert'),
     path('alerts/hub/alert/<int:alert_id>/delete/',  dig_views.alerts_hub_delete_alert,  name='alerts_hub_delete_alert'),
-    path('alerts/hub/banner/<int:banner_id>/toggle/', dig_views.alerts_hub_toggle_banner, name='alerts_hub_toggle_banner'),
-    path('alerts/hub/banner/<int:banner_id>/edit/',  dig_views.alerts_hub_edit_banner,   name='alerts_hub_edit_banner'),
-    path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner, name='alerts_hub_delete_banner'),
 
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),

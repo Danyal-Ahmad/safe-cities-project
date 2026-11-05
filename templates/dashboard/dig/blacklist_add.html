@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Add to Blacklist — Safe City{% endblock %}
+{% block title %}Add to Blacklist{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 
 {% block extra_head %}
@@ -64,7 +64,7 @@
                 <input type="text" name="value" id="id-value" class="w-full sc-mono bl-value-input"
                        placeholder="LEA-1100" maxlength="20" autocomplete="off" required
                        data-uppercase-input data-label="Plate / CNIC value">
-                <p class="sc-hint">Stored in upper case — letters, digits and dashes only.</p>
+                <p class="sc-hint">Stored in upper case - letters, digits and dashes only.</p>
               </div>
             </div>
           </div>
@@ -75,10 +75,10 @@
               <span class="bl-counter" data-char-counter-for="id-reason" data-max-chars="255">0 / 255</span>
             </label>
             <textarea name="reason" id="id-reason" rows="3" class="w-full" maxlength="255"
-              placeholder="e.g. Stolen vehicle report #4417 — Rawalpindi region"
+              placeholder="e.g. Stolen vehicle report #4417 - Rawalpindi region"
               required data-label="Reason"></textarea>
             <p class="sc-hint">
-              Shown on the blacklist register and in audit records. Keep it factual — 255 characters maximum.
+              Shown on the blacklist register and in audit records. Keep it factual - 255 characters maximum.
             </p>
           </div>
 
@@ -116,7 +116,7 @@
             <i class="bi bi-lightning-charge-fill"></i>
             <div>
               <strong>Immediate effect.</strong>
-              <span>Entries apply as soon as they are saved — no further approval step is required.</span>
+              <span>Entries apply as soon as they are saved - no further approval step is required.</span>
             </div>
           </li>
           <li>

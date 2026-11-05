@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{% if is_add %}Add Payment Method{% else %}Edit {{ pm.name }}{% endif %} — Safe City{% endblock %}
+{% block title %}{% if is_add %}Add Payment Method{% else %}Edit {{ pm.name }}{% endif %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-payment-method-edit.css' %}">
 {% endblock %}
@@ -12,7 +12,7 @@
       <i class="bi bi-credit-card me-2"></i>{% if is_add %}Add Payment Method{% else %}Edit Payment Method{% endif %}
     </h1>
     <p class="sc-lead">
-      {% if is_add %}Register a mobile wallet, card or gateway integration for citizen e-challan payments.{% else %}Update <strong>{{ pm.name }}</strong>{% if pm.provider %} ({{ pm.provider }}){% endif %} &mdash; credentials, status and transaction limits.{% endif %}
+      {% if is_add %}Register a mobile wallet, card or gateway integration for citizen e-challan payments.{% else %}Update <strong>{{ pm.name }}</strong>{% if pm.provider %} ({{ pm.provider }}){% endif %} - credentials, status and transaction limits.{% endif %}
     </p>
     {% if not is_add %}
     <div class="sc-flex sc-gap-2 sc-mt-2">
@@ -111,7 +111,7 @@
           <div class="col-md-6">
             <div class="sc-form-group">
               <label class="form-label sc-text-sm" for="cfgReturn">Return URL</label>
-              <input type="url" id="cfgReturn" name="config_return_url" value="{{ pm.config.return_url }}" class="form-control sc-mono" placeholder="https://safecity.fyp/portal/pay/return/">
+              <input type="url" id="cfgReturn" name="config_return_url" value="{{ pm.config.return_url }}" class="form-control sc-mono" placeholder="https://safecities.project/portal/pay/return/">
             </div>
           </div>
         </div>
@@ -165,7 +165,7 @@
           <div class="col-md-6">
             <div class="sc-form-group">
               <label class="form-label sc-text-sm" for="cfgGwReturn">Return URL</label>
-              <input type="url" id="cfgGwReturn" name="config_return_url" value="{{ pm.config.return_url }}" class="form-control sc-mono" placeholder="https://safecity.fyp/portal/pay/return/">
+              <input type="url" id="cfgGwReturn" name="config_return_url" value="{{ pm.config.return_url }}" class="form-control sc-mono" placeholder="https://safecities.project/portal/pay/return/">
             </div>
           </div>
         </div>

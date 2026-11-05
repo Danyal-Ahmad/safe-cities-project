@@ -1,5 +1,5 @@
 """
-Permission template tags — read from accounts/permissions.py
+Permission template tags - read from accounts/permissions.py
 which is auto-generated from permission.json.
 
 Usage in templates:

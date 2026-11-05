@@ -71,14 +71,14 @@
   </header>
   <div class="refbar">
     <span>Doc No: <b>{{ doc_no }}</b></span>
-    <span>Classification: <b>Official — Audit Record</b></span>
+    <span>Classification: <b>Official - Audit Record</b></span>
     <span>Issued: <b>{{ generated_at|date:"d M Y" }}</b></span>
   </div>
 
   <div class="doctype"><h3>Periodic Audit Summary Report</h3></div>
 
   <div class="meta">
-    <div class="m"><div class="l">Reporting Period</div><div class="v">{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}</div></div>
+    <div class="m"><div class="l">Reporting Period</div><div class="v">{{ period_from|date:"d M Y" }} - {{ period_to|date:"d M Y" }}</div></div>
     <div class="m"><div class="l">Audit Officer</div><div class="v">{{ generated_by_ctx.name }}</div></div>
     <div class="m"><div class="l">Prepared</div><div class="v">{{ generated_at|date:"d M Y H:i" }}</div></div>
   </div>
@@ -99,7 +99,7 @@
     <thead><tr><th>Metric</th><th>Value</th><th>Metric</th><th>Value</th></tr></thead>
     <tbody>
       <tr><td>Confirmed detections audited</td><td class="n">{{ stats.evidence_total }}</td><td>Full 5/5 check pass rate</td><td class="n">{{ stats.evidence_pass_rate }}%</td></tr>
-      <tr><td>All checks passed</td><td class="n">{{ stats.evidence_pass }}</td><td>Flagged for DIG oversight</td><td class="n">{{ stats.detections_flagged }}</td></tr>
+      <tr><td>All checks passed</td><td class="n">{{ stats.evidence_pass }}</td><td>Flagged for Officer Review oversight</td><td class="n">{{ stats.detections_flagged }}</td></tr>
     </tbody>
   </table>
 
@@ -113,9 +113,9 @@
   </table>
 
   <h4 class="sec">4. Auditor Observations</h4>
-  <div class="finding"><b>F1 — Chain integrity.</b> Every confirmed detection carries a SHA-256 evidence-chain digest; no tampering signals were detected in the audited population of {{ stats.evidence_total }} confirmed detections ({{ stats.evidence_pass_rate }}% passed all five checks).</div>
-  <div class="finding"><b>F2 — Review queue.</b> {{ stats.detections_pending }} detections are pending DIG review within the period; standing instruction is clearance within 72 hours.</div>
-  <div class="finding"><b>F3 — Authentication activity.</b> {{ stats.login_success }} successful and {{ stats.login_failed }} failed authentication attempts were recorded from {{ stats.unique_ip_count }} distinct IP addresses; failed attempts are investigated by IT Support.</div>
+  <div class="finding"><b>F1 - Chain integrity.</b> Every confirmed detection carries a SHA-256 evidence-chain digest; no tampering signals were detected in the audited population of {{ stats.evidence_total }} confirmed detections ({{ stats.evidence_pass_rate }}% passed all five checks).</div>
+  <div class="finding"><b>F2 - Review queue.</b> {{ stats.detections_pending }} detections are pending officer review within the period; standing instruction is clearance within 72 hours.</div>
+  <div class="finding"><b>F3 - Authentication activity.</b> {{ stats.login_success }} successful and {{ stats.login_failed }} failed authentication attempts were recorded from {{ stats.unique_ip_count }} distinct IP addresses; failed attempts are investigated by IT Support.</div>
 
   <div class="signrow">
     <div class="sigbox">
@@ -123,19 +123,19 @@
       <div class="line"></div>
       <div class="nm">{{ generated_by_ctx.name }}</div>
       <div class="ds">{{ generated_by_ctx.designation }} · {{ generated_by_ctx.staff_id }}</div>
-      <div class="dt">Audit Officer — {{ generated_at|date:"d M Y" }}</div>
+      <div class="dt">Audit Officer - {{ generated_at|date:"d M Y" }}</div>
     </div>
     <div class="sigbox">
       <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
       <div class="line"></div>
       <div class="nm">{{ countersigned_by_ctx.name }}</div>
       <div class="ds">{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}</div>
-      <div class="dt">Countersigned — Deputy Inspector General</div>
+      <div class="dt">Countersigned - Deputy Inspector General</div>
     </div>
   </div>
 
   <div class="ft">
-    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.authority_name_en }} - {{ branding.office_name }}</span>
     <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
     <span>System generated · verifiable via document hash</span>
   </div>

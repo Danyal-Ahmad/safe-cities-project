@@ -16,8 +16,8 @@
     <div class="sec-row"><span class="sec-k">Account status</span>
       <span class="sec-v">{% if is_locked %}<span class="status-dot locked"></span>Locked{% else %}<span class="status-dot"></span>Active{% endif %}</span>
     </div>
-    <div class="sec-row"><span class="sec-k">Last login</span><span class="sec-v">{{ last_login|default:"—" }}</span></div>
-    <div class="sec-row"><span class="sec-k">Joined</span><span class="sec-v">{{ date_joined|default:"—" }}</span></div>
+    <div class="sec-row"><span class="sec-k">Last login</span><span class="sec-v">{{ last_login|default:"-" }}</span></div>
+    <div class="sec-row"><span class="sec-k">Joined</span><span class="sec-v">{{ date_joined|default:"-" }}</span></div>
     <div class="sec-row"><span class="sec-k">Session portal</span><span class="sec-v">{{ own_namespace }}</span></div>
   </div>
 

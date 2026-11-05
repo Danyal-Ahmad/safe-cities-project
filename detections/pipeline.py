@@ -7,7 +7,7 @@ Flow (fully automated, no manual/officer annotation anywhere):
 Every challan is issued exclusively through this pipeline. A challan can only
 be generated when all five evidence security checks pass. Any failure blocks
 issuance: hard failures are rejected outright, ambiguous cases are parked in
-the review queue for DIG oversight.
+the Officer Portal review queue.
 """
 from __future__ import annotations
 
@@ -78,7 +78,8 @@ def frame_tracking(detection, camera) -> dict:
     Strict evidence policy: a challan-grade track requires the same plate
     confirmed across at least EVIDENCE_FRAMES_REQUIRED frames (3-frame
     evidence, checked one-by-one). Single-frame observations are never
-    corroborated, regardless of confidence — they park for DIG review.
+    corroborated, regardless of confidence: they park in the Officer Portal
+    review queue.
     """
     plate = _normalize_plate(detection.ai_plate_text)
     raw = detection.ai_raw_response or {}
@@ -153,7 +154,7 @@ def frame_tracking(detection, camera) -> dict:
 
 
 def _check_plate_readability(detection, raw) -> dict:
-    """Check 1 — Pakistan plate format + HD OCR quality (per-frame, 1-by-1)."""
+    """Check 1 - Pakistan plate format + HD OCR quality (per-frame, 1-by-1)."""
     plate = (detection.ai_plate_text or '').strip().upper()
     ocr_conf = float(raw.get('ocr_confidence') or 0.0)
     norm = _normalize_plate(plate)
@@ -161,7 +162,7 @@ def _check_plate_readability(detection, raw) -> dict:
     known_series = bool(raw.get('known_pk_series'))
     passed = ok_format and ocr_conf >= OCR_MIN_CONFIDENCE and bool(plate)
     detail = (
-        f"plate={plate or '—'} pk_format={'ok' if ok_format else 'invalid'} "
+        f"plate={plate or '-'} pk_format={'ok' if ok_format else 'invalid'} "
         f"known_series={'yes' if known_series else 'no'} "
         f"ocr_conf={ocr_conf:.2f} (min {OCR_MIN_CONFIDENCE:.2f})"
     )
@@ -169,7 +170,7 @@ def _check_plate_readability(detection, raw) -> dict:
 
 
 def _check_frame_consistency(detection, track) -> dict:
-    """Check 2 — strict 3-frame evidence: same full plate verified across at
+    """Check 2 - strict 3-frame evidence: same full plate verified across at
     least EVIDENCE_FRAMES_REQUIRED frames, each checked one-by-one."""
     mode = track.get('mode')
     frames = int(track.get('frames') or 0)
@@ -198,7 +199,7 @@ def _check_frame_consistency(detection, track) -> dict:
 
 
 def _check_violation_logic(detection, camera, raw) -> dict:
-    """Check 3 — violation logic + strict car-only gate (model is car-trained)."""
+    """Check 3 - violation logic + strict car-only gate (model is car-trained)."""
     side = detection.ai_side_classification
     side_conf = float(raw.get('side_confidence') or 0.0)
     violation_side = (getattr(camera, 'violation_side', None) or 'back') if camera else 'back'
@@ -209,15 +210,15 @@ def _check_violation_logic(detection, camera, raw) -> dict:
     car_ok = vehicle_class == 'car'
     passed = violation_flag and side == violation_side and side_conf >= 0.60 and car_ok
     detail = (
-        f"violation={violation_flag} side={side or '—'}/{side_conf:.2f} "
-        f"required_side={violation_side} legal_dir={legal or '—'} moving_dir={moving or '—'} "
+        f"violation={violation_flag} side={side or '-'}/{side_conf:.2f} "
+        f"required_side={violation_side} legal_dir={legal or '-'} moving_dir={moving or '-'} "
         f"vehicle_class={vehicle_class} car_gate={'passed' if car_ok else 'REJECTED (car-only model)'}"
     )
     return {'check': 'violation_logic', 'passed': bool(passed), 'detail': detail}
 
 
 def _check_image_evidence(detection) -> dict:
-    """Check 4 — full-plate image evidence: raw frame + complete plate crop
+    """Check 4 - full-plate image evidence: raw frame + complete plate crop
     (no half / edge-clipped plates) at usable resolution."""
     has_raw = bool(detection.raw_image and hasattr(detection.raw_image, 'name'))
     crop = detection.effective_plate_image
@@ -260,7 +261,7 @@ def _check_chain_integrity(detection, checks, camera) -> dict:
         )
     passed = bool(digest) and not duplicate
     detail = (
-        f"chain_hash={digest[:16] if digest else '—'}… "
+        f"chain_hash={digest[:16] if digest else '-'}… "
         f"duplicate_24h={'yes' if duplicate else 'no'}"
     )
     return {'check': 'chain_integrity', 'passed': bool(passed), 'detail': detail}
@@ -390,16 +391,16 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
     """Run the full enforcement pipeline for one detection record.
 
     Strict policy (5 hard security checks):
-      1. plate_readability   — Pakistan plate format + HD OCR confidence
-      2. frame_consistency   — 3-frame evidence verified one-by-one (90fps burst)
-      3. violation_logic     — wrong-way logic + strict car-only gate
-      4. image_evidence      — full (non-clipped) plate crop at usable size
-      5. chain_integrity     — SHA-256 tamper-evident chain, no duplicates
+      1. plate_readability   - Pakistan plate format + HD OCR confidence
+      2. frame_consistency   - 3-frame evidence verified one-by-one (90fps burst)
+      3. violation_logic     - wrong-way logic + strict car-only gate
+      4. image_evidence      - full (non-clipped) plate crop at usable size
+      5. chain_integrity     - SHA-256 tamper-evident chain, no duplicates
 
     Returns (detection, challan_or_None, action) where action is one of:
-      'challan_issued'   — all five evidence checks passed, challan created
-      'queued_review'    — evidence incomplete; parked for DIG oversight
-      'ignored'          — hard failure; rejected
+      'challan_issued'   - all five evidence checks passed, challan created
+      'queued_review'    - evidence incomplete; parked in the Officer Portal review queue
+      'ignored'          - hard failure; rejected
     """
     raw = result.get('raw_ai_response') or detection.ai_raw_response or {}
     conf = float(result.get('confidence') or detection.ai_confidence or 0.0)
@@ -437,7 +438,7 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         detection.status = Detection.REJECTED
         detection.reviewed_at = timezone.now()
         detection.review_notes = (
-            f"Auto-ignored: vehicle class '{raw_vehicle_class}' — the detection model is "
+            f"Auto-ignored: vehicle class '{raw_vehicle_class}' - the detection model is "
             f"trained on cars only, non-car vehicles are strictly out of scope."
         )
         detection.evidence_checks = []
@@ -462,29 +463,29 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
         detection.status = Detection.CONFIRMED
         detection.reviewed_at = timezone.now()
         detection.review_notes = (
-            f"Evidence verified — {passed_count}/5 security checks passed "
+            f"Evidence verified - {passed_count}/5 security checks passed "
             f"(track={track.get('mode')}, frames={track.get('frames')}/{EVIDENCE_FRAMES_REQUIRED}, "
             f"consistency={track.get('consistency'):.2f}). "
-            f"Chain {evidence_hash[:16]}…"
+            f"Chain {evidence_hash[:16]}.."
         )
         detection.save()
         challan = issue_challan(detection, camera or detection.camera, user=system_user)
         logger.info(
-            'Detection %s CHALLAN ISSUED %s — 5/5 checks, track=%s frames=%s',
+            'Detection %s CHALLAN ISSUED %s - 5/5 checks, track=%s frames=%s',
             detection.id, getattr(challan, 'ticket_no', None), track.get('mode'), track.get('frames'),
         )
         return detection, challan, 'challan_issued'
 
     detection.status = Detection.PENDING
     detection.review_notes = (
-        f"Evidence incomplete — {passed_count}/5 checks passed. "
-        f"Failed: {', '.join(c['check'] for c in checks if not c.get('passed')) or '—'}. "
+        f"Evidence incomplete - {passed_count}/5 checks passed. "
+        f"Failed: {', '.join(c['check'] for c in checks if not c.get('passed')) or '-'}. "
         f"Track={track.get('mode')} frames={track.get('frames')}/{EVIDENCE_FRAMES_REQUIRED} required "
-        f"consistency={track.get('consistency'):.2f}. Parked for DIG review."
+        f"consistency={track.get('consistency'):.2f}. Parked in the Officer Portal review queue."
     )
     detection.save()
     logger.info(
-        'Detection %s QUEUED — %d/5 checks (track=%s frames=%s)',
+        'Detection %s QUEUED - %d/5 checks (track=%s frames=%s)',
         detection.id, passed_count, track.get('mode'), track.get('frames'),
     )
     return detection, None, 'queued_review'

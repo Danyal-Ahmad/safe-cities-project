@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='officerprofile',
             name='rank',
-            field=models.CharField(blank=True, default='Traffic Officer', max_length=60),
+            field=models.CharField(blank=True, default='Enforcement Officer', max_length=60),
         ),
         migrations.AddField(
             model_name='officerprofile',
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('badge_number', models.CharField(blank=True, default='', max_length=40)),
                 ('rank', models.CharField(blank=True, default='Deputy Inspector General', max_length=80)),
-                ('command_region', models.CharField(blank=True, default='Punjab (Central)', max_length=100)),
+                ('command_region', models.CharField(blank=True, default='Central', max_length=100)),
                 ('office_address', models.CharField(blank=True, default='', max_length=255)),
                 ('office_phone', models.CharField(blank=True, default='', max_length=30)),
                 ('authority_level', models.CharField(
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
                 ('rank', models.CharField(blank=True, default='Senior Superintendent of Police', max_length=80)),
                 ('division', models.CharField(blank=True, default='', max_length=100)),
                 ('district', models.CharField(blank=True, default='', max_length=100)),
-                ('region', models.CharField(blank=True, default='Lahore Central', max_length=100)),
+                ('region', models.CharField(blank=True, default='Central Region', max_length=100)),
                 ('office_address', models.CharField(blank=True, default='', max_length=255)),
                 ('office_phone', models.CharField(blank=True, default='', max_length=30)),
                 ('can_review_high_value', models.BooleanField(default=True)),
@@ -206,7 +206,7 @@ class Migration(migrations.Migration):
                 ('father_name', models.CharField(blank=True, default='', max_length=120)),
                 ('address', models.CharField(blank=True, default='', max_length=255)),
                 ('city', models.CharField(blank=True, default='', max_length=80)),
-                ('province', models.CharField(blank=True, default='Punjab', max_length=80)),
+                ('province', models.CharField(blank=True, default='', max_length=80)),
                 ('postal_code', models.CharField(blank=True, default='', max_length=20)),
                 ('preferred_language', models.CharField(
                     choices=[('en', 'English'), ('ur', 'Urdu')], default='en', max_length=10,

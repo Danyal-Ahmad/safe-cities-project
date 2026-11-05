@@ -1,4 +1,4 @@
-"""Production readiness checks — URLs resolve, models import, demo data present."""
+"""Production readiness checks - URLs resolve, models import, demo data present."""
 from django.core.management.base import BaseCommand
 from django.urls import reverse, NoReverseMatch
 from django.contrib.auth import get_user_model

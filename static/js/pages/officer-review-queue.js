@@ -1,4 +1,4 @@
-/* AI Review Queue hotkeys — extracted from templates/dashboard/officer/review_queue.html */
+/* AI Review Queue hotkeys - extracted from templates/dashboard/officer/review_queue.html */
 (function () {
   'use strict';
 

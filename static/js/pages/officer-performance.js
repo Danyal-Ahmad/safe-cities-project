@@ -1,4 +1,4 @@
-/* Officer performance page — extracted from templates/dashboard/officer/performance.html
+/* Officer performance page - extracted from templates/dashboard/officer/performance.html
  * NOTE: loaded WITHOUT `defer` on purpose. The original inline <script> executed
  * during HTML parsing, BEFORE the deferred Chart.js CDN script loaded, so its
  * chart initialization threw (Chart undefined) and the canvases stayed untouched.

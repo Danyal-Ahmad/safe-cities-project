@@ -1,4 +1,4 @@
-"""Audit document PDF service — renders government-style audit documents.
+"""Audit document PDF service - renders government-style audit documents.
 
 Templates live under templates/audit/audit_templates/ or in the AuditTemplate
 database (Audit Studio designs). Every generated document is signed by the
@@ -110,9 +110,9 @@ def _period_stats(period_from, period_to):
 
 def _user_context(user):
     return {
-        'name': (user.get_full_name() or user.username) if user else '—',
-        'designation': getattr(user, 'designation', None) or (user.get_role_display() if user else '—'),
-        'staff_id': getattr(user, 'staff_id', None) or '—',
+        'name': (user.get_full_name() or user.username) if user else '-',
+        'designation': getattr(user, 'designation', None) or (user.get_role_display() if user else '-'),
+        'staff_id': getattr(user, 'staff_id', None) or '-',
         'signature_url': user.signature.url if (user and getattr(user, 'signature', None)) else None,
         'stamp_url': user.signature_stamp.url if (user and getattr(user, 'signature_stamp', None)) else None,
     }
@@ -140,12 +140,12 @@ def build_audit_context(period_from, period_to, generated_by, title, template_ke
         'stats': _period_stats(period_from, period_to),
         'branding': {
             'authority_name_en': (sys_settings.template_config or {}).get(
-                'header_text', 'SAFE CITY — TRAFFIC ENFORCEMENT'),
-            'authority_name_ur': 'سیف سٹی ٹریفک پولیس',
-            'govt_name': 'GOVERNMENT OF PUNJAB',
-            'office_name': 'Safe City Authority — Audit & Compliance Wing',
+                'header_text', 'SAFE CITY - TRAFFIC ENFORCEMENT'),
+            'authority_name_ur': 'سیف سٹیز پروجیکٹ',
+            'govt_name': 'SAFE CITIES PROJECT',
+            'office_name': 'Safe Cities Project - Audit & Compliance Wing',
             'helpline': '15',
-            'website': 'safecity.gov.pk',
+            'website': 'portal.safecities.project',
             'legal_ref_en': 'Section 99-A of the Motor Vehicles Ordinance, 1965',
         },
         'logo_left_path': str(LOGO_LEFT) if LOGO_LEFT.exists() else None,

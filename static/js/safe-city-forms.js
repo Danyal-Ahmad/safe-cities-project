@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Form Handling Module
+ * SafeCities Project - Form Handling Module
  * Provides validation rules, AJAX submit, password strength,
  * image preview, and CNIC/phone auto-formatting.
  */

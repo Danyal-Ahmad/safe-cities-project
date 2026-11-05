@@ -105,7 +105,7 @@ class Challan(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.ticket_no} — {self.plate_number} ({self.payment_status})"
+        return f"{self.ticket_no} - {self.plate_number} ({self.payment_status})"
 
     @property
     def is_overdue(self):

@@ -3,7 +3,7 @@ body.public-home { background: #E8EEF7; font-size: 14px; }
 .pub-shell { max-width: 1240px; margin: 0 auto; padding: 18px 20px 24px; display: flex; flex-direction: column; min-height: 100vh; box-sizing: border-box; }
 .pub-footer { text-align: center; padding: 22px; color: #8A94B0; font-size: 0.78rem; margin-top: auto; }
 
-/* ===== Header — photo background + gradient overlay behind the brand ===== */
+/* ===== Header - photo background + gradient overlay behind the brand ===== */
 .pub-header {
   display: flex;
   align-items: center;

@@ -1,39 +1,33 @@
 {% load static %}
-{% if homepage_banners %}
-  <div class="scf-public-ads-banner">
-    {% for ad in homepage_banners %}
-      {% if ad.html_content %}
-        <div class="scf-ad-chip">{{ ad.html_content|safe }}</div>
-      {% elif ad.image %}
-        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="scf-ad-chip">
-          <img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Public service' }}">
-        </a>
-      {% else %}
-        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="scf-ad-chip scf-ad-chip-text">
-          <span class="scf-ad-label">PUBLIC SERVICE</span>
-          <span class="scf-ad-title">{{ ad.title }}</span>
-        </a>
-      {% endif %}
-    {% endfor %}
-  </div>
-{% endif %}
-
-{% if popup_banners %}
-  {% with ad=popup_banners.0 %}
-  <div class="scf-popup-overlay" id="scfPopupOverlay" data-ad-id="{{ ad.id }}">
-    <div class="scf-popup-modal">
-      <button class="scf-popup-close" data-dismiss-popup aria-label="Close">×</button>
-      {% if ad.html_content %}
-        <div class="scf-popup-body">{{ ad.html_content|safe }}</div>
-      {% elif ad.image %}
-        {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener"><img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Announcement' }}"></a>
-        {% else %}<img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Announcement' }}">{% endif %}
-      {% else %}
-        <div class="scf-popup-body scf-popup-fallback">
-          <h2>{{ ad.title }}</h2>
-        </div>
-      {% endif %}
+{% comment %}
+  Popup ad channel. Served on the public home page only; the ads
+  processor leaves popup_ads empty everywhere else. Shown once per
+  browser session per ad, closed manually or via the backdrop.
+{% endcomment %}
+{% if popup_ads %}
+  {% with ad=popup_ads.0 %}
+  <div class="ps-popup" id="psPopup" data-ad-id="{{ ad.id }}" role="dialog" aria-modal="true" aria-label="Announcement">
+    <div class="ps-popup-backdrop" data-ps-popup-close></div>
+    <div class="ps-popup-modal">
+      <button type="button" class="ps-popup-close" data-ps-popup-close aria-label="Close announcement">&times;</button>
+      <div class="ps-popup-body">
+        {% if ad.banner_type == 'image' and ad.image %}
+          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener"><img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Announcement' }}"></a>
+          {% else %}<img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Announcement' }}">{% endif %}
+        {% elif ad.html_content %}
+          <div class="ps-popup-fallback">
+            <h2>{{ ad.title }}</h2>
+            <p class="ps-ticker-note">{{ ad.html_content|striptags|truncatewords:28 }}</p>
+            <div class="ps-popup-tag">Public announcement</div>
+          </div>
+        {% else %}
+          <div class="ps-popup-fallback">
+            <h2>{{ ad.title }}</h2>
+            <div class="ps-popup-tag">Public announcement</div>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
-    {% endwith %}
+  {% endwith %}
 {% endif %}

@@ -54,7 +54,7 @@ class SystemSettings(models.Model):
         'over_speed': 800, 'other': 500,
     }
     DEFAULT_TEMPLATE_CONFIG = {
-        'header_text': 'SAFE CITY — TRAFFIC ENFORCEMENT',
+        'header_text': 'SAFE CITY - TRAFFIC ENFORCEMENT',
         'logo_path': '',
         'account_number': 'SAFECITY-CHALLAN-00123456789',
         'footer_text': 'Pay at any National Bank of Pakistan branch or Post Office before the due date.',
@@ -99,7 +99,7 @@ class SystemSettings(models.Model):
         'reject_person': False,
     }
     DEFAULT_EMAIL_TEMPLATE = {
-        'subject': 'New E-Challan Issued — {ticket_no}',
+        'subject': 'New E-Challan Issued - {ticket_no}',
         'body': 'A new e-challan has been issued for vehicle {plate_number}. View: {view_link}',
     }
 
@@ -164,7 +164,7 @@ class AuditLog(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.timestamp:%Y-%m-%d %H:%M} — {self.actor} — {self.action}"
+        return f"{self.timestamp:%Y-%m-%d %H:%M} - {self.actor} - {self.action}"
 
     @staticmethod
     def parse_device(user_agent_str):
@@ -251,7 +251,7 @@ class LoginEvent(models.Model):
 
     def __str__(self):
         who = self.user.username if self.user else self.username_attempted
-        return f"{self.timestamp:%Y-%m-%d %H:%M} — {who} — {'OK' if self.success else 'FAIL'}"
+        return f"{self.timestamp:%Y-%m-%d %H:%M} - {who} - {'OK' if self.success else 'FAIL'}"
 
     @classmethod
     def record(cls, request, username, success, portal=PORTAL_ADMIN,
@@ -389,11 +389,17 @@ class Banner(models.Model):
     PLACEMENT_BOTTOM = 'bottom'
     PLACEMENT_AD = 'ad'
     PLACEMENT_POPUP = 'popup'
+    PLACEMENT_STATIC_POST = 'static_post'
+    PLACEMENT_TICKER = 'ticker'
+    PLACEMENT_PUSH = 'push'
     PLACEMENT_CHOICES = [
-        (PLACEMENT_TOP, 'Top of page'),
-        (PLACEMENT_BOTTOM, 'Bottom of page'),
-        (PLACEMENT_AD, 'Banner — Public Service Announcement Space'),
-        (PLACEMENT_POPUP, 'POPUP banner'),
+        (PLACEMENT_STATIC_POST, 'Static post ad (home, hidden staging)'),
+        (PLACEMENT_POPUP, 'Popup ad (home only)'),
+        (PLACEMENT_TICKER, 'Ticker ad (portals + home)'),
+        (PLACEMENT_PUSH, 'Push notification (portals)'),
+        (PLACEMENT_TOP, 'Top strip (legacy)'),
+        (PLACEMENT_BOTTOM, 'Bottom strip (legacy)'),
+        (PLACEMENT_AD, 'Legacy ad space (retired)'),
     ]
     AUDIENCE_ALL = 'all'
     AUDIENCE_STAFF = 'staff'
@@ -426,7 +432,7 @@ class Banner(models.Model):
     image = models.ImageField(upload_to='banners/', null=True, blank=True, help_text="Upload banner image")
     image_link = models.URLField(max_length=500, blank=True, default='', help_text="URL to open when banner is clicked")
     html_content = models.TextField(blank=True, default='', help_text="Raw HTML content (for custom code banners)")
-    placement = models.CharField(max_length=10, choices=PLACEMENT_CHOICES, default=PLACEMENT_TOP)
+    placement = models.CharField(max_length=20, choices=PLACEMENT_CHOICES, default=PLACEMENT_TICKER)
     audience = models.CharField(max_length=20, choices=AUDIENCE_CHOICES, default=AUDIENCE_ALL)
     bg_color = models.CharField(max_length=20, default='#1F4E79', help_text="CSS color for banner background")
     text_color = models.CharField(max_length=20, default='#FFFFFF', help_text="CSS color for banner text")
@@ -713,4 +719,4 @@ class BlacklistEntry(models.Model):
         verbose_name_plural = 'Blacklist entries'
 
     def __str__(self):
-        return f"{self.plate_number} — {self.reason[:40]}"
+        return f"{self.plate_number} - {self.reason[:40]}"

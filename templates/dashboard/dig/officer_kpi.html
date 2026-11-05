@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% comment %}V9.0-REBUILT · Graphite+Emerald+Rose · page-hero+page-nav+quick-actions · business logic preserved{% endcomment %}
-{% block title %}Officer KPIs — DIG Portal{% endblock %}
+{% block title %}Officer KPIs - DIG Portal{% endblock %}
 
 {% block extra_head %}{% endblock %}
 
@@ -42,7 +42,7 @@
  <td>
  <div class="flex ">
  <div class="avatar avatar-sm">{{ k.officer.initials }}</div>
- <span>{{ k.officer.display_name|default:"—" }}</span>
+ <span>{{ k.officer.display_name|default:"-" }}</span>
  </div>
  </td>
  <td>{{ k.reviewed }}</td>

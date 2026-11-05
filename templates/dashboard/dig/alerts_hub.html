@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Alert Hub — Safe City{% endblock %}
+{% block title %}Alert Hub{% endblock %}
 {% block page_title %}Alert Hub{% endblock %}
 
 {% block extra_head %}
@@ -11,11 +11,10 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-bell-fill"></i> Alert Hub</h1>
-    <p class="sc-lead">Live alerts, public banners and staff broadcasts — all announcements in one place.</p>
+    <p class="sc-lead">Live system alerts and staff broadcasts in one place.</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <button type="button" class="sc-btn sc-btn-primary" data-bs-toggle="modal" data-bs-target="#newAlertModal"><i class="bi bi-plus-circle"></i> New Alert</button>
-    <button type="button" class="sc-btn" data-bs-toggle="modal" data-bs-target="#newBannerModal"><i class="bi bi-badge-ad"></i> New Banner</button>
     <button type="button" class="sc-btn" data-bs-toggle="modal" data-bs-target="#newBroadcastModal"><i class="bi bi-megaphone"></i> New Broadcast</button>
   </div>
 </div>
@@ -46,18 +45,17 @@
     </div>
   </div>
   <div class="md-kpi-card kpi-warning">
-    <div class="md-kpi-icon-box"><i class="bi bi-badge-ad"></i></div>
+    <div class="md-kpi-icon-box"><i class="bi bi-broadcast-pin"></i></div>
     <div class="md-kpi-body">
-      <div class="md-kpi-label">Popup Banners</div>
-      <div class="md-kpi-value">{{ banners|length }}</div>
-      <div class="md-kpi-foot">Public announcements</div>
+      <div class="md-kpi-label">Broadcasts</div>
+      <div class="md-kpi-value">{{ broadcasts|length }}</div>
+      <div class="md-kpi-foot">Recent log entries</div>
     </div>
   </div>
 </div>
 
 <div class="sc-tabs">
   <a class="{% if active_tab == 'alerts' %}sc-active{% endif %}" href="?tab=alerts"><i class="bi bi-bell me-1"></i> Alerts ({{ alerts|length }})</a>
-  <a class="{% if active_tab == 'banners' %}sc-active{% endif %}" href="?tab=banners"><i class="bi bi-badge-ad me-1"></i> Banners ({{ banners|length }})</a>
   <a class="{% if active_tab == 'broadcasts' %}sc-active{% endif %}" href="?tab=broadcasts"><i class="bi bi-broadcast-pin me-1"></i> Broadcast Log ({{ broadcasts|length }})</a>
 </div>
 
@@ -115,7 +113,7 @@
       </div>
     </div>
     {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-bell-slash"></i><p>No alerts yet — create one to notify staff or citizens.</p></div></div>
+    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-bell-slash"></i><p>No alerts yet - create one to notify staff or citizens.</p></div></div>
     {% endfor %}
   </div>
 
@@ -157,89 +155,6 @@
   </div>
 </div>
 
-<!-- ===== BANNERS ===== -->
-<div class="ah-pane {% if active_tab == 'banners' %}active{% endif %}" id="pane-banners">
-  <div class="ah-toolbar">
-    <input type="text" id="bannerSearch" placeholder="Search banners…">
-    <select id="bannerStatusFilter">
-      <option value="">All statuses</option>
-      <option value="active">Active</option>
-      <option value="off">Off</option>
-    </select>
-    <div class="ah-view-toggle" data-view-toggle="banner">
-      <button type="button" class="ah-view-btn active" data-view="cards"><i class="bi bi-grid-fill"></i> Cards</button>
-      <button type="button" class="ah-view-btn" data-view="table"><i class="bi bi-list-ul"></i> List</button>
-    </div>
-  </div>
-
-  <div class="sc-grid sc-grid-3" id="bannerGrid">
-    {% for b in banners %}
-    <div class="ah-item sev-info" data-title="{{ b.title|default:'untitled'|lower }}" data-status="{% if b.is_active %}active{% else %}off{% endif %}">
-      <div class="ah-item-top">
-        <span class="ah-item-title">{{ b.title|default:"(untitled)" }}</span>
-        <span class="sc-badge sc-badge-muted">{{ b.banner_type|default:"html"|title }}</span>
-      </div>
-      <p class="ah-item-msg"><i class="bi bi-layout-text-window me-1"></i>{{ b.get_placement_display|default:b.placement }} &middot; <i class="bi bi-people ms-1 me-1"></i>{{ b.get_audience_display|default:b.audience }}</p>
-      <div class="ah-item-meta">
-        <span>{% if b.is_active %}<span class="ah-dot live"></span>Live{% else %}<span class="ah-dot off"></span>Off{% endif %}</span>
-        <span class="ah-actions">
-          <button type="button" class="sc-btn sc-btn-sm" title="Edit" data-bs-toggle="modal" data-bs-target="#editBannerModal"
-            data-edit-url="{% url portal_ns|add:':alerts_hub_edit_banner' b.id %}"
-            data-title="{{ b.title|default:'' }}" data-html="{{ b.html_content|default:'' }}"
-            data-placement="{{ b.placement }}" data-audience="{{ b.audience }}"
-            data-type="{{ b.banner_type }}" data-home-only="{% if b.show_on_home_only %}1{% else %}0{% endif %}"
-            data-active="{% if b.is_active %}1{% else %}0{% endif %}"><i class="bi bi-pencil"></i></button>
-          <form method="post" action="{% url portal_ns|add:':alerts_hub_toggle_banner' b.id %}" style="display:inline;">{% csrf_token %}
-            <button class="sc-btn sc-btn-sm" title="Toggle active state"><i class="bi bi-power"></i></button>
-          </form>
-          <button type="button" class="sc-btn sc-btn-sm sc-btn-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
-            data-delete-url="{% url portal_ns|add:':alerts_hub_delete_banner' b.id %}"
-            data-object-name="{{ b.title|default:'this banner' }}" data-object-type="banner"><i class="bi bi-trash"></i></button>
-        </span>
-      </div>
-    </div>
-    {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-badge-ad"></i><p>No banners — create one so it can appear on the public home page.</p></div></div>
-    {% endfor %}
-  </div>
-
-  <div id="bannerTableWrap" style="display:none;">
-    <div class="sc-table-wrap">
-      <table class="sc-table">
-        <thead><tr><th>Title</th><th>Type</th><th>Placement</th><th>Audience</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody>
-          {% for b in banners %}
-          <tr data-title="{{ b.title|default:'untitled'|lower }}" data-status="{% if b.is_active %}active{% else %}off{% endif %}">
-            <td style="font-weight:700;color:var(--sc-heading);">{{ b.title|default:"(untitled)" }}</td>
-            <td><span class="sc-badge sc-badge-muted">{{ b.banner_type|default:"html"|title }}</span></td>
-            <td>{{ b.get_placement_display|default:b.placement }}</td>
-            <td>{{ b.get_audience_display|default:b.audience }}</td>
-            <td>{% if b.is_active %}<span class="sc-badge sc-badge-green">Live</span>{% else %}<span class="sc-badge sc-badge-muted">Off</span>{% endif %}</td>
-            <td>{{ b.created_at|timesince }} ago</td>
-            <td>
-              <button type="button" class="sc-btn sc-btn-sm" title="Edit" data-bs-toggle="modal" data-bs-target="#editBannerModal"
-                data-edit-url="{% url portal_ns|add:':alerts_hub_edit_banner' b.id %}"
-                data-title="{{ b.title|default:'' }}" data-html="{{ b.html_content|default:'' }}"
-                data-placement="{{ b.placement }}" data-audience="{{ b.audience }}"
-                data-type="{{ b.banner_type }}" data-home-only="{% if b.show_on_home_only %}1{% else %}0{% endif %}"
-                data-active="{% if b.is_active %}1{% else %}0{% endif %}"><i class="bi bi-pencil"></i></button>
-              <form method="post" action="{% url portal_ns|add:':alerts_hub_toggle_banner' b.id %}" style="display:inline;">{% csrf_token %}
-                <button class="sc-btn sc-btn-sm" title="Toggle active state"><i class="bi bi-power"></i></button>
-              </form>
-              <button type="button" class="sc-btn sc-btn-sm sc-btn-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
-                data-delete-url="{% url portal_ns|add:':alerts_hub_delete_banner' b.id %}"
-                data-object-name="{{ b.title|default:'this banner' }}" data-object-type="banner"><i class="bi bi-trash"></i></button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--sc-text-muted);">No banners yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 <!-- ===== BROADCASTS ===== -->
 <div class="ah-pane {% if active_tab == 'broadcasts' %}active{% endif %}" id="pane-broadcasts">
   <div class="ah-toolbar">
@@ -271,7 +186,7 @@
       </div>
     </div>
     {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-broadcast-pin"></i><p>No broadcasts sent yet — use "New Broadcast" above to push a notification to every recipient's bell icon.</p></div></div>
+    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-broadcast-pin"></i><p>No broadcasts sent yet - use "New Broadcast" above to push a notification to every recipient's bell icon.</p></div></div>
     {% endfor %}
   </div>
 
@@ -333,48 +248,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="newBannerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <form method="post" action="{% url portal_ns|add:':alerts_hub_add_banner' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-badge-ad me-2"></i>New Popup Banner</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <div class="sc-form-group"><label>Title</label><input name="title" placeholder="Public service announcement"></div>
-          <div class="sc-form-group"><label>HTML content</label><textarea name="html_content" rows="4" placeholder="&lt;p&gt;Announcement text&lt;/p&gt;"></textarea></div>
-          <div class="sc-form-group"><label>Or image</label><input type="file" name="image" accept="image/*"></div>
-          <div class="sc-grid sc-grid-3" style="gap:12px;">
-            <div class="sc-form-group"><label>Placement</label>
-              <select name="placement"><option value="ad" selected>Public home (ad space)</option><option value="popup">Popup</option><option value="top">Top bar / ticker</option></select>
-            </div>
-            <div class="sc-form-group"><label>Audience</label>
-              <select name="audience">
-                <option value="all">Everyone (public + staff)</option>
-                <option value="citizens">Public service — Citizens only</option>
-                <option value="staff">All Staff</option>
-                <option value="dig">DIG only</option>
-                <option value="ssp">SSP only</option>
-                <option value="supervisor">Supervisors only</option>
-                <option value="officer">Officers only</option>
-                <option value="audit">Audit only</option>
-                <option value="it">IT Support only</option>
-              </select>
-            </div>
-            <div class="sc-form-group"><label>Type</label>
-              <select name="banner_type"><option value="html">HTML</option><option value="image">Image</option></select>
-            </div>
-          </div>
-          <div class="sc-form-group" style="display:flex;align-items:center;gap:9px;">
-            <input type="checkbox" name="show_on_home_only" id="homeOnly">
-            <label for="homeOnly" style="margin:0;text-transform:none;letter-spacing:0;font-weight:600;">Show on public home only</label>
-          </div>
-        </div>
-        <div class="modal-footer"><button type="button" class="sc-btn sc-btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="sc-btn sc-btn-primary">Create Banner</button></div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="newBroadcastModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -382,7 +255,7 @@
         {% csrf_token %}
         <div class="modal-header"><h5 class="modal-title"><i class="bi bi-megaphone me-2"></i>New Broadcast</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
-          <p class="sc-text-sm sc-text-muted" style="margin-bottom:14px;">Sends a real notification straight to the bell icon of every recipient in the selected audience — not just a log entry.</p>
+          <p class="sc-text-sm sc-text-muted" style="margin-bottom:14px;">Sends a real notification straight to the bell icon of every recipient in the selected audience - not just a log entry.</p>
           <div class="sc-form-group"><label>Title *</label><input name="title" required></div>
           <div class="sc-form-group"><label>Message *</label><textarea name="body" rows="3" required></textarea></div>
           <div class="sc-form-group"><label>Audience</label>
@@ -430,47 +303,6 @@
           <div class="sc-form-group" style="display:flex;align-items:center;gap:9px;">
             <input type="checkbox" name="is_active" id="editAlertActive">
             <label for="editAlertActive" style="margin:0;text-transform:none;letter-spacing:0;font-weight:600;">Active</label>
-          </div>
-        </div>
-        <div class="modal-footer"><button type="button" class="sc-btn sc-btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="sc-btn sc-btn-primary">Save Changes</button></div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="editBannerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <form method="post" id="editBannerForm" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Banner</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <div class="sc-form-group"><label>Title</label><input name="title" id="editBannerTitle" placeholder="Public service announcement"></div>
-          <div class="sc-form-group"><label>HTML content</label><textarea name="html_content" id="editBannerHtml" rows="4" placeholder="&lt;p&gt;Announcement text&lt;/p&gt;"></textarea></div>
-          <div class="sc-form-group"><label>Replace image (optional)</label><input type="file" name="image" accept="image/*"></div>
-          <div class="sc-grid sc-grid-3" style="gap:12px;">
-            <div class="sc-form-group"><label>Placement</label>
-              <select name="placement" id="editBannerPlacement">
-                <option value="popup">Popup</option><option value="top">Top bar</option>
-                <option value="bottom">Bottom of page</option><option value="ad">Banner — Public Service Announcement Space</option>
-              </select>
-            </div>
-            <div class="sc-form-group"><label>Audience</label>
-              <select name="audience" id="editBannerAudience">
-                <option value="all">All</option><option value="citizens">Citizens</option><option value="staff">Staff</option>
-              </select>
-            </div>
-            <div class="sc-form-group"><label>Type</label>
-              <select name="banner_type" id="editBannerType"><option value="html">HTML</option><option value="image">Image</option></select>
-            </div>
-          </div>
-          <div class="sc-form-group" style="display:flex;align-items:center;gap:9px;">
-            <input type="checkbox" name="show_on_home_only" id="editBannerHomeOnly">
-            <label for="editBannerHomeOnly" style="margin:0;text-transform:none;letter-spacing:0;font-weight:600;">Show on public home only</label>
-          </div>
-          <div class="sc-form-group" style="display:flex;align-items:center;gap:9px;">
-            <input type="checkbox" name="is_active" id="editBannerActive">
-            <label for="editBannerActive" style="margin:0;text-transform:none;letter-spacing:0;font-weight:600;">Active</label>
           </div>
         </div>
         <div class="modal-footer"><button type="button" class="sc-btn sc-btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="sc-btn sc-btn-primary">Save Changes</button></div>

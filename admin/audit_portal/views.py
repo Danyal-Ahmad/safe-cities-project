@@ -123,14 +123,14 @@ def _detect_anomalies():
         anomalies.append({
             'type': 'ORPHAN_PAYMENT', 'severity': 'HIGH',
             'description': f"{orphan_payments} challans marked PAID without paid_at timestamp",
-            'target': '—',
+            'target': '-',
         })
     zero_challans = Challan.objects.filter(fine_amount=0).count()
     if zero_challans > 0:
         anomalies.append({
             'type': 'ZERO_AMOUNT_CHALLAN', 'severity': 'LOW',
             'description': f"{zero_challans} challans with zero fine amount",
-            'target': '—',
+            'target': '-',
         })
     return anomalies
 
@@ -342,7 +342,7 @@ def audit_export(request):
 
     body_rows = []
     for e in rows[:2000]:
-        actor = e.actor.username if e.actor else '—'
+        actor = e.actor.username if e.actor else '-'
         body_rows.append(
             f"<tr><td>{e.timestamp}</td><td>{actor}</td><td>{e.action}</td>"
             f"<td>{e.target_model or ''} #{e.target_id or ''}</td></tr>"
@@ -352,7 +352,7 @@ def audit_export(request):
         "<style>body{font-family:Arial,sans-serif;font-size:11px;margin:24px}"
         "table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px;text-align:left}"
         "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
-        f"<h1>SafeCity Audit — {kind}</h1><p>Generated {tz.now().strftime('%Y-%m-%d %H:%M')} · {len(body_rows)} rows</p>"
+        f"<h1>SafeCity Audit - {kind}</h1><p>Generated {tz.now().strftime('%Y-%m-%d %H:%M')} · {len(body_rows)} rows</p>"
         "<table><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th></tr></thead><tbody>"
         + ''.join(body_rows) +
         "</tbody></table><script>window.onload=function(){window.print();}</script></body></html>"
@@ -440,8 +440,8 @@ def uploads_log(request):
     uploads = [
         {
             'kind': 'video', 'id': u.id, 'label': u.original_filename or f'upload #{u.id}',
-            'by': u.uploaded_by, 'at': u.created_at, 'sha256': u.file_sha256 or '—',
-            'meta': f"{u.camera.camera_id if u.camera else '—'} · {u.get_status_display()}",
+            'by': u.uploaded_by, 'at': u.created_at, 'sha256': u.file_sha256 or '-',
+            'meta': f"{u.camera.camera_id if u.camera else '-'} · {u.get_status_display()}",
             'size_mb': round(u.video_file.size / 1048576, 2) if u.video_file else 0,
             'frames': u.total_frames_extracted,
             'bursts': u.burst_evidence_collected,
@@ -455,7 +455,7 @@ def uploads_log(request):
     for log in template_logs:
         uploads.append({
             'kind': 'template', 'id': log.target_id or '', 'label': log.details.get('name') or log.action,
-            'by': log.actor, 'at': log.timestamp, 'sha256': '—',
+            'by': log.actor, 'at': log.timestamp, 'sha256': '-',
             'meta': log.action, 'size_mb': 0, 'frames': 0, 'bursts': 0,
         })
     uploads.sort(key=lambda x: x['at'], reverse=True)

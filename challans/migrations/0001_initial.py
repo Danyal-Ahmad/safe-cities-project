@@ -1,4 +1,4 @@
-"""challans migration 0001 — Challan model."""
+"""challans migration 0001 - Challan model."""
 import datetime
 from django.db import migrations, models
 import django.db.models.deletion

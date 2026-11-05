@@ -2,7 +2,7 @@
 {% load static %}
 {% load perm_tags %}
 {% load humanize %}
-{% block title %}Camera Network — Safe City{% endblock %}
+{% block title %}Camera Network{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 
 {% block extra_head %}
@@ -15,7 +15,7 @@
   <div>
     <h1><i class="bi bi-camera-video me-2"></i>Camera Network</h1>
     <p class="sc-lead">
-      Registry of enforcement cameras across the city — mounting direction, enforcement side,
+      Registry of enforcement cameras across the city - mounting direction, enforcement side,
       live health and enrollment state.
     </p>
   </div>
@@ -124,13 +124,13 @@
                 <span class="sc-mono fw-bold">{{ c.camera_id }}</span>
               </div>
             </td>
-            <td class="cam-location">{{ c.location|default:"—" }}</td>
+            <td class="cam-location">{{ c.location|default:"-" }}</td>
             <td>
               {% if c.legal_direction %}
               <span class="sc-badge sc-badge-blue cam-dir-badge">
                 <i class="bi bi-signpost-split"></i>{{ c.get_legal_direction_display }}
               </span>
-              {% else %}<span class="sc-text-muted">—</span>{% endif %}
+              {% else %}<span class="sc-text-muted">-</span>{% endif %}
             </td>
             <td>
               <span class="sc-badge {% if c.violation_side == 'front' %}sc-badge-purple{% else %}sc-badge-teal{% endif %}">
@@ -211,7 +211,7 @@
       <i class="bi bi-info-circle me-1"></i>
       Direction shows the physical mounting (N/S/E/W); enforcement side is the vehicle side the AI
       classifier treats as a wrong-way violation at that camera.
-      {% if not can_manage %}Camera configuration is restricted to IT Support — this view is read-only for command staff.{% endif %}
+      {% if not can_manage %}Camera configuration is restricted to IT Support - this view is read-only for command staff.{% endif %}
     </p>
     {% else %}
     <div class="sc-empty">

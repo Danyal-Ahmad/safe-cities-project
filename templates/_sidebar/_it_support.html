@@ -1,6 +1,6 @@
 {% load perm_tags %}
 {% comment %} ============================================================
-   IT Support — infrastructure &amp; system admin sidebar
+   IT Support - infrastructure &amp; system admin sidebar
    ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="Overview">
@@ -51,6 +51,9 @@
   {% endif %}
   {% if request.user|has_perm:"manage_alerts" %}
   <a href="{% url 'it_support_portal:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone-fill"></i> <span class="sc-nav-link-text">Alerts</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"manage_ads" %}
+  <a href="{% url 'it_support_portal:ads_studio' %}" class="sc-nav-link {% if request.path == '/portal/it/ads-studio/' %}sc-active{% endif %}"><i class="bi bi-badge-ad-fill"></i> <span class="sc-nav-link-text">Ads Studio</span></a>
   {% endif %}
 </div>
 

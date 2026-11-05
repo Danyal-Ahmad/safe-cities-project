@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Penalty Configuration — Safe City{% endblock %}
+{% block title %}Penalty Configuration{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -49,7 +49,7 @@
  <label class="-label" for="enabled_{{ v.key }}">Enable detection</label>
  </div>
  <div class="small fw-semibold" id="status-{{ v.key }}">
- {% if v.enabled %}ACTIVE — will detect and challan{% else %}DISABLED{% endif %}
+ {% if v.enabled %}ACTIVE - will detect and challan{% else %}DISABLED{% endif %}
  </div>
  </div>
  </div>

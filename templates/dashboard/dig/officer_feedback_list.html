@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% comment %}V9.0-REBUILT · Graphite+Emerald+Rose · page-hero+page-nav+quick-actions · business logic preserved{% endcomment %}
-{% block title %}Officer Feedback — DIG Portal{% endblock %}
+{% block title %}Officer Feedback - DIG Portal{% endblock %}
 
 {% block extra_head %}{% endblock %}
 
@@ -37,8 +37,8 @@
  <tbody>
  {% for f in feedback %}
  <tr>
- <td>{{ f.officer.display_name|default:"—" }}</td>
- <td class="small ">{{ f.created_by.display_name|default:"—" }}</td>
+ <td>{{ f.officer.display_name|default:"-" }}</td>
+ <td class="small ">{{ f.created_by.display_name|default:"-" }}</td>
  <td class="small ">{{ f.updated_at|date:"d-M-Y H:i" }}</td>
  <td class="small ">
  {% if f.can_review_detections %}<span class="badge ">RD</span>{% endif %}

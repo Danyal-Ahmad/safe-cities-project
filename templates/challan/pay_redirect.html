@@ -1,19 +1,21 @@
-{% extends 'base.html' %}
+{% extends 'public_base.html' %}
 {% load static %}
-{% block title %}Redirecting to payment…{% endblock %}
+{% block title %}Redirecting to payment{% endblock %}
+
 {% block content %}
-<div class="sc-public-main">
-  <div class="sc-public-card" style="max-width:480px;text-align:center;">
-    <div style="font-size:2.6rem;color:#F5A623;margin-bottom:10px;"><i class="bi bi-hourglass-split"></i></div>
-    <h1 style="font-size:1.25rem;font-weight:800;color:#0F2557;">Redirecting to {{ payment_method.name }}…</h1>
-    <p class="sc-lead" style="margin:8px 0 20px;">If nothing happens automatically, click the button below.</p>
+<div class="ps-center">
+  <div class="ps-card"><div class="ps-card-pad">
+    <div class="ps-bigicon"><i class="bi bi-hourglass-split"></i></div>
+    <h1 class="ps-hero-title" style="font-size:18px;">REDIRECTING TO {{ payment_method.name|upper }}</h1>
+    <p class="ps-hint" style="margin:10px 0 24px;">If nothing happens automatically, use the button below.</p>
     <form id="gw" method="{{ init.method|default:'POST' }}" action="{{ init.action }}">
-      {% for k,v in init.fields.items %}
+      {% for k, v in init.fields.items %}
       <input type="hidden" name="{{ k }}" value="{{ v }}">
       {% endfor %}
-      <button class="sc-btn sc-btn-primary sc-btn-block" type="submit"><i class="bi bi-credit-card"></i> Pay with {{ payment_method.name }}</button>
+      <button type="submit" class="ps-search-cta"><i class="bi bi-credit-card"></i> Pay with {{ payment_method.name }}</button>
     </form>
-  </div>
+    <a href="{% url 'challans:challan_detail' challan.id %}" class="ps-btn ps-btn-block" style="margin-top:10px;"><i class="bi bi-arrow-left"></i> Back to challan</a>
+  </div></div>
 </div>
 {% endblock %}
 

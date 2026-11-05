@@ -59,7 +59,7 @@ class Command(BaseCommand):
         if misconfigured.exists():
             self.stdout.write(self.style.WARNING(f"\nCameras marked is_streaming=True with no rtsp_url/http_snapshot_url: {misconfigured.count()}"))
             for c in misconfigured:
-                self.stdout.write(f"  pk={c.pk} {c.camera_id} — {c.location}")
+                self.stdout.write(f"  pk={c.pk} {c.camera_id} - {c.location}")
         else:
             self.stdout.write(self.style.SUCCESS("No streaming-enabled cameras missing a stream URL."))
 
@@ -72,7 +72,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(
                 f"\nCameras reporting 'online' with no health check in the last {opts['stale_hours']}h: {stale.count()}"))
             for c in stale:
-                self.stdout.write(f"  pk={c.pk} {c.camera_id} — last_health_check={c.last_health_check}")
+                self.stdout.write(f"  pk={c.pk} {c.camera_id} - last_health_check={c.last_health_check}")
                 if opts['fix_stale_health']:
                     c.health_status = 'offline'
                     c.save(update_fields=['health_status'])
@@ -89,7 +89,7 @@ class Command(BaseCommand):
         n_od, n_oa, n_of = orphan_detections.count(), orphan_assignments.count(), orphan_feeds.count()
         if n_od or n_oa or n_of:
             self.stdout.write(self.style.ERROR(
-                f"\nOrphaned rows found (should not be possible with FK constraints — "
+                f"\nOrphaned rows found (should not be possible with FK constraints - "
                 f"investigate immediately): detections={n_od} assignments={n_oa} live_feeds={n_of}"))
         else:
             self.stdout.write(self.style.SUCCESS("No orphaned detection/assignment/live-feed rows."))
@@ -98,6 +98,6 @@ class Command(BaseCommand):
         if unused.exists():
             self.stdout.write(self.style.WARNING(f"\nCameras with zero detections ever recorded: {unused.count()}"))
             for c in unused:
-                self.stdout.write(f"  pk={c.pk} {c.camera_id} — {c.location} (active={c.is_active})")
+                self.stdout.write(f"  pk={c.pk} {c.camera_id} - {c.location} (active={c.is_active})")
 
         self.stdout.write(self.style.MIGRATE_HEADING("\nDone. Nothing was deleted. Use --fix-duplicates / --fix-stale-health to apply the safe fixes above."))

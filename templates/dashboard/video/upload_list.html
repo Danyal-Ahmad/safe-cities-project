@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Video Processing Jobs — Safe City{% endblock %}
+{% block title %}Video Processing Jobs{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/video-uploads.css' %}">
 {% endblock %}
@@ -79,8 +79,8 @@
         <tbody>
           {% for u in uploads %}
           <tr>
-            <td class="sc-mono sc-text-sm">{{ u.original_filename|default:"—"|truncatechars:44 }}</td>
-            <td>{{ u.camera.camera_id|default:u.camera_location|default:"—" }}</td>
+            <td class="sc-mono sc-text-sm">{{ u.original_filename|default:"-"|truncatechars:44 }}</td>
+            <td>{{ u.camera.camera_id|default:u.camera_location|default:"-" }}</td>
             <td>
               {% if u.status == 'completed' %}
               <span class="sc-badge sc-badge-ok"><i class="bi bi-check2"></i> Completed</span>
@@ -101,7 +101,7 @@
             <td class="vul-num">{{ u.auto_challans_created|default:0|intcomma }}</td>
             <td class="vul-num">{{ u.manual_review_created|default:0|intcomma }}</td>
             <td class="sc-text-sm">{{ u.duration_str }}</td>
-            <td class="sc-text-sm">{{ u.uploaded_by.display_name|default:u.uploaded_by.username|default:"—" }}</td>
+            <td class="sc-text-sm">{{ u.uploaded_by.display_name|default:u.uploaded_by.username|default:"-" }}</td>
             <td class="sc-text-sm sc-text-muted">{{ u.created_at|date:"d M Y, H:i" }}</td>
           </tr>
           {% endfor %}

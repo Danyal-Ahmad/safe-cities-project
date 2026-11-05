@@ -17,7 +17,7 @@ class VideoUpload(models.Model):
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
                                     null=True, related_name='video_uploads')
     video_file = models.FileField(upload_to='videos/%Y/%m/%d/',
-                                  help_text="MP4, AVI, MOV — max 200 MB")
+                                  help_text="MP4, AVI, MOV - max 200 MB")
     original_filename = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_UPLOADED)
 
@@ -48,14 +48,14 @@ class VideoUpload(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"VideoUpload {self.id} — {self.original_filename or 'unnamed'} ({self.status})"
+        return f"VideoUpload {self.id} - {self.original_filename or 'unnamed'} ({self.status})"
 
     @property
     def duration_str(self):
         if self.processing_started_at and self.completed_at:
             delta = self.completed_at - self.processing_started_at
             return f"{delta.total_seconds():.1f}s"
-        return '—'
+        return '-'
 
     @property
     def progress_percent(self):
@@ -95,5 +95,5 @@ class VideoFrame(models.Model):
         ]
 
     def __str__(self):
-        return f"Frame {self.frame_number} ({self.timestamp_secs:.1f}s) — plate={self.plate_detected}"
+        return f"Frame {self.frame_number} ({self.timestamp_secs:.1f}s) - plate={self.plate_detected}"
 

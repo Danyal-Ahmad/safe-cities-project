@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='banner',
             name='placement',
-            field=models.CharField(choices=[('top', 'Top of page'), ('bottom', 'Bottom of page'), ('ad', 'Banner — Public Service Announcement Space'), ('popup', 'POPUP banner')], default='top', max_length=10),
+            field=models.CharField(choices=[('top', 'Top of page'), ('bottom', 'Bottom of page'), ('ad', 'Banner - Public Service Announcement Space'), ('popup', 'POPUP banner')], default='top', max_length=10),
         ),
         migrations.AlterField(
             model_name='challantemplate',

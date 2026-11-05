@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Delete Challan — Safe City{% endblock %}
+{% block title %}Delete Challan{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -19,8 +19,8 @@
  <div class="py-4">
  <p>Ticket <strong class="form-control font-monospace">{{ challan.ticket_no|default:challan.id }}</strong></p>
  <p class=" small ">
- Plate: <span class="form-control font-monospace">{{ challan.plate_number|default:"—" }}</span>
- · Fine: {{ challan.fine_amount|default:"—" }}
+ Plate: <span class="form-control font-monospace">{{ challan.plate_number|default:"-" }}</span>
+ · Fine: {{ challan.fine_amount|default:"-" }}
  </p>
  <form method="post">
  {% csrf_token %}

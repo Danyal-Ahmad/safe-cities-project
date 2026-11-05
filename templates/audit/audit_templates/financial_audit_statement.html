@@ -73,14 +73,14 @@
   </header>
   <div class="refbar">
     <span>Statement No: <b>{{ doc_no }}</b></span>
-    <span>Classification: <b>Official — Financial</b></span>
+    <span>Classification: <b>Official - Financial</b></span>
     <span>Issued: <b>{{ generated_at|date:"d M Y" }}</b></span>
   </div>
 
   <div class="doctype"><h3>Financial Audit Statement</h3></div>
 
   <div class="meta">
-    <div class="m"><div class="l">Financial Period</div><div class="v">{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}</div></div>
+    <div class="m"><div class="l">Financial Period</div><div class="v">{{ period_from|date:"d M Y" }} - {{ period_to|date:"d M Y" }}</div></div>
     <div class="m"><div class="l">Head of Account</div><div class="v">IC3 E-Challans</div></div>
     <div class="m"><div class="l">Statement Of</div><div class="v">E-Challan Fines</div></div>
   </div>
@@ -109,7 +109,7 @@
     <thead><tr><th>Indicator</th><th>Value</th><th>Indicator</th><th>Value</th></tr></thead>
     <tbody>
       <tr><td>Challans issued in period</td><td class="n">{{ stats.challans_issued }}</td><td>Confirmed detections</td><td class="n">{{ stats.detections_confirmed }}</td></tr>
-      <tr><td>Pending DIG review</td><td class="n">{{ stats.detections_pending }}</td><td>Evidence pass rate</td><td class="n">{{ stats.evidence_pass_rate }}%</td></tr>
+      <tr><td>Pending officer review</td><td class="n">{{ stats.detections_pending }}</td><td>Evidence pass rate</td><td class="n">{{ stats.evidence_pass_rate }}%</td></tr>
     </tbody>
   </table>
 
@@ -140,7 +140,7 @@
   </div>
 
   <div class="ft">
-    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.authority_name_en }} - {{ branding.office_name }}</span>
     <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
     <span>System generated · verifiable via document hash</span>
   </div>

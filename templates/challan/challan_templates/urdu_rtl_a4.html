@@ -99,7 +99,7 @@
     </div>
     <div class="logos-l">
       <div class="logo">{% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% else %}SAFE CITY{% endif %}</div>
-      <div class="logo round">GOVT<br>PUNJAB</div>
+      <div class="logo round">SAFE<br>CITIES</div>
     </div>
   </div>
 
@@ -107,12 +107,12 @@
 
     <div class="panel">
       <div class="row"><span class="k">نام:</span><span class="v en">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
-      <div class="row"><span class="k">فون نمبر:</span><span class="v en">{{ challan.phone|default:"—" }}</span></div>
-      <div class="row"><span class="k">شہر:</span><span class="v en">{{ challan.location|default:"LAHORE" }}</span></div>
+      <div class="row"><span class="k">فون نمبر:</span><span class="v en">{{ challan.phone|default:"-" }}</span></div>
+      <div class="row"><span class="k">شہر:</span><span class="v en">{{ challan.location|default:"" }}</span></div>
       <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"Awaiting Excise Integration" }}</span></div>
       <div class="row"><span class="k">رجسٹریشن نمبر:</span><span class="v en">{{ challan.plate_number }}</span></div>
       <div class="row"><span class="k">گاڑی کی قسم:</span><span class="v en">{{ challan.vehicle_type|default:"Car" }}</span></div>
-      <div class="row"><span class="k">رنگ:</span><span class="v en">{{ challan.color|default:"—" }}</span></div>
+      <div class="row"><span class="k">رنگ:</span><span class="v en">{{ challan.color|default:"-" }}</span></div>
       <div class="row"><span class="k">سابقہ چالان:</span><span class="v en">{{ challan.get_payment_status_display }}</span></div>
     </div>
 
@@ -120,7 +120,7 @@
       <div class="row"><span class="k">چالان نمبر:</span><span class="v en">{{ challan.ticket_no }}</span></div>
       <div class="row"><span class="k">خلاف ورزی:</span><span class="v sm en">{{ challan.get_violation_type_display|upper }}</span></div>
       <div class="row"><span class="k">وقت/تاریخ:</span><span class="v sm en">{{ camera_meta.timestamp }}</span></div>
-      <div class="row"><span class="k">مقام خلاف ورزی:</span><span class="v sm en">{{ challan.location|default:"—" }}</span></div>
+      <div class="row"><span class="k">مقام خلاف ورزی:</span><span class="v sm en">{{ challan.location|default:"-" }}</span></div>
       <div class="row" style="margin-top:5mm"><span class="k">جرمانہ:</span><span class="v en">PKR {{ challan.fine_amount|floatformat:"0" }}/-</span></div>
       <div class="row"><span class="k">تاریخ اجراء:</span><span class="v en">{{ challan.issue_date|date:"d-M-Y" }}</span></div>
       <div class="row"><span class="k">ادائیگی کی آخری تاریخ:</span><span class="v en">{{ challan.due_date|date:"d-M-Y" }}</span></div>
@@ -133,7 +133,7 @@
       <div class="sign">{% if officer_signature_url %}<img src="{{ officer_signature_url }}" alt="Signature">{% endif %}</div>
       <div class="off-k">جاری کنندہ افسر:</div>
       <div class="off-v en">{{ officer_signature_name|default:"System Generated" }}</div>
-      <div class="off-d en">{{ officer_signature_designation|default:"Traffic Officer" }} · {{ officer_staff_id|default:"—" }}</div>
+      <div class="off-d en">{{ officer_signature_designation|default:"Enforcement Officer" }} · {{ officer_staff_id|default:"-" }}</div>
     </div>
   </div>
 
@@ -155,7 +155,7 @@ HASH: {% if evidence_summary %}{{ evidence_summary.hash|slice:":12" }}{% endif %
     <div>
       <div class="row"><span class="k">چالان نمبر:</span><span class="v en">{{ challan.ticket_no }}</span></div>
       <div class="row"><span class="k">نام:</span><span class="v en">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
-      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"—" }}</span></div>
+      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"-" }}</span></div>
       <div class="row" style="margin-top:2mm"><span class="k strong">آخری تاریخ:</span><span class="v en strong">{{ challan.due_date|date:"d-M-Y" }}</span><span class="k" style="min-width:0;margin-right:6mm">جرمانہ:</span><span class="v en">PKR {{ challan.fine_amount|floatformat:"0" }}/-</span></div>
     </div>
     <div>
@@ -172,7 +172,7 @@ HASH: {% if evidence_summary %}{{ evidence_summary.hash|slice:":12" }}{% endif %
     <div class="pdate en">{{ challan.due_date|date:"d-M-Y" }}</div>
     <div style="padding-top:5mm">
       <div class="row"><span class="k">نام:</span><span class="v en">{{ challan.owner_name|default:"Awaiting Excise Integration" }}</span></div>
-      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"—" }}</span></div>
+      <div class="row"><span class="k">پتہ:</span><span class="v addr en">{{ challan.address|default:"-" }}</span></div>
       <div class="row" style="margin-top:1.5mm"><span class="k">وصول کنندہ کا نام:</span><span class="v"><span class="sigline"></span></span></div>
     </div>
     <div>

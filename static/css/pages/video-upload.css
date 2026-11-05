@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Video Upload page — file picker, camera select, recent uploads
+   Video Upload page - file picker, camera select, recent uploads
    Loaded by templates/dashboard/video/upload.html
    ========================================================================== */
 
@@ -124,7 +124,7 @@
 
 .vp-progress-bar {
   height: 100%;
-  width: 0; /* default: empty bar — bucket classes below raise the fill */
+  width: 0; /* default: empty bar - bucket classes below raise the fill */
   border-radius: 999px;
   background: linear-gradient(90deg, var(--sc-banner-a, #1E4E9C), var(--sc-banner-b, #3B6FC4));
   transition: width 0.3s ease;

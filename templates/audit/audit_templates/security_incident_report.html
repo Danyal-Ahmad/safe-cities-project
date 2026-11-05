@@ -79,14 +79,14 @@
   </header>
   <div class="refbar">
     <span>Incident Report No: <b>{{ doc_no }}</b></span>
-    <span>Classification: <b>Official — Security</b></span>
+    <span>Classification: <b>Official - Security</b></span>
     <span>Issued: <b>{{ generated_at|date:"d M Y" }}</b></span>
   </div>
 
   <div class="doctype"><h3>Security &amp; Authentication Incident Report</h3></div>
 
   <div class="meta">
-    <div class="m"><div class="l">Reporting Period</div><div class="v">{{ period_from|date:"d M Y" }} — {{ period_to|date:"d M Y" }}</div></div>
+    <div class="m"><div class="l">Reporting Period</div><div class="v">{{ period_from|date:"d M Y" }} - {{ period_to|date:"d M Y" }}</div></div>
     <div class="m"><div class="l">Reported By</div><div class="v">{{ generated_by_ctx.name }}</div></div>
     <div class="m"><div class="l">Review Status</div><div class="v">For DIG Counter-Review</div></div>
   </div>
@@ -100,10 +100,10 @@
 
   <h4 class="sec">1. Authentication Findings</h4>
   <div class="alert">
-    <b>A1 — Failed authentication attempts.</b> {{ stats.login_failed }} failed login attempts were recorded in the period. Every attempt is stored with account, portal, source IP, browser, OS and device fingerprint. Accounts exceeding the threshold are auto-locked by the lockout policy; repeated failures from a single IP are rate-limited (20 attempts / 15 minutes) and flagged for IT Support review.
+    <b>A1 - Failed authentication attempts.</b> {{ stats.login_failed }} failed login attempts were recorded in the period. Every attempt is stored with account, portal, source IP, browser, OS and device fingerprint. Accounts exceeding the threshold are auto-locked by the lockout policy; repeated failures from a single IP are rate-limited (20 attempts / 15 minutes) and flagged for IT Support review.
   </div>
   <div class="alert">
-    <b>A2 — Source addresses.</b> Authentication traffic originated from {{ stats.unique_ip_count }} distinct IP addresses. Addresses observed in this period:
+    <b>A2 - Source addresses.</b> Authentication traffic originated from {{ stats.unique_ip_count }} distinct IP addresses. Addresses observed in this period:
   </div>
   <div class="iplist">
     {% for ip in stats.unique_ips %}<span>{{ ip }}</span>{% empty %}<span>no addresses recorded</span>{% endfor %}
@@ -137,19 +137,19 @@
       <div class="line"></div>
       <div class="nm">{{ generated_by_ctx.name }}</div>
       <div class="ds">{{ generated_by_ctx.designation }} · {{ generated_by_ctx.staff_id }}</div>
-      <div class="dt">Audit Officer — {{ generated_at|date:"d M Y" }}</div>
+      <div class="dt">Audit Officer - {{ generated_at|date:"d M Y" }}</div>
     </div>
     <div class="sigbox">
       <div class="sig">{% if countersigned_by_ctx.signature_url %}<img src="{{ countersigned_by_ctx.signature_url }}" alt="Signature">{% endif %}</div>
       <div class="line"></div>
       <div class="nm">{{ countersigned_by_ctx.name }}</div>
       <div class="ds">{{ countersigned_by_ctx.designation }} · {{ countersigned_by_ctx.staff_id }}</div>
-      <div class="dt">Reviewed — Deputy Inspector General</div>
+      <div class="dt">Reviewed - Deputy Inspector General</div>
     </div>
   </div>
 
   <div class="ft">
-    <span>{{ branding.authority_name_en }} — {{ branding.office_name }}</span>
+    <span>{{ branding.authority_name_en }} - {{ branding.office_name }}</span>
     <span>{{ branding.website }} · Helpline {{ branding.helpline }}</span>
     <span>System generated · verifiable via document hash</span>
   </div>

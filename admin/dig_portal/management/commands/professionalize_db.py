@@ -93,7 +93,7 @@ class Command(BaseCommand):
                 self.stdout.write('  create sc_blacklist via migrate (run migrate after this)')
 
         if dry:
-            self.stdout.write(self.style.WARNING('Dry-run only — no changes applied.'))
+            self.stdout.write(self.style.WARNING('Dry-run only - no changes applied.'))
         else:
             self.stdout.write(self.style.SUCCESS(
                 'Done. Next: python manage.py migrate'

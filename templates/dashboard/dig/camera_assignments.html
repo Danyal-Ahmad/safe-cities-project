@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Camera Assignments — IT{% endblock %}
+{% block title %}Camera Assignments - IT{% endblock %}
 
 {% block body_class %}page-it{% endblock %}
 {% block content %}
@@ -50,7 +50,7 @@
  <div>
  <label>Officer *</label>
  <select name="officer_id" required>
- <option value="">— Select officer —</option>
+ <option value="">- Select officer -</option>
  {% for o in officers %}
  <option value="{{ o.id }}">{{ o.display_name }}{% if o.staff_id %} · {{ o.staff_id }}{% endif %}</option>
  {% endfor %}
@@ -59,9 +59,9 @@
  <div>
  <label>Camera *</label>
  <select name="camera_id" required>
- <option value="">— Select camera —</option>
+ <option value="">- Select camera -</option>
  {% for c in cameras %}
- <option value="{{ c.id }}">{{ c.camera_id }} — {{ c.location|truncatechars:36 }}</option>
+ <option value="{{ c.id }}">{{ c.camera_id }} - {{ c.location|truncatechars:36 }}</option>
  {% endfor %}
  </select>
  </div>

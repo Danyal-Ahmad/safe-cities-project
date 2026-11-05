@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Review History — Officer Portal{% endblock %}
+{% block title %}Review History - Officer Portal{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/officer-review-history.css' %}">
 {% endblock %}
@@ -11,8 +11,8 @@
   <div>
     <h1><i class="bi bi-clock-history"></i> Review History</h1>
     <p class="sc-lead">
-      Your past review actions on detections &mdash; rejections, flags and auto-confirmed
-      challans &mdash; with the notes you recorded for the audit trail.
+      Your past review actions on detections - rejections, flags and auto-confirmed
+      challans - with the notes you recorded for the audit trail.
     </p>
   </div>
   <div class="sc-flex sc-flex-wrap sc-gap-2">
@@ -83,21 +83,21 @@
             <td><strong class="sc-mono sc-plate-cell">{{ a.effective_plate|default:"UNREAD" }}</strong></td>
             <td class="sc-mono">#{{ a.id }}</td>
             <td class="sc-text-sm">
-              {% if a.camera %}{{ a.camera.camera_id }}{% else %}<span class="sc-text-faint">—</span>{% endif %}
+              {% if a.camera %}{{ a.camera.camera_id }}{% else %}<span class="sc-text-faint">-</span>{% endif %}
             </td>
             <td>
               {% if a.status == 'confirmed' %}
                 <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> Confirmed</span>
               {% elif a.status == 'rejected' %}
                 <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> Rejected</span>
-              {% elif a.status == 'flagged_for_dig' %}
+              {% elif a.status == 'flagged_officer' %}
                 <span class="sc-badge sc-badge-purple"><i class="bi bi-flag-fill"></i> Flagged</span>
               {% else %}
                 <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> Pending</span>
               {% endif %}
             </td>
-            <td class="sc-text-sm sc-notes-cell">{{ a.review_notes|truncatechars:80|default:"—" }}</td>
-            <td class="sc-text-sm sc-text-muted">{{ a.reviewed_at|date:"d M Y, H:i"|default:"—" }}</td>
+            <td class="sc-text-sm sc-notes-cell">{{ a.review_notes|truncatechars:80|default:"-" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ a.reviewed_at|date:"d M Y, H:i"|default:"-" }}</td>
             <td>
               <a href="{% url 'officer_portal:detection_detail' a.id %}" class="sc-btn sc-btn-sm sc-btn-outline">
                 <i class="bi bi-eye"></i> View

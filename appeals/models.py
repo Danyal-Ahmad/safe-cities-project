@@ -62,7 +62,7 @@ class ChallanAppeal(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Appeal on {self.challan.ticket_no} — {self.status} ({self.current_stage})"
+        return f"Appeal on {self.challan.ticket_no} - {self.status} ({self.current_stage})"
 
     @classmethod
     def has_active_appeal(cls, challan):

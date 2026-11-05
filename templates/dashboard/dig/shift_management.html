@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% comment %}V37: shift assignment is now auto-only (round-robin/least-busy)
- — DIG picks a start/end time and the system assigns whichever eligible
+ - DIG picks a start/end time and the system assigns whichever eligible
  officer has the fewest shifts in the trailing 7 days. No manual officer
  picker anymore.{% endcomment %}
 {% block title %}Shift Roster{% endblock %}
@@ -89,7 +89,7 @@
  </td>
  <td class="small ">{{ s.start_time|date:"d-M-Y H:i" }}</td>
  <td class="small ">{{ s.end_time|date:"d-M-Y H:i" }}</td>
- <td class="small ">{{ s.assigned_by.display_name|default:"—" }}</td>
+ <td class="small ">{{ s.assigned_by.display_name|default:"-" }}</td>
  </tr>
  {% endfor %}
  </tbody>
@@ -125,8 +125,8 @@
  <span>{{ o.display_name }}</span>
  </div>
  </td>
- <td class="text-mono text-small">{{ o.staff_id|default:"—" }}</td>
- <td class="small ">{{ o.region|default:"—" }}</td>
+ <td class="text-mono text-small">{{ o.staff_id|default:"-" }}</td>
+ <td class="small ">{{ o.region|default:"-" }}</td>
  <td class="small ">{{ o.last_login|date:"d-M-Y H:i"|default:"Never" }}</td>
  </tr>
  {% endfor %}

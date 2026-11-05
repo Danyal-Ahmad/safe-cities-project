@@ -1,4 +1,4 @@
-"""cameras migration 0001 — Camera model."""
+"""cameras migration 0001 - Camera model."""
 import uuid
 from django.db import migrations, models
 
@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('api_key', models.UUIDField(default=uuid.uuid4, editable=False, help_text='Per-camera API key transmitted as Bearer token by the camera worker.')),
                 ('enrollment_token', models.UUIDField(blank=True, editable=False, help_text='One-time token used during camera self-enrollment.', null=True)),
                 ('is_enrolled', models.BooleanField(default=False, help_text='True after the camera has completed self-enrollment.')),
-                ('location', models.CharField(help_text="Physical location of the camera (e.g. 'Main Boulevard, Gulberg III, Lahore').", max_length=255)),
+                ('location', models.CharField(help_text="Physical location of the camera (e.g. 'Main Boulevard, Sector 7').", max_length=255)),
                 ('legal_direction', models.CharField(choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West')], default='N', help_text='Legal travel direction at this camera location.', max_length=10)),
                 ('rtsp_url', models.CharField(blank=True, help_text='RTSP stream URL: rtsp://user:pass@192.168.1.100:554/stream', max_length=500, null=True)),
                 ('http_snapshot_url', models.CharField(blank=True, help_text='HTTP snapshot URL (alternative to RTSP): http://user:pass@192.168.1.100/snapshot.jpg', max_length=500, null=True)),

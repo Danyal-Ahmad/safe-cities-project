@@ -18,7 +18,7 @@ CHECKOUT_TEMPLATE = Template("""{% load static %}<!doctype html>
 </head>
 <body>
 <div class="card">
-  <h1>Safe City &mdash; Demo Payment</h1>
+  <h1>Safe City - Demo Payment</h1>
   <div class="row"><span class="lbl">Method</span><span class="val">{{ method|upper }}</span></div>
   <div class="row"><span class="lbl">Reference</span><span class="val">{{ ref }}</span></div>
   <div class="row"><span class="lbl">Ticket</span><span class="val">{{ challan.ticket_no }}</span></div>
@@ -81,8 +81,8 @@ def _pending_transaction(ref):
 def demo_checkout(request):
     """Simulated gateway checkout (used when merchant keys are not configured).
 
-    GET  ?ref=…  — render the confirmation page for a PENDING PaymentTransaction.
-    POST (CSRF) — visitor confirms; the matching pending transaction is settled,
+    GET  ?ref=…  - render the confirmation page for a PENDING PaymentTransaction.
+    POST (CSRF) - visitor confirms; the matching pending transaction is settled,
     which is the ONLY path (besides the signed webhook) that marks a challan PAID.
     """
     from admin.dig_portal.models import AuditLog

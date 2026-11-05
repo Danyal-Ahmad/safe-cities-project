@@ -3,7 +3,7 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}DIG Command Center — SafeCity Directorate{% endblock %}
+{% block title %}DIG Command Center - SafeCity Directorate{% endblock %}
 
 {% block crumb %}
 <a href="/">Home</a>
@@ -195,7 +195,7 @@
       <div class="md-kpi-body">
         <div class="md-kpi-label">Flagged Detections</div>
         <div class="md-kpi-value" id="kpi-flagged-detections" data-key="flagged_detections" style="color: #ef4444;">0</div>
-        <div class="md-kpi-foot"><a href="{% url 'dig:flagged_detections' %}" style="color: #ef4444;">Review Ambiguous →</a></div>
+        <div class="md-kpi-foot" style="color: #ef4444;">Officer Portal review queue</div>
       </div>
     </div>
   {% endif %}
@@ -324,7 +324,7 @@
                   {{ o.display_name|default:o.username }}
                 </a>
               </td>
-              <td style="color: var(--md-text-muted); font-size: 0.8rem;">{{ o.region|default:'—' }}</td>
+              <td style="color: var(--md-text-muted); font-size: 0.8rem;">{{ o.region|default:'-' }}</td>
               <td>
                 {% if o.is_active %}
                   <span class="md-badge md-badge-success"><i class="bi bi-dot"></i> Active</span>
@@ -392,13 +392,10 @@
         <i class="bi bi-radar" style="color: var(--md-brand-cyan);"></i>
         <h3>Latest Camera Inferences</h3>
       </div>
-      <a href="{% url 'dig:flagged_detections' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-flag"></i> Flagged Cases
-      </a>
     </div>
     <div style="overflow-x: auto;">
       <table class="md-table" id="recent-detections-table"
-             data-recent-detections='[{% for d in recent_detections %}{"id":{{ d.id }},"camera":"{{ d.camera.name|default:d.camera_id|escapejs }}","plate":"{{ d.vehicle_plate|default:'—'|escapejs }}","confidence":{{ d.confidence|default:0|stringformat:'f' }},"status":"{{ d.get_status_display|escapejs }}","created_at":"{{ d.created_at|date:'Y-m-d H:i'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+             data-recent-detections='[{% for d in recent_detections %}{"id":{{ d.id }},"camera":"{{ d.camera.name|default:d.camera_id|escapejs }}","plate":"{{ d.vehicle_plate|default:'-'|escapejs }}","confidence":{{ d.confidence|default:0|stringformat:'f' }},"status":"{{ d.get_status_display|escapejs }}","created_at":"{{ d.created_at|date:'Y-m-d H:i'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
         <thead>
           <tr>
             <th>ID</th>

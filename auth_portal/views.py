@@ -397,13 +397,13 @@ def _send_reset_email(request, user, token, kind='admin'):
         reset_url = request.build_absolute_uri(
             reverse('auth_portal:citizen_reset_confirm', args=[token.token])
         )
-    subject = "SafeCity FYP — Password Reset"
+    subject = "SafeCities Project - Password Reset"
     body = (
         f"Hello {user.display_name},\n\n"
         f"We received a request to reset your SafeCity password.\n\n"
         f"Reset link (valid for {RESET_TOKEN_TTL_HOURS} hours):\n{reset_url}\n\n"
         f"If you did not request this reset, you can safely ignore this email.\n\n"
-        f"— SafeCity FYP"
+        f"- SafeCities Project"
     )
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -425,3 +425,55 @@ def logout_view(request):
         return redirect('auth_portal:admin_login')
     return redirect('challans:home')
 
+
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils import timezone as _tz
+
+
+@login_required
+def notifications_feed(request):
+    """JSON feed for the portal ticker + push notification bell.
+
+    Serves audience-scoped ticker ads and push notifications to
+    authenticated staff. Citizens get an empty feed.
+    """
+    from admin.dig_portal.models import Banner
+
+    data = {'ticker': [], 'push': []}
+    user = request.user
+    staff = getattr(user, 'role', '') in ('DIG', 'SSP', 'SUPV', 'OFFICER', 'AUDIT', 'IT')
+    if not staff:
+        return JsonResponse(data)
+
+    now = _tz.now()
+    active = Banner.objects.filter(is_active=True)
+    active = active.filter(start_at__isnull=True) | active.filter(start_at__lte=now)
+    active = active.filter(expires_at__isnull=True) | active.filter(expires_at__gt=now)
+
+    ticker_qs = active.filter(placement=Banner.PLACEMENT_TICKER).order_by('-priority', '-created_at')[:6]
+    push_qs = active.filter(placement=Banner.PLACEMENT_PUSH).order_by('-priority', '-created_at')[:10]
+
+    def _audience_match(banner):
+        aud = banner.audience
+        if aud == 'all':
+            return True
+        role = user.role
+        role_aud = {
+            'DIG': 'dig', 'SSP': 'ssp', 'SUPV': 'supervisor',
+            'OFFICER': 'officer', 'AUDIT': 'audit', 'IT': 'it',
+        }.get(role)
+        if aud == 'staff' and staff:
+            return True
+        return role_aud == aud
+
+    data['ticker'] = [
+        {'id': 't%d' % b.id, 'title': b.title, 'body': (b.html_content or '')[:160]}
+        for b in ticker_qs if _audience_match(b)
+    ]
+    data['push'] = [
+        {'id': 'p%d' % b.id, 'title': b.title, 'body': (b.html_content or '')[:280]}
+        for b in push_qs if _audience_match(b)
+    ]
+    return JsonResponse(data)

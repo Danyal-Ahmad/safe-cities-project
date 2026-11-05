@@ -7,7 +7,7 @@
   <div class="sc-flex sc-items-center sc-justify-between sc-mb-3" style="border-bottom: 1px solid var(--md-border); padding-bottom: 0.75rem;">
     <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
       <span class="md-badge md-badge-dark" style="font-family: monospace; font-size: 0.85rem;">TARGET #{{ detection.id }}</span>
-      <span class="md-badge {% if detection.status == 'confirmed' %}md-badge-success{% elif detection.status == 'rejected' %}md-badge-danger{% elif detection.status == 'flagged_for_dig' %}md-badge-warning{% else %}md-badge-info{% endif %}">
+      <span class="md-badge {% if detection.status == 'confirmed' %}md-badge-success{% elif detection.status == 'rejected' %}md-badge-danger{% elif detection.status == 'flagged_officer' %}md-badge-warning{% else %}md-badge-info{% endif %}">
         {{ detection.get_status_display|upper }}
       </span>
       {% if detection.ai_confidence %}

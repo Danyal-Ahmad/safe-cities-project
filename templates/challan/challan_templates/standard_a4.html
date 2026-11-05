@@ -177,7 +177,7 @@
       <div class="bh">Violation Details</div>
       <div class="tbl">
         <div class="r" style="flex:1.5"><span class="k">Violation Type</span><span class="c">:</span><span class="v">{{ challan.get_violation_type_display|upper }}{% if challan.violation_type == 'wrong_way' %}<span class="ur">خلاف ورزی: غلط سمت میں حرکت</span>{% endif %}</span></div>
-        <div class="r"><span class="k">Location</span><span class="c">:</span><span class="v">{{ challan.location|default:"—" }}</span></div>
+        <div class="r"><span class="k">Location</span><span class="c">:</span><span class="v">{{ challan.location|default:"-" }}</span></div>
         <div class="r"><span class="k">Date &amp; Time</span><span class="c">:</span><span class="v">{{ camera_meta.timestamp }}</span></div>
         <div class="r"><span class="k">Allowed Speed</span><span class="c">:</span><span class="v">{{ speed.allowed }}</span></div>
         <div class="r"><span class="k">Detected Speed</span><span class="c">:</span><span class="v">{{ speed.detected }}</span></div>
@@ -206,7 +206,7 @@
 
   <section class="mid">
     <div class="box evi">
-      <div class="bh">Evidence — 3-Frame Verified</div>
+      <div class="bh">Evidence - 3-Frame Verified</div>
       <div class="body">
         <div class="cam">
           {% if challan.detection.raw_image %}<img src="file://{{ challan.detection.raw_image.path }}" alt="Violation frame">{% endif %}
@@ -224,8 +224,8 @@ EVID: {{ frame_evidence|length }}-frame verified</div>
           </div>
           <div class="mini">
             <h5>Violation Location</h5>
-            <div class="pic map">{{ challan.location|default:"—" }}<br>{{ camera_meta.direction }} / legal {{ camera_meta.legal_direction }}</div>
-            <div class="cap">{{ challan.location|default:"—" }}</div>
+            <div class="pic map">{{ challan.location|default:"-" }}<br>{{ camera_meta.direction }} / legal {{ camera_meta.legal_direction }}</div>
+            <div class="cap">{{ challan.location|default:"-" }}</div>
           </div>
         </div>
       </div>
@@ -266,7 +266,7 @@ EVID: {{ frame_evidence|length }}-frame verified</div>
     <div><span>{{ branding.office_name }}</span></div>
   </footer>
 
-  <div class="demo-strip">Safe City demo sheet &mdash; system generated &mdash; verifiable at {{ branding.website }}</div>
+  <div class="demo-strip">Safe City demo sheet - system generated - verifiable at {{ branding.website }}</div>
 </div>
 </body>
 </html>

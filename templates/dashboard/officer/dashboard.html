@@ -2,7 +2,7 @@
 {% load static %}
 {% load humanize %}
 {% load perm_tags %}
-{% block title %}Officer Command Center — Safe City{% endblock %}
+{% block title %}Officer Command Center{% endblock %}
 {% block crumb %}<a href="/">Home</a><span class="sc-crumb-sep">/</span><b>Officer Dashboard</b>{% endblock %}
 
 {% block extra_head %}
@@ -199,7 +199,7 @@
             <span class="md-badge md-badge-ok"><i class="bi bi-check2"></i> Confirmed</span>
             {% elif d.status == 'rejected' %}
             <span class="md-badge md-badge-danger"><i class="bi bi-x"></i> Rejected</span>
-            {% elif d.status == 'flagged_for_dig' %}
+            {% elif d.status == 'flagged_officer' %}
             <span class="md-badge md-badge-amber"><i class="bi bi-flag"></i> Flagged</span>
             {% else %}
             <span class="md-badge md-badge-gray">{{ d.get_status_display }}</span>

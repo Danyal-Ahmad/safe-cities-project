@@ -163,7 +163,7 @@
         <div class="ph"><span>Violation Details &nbsp;/</span><span class="ur">خلاف ورزی کی تفصیلات</span></div>
         <div class="t">
           <div class="r"><span class="k">Violation Type<span class="ur">خلاف ورزی کی نوعیت</span></span><span class="v">{{ challan.get_violation_type_display }}</span></div>
-          <div class="r"><span class="k">Location<span class="ur">مقام</span></span><span class="v">{{ challan.location|default:"—" }}</span></div>
+          <div class="r"><span class="k">Location<span class="ur">مقام</span></span><span class="v">{{ challan.location|default:"-" }}</span></div>
           <div class="r"><span class="k">Date &amp; Time<span class="ur">تاریخ و وقت</span></span><span class="v">{{ camera_meta.timestamp }}</span></div>
           <div class="r"><span class="k">Fine Amount<span class="ur">جرمانہ رقم</span></span><span class="v red">PKR {{ challan.fine_amount|floatformat:"0" }}/-</span></div>
         </div>
@@ -236,7 +236,7 @@
     </div>
   </footer>
 
-  <div class="demo-strip">Safe City demo sheet &mdash; system generated &mdash; not an official government document</div>
+  <div class="demo-strip">Safe City demo sheet - system generated - not an official government document</div>
 </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Officer Activity — Safe City{% endblock %}
+{% block title %}Officer Activity{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -60,7 +60,7 @@
  {% for d in recent_actions %}
  <tr>
  <td class="form-control font-monospace">#{{ d.id }}</td>
- <td class="form-control font-monospace">{{ d.effective_plate|default:"—" }}</td>
+ <td class="form-control font-monospace">{{ d.effective_plate|default:"-" }}</td>
  <td>{{ d.get_status_display }}</td>
  <td class="small ">{{ d.reviewed_at|date:"d M H:i" }}</td>
  </tr>

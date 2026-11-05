@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Challan Templates — Safe City{% endblock %}
+{% block title %}Challan Templates{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-challan-templates.css' %}">
 {% endblock %}
@@ -84,7 +84,7 @@
               {% csrf_token %}
               <input type="hidden" name="action" value="save_file_template">
               <input type="hidden" name="template_key" value="{{ t.key }}">
-              <label class="sc-text-xs sc-text-muted d-block mb-1">Layout source (Django template &mdash; saved to <span class="sc-mono">{{ t.key }}.html</span>)</label>
+              <label class="sc-text-xs sc-text-muted d-block mb-1">Layout source (Django template - saved to <span class="sc-mono">{{ t.key }}.html</span>)</label>
               <textarea name="html_content" rows="10" class="form-control sc-mono it-code" spellcheck="false">{{ t.html_content }}</textarea>
               <div class="sc-flex sc-gap-2 sc-mt-2">
                 <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-save me-1"></i>Save Layout</button>
@@ -175,7 +175,7 @@
                 <input type="text" name="template_name" value="{{ ct.name }}" class="form-control form-control-sm" required>
               </div>
               <div class="sc-form-group">
-                <label class="sc-text-xs sc-text-muted d-block mb-1">HTML content (Django template &mdash; challan.* fields are filled at print time)</label>
+                <label class="sc-text-xs sc-text-muted d-block mb-1">HTML content (Django template - challan.* fields are filled at print time)</label>
                 <textarea name="html_content" rows="10" class="form-control sc-mono it-code" spellcheck="false">{{ ct.html_content }}</textarea>
               </div>
               <div class="sc-flex sc-gap-2">

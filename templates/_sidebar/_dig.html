@@ -1,6 +1,6 @@
 {% load perm_tags %}
 {% comment %} ============================================================
-   DIG (Deputy Inspector General) — full-privilege sidebar
+   DIG (Deputy Inspector General) - full-privilege sidebar
    ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="Command &amp; Control">
@@ -11,6 +11,9 @@
   {% endif %}
   {% if request.user|has_perm:"manage_alerts" %}
   <a href="{% url 'dig:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone"></i> <span class="sc-nav-link-text">Alerts Hub</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"select_ads" %}
+  <a href="{% url 'dig:ads_select' %}" class="sc-nav-link {% if request.path == '/portal/dig/ads/select/' %}sc-active{% endif %}"><i class="bi bi-badge-ad"></i> <span class="sc-nav-link-text">Ad Selection</span></a>
   {% endif %}
 </div>
 
@@ -37,9 +40,6 @@
   {% endif %}
   {% if request.user|has_perm:"view_analytics" %}
   <a href="{% url 'dig:analytics' %}" class="sc-nav-link {% if request.path == '/portal/dig/analytics/' %}sc-active{% endif %}"><i class="bi bi-graph-up-arrow"></i> <span class="sc-nav-link-text">Analytics</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"view_flagged_detections" %}
-  <a href="{% url 'dig:flagged_detections' %}" class="sc-nav-link {% if request.path == '/portal/dig/flagged-detections/' %}sc-active{% endif %}"><i class="bi bi-flag"></i> <span class="sc-nav-link-text">Flagged Detections</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_reports" %}
   <a href="{% url 'dig:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-text"></i> <span class="sc-nav-link-text">Reports</span></a>

@@ -1,4 +1,4 @@
-# Idempotent Shift table — works whether user table is accounts_user or sc_users
+# Idempotent Shift table - works whether user table is accounts_user or sc_users
 
 import django.db.models.deletion
 from django.conf import settings
@@ -15,7 +15,7 @@ BEGIN
   ELSIF to_regclass('public.accounts_user') IS NOT NULL THEN
     user_table := 'accounts_user';
   ELSE
-    RAISE EXCEPTION 'Neither sc_users nor accounts_user exists — run accounts migrations first';
+    RAISE EXCEPTION 'Neither sc_users nor accounts_user exists - run accounts migrations first';
   END IF;
 
   CREATE TABLE IF NOT EXISTS dig_portal_shift (

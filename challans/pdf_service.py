@@ -21,7 +21,7 @@ FILE_TEMPLATE_MAP = {
     'standard_a4':      'challan/challan_templates/standard_a4.html',
     'bilingual_a4':     'challan/challan_templates/bilingual_a4.html',
     'notice_classic_a4': 'challan/challan_templates/notice_classic_a4.html',
-    'psca_urdu_a4':     'challan/challan_templates/psca_urdu_a4.html',
+    'urdu_rtl_a4':      'challan/challan_templates/urdu_rtl_a4.html',
     'government_grid_a4': 'challan/challan_templates/government_grid_a4.html',
 }
 DEFAULT_TEMPLATE_KEY = 'standard_a4'
@@ -29,16 +29,17 @@ LEGACY_TEMPLATE_ALIASES = {
     'modern_a4': 'standard_a4',
     'classic_a4': 'government_grid_a4',
     'legal_notice_99a': 'notice_classic_a4',
+    'psca_urdu_a4': 'urdu_rtl_a4',
     'digital_slip': 'bilingual_a4',
     'safecityfyp_classic': 'standard_a4',
 }
 
 BRANDING_DEFAULTS = {
-    'authority_name_en': 'SAFE CITY TRAFFIC POLICE',
-    'authority_name_ur': 'سیف سٹی ٹریفک پولیس',
-    'authority_name_en_short': 'Safe City Traffic Police',
-    'authority_name_ur_short': 'سیف سٹی ٹریفک پولیس',
-    'govt_name': 'GOVERNMENT OF PUNJAB',
+    'authority_name_en': 'SAFE CITIES PROJECT',
+    'authority_name_ur': 'سیف سٹیز پروجیکٹ',
+    'authority_name_en_short': 'Safe Cities Project',
+    'authority_name_ur_short': 'سیف سٹیز پروجیکٹ',
+    'govt_name': 'SAFE CITIES PROJECT',
     'tagline_part_1': 'SERVICE',
     'tagline_part_2': 'SECURITY',
     'tagline_part_3': 'SAFETY',
@@ -47,25 +48,25 @@ BRANDING_DEFAULTS = {
     'slogan_ur_line_1': 'قانون کی پاسداری',
     'slogan_ur_line_2': 'ہم سب کی ذمہ داری',
     'helpline': '15',
-    'website': 'safecity.gov.pk',
+    'website': 'portal.safecities.project',
     'portal_name': 'Safe City E-Challan Portal',
-    'office_name': 'Safe City Traffic Police Headquarters',
-    'social_handle': '@SafeCityPolice',
+    'office_name': 'Safe Cities Project Headquarters',
+    'social_handle': '@SafeCitiesProject',
     'footer_slogan_ur': 'قانون کی پاسداری · ہم سب کی ذمہ داری',
     'legal_ref_en': 'Section 99-A of the Motor Vehicles Ordinance, 1965',
     'legal_ref_ur': 'موٹر وہیکلز آرڈیننس 1965ء کی دفعہ 99-اے',
-    'bank_names': 'National Bank of Pakistan / Bank of Punjab',
+    'bank_names': 'National Bank of Pakistan',
     'wallet_names': 'JazzCash / EasyPaisa',
-    'pay_website': 'safecity.gov.pk/pay',
+    'pay_website': 'portal.safecities.project/pay',
     'footer_1_en': 'Computer generated document',
     'footer_1_ur': 'کمپیوٹر سے تیار شدہ دستاویز',
     'footer_2_en': 'Verifiable at the official portal',
     'footer_2_ur': 'سرکاری پورٹل پر تصدیق کے قابل',
-    'footer_3_en': 'Safe City Authority',
-    'footer_3_sub': 'Traffic Enforcement Wing',
-    'footer_3_ur': 'سیف سٹی اتھارٹی',
-    'officer_title_en': 'Authorized Traffic Officer',
-    'officer_title_ur': 'مجاز ٹریفک افسر',
+    'footer_3_en': 'Safe Cities Project',
+    'footer_3_sub': 'Enforcement Wing',
+    'footer_3_ur': 'سیف سٹیز پروجیکٹ',
+    'officer_title_en': 'Authorized Enforcement Officer',
+    'officer_title_ur': 'مجاز انفورسمنٹ افسر',
 }
 
 _ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
@@ -161,7 +162,7 @@ def _branding_context(sys_settings) -> dict:
 
 def _speed_context(challan):
     if getattr(challan, 'violation_type', '') == 'over_speed':
-        return {'allowed': '—', 'detected': '—', 'excess': '—', 'applicable': True}
+        return {'allowed': '-', 'detected': '-', 'excess': '-', 'applicable': True}
     return {'allowed': 'N/A', 'detected': 'N/A', 'excess': 'N/A', 'applicable': False}
 
 
@@ -180,10 +181,10 @@ def _camera_context(challan):
             pass
     return {
         'id': getattr(camera, 'camera_id', None) or 'CAM-SAFECITY',
-        'location': getattr(camera, 'location', None) or getattr(challan, 'location', '') or '—',
+        'location': getattr(camera, 'location', None) or getattr(challan, 'location', '') or '-',
         'timestamp': ts.strftime('%Y-%m-%d %H:%M:%S'),
-        'direction': getattr(challan, 'moving_direction', None) or '—',
-        'legal_direction': getattr(challan, 'legal_direction', None) or '—',
+        'direction': getattr(challan, 'moving_direction', None) or '-',
+        'legal_direction': getattr(challan, 'legal_direction', None) or '-',
         'bbox': bbox,
         'has_bbox': bbox['w'] > 0,
     }
@@ -196,16 +197,16 @@ def _frame_evidence_context(challan):
     for i, rec in enumerate((raw.get('frame_evidence') or [])[:3], start=1):
         frames.append({
             'index': i,
-            'plate': rec.get('plate') or '—',
+            'plate': rec.get('plate') or '-',
             'confidence': rec.get('confidence') or 0.0,
             'ocr_confidence': rec.get('ocr_confidence') or 0.0,
-            'timestamp': rec.get('timestamp') or '—',
+            'timestamp': rec.get('timestamp') or '-',
             'complete': rec.get('plate_complete', True),
         })
     if not frames and det is not None:
         frames.append({
             'index': 1,
-            'plate': getattr(det, 'ai_plate_text', '') or '—',
+            'plate': getattr(det, 'ai_plate_text', '') or '-',
             'confidence': getattr(det, 'ai_confidence', 0.0) or 0.0,
             'ocr_confidence': (raw.get('ocr_confidence') or 0.0),
             'timestamp': (getattr(det, 'created_at', None) or datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S'),
@@ -289,7 +290,7 @@ def _fallback_reportlab_pdf(challan) -> bytes:
         c.setFillColor(black)
         y -= 22
     c.setFont("Helvetica-Oblique", 9)
-    c.drawString(40, 40, "This is a computer-generated e-challan. Generated by Safe City FYP.")
+    c.drawString(40, 40, "This is a computer-generated e-challan. Generated by Safe Cities Project.")
     c.showPage()
     c.save()
     return buf.getvalue()
@@ -359,7 +360,7 @@ def _render_html_to_pdf(html_string):
                 return pdf_bytes
         except Exception as e:
             _WEASYPRINT_STATE = False
-            logger.warning("WeasyPrint unavailable (%s) — using fallback PDF engine.", e)
+            logger.warning("WeasyPrint unavailable (%s) - using fallback PDF engine.", e)
     try:
         from xhtml2pdf import pisa
         clean_html = re.sub(r'<link[^>]+rel=["\']stylesheet["\'][^>]*>', '', html_string, flags=re.IGNORECASE)
@@ -464,8 +465,8 @@ def generate_challan_pdf(challan):
             or officer.get_role_display()
         )
         context["officer_signature_stamp_url"] = officer.signature_stamp.url if getattr(officer, "signature_stamp", None) else None
-        context["officer_staff_id"] = getattr(officer, "staff_id", None) or "—"
-        context["officer_region"] = getattr(officer, "region", None) or "—"
+        context["officer_staff_id"] = getattr(officer, "staff_id", None) or "-"
+        context["officer_region"] = getattr(officer, "region", None) or "-"
 
     tpl_key = (
         getattr(sys_settings, "pdf_template", None)

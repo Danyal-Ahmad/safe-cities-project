@@ -162,7 +162,7 @@
       <div class="ph">Violation Details <em>/</em> <span class="ur">خلاف ورزی کی تفصیلات</span></div>
       <div class="t">
         <div class="r"><span class="k">Violation Type:</span><span class="v">{{ challan.get_violation_type_display }}</span></div>
-        <div class="r" style="flex:1.3"><span class="k">Location:</span><span class="v">{{ challan.location|default:"—" }}</span></div>
+        <div class="r" style="flex:1.3"><span class="k">Location:</span><span class="v">{{ challan.location|default:"-" }}</span></div>
         <div class="r"><span class="k">Date &amp; Time:</span><span class="v">{{ camera_meta.timestamp }}</span></div>
         <div class="r"><span class="k">Speed Limit:</span><span class="v">{{ speed.allowed }}</span></div>
         <div class="r"><span class="k">Detected Speed:</span><span class="v">{{ speed.detected }}</span></div>
@@ -223,7 +223,7 @@ EVID: {{ frame_evidence|length }} frames</div>
         <div class="u ur">موبائل والٹ کے ذریعے ادائیگی کریں۔</div>
       </div>
       <div class="c">
-        <div class="h"><i>T</i>Traffic Police Office</div>
+        <div class="h"><i>T</i>Safe Cities Project Office</div>
         <p>Pay at {{ branding.office_name }} counters.</p>
         <div class="u ur">ٹریفک پولیس آفس میں ادائیگی کریں۔</div>
       </div>
@@ -263,7 +263,7 @@ EVID: {{ frame_evidence|length }} frames</div>
     <div class="ur">{{ branding.footer_slogan_ur }}</div>
   </footer>
 
-  <div class="demo-strip">Safe City demo sheet &mdash; system generated &mdash; not an official government document</div>
+  <div class="demo-strip">Safe City demo sheet - system generated - not an official government document</div>
 </div>
 </body>
 </html>

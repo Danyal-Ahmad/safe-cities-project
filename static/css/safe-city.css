@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAFE CITY — Core Design System  (v3.0 · Reference-matched light theme)
+   SAFE CITY - Core Design System  (v3.0 · Reference-matched light theme)
    Tokens: page #E8EEF7 · surface #FFFFFF · navy #16294E · headings #0F2557
    Body #5B6B85 · primary #2563EB · banner #1E4E9C→#3B6FC4
    ========================================================================== */
@@ -1176,7 +1176,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 .metric-value { font-size: 1.55rem; font-weight: 800; color: var(--sc-navy-deep); }
 .metric-icon-box { width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-info-bg); color: var(--sc-info); }
 
-/* SweetAlert2 toast — sits below topbar instead of covering it */
+/* SweetAlert2 toast - sits below topbar instead of covering it */
 .swal2-container.swal2-toast-container {
   z-index: 1080;
 }

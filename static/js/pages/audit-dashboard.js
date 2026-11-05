@@ -1,4 +1,4 @@
-/* Compliance & Audit dashboard — extracted from templates/dashboard/audit/dashboard.html */
+/* Compliance & Audit dashboard - extracted from templates/dashboard/audit/dashboard.html */
 (function () {
   'use strict';
 

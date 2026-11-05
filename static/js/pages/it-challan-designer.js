@@ -43,7 +43,7 @@
       '  <div class="ds-block ds-header">',
       '    <img src="{% static \'img/project_logo.png\' %}" alt="Safe City">',
       '    <div>',
-      '      <h1>SAFE CITY &mdash; TRAFFIC POLICE E-CHALLAN</h1>',
+      '      <h1>SAFE CITIES PROJECT E-CHALLAN</h1>',
       '      <div class="ds-sub">Government of Pakistan &middot; Computer-generated notice &middot; Do not accept cash</div>',
       '    </div>',
       "    {% if challan.payment_status == 'PAID' %}",
@@ -61,10 +61,10 @@
       '  </div>',
       '  <div class="ds-block ds-rows">',
       '    <div class="ds-row"><span class="ds-k">Violation</span><span class="ds-v">{{ challan.get_violation_type_display|default:challan.violation_type }}</span></div>',
-      "    <div class=\"ds-row\"><span class=\"ds-k\">Location</span><span class=\"ds-v\">{{ challan.location|default:'&mdash;' }}</span></div>",
+      "    <div class=\"ds-row\"><span class=\"ds-k\">Location</span><span class=\"ds-v\">{{ challan.location|default:'-' }}</span></div>",
       "    <div class=\"ds-row\"><span class=\"ds-k\">Issued</span><span class=\"ds-v\">{{ challan.issue_date|date:'d M Y' }}</span></div>",
       "    <div class=\"ds-row\"><span class=\"ds-k\">Due</span><span class=\"ds-v\">{{ challan.due_date|date:'d M Y' }}</span></div>",
-      "    <div class=\"ds-row\"><span class=\"ds-k\">Camera</span><span class=\"ds-v\">{{ challan.camera.camera_id|default:'&mdash;' }}</span></div>",
+      "    <div class=\"ds-row\"><span class=\"ds-k\">Camera</span><span class=\"ds-v\">{{ challan.camera.camera_id|default:'-' }}</span></div>",
       '    <div class="ds-row"><span class="ds-k">Status</span><span class="ds-v">{{ challan.get_payment_status_display|default:challan.payment_status }}</span></div>',
       '  </div>'
     ].join('\n'),
@@ -72,10 +72,10 @@
       '  <div class="ds-block ds-section">',
       '    <h2>Offender Information</h2>',
       '    <div class="ds-rows">',
-      "      <div class=\"ds-row\"><span class=\"ds-k\">Name</span><span class=\"ds-v\">{{ challan.owner_name|default:'&mdash;' }}</span></div>",
-      "      <div class=\"ds-row\"><span class=\"ds-k\">CNIC</span><span class=\"ds-v ds-mono\">{{ challan.cnic|default:'&mdash;' }}</span></div>",
-      "      <div class=\"ds-row\"><span class=\"ds-k\">Phone</span><span class=\"ds-v\">{{ challan.phone|default:'&mdash;' }}</span></div>",
-      "      <div class=\"ds-row\"><span class=\"ds-k\">Address</span><span class=\"ds-v\">{{ challan.address|default:'&mdash;' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">Name</span><span class=\"ds-v\">{{ challan.owner_name|default:'-' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">CNIC</span><span class=\"ds-v ds-mono\">{{ challan.cnic|default:'-' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">Phone</span><span class=\"ds-v\">{{ challan.phone|default:'-' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">Address</span><span class=\"ds-v\">{{ challan.address|default:'-' }}</span></div>",
       '    </div>',
       '  </div>'
     ].join('\n'),
@@ -84,9 +84,9 @@
       '    <h2>Vehicle Information</h2>',
       '    <div class="ds-rows">',
       "      <div class=\"ds-row\"><span class=\"ds-k\">Type</span><span class=\"ds-v\">{{ challan.vehicle_type|default:'Car' }}</span></div>",
-      "      <div class=\"ds-row\"><span class=\"ds-k\">Year</span><span class=\"ds-v\">{{ challan.make_year|default:'&mdash;' }}</span></div>",
-      "      <div class=\"ds-row\"><span class=\"ds-k\">Color</span><span class=\"ds-v\">{{ challan.color|default:'&mdash;' }}</span></div>",
-      "      <div class=\"ds-row\"><span class=\"ds-k\">Chassis</span><span class=\"ds-v ds-mono\">{{ challan.chassis_no|default:'&mdash;' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">Year</span><span class=\"ds-v\">{{ challan.make_year|default:'-' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">Color</span><span class=\"ds-v\">{{ challan.color|default:'-' }}</span></div>",
+      "      <div class=\"ds-row\"><span class=\"ds-k\">Chassis</span><span class=\"ds-v ds-mono\">{{ challan.chassis_no|default:'-' }}</span></div>",
       '    </div>',
       '  </div>'
     ].join('\n'),
@@ -97,11 +97,11 @@
       '    <div class="ds-evidence">',
       '      <figure>',
       '        <img src="{{ challan.detection.raw_image.url }}" alt="Violation frame">',
-      '        <figcaption>Wide angle &middot; {{ challan.detection.camera.camera_id|default:"&mdash;" }}</figcaption>',
+      '        <figcaption>Wide angle &middot; {{ challan.detection.camera.camera_id|default:"-" }}</figcaption>',
       '      </figure>',
       '      <figure>',
       '        <img src="{{ challan.detection.raw_image.url }}" alt="Plate crop">',
-      '        <figcaption>Plate &middot; {{ challan.detection.effective_plate|default:"&mdash;" }}</figcaption>',
+      '        <figcaption>Plate &middot; {{ challan.detection.effective_plate|default:"-" }}</figcaption>',
       '      </figure>',
       '    </div>',
       "    <div class=\"ds-row\" style=\"margin-top:8px;\"><span class=\"ds-k\">Captured</span><span class=\"ds-v\">{{ challan.detection.created_at|date:'d M Y H:i:s' }}</span></div>",
@@ -118,7 +118,7 @@
       '      <div class="ds-box"><div class="ds-k">Pay Before</div><div class="ds-v">{{ challan.due_date|date:"d M Y" }}</div></div>',
       '    </div>',
       '    <div class="ds-psid" style="margin-top:12px;">',
-      '      <div class="ds-k" style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Payment Service ID &mdash; quote at any bank, post office or mobile wallet</div>',
+      '      <div class="ds-k" style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Payment Service ID - quote at any bank, post office or mobile wallet</div>',
       '      <div class="ds-amount">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</div>',
       '      <div class="ds-mono" style="font-size:12px;">{{ challan.psid }}</div>',
       '    </div>',
@@ -154,10 +154,10 @@
       '  <div class="ds-sign">',
       '    <div class="ds-sig">',
       '      <div class="ds-line">{{ officer_signature_name|default:"Issuing Officer" }}</div>',
-      '      <div style="font-size:9px;color:#6b7280;">{{ officer_signature_designation|default:"Traffic Police" }}</div>',
+      '      <div style="font-size:9px;color:#6b7280;">{{ officer_signature_designation|default:"Safe Cities Project" }}</div>',
       '    </div>',
       '    <div class="ds-sig">',
-      '      <div class="ds-line">SAFE CITY FYP</div>',
+      '      <div class="ds-line">SAFE CITIES PROJECT</div>',
       '      <div style="font-size:9px;color:#6b7280;">System-generated document</div>',
       '    </div>',
       '  </div>',
@@ -196,7 +196,7 @@
       this.emptyNode.setAttribute('data-ds-empty', '');
       this.emptyNode.innerHTML = '<i class="bi bi-arrows-move"></i>' +
         '<p class="mb-1">Drop blocks here to build the layout</p>' +
-        '<p class="sc-hint mb-0">The canvas is a single A4 sheet &mdash; blocks stack top to bottom.</p>';
+        '<p class="sc-hint mb-0">The canvas is a single A4 sheet - blocks stack top to bottom.</p>';
     }
     return this.emptyNode;
   };

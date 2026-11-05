@@ -603,8 +603,8 @@
    "category": "OPERATIONAL / FUNCTIONAL",
    "roles": {
     "IT Support": true,
-    "DIG": true,
-    "SSP": true,
+    "DIG": false,
+    "SSP": false,
     "Supervisor": false,
     "Officer": true,
     "Audit": true,
@@ -1588,6 +1588,34 @@
     "Supervisor": true,
     "Officer": false,
     "Audit": true,
+    "Citizen": false
+   }
+  },
+  {
+   "name": "Manage Ads (Ads Studio)",
+   "key": "manage_ads",
+   "category": "OPERATIONAL / FUNCTIONAL",
+   "roles": {
+    "IT Support": true,
+    "DIG": false,
+    "SSP": false,
+    "Supervisor": false,
+    "Officer": false,
+    "Audit": false,
+    "Citizen": false
+   }
+  },
+  {
+   "name": "Select Ads (activate + priority)",
+   "key": "select_ads",
+   "category": "OPERATIONAL / FUNCTIONAL",
+   "roles": {
+    "IT Support": true,
+    "DIG": true,
+    "SSP": false,
+    "Supervisor": false,
+    "Officer": false,
+    "Audit": false,
     "Citizen": false
    }
   }

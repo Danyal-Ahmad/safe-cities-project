@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Profile (officer-profile.js)
+   Officer - Profile (officer-profile.js)
    Avatar fallback + light phone-format validation on the profile form.
    ========================================================================== */
 (function () {
@@ -24,7 +24,7 @@
       });
     });
 
-    /* Phone sanity check — warn (not block) on obviously invalid input. */
+    /* Phone sanity check - warn (not block) on obviously invalid input. */
     var form = document.querySelector('form[data-profile-form]');
     if (form) {
       form.addEventListener('submit', function (e) {

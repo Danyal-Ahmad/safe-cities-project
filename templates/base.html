@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Safe City{% endblock %} &mdash; Safe City</title>
+  <title>{% block title %}Portal{% endblock %} - SAFE CITIES PROJECT</title>
   <meta name="theme-color" content="#1E4E9C">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
 
@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-public.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-modern.css' %}">
+  <link rel="stylesheet" href="{% static 'css/safe-city-ticker.css' %}">
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -72,7 +73,21 @@
         </form>
       </div>
       <div class="sc-topbar-right">
-        <div class="sc-clock" id="scClock">&mdash;&mdash;:&mdash;&mdash;:&mdash;&mdash;</div>
+        <button type="button" class="sc-bell-btn" id="scBellBtn" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
+          <i class="bi bi-bell"></i>
+          <span class="sc-bell-count" id="scBellCount" hidden>0</span>
+        </button>
+        <div class="sc-bell-panel" id="scBellPanel" role="dialog" aria-label="Notifications">
+          <div class="sc-bell-head">
+            <span>Notifications</span>
+            <button type="button" class="sc-bell-enable" id="scBellEnable" title="Enable browser notifications"><i class="bi bi-bell-plus"></i> Push</button>
+          </div>
+          <div class="sc-bell-list" id="scBellList">
+            <div class="sc-bell-empty">No notifications right now.</div>
+          </div>
+          <div class="sc-bell-foot">Push channel refreshes every 45 seconds</div>
+        </div>
+        <div class="sc-clock" id="scClock">--:--:--</div>
         <div class="sc-user-menu">
           <button type="button" class="sc-user-btn" id="scUserBtn" aria-haspopup="true" aria-expanded="false">
             <div class="sc-user-info">
@@ -116,6 +131,20 @@
         </div>
       </div>
     </header>
+
+    {% if ticker_ads %}
+    <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
+      <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
+      <div class="sc-ticker-viewport"><div class="sc-ticker-track">
+        {% for ad in ticker_ads %}
+        <span class="sc-ticker-item" data-id="tick-{{ ad.id }}">
+          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
+          {% if ad.html_content %}<span class="sc-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
+        </span>
+        {% endfor %}
+      </div></div>
+    </div>
+    {% endif %}
     {% endif %}
 
     {% if messages %}
@@ -136,7 +165,7 @@
 
     {% if user.is_authenticated %}
     <footer class="sc-footer">
-      <span>&copy; 2026 Safe City FYP &middot; All Rights Reserved</span>
+      <span>&copy; 2026 Safe Cities Project &middot; All Rights Reserved</span>
       <span>v1.0 &middot; SafeCity</span>
     </footer>
     {% endif %}
@@ -174,6 +203,7 @@
 <script src="{% static 'js/safe-city-live.js' %}" defer></script>
 <script src="{% static 'js/safe-city-print.js' %}" defer></script>
 <script src="{% static 'js/safe-city-charts-data.js' %}" defer></script>
+<script src="{% static 'js/safe-city-notifications.js' %}" defer></script>
 
 {% block extra_js %}{% endblock %}
 </body>

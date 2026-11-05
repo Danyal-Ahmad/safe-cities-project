@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DIG — Camera Network  (dashboard/dig/camera_list.html)
+   DIG - Camera Network  (dashboard/dig/camera_list.html)
    Client-side registry filtering (search + health + active state)
    ========================================================================== */
 (function () {

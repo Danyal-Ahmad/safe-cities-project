@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load json_tags %}
-{% block title %}Audit Studio — Safe City{% endblock %}
+{% block title %}Audit Studio{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-challan-studio.css' %}">
 {% endblock %}
@@ -11,7 +11,7 @@
 <div class="cs-hero">
   <div>
     <h1><i class="bi bi-journal-rich me-2"></i>Audit Studio</h1>
-    <p class="sc-lead">Government-style audit document studio — create, edit, duplicate, redesign and activate audit report layouts. Full access is restricted to IT Support.</p>
+    <p class="sc-lead">Government-style audit document studio - create, edit, duplicate, redesign and activate audit report layouts. Full access is restricted to IT Support.</p>
   </div>
   <div class="cs-hero-actions">
     <a href="{% url 'it_support_portal:audit_studio' %}" class="sc-btn"><i class="bi bi-speedometer2 me-1"></i>IT Dashboard</a>

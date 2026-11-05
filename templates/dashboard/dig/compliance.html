@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Compliance — Safe City{% endblock %}
+{% block title %}Compliance{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -76,7 +76,6 @@
  </div>
  <div>
  <a href="{% url 'dig:audit_log' %}" class="sc-btn sc-btn-primary"><i class="bi bi-shield-lock me-1"></i>Audit Log</a>
- <a href="{% url 'dig:flagged_detections' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Flagged</a>
  </div>
  </div>
 </div>

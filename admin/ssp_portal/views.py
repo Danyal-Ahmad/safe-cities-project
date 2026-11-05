@@ -131,7 +131,7 @@ def decide_appeal(request, appeal_id):
             f"Decision: {decision_text}\n"
             f"Reviewed by: {request.user.display_name} (SSP)\n"
             f"Decision timestamp: {timezone.now():%Y-%m-%d %H:%M:%S}\n"
-            f"SSP Comment: {reason or '—'}\n"
+            f"SSP Comment: {reason or '-'}\n"
         )
         if decision == 'APPROVED':
             notification_msg += "\nYour challan has been voided. No payment is required."
@@ -140,7 +140,7 @@ def decide_appeal(request, appeal_id):
 
         Notification.objects.create(
             recipient=appeal.submitted_by,
-            title=f"Appeal {decision_text} — {appeal.challan.ticket_no}",
+            title=f"Appeal {decision_text} - {appeal.challan.ticket_no}",
             message=notification_msg,
             category='appeal_approved' if decision == 'APPROVED' else 'appeal_rejected',
             target_url=reverse('citizen_portal:appeal_tracker'),

@@ -1,5 +1,5 @@
 /**
- * SafeCity FYP - Print Utilities Module
+ * SafeCities Project - Print Utilities Module
  * Challan print setup, QR code generation, barcode generation,
  * print dialog, Urdu mode toggle.
  */

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Detection Detail (officer-detection-detail.js)
+   Officer - Detection Detail (officer-detection-detail.js)
    Image fallbacks, notes counters + validation, confirm dialogs, copy hash.
    ========================================================================== */
 (function () {

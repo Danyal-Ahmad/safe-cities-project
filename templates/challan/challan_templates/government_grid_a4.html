@@ -96,7 +96,7 @@
     <div class="head">
       <div>
         <h1>{{ branding.govt_name }}</h1>
-        <h2>{{ branding.authority_name_en }} — ELECTRONIC-CHALLAN</h2>
+        <h2>{{ branding.authority_name_en }} - ELECTRONIC-CHALLAN</h2>
       </div>
       <div class="logos">
         <div class="logo">{% if logo_left_path %}<img src="file://{{ logo_left_path }}" alt="">{% else %}SAFE CITY{% endif %}</div>
@@ -117,7 +117,7 @@
         <div class="label">Payment within due date</div>
         <div class="amount">PKR {{ challan.fine_amount|floatformat:"0" }}/-</div>
         <div class="due">Due Date: {{ challan.due_date|date:"d-M-Y" }} &nbsp;·&nbsp; PSID: {{ challan.psid }}</div>
-        <div class="credit">To be credited under Head "<b>{{ branding.account_number }}</b>" — IC3 E-Challans</div>
+        <div class="credit">To be credited under Head "<b>{{ branding.account_number }}</b>" - IC3 E-Challans</div>
       </div>
     </div>
 
@@ -130,7 +130,7 @@
     </div>
     <div class="row g3">
       <div class="cell"><div class="label">Address</div><div class="val">{{ challan.address|default:"Awaiting Excise Integration" }}</div></div>
-      <div class="cell"><div class="label">City</div><div class="val">{{ challan.location|default:"LAHORE" }}</div></div>
+      <div class="cell"><div class="label">City</div><div class="val">{{ challan.location|default:"" }}</div></div>
       <div class="cell"><div class="label">Phone No.</div><div class="val">{{ challan.phone|default:"Awaiting Excise Integration" }}</div></div>
     </div>
 
@@ -143,9 +143,9 @@
       <div class="cell"><div class="label">Date &amp; Time</div><div class="val">{{ camera_meta.timestamp }}</div></div>
     </div>
 
-    <div class="bar">Violation Evidence — {{ frame_evidence|length }}-Frame Verified</div>
+    <div class="bar">Violation Evidence - {{ frame_evidence|length }}-Frame Verified</div>
     <div class="row g5b">
-      <div class="cell"><div class="label">Location</div><div class="val">{{ challan.location|default:"LAHORE" }}</div></div>
+      <div class="cell"><div class="label">Location</div><div class="val">{{ challan.location|default:"" }}</div></div>
       <div class="cell"><div class="label">Legal Direction</div><div class="val">{{ challan.legal_direction|default:"UP" }}</div></div>
       <div class="cell"><div class="label">Moving Direction</div><div class="val red">{{ challan.moving_direction|default:"DOWN" }}</div></div>
       <div class="cell"><div class="label">AI Confidence</div><div class="val">{% if challan.ai_confidence %}{{ challan.ai_confidence|floatformat:2 }}{% else %}N/A{% endif %}</div></div>
@@ -177,9 +177,9 @@
     <div class="bar">Issuing Officer</div>
     <div class="row off">
       <div class="cell"><div class="label">Officer Name</div><div class="line">{{ officer_signature_name|default:"System Generated" }}</div></div>
-      <div class="cell"><div class="label">Staff ID</div><div class="line">{{ officer_staff_id|default:"—" }}</div></div>
+      <div class="cell"><div class="label">Staff ID</div><div class="line">{{ officer_staff_id|default:"-" }}</div></div>
       <div class="cell"><div class="label">Officer Signature</div><div class="sign-box">{% if officer_signature_url %}<img src="{{ officer_signature_url }}" alt="Signature">{% endif %}</div></div>
-      <div class="cell"><div class="label">Designation</div><div class="line">{{ officer_signature_designation|default:"Traffic Officer" }}</div></div>
+      <div class="cell"><div class="label">Designation</div><div class="line">{{ officer_signature_designation|default:"Enforcement Officer" }}</div></div>
     </div>
   </div>
 

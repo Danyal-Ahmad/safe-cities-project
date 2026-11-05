@@ -1,20 +1,17 @@
-/* ==========================================================================
-   IT SUPPORT | Staff Directory (it-staff-list)
-   ========================================================================== */
+
 
 .it-staff-name {
   font-size: 0.86rem;
   font-weight: 700;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
 }
 
-/* Role-coloured badges (aligned with system avatar colours) */
 .it-role-dig { background: #F1EDFC; color: #6D28D9; }
 .it-role-ssp { background: #FDF3F5; color: #BE123C; }
 .it-role-supv { background: #FDF6E7; color: #B45309; }
 .it-role-officer { background: #EEF3FC; color: #1E40AF; }
 .it-role-audit { background: #E8FAF7; color: #0F766E; }
-.it-role-it { background: #F1F4F9; color: #475569; }
+.it-role-it { background: #F7F9FC; color: #475569; }
 
 .it-staff-note {
   border-top: 3px solid var(--sc-info-bg, #EEF3FC);
@@ -29,14 +26,14 @@
   justify-content: center;
   border-radius: 12px;
   background: var(--sc-info-bg, #EEF3FC);
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   font-size: 1.1rem;
 }
 
 .it-staff-note-t {
   font-size: 0.85rem;
   font-weight: 800;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   margin-bottom: 2px;
 }
 

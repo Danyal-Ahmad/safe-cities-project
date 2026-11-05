@@ -154,8 +154,6 @@ def review_queue(request):
 @officer_or_dig_required
 def detection_detail(request, detection_id):
     detection = get_object_or_404(Detection, pk=detection_id)
-    # Officer IDOR guard: officers may only open detections from their
-    # assigned cameras (senior staff see everything).
     if request.user.role == 'OFFICER':
         allowed = officer_camera_ids(request.user)
         if detection.camera_id is not None and detection.camera_id not in allowed:

@@ -3,7 +3,7 @@ import os
 os.environ.setdefault('DEBUG', 'True')
 os.environ.setdefault('SECRET_KEY', 'test-secret-key-not-for-production')
 
-from wrongway_system.settings import *  # noqa: F401,F403
+from wrongway_system.settings import *
 
 _db = DATABASES['default'].copy()
 _db['NAME'] = os.environ.get('PG_TEST_DB', 'SAFE_CITIES_PROJECT_TEST')

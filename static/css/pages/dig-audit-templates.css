@@ -1,21 +1,18 @@
-/* ==========================================================================
-   DIG PORTAL - Audit PDF Templates (dig-audit-templates)
-   Select-only page: preview cards + activate action
-   ========================================================================== */
+
 
 .dig-aud-card {
   display: flex;
   flex-direction: column;
   height: 100%;
   padding: 14px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius, 14px);
   background: #FFFFFF;
   box-shadow: var(--sc-shadow);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.dig-aud-card:hover { border-color: #B9C9E8; box-shadow: 0 8px 20px rgba(15, 37, 87, 0.10); }
+.dig-aud-card:hover { border-color: #B9C9E8; box-shadow: 0 8px 20px rgba(20, 33, 61, 0.10); }
 
 .dig-aud-card-active {
   border-color: #0F766E;
@@ -33,9 +30,9 @@
 
 .dig-aud-key {
   font-size: 0.68rem;
-  color: var(--sc-text-muted, #5B6B85);
-  background: #F1F4F9;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  color: var(--sc-text-muted, #6B7891);
+  background: #F7F9FC;
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: 6px;
   padding: 2px 7px;
 }
@@ -44,28 +41,26 @@
   margin: 0 0 4px 0;
   font-size: 0.92rem;
   font-weight: 800;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   line-height: 1.3;
 }
 
 .dig-aud-blurb {
   margin: 0 0 10px 0;
   font-size: 0.74rem;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
 }
 
-/* Sandboxed A4 preview frame (browser chrome strip above the iframe) */
 .dig-aud-frame {
   display: block;
   width: 100%;
   height: 300px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: 10px;
   background: #FFFFFF;
-  box-shadow: inset 0 18px 0 -17px #F1F4F9;
+  box-shadow: inset 0 18px 0 -17px #F7F9FC;
 }
 
-/* Card action rows */
 .dig-aud-actions {
   display: flex;
   align-items: center;

@@ -33,10 +33,6 @@ import sys
 import secrets
 from pathlib import Path
 
-# --- harness bootstrap -------------------------------------------------------
-# Force the PRODUCTION code paths (DEBUG=False ⇒ production CSP, secure
-# cookies) while keeping the DB/settings real. A strong random SECRET_KEY and
-# an explicit ALLOWED_HOSTS satisfy the DEBUG=False guards in settings.py.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wrongway_system.settings')
 os.environ['DEBUG'] = 'False'
 os.environ['SECRET_KEY'] = 'pen-test-harness-' + secrets.token_hex(24)
@@ -44,20 +40,17 @@ os.environ['ALLOWED_HOSTS'] = 'testserver,127.0.0.1,localhost'
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import django  # noqa: E402
+import django
 
 django.setup()
 
-from django.conf import settings  # noqa: E402
+from django.conf import settings
 
-# Harness-only: the test client speaks plain http; SECURE_SSL_REDIRECT would
-# turn every request into a 301. TLS is terminated at the edge in production.
 settings.SECURE_SSL_REDIRECT = False
 
-from django.test import Client  # noqa: E402
-from django.core.signing import TimestampSigner  # noqa: E402
+from django.test import Client
+from django.core.signing import TimestampSigner
 
-# --- results plumbing --------------------------------------------------------
 RESULTS = []
 
 
@@ -70,10 +63,7 @@ def section(title):
     print(f'\n=== {title} ' + '=' * max(0, 60 - len(title)))
 
 
-# --- fixture data (created + removed around the run) --------------------------
 SUFFIX = secrets.token_hex(4).upper()
-# 13 digits derived from the random suffix → unique CNIC / phone per run,
-# so signup never collides with seeded demo accounts in the dev database.
 _DIG = str(int(SUFFIX, 16)).zfill(13)[:13]
 PEN_CNIC = f'{_DIG[:5]}-{_DIG[5:12]}-{_DIG[12]}'
 FIXTURE = {}
@@ -128,7 +118,6 @@ def drop_fixture():
             pass
 
 
-# --- proofs ------------------------------------------------------------------
 def t1_pdf_idor():
     section('T1 - anonymous challan PDF (IDOR)')
     c = Client()
@@ -159,8 +148,6 @@ def t2_api_rate_limits():
     cam = FIXTURE['camera']
     c = Client()
 
-    # Bearer + csrf_exempt proof: a heartbeat WITHOUT any CSRF token must
-    # still succeed (these are machine endpoints), then the limit trips.
     r = c.post('/api/v1/heartbeat/', HTTP_AUTHORIZATION=f'Bearer {cam.api_key}')
     check('valid-Bearer heartbeat (no CSRF token) -> 200',
           r.status_code == 200, f'got {r.status_code}')
@@ -168,8 +155,6 @@ def t2_api_rate_limits():
     check('garbage Bearer -> 403 (auth intact under limiter)',
           r.status_code == 403, f'got {r.status_code}')
 
-    # ingest: 300/min per IP. Unauthenticated traffic costs no AI pipeline -
-    # the limiter sits above the auth check, so flooders get 429 cheap.
     codes = [c.post('/api/v1/ingest/').status_code for _ in range(302)]
     check('ingest limit trips 429 after 300/min',
           429 in codes and codes[:300] == [403] * 300,
@@ -181,19 +166,16 @@ def t2_api_rate_limits():
           and r.get('Retry-After') is not None,
           f'{r.status_code} {r.get("Content-Type", "")}')
 
-    # heartbeat: 120/min per IP (one valid request already consumed a slot).
     codes = [c.post('/api/v1/heartbeat/').status_code for _ in range(130)]
     check('heartbeat limit trips 429 after 120/min', 429 in codes,
           f'403={codes.count(403)} 429={codes.count(429)}')
 
-    # demo checkout: 30/min per IP on POST.
     codes = [c.post('/api/v1/payment/demo-checkout/',
                     {'ref': 'PEN-FORGED', 'status': 'paid'}).status_code
              for _ in range(32)]
     check('demo-checkout POST limit trips 429 after 30/min',
           429 in codes and 400 in codes,
           f'400={codes.count(400)} 429={codes.count(429)}')
-    # forged reference never settles anything
     FIXTURE['challan'].refresh_from_db()
     check('forged demo reference never marks PAID',
           FIXTURE['challan'].payment_status == 'UNPAID')
@@ -237,9 +219,9 @@ def t4_role_injection():
         'cnic': PEN_CNIC,
         'password1': 'PenTest!Passphrase#2026',
         'password2': 'PenTest!Passphrase#2026',
-        'role': 'DIG',          # must be ignored
-        'is_staff': 'on',       # must be ignored
-        'is_superuser': 'on',   # must be ignored
+        'role': 'DIG',
+        'is_staff': 'on',
+        'is_superuser': 'on',
     })
     from accounts.models import User
     u = User.objects.filter(username=phone).first()
@@ -251,9 +233,6 @@ def t4_role_injection():
           u is not None and not u.is_staff and not u.is_superuser,
           f'staff={u.is_staff if u else None} super={u.is_superuser if u else None}')
 
-    # Phone-only signup used to 500 (IntegrityError: email NOT NULL) - fixed
-    # in auth_portal/views.citizen_signup during this hardening pass. Fresh
-    # client: this session is already logged in from the first signup.
     phone2 = f'+92{_DIG[:11]}7'
     c2 = Client()
     r2 = c2.post('/auth/citizen/signup/', {
@@ -288,7 +267,6 @@ def t5_backup_traversal():
         check(f'{payload[:28]!r} blocked (no file leak)',
               r.status_code in (301, 302, 404) and not leaked,
               f'status={r.status_code} leaked={leaked}')
-    # sanity: the endpoint still works for a real .json backup name
     from pathlib import Path as _P
     backups = _P(settings.BASE_DIR) / 'backups'
     backups.mkdir(exist_ok=True)

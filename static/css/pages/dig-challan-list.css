@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG | E-Challan Register  (dashboard/dig/challan_list.html)
-   ========================================================================== */
 
-/* ---------- Filter card ---------- */
 
 .ch-filter-card { margin-bottom: 14px; }
 .ch-filter-card .sc-card-body { padding-top: 4px; }
@@ -20,7 +16,7 @@
   width: 240px;
   max-width: 100%;
   padding: 10px 14px;
-  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border: 1px solid var(--sc-border-strong, #D6DCE8);
   border-radius: var(--sc-radius-sm, 10px);
   background: var(--sc-surface, #FFFFFF);
   font-size: 0.875rem;
@@ -31,18 +27,18 @@
 }
 
 .ch-filter-plate input:focus {
-  border-color: var(--sc-primary, #2563EB);
+  border-color: var(--sc-primary, #2E6BE6);
   box-shadow: 0 0 0 3px var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
 }
 
 .ch-filter-status select {
   width: 180px;
   padding: 10px 14px;
-  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border: 1px solid var(--sc-border-strong, #D6DCE8);
   border-radius: var(--sc-radius-sm, 10px);
   background: var(--sc-surface, #FFFFFF);
   font-size: 0.875rem;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
   outline: none;
   cursor: pointer;
 }
@@ -53,7 +49,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
   margin-bottom: 6px;
 }
 
@@ -62,8 +58,6 @@
   gap: 8px;
   margin-left: auto;
 }
-
-/* ---------- Summary strip ---------- */
 
 .ch-summary {
   display: grid;
@@ -74,9 +68,9 @@
 
 .ch-summary-item {
   background: var(--sc-surface, #FFFFFF);
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius, 14px);
-  box-shadow: var(--sc-shadow, 0 4px 16px rgba(15, 37, 87, 0.06));
+  box-shadow: var(--sc-shadow, 0 4px 16px rgba(20, 33, 61, 0.06));
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -92,33 +86,31 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
 }
 
 .ch-summary-value {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   font-variant-numeric: tabular-nums;
 }
 
 .ch-summary-paid .ch-summary-label,
-.ch-summary-paid .ch-summary-value { color: var(--sc-success, #22A45D); }
+.ch-summary-paid .ch-summary-value { color: var(--sc-success, #1E9E5A); }
 
 .ch-summary-unpaid .ch-summary-label,
-.ch-summary-unpaid .ch-summary-value { color: var(--sc-danger, #E23B4E); }
+.ch-summary-unpaid .ch-summary-value { color: var(--sc-danger, #D9364C); }
 
 .ch-summary-overdue .ch-summary-label,
 .ch-summary-overdue .ch-summary-value { color: #B87A10; }
 
 .ch-summary-voided .ch-summary-label,
-.ch-summary-voided .ch-summary-value { color: var(--sc-info, #2E5FB7); }
+.ch-summary-voided .ch-summary-value { color: var(--sc-info, #3B66C6); }
 
-/* ---------- Table details ---------- */
+.ch-fine { white-space: nowrap; color: var(--sc-navy-deep, #14213D); }
 
-.ch-fine { white-space: nowrap; color: var(--sc-navy-deep, #0F2557); }
-
-.ch-due-overdue { color: var(--sc-danger, #E23B4E); font-weight: 700; }
+.ch-due-overdue { color: var(--sc-danger, #D9364C); font-weight: 700; }
 
 .ch-location { max-width: 200px; }
 

@@ -1,8 +1,8 @@
-/* IT Infrastructure Command dashboard - extracted from templates/dashboard/it_support/dashboard.html */
+
 (function () {
   'use strict';
 
-  // Live clock
+  
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -15,7 +15,7 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Generic Chart.js
+  
   async function initChartFromAPI(canvas){
     if(typeof Chart === 'undefined') return;
     try {

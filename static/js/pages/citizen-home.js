@@ -1,8 +1,8 @@
-/* Citizen Portal home - extracted from templates/dashboard/citizen/home.html */
+
 (function () {
   'use strict';
 
-  // Live clock
+  
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -15,7 +15,7 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Fetch helper (CSRF-safe)
+  
   async function scFetch(url, options={}){
     const resp = await fetch(url, {
       ...options,
@@ -25,9 +25,9 @@
     return resp.json();
   }
 
-  // KPI real-time loading
-  // The KPI endpoint is exposed on the KPI grid via data-kpi-api-url
-  // (previously injected inline with {% url 'citizen_portal:api_citizen_kpis' %}).
+  
+  
+  
   async function loadKPIs(){
     const grid = document.querySelector('.scr-stats[data-kpi-api-url]');
     if (!grid) return;
@@ -48,9 +48,9 @@
     } catch(e) { console.warn('KPI load failed:', e); }
   }
 
-  // Static Chart Initializer
-  // Series data is supplied on the canvases via data-month-* / data-violation-*
-  // (previously inlined by the Django template loops).
+  
+  
+  
   function initStaticCharts(){
     if(typeof Chart === 'undefined') return;
 
@@ -115,7 +115,7 @@
     }
   }
 
-  // API Chart Initializer
+  
   async function initChartFromAPI(canvas){
     if(typeof Chart === 'undefined') return;
     try {

@@ -171,11 +171,6 @@ def live_monitor(request):
                 else:
                     latest_detections[d.camera_id] = ''
 
-    # Snapshot endpoint: not every portal re-exports camera_snapshot and the
-    # endpoint itself requires camera_feed / view_cameras. Resolve a usable
-    # namespace once (current portal first, DIG portal as fallback) so the
-    # template never has to guess (which used to raise NoReverseMatch on the
-    # SSP / supervisor routes).
     snapshot_ns = None
     try:
         user = request.user
@@ -198,7 +193,6 @@ def live_monitor(request):
         if not low:
             return 'none'
         if low.startswith(('rtsp://', 'rtsps://')):
-            # Raw RTSP cannot be played by browsers; fall back to snapshots.
             return 'snapshot'
         if '/media/' in low or any(ext in low for ext in ('.mp4', '.webm', '.mov', '.m4v', '.avi', '.mkv')):
             return 'video'
@@ -219,8 +213,6 @@ def live_monitor(request):
         c.playable_stream = stream
         c.feed_kind = _feed_kind(stream)
         c.snapshot_url = _reverse(f'{snapshot_ns}:camera_snapshot', args=[c.id]) if snapshot_ns else ''
-        # The Camera model has no camera_type column; derive it from the
-        # configured source so every channel shows an ANPR / SNAPSHOT tag.
         if c.feed_kind == 'video':
             c.camera_type_label = 'ANPR'
         elif c.feed_kind == 'snapshot':
@@ -699,7 +691,6 @@ def camera_list(request):
 
     cameras = list(camera_qs)
 
-    # KPI counters reflect the full registry, not just the current search.
     if q or health or active:
         all_cameras = list(base_qs)
     else:
@@ -1044,7 +1035,6 @@ def cameras_status(request):
                     c.health_status = 'degraded'
                     c.save(update_fields=['health_status'])
 
-    # Counters are computed after the refresh pass so they reflect reality.
     online_count = sum(1 for c in all_cameras if c.health_status == 'online')
     offline_count = sum(1 for c in all_cameras if c.health_status == 'offline')
     degraded_count = sum(1 for c in all_cameras if c.health_status == 'degraded')
@@ -1331,7 +1321,7 @@ def challan_templates_manage(request):
         obj.preview_html = (obj.html_content or '')[:4000]
     any_custom_active = any(getattr(t, 'is_active', False) for t in templates)
 
-    from challans.pdf_service import TEMPLATE_MAP
+    from challans.pdf_service import TEMPLATE_MAP, get_challan_preview_html
     active_key = sys_settings.pdf_template or 'modern_a4'
     if active_key not in TEMPLATE_MAP and not active_key.startswith('db:'):
         active_key = 'modern_a4'
@@ -1365,7 +1355,7 @@ def challan_templates_manage(request):
                 'blurb': 'Built-in layout file',
                 'is_active': (key == active_key),
                 'is_file': True,
-                'preview_html': raw_html[:4000],
+                'preview_html': get_challan_preview_html(key),
                 'html_content': raw_html,
                 'thumb_label': key,
             })
@@ -1380,7 +1370,7 @@ def challan_templates_manage(request):
             'is_file': False,
             'id': t.id,
             'file_url': (t.file.url if t.file else None),
-            'preview_html': getattr(t, 'preview_html', None) or (t.html_content or '')[:4000],
+            'preview_html': get_challan_preview_html(f'db:{t.id}'),
             'html_content': t.html_content or '',
             'thumb_label': t.name,
         })
@@ -2871,7 +2861,7 @@ def regional_heatmap(request):
         for key, coords in CITY_GEO.items():
             if key in t:
                 return coords
-        return (31.5204, 74.3587)  # city centre fallback
+        return (31.5204, 74.3587)
 
     heat_points = []
     camera_markers = []
@@ -2991,7 +2981,6 @@ def alerts_hub_add_alert(request):
         created_by=request.user,
     )
     AuditLog.write(request, 'alert.create', 'Alert', 0, title=title[:80])
-    # Realtime push notification to the targeted portal rooms (Socket.IO).
     try:
         from realtime.realtime_events import emit_portal_notification
         emit_portal_notification(
@@ -3116,9 +3105,6 @@ def alerts_hub_delete_broadcast(request, log_id):
     })
 
 
-# ------------------------------------------------------------------
-# Banners (public ads engine) - CRUD backing the Alerts Hub banner tab
-# ------------------------------------------------------------------
 
 _BANNER_PLACEMENTS = {code for code, _ in Banner.PLACEMENT_CHOICES}
 _BANNER_AUDIENCES = {code for code, _ in Banner.AUDIENCE_CHOICES}
@@ -3579,7 +3565,7 @@ def challan_template_designer(request):
     })
 
 
-@permission_required('live_tracking')  # H11 FIX: was @role_required('IT','OFFICER') - use permission matrix instead
+@permission_required('live_tracking')
 def live_tracking(request):
     """Shared Live Tracking page for staff portals.
 
@@ -3999,7 +3985,6 @@ def audit_templates_select(request):
                                               get_template_preview_html)
     from .models import AuditPDFTemplate
 
-    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         if sample_key not in {t['key'] for t in get_audit_templates()}:

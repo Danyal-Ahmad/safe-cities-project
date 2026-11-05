@@ -1,6 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT | System Backups (it-backup-list)
-   ========================================================================== */
+
 
 .it-action-grid {
   display: grid;
@@ -13,7 +11,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 18px;
-  border: 1px dashed var(--sc-border-strong, #D3DAE7);
+  border: 1px dashed var(--sc-border-strong, #D6DCE8);
   border-radius: var(--sc-radius, 14px);
   background: #F8FAFD;
 }
@@ -24,10 +22,10 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
 }
 
-.it-action-box h3 i { color: var(--sc-primary, #2563EB); }
+.it-action-box h3 i { color: var(--sc-primary, #2E6BE6); }
 
 .it-action-box .sc-btn { align-self: flex-start; }
 
@@ -38,11 +36,11 @@
 .it-filename {
   font-family: var(--sc-mono, monospace);
   font-size: 0.8rem;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
   word-break: break-all;
 }
 
-.it-filename i { color: var(--sc-primary, #2563EB); }
+.it-filename i { color: var(--sc-primary, #2E6BE6); }
 
 @media (max-width: 720px) {
   .it-action-box .sc-btn { align-self: stretch; }

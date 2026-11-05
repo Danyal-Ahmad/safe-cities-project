@@ -184,9 +184,6 @@ def citizen_signup(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.role = User.USER
-            # Found during the 2026 hardening pass: the form permits phone-only
-            # signup but sets email=None, while the DB column is NOT NULL -
-            # a phone-only signup 500'd with IntegrityError. Coerce to ''.
             if user.email is None:
                 user.email = ''
             user.save()
@@ -306,12 +303,6 @@ def citizen_reset_confirm(request, token):
                     'step': '2', 'token': token, 'user_name': tok.user.display_name,
                     'cnic': tok.user.cnic or '',
                 })
-            # Atomically claim the token BEFORE setting the password. The old
-            # flow was check-then-act (`used_at is None` read in
-            # _get_valid_token, then written back after) - two concurrent
-            # requests sharing a token link could BOTH pass and reset the
-            # password twice. The guarded UPDATE makes single-use airtight:
-            # only the first claimant proceeds.
             claimed = PasswordResetToken.objects.filter(
                 pk=tok.pk, used_at__isnull=True,
             ).update(used_at=timezone.now())

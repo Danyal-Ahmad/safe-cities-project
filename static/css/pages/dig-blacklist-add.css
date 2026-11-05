@@ -1,35 +1,30 @@
-/* ==========================================================================
-   DIG | Add to Blacklist  (dashboard/dig/blacklist_add.html)
-   ========================================================================== */
+
 
 .bl-req {
-  color: var(--sc-danger, #E23B4E);
+  color: var(--sc-danger, #D9364C);
   font-weight: 800;
 }
 
-/* Value input - enforced uppercase, mono */
 .bl-value-input {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
 }
 
-/* Live character counter attached to the reason label */
 .bl-counter {
   float: right;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
   text-transform: none;
 }
 
 .bl-counter.bl-counter-warn { color: #B87A10; }
-.bl-counter.bl-counter-limit { color: var(--sc-danger, #E23B4E); }
+.bl-counter.bl-counter-limit { color: var(--sc-danger, #D9364C); }
 
-/* Shake + red ring when JS flags a missing required field */
 .bl-invalid {
-  border-color: var(--sc-danger, #E23B4E) !important;
+  border-color: var(--sc-danger, #D9364C) !important;
   box-shadow: 0 0 0 3px var(--sc-danger-bg, #FDF3F5) !important;
   animation: bl-shake 0.3s ease;
 }
@@ -46,12 +41,10 @@
   gap: 10px;
   flex-wrap: wrap;
   padding-top: 6px;
-  border-top: 1px dashed var(--sc-border, #E4E8EF);
+  border-top: 1px dashed var(--sc-border, #E8ECF4);
   margin-top: 18px;
   padding-top: 16px;
 }
-
-/* ---------- Policy panel ---------- */
 
 .bl-policy-card .sc-card-body { padding-top: 2px; }
 
@@ -68,7 +61,7 @@
   gap: 12px;
   align-items: flex-start;
   font-size: 0.83rem;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
 }
 
 .bl-policy-list li > i {
@@ -81,17 +74,16 @@
   justify-content: center;
   font-size: 0.95rem;
   background: var(--sc-danger-bg, #FDF3F5);
-  color: var(--sc-danger, #E23B4E);
+  color: var(--sc-danger, #D9364C);
 }
 
-.bl-policy-list li:nth-child(2) > i { background: var(--sc-info-bg, #EEF3FC); color: var(--sc-info, #2E5FB7); }
+.bl-policy-list li:nth-child(2) > i { background: var(--sc-info-bg, #EEF3FC); color: var(--sc-info, #3B66C6); }
 .bl-policy-list li:nth-child(3) > i { background: var(--sc-purple-bg, #F1EDFC); color: var(--sc-purple, #7C5CE0); }
 .bl-policy-list li:nth-child(4) > i { background: var(--sc-teal-bg, #E8FAF7); color: #0D9488; }
 .bl-policy-list li:nth-child(5) > i { background: var(--sc-warning-bg, #FDF6E7); color: #B87A10; }
 
-.bl-policy-list strong { color: var(--sc-navy-deep, #0F2557); }
+.bl-policy-list strong { color: var(--sc-navy-deep, #14213D); }
 
-/* What happens next */
 .bl-next-steps {
   border: 1px dashed #B9C9E8;
   border-radius: var(--sc-radius, 14px);
@@ -107,7 +99,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   margin-bottom: 8px;
 }
 
@@ -115,7 +107,7 @@
   margin: 0;
   padding-left: 18px;
   font-size: 0.8rem;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
   display: grid;
   gap: 4px;
 }

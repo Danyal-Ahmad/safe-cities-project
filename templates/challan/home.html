@@ -1,7 +1,7 @@
 {% extends 'public_base.html' %}
 {% load static %}
 {% block title %}Verify E-Challan Online{% endblock %}
-{% block body_class %}{% if user.is_authenticated %}sc-app scpub-embed{% else %}public-home{% endif %}{% endblock %}
+{% block body_class %}public-home{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
@@ -9,24 +9,8 @@
 
 {% block content %}
 <div class="scpub scpub-home">
-  <div class="scpub-bg" aria-hidden="true"></div>
-
   <div class="scpub-inner">
 
-    <!-- Single secondary action -->
-    <div class="ph-top">
-      {% if user.is_authenticated %}
-        {% if user.role == 'USER' %}
-        <a href="{% url 'citizen_portal:home' %}" class="scpub-btn-ghost"><i class="bi bi-speedometer2"></i> My Dashboard</a>
-        {% else %}
-        <a href="{% url 'auth_portal:role_redirect' %}" class="scpub-btn-ghost"><i class="bi bi-speedometer2"></i> Dashboard</a>
-        {% endif %}
-      {% else %}
-      <a href="{% url 'auth_portal:citizen_login' %}" class="scpub-btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Citizen Sign In</a>
-      {% endif %}
-    </div>
-
-    <!-- Hero: dual logos one side, "|" separator, title + subtitle other side -->
     <section class="ph-hero">
       <div class="scpub-brand">
         <div class="scpub-logos">
@@ -41,7 +25,6 @@
       </div>
     </section>
 
-    <!-- Search card: two inputs + one button -->
     <section class="ph-search-card scpub-card">
       <form method="get" action="{% url 'challans:home' %}" class="scpub-form" role="search">
         <div class="ph-fields">
@@ -53,8 +36,8 @@
             <label for="phCnic">CNIC</label>
             <input class="scpub-input" id="phCnic" type="text" inputmode="numeric" name="cnic" placeholder="CNIC (13 digits)" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
           </div>
+          <button type="submit" class="scpub-btn"><i class="bi bi-search"></i> Search Challan</button>
         </div>
-        <button type="submit" class="scpub-btn"><i class="bi bi-search"></i> Search Challan</button>
         <p class="ph-urdu-hint" lang="ur" dir="rtl">اپنا چالان یہاں تلاش کریں</p>
       </form>
 
@@ -63,7 +46,6 @@
       {% endif %}
     </section>
 
-    <!-- Results below the search card (server rendered) -->
     {% if searched and challans %}
     <section class="ph-results">
       <div class="ph-results-head">
@@ -112,22 +94,11 @@
     </section>
     {% endif %}
 
-    <!-- Hidden static ad strip (placement='ad') + popup banner (home only) -->
     {% if homepage_banners or popup_banners %}
     <section class="ph-ads" aria-label="Public service announcements">
       {% include 'challan/_public_ads.html' %}
     </section>
     {% endif %}
-
-    <!-- Thin minimal footer -->
-    <footer class="scpub-footer">
-      <span class="scpub-footer-brand">SAFE CITIES PROJECT</span>
-      <nav class="scpub-footer-links" aria-label="Footer">
-        <a href="{% url 'challans:home' %}">Search Challan</a>
-        <a href="{% url 'auth_portal:citizen_login' %}">Citizen Login</a>
-      </nav>
-      <span>&copy; {% now "Y" %} Safe Cities Project. All rights reserved.</span>
-    </footer>
 
   </div>
 </div>

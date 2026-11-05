@@ -26,8 +26,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wrongway_system.settings')
 
 django.setup()
 
-# Plain Django ASGI application (HTTP). Also the WSGI-compatible fallback
-# exported as `application` when the realtime layer cannot be mounted.
 django_asgi_app = get_asgi_application()
 
 try:
@@ -41,7 +39,7 @@ try:
         socketio_path='/ws/socket.io',
         on_startup=on_asgi_startup,
     )
-except Exception as exc:  # keep the site alive without realtime push
+except Exception as exc:
     import logging
 
     logging.getLogger('wrongway.realtime').warning(

@@ -12,6 +12,7 @@ Guarantees:
 """
 import logging
 import os
+from types import SimpleNamespace
 from io import BytesIO
 from pathlib import Path
 
@@ -32,7 +33,7 @@ TEMPLATE_MAP = {
     'command_brief': 'challan/challan_templates/command_brief.html',
     'secure_instrument': 'challan/challan_templates/secure_instrument.html',
     'urdu_executive': 'challan/challan_templates/urdu_executive.html',
-    'compact_a4': 'challan/challan_templates/command_brief.html',  # overflow guard
+    'compact_a4': 'challan/challan_templates/command_brief.html',
     'safecityfyp_classic': 'challan/challan_templates/modern_a4.html',
 }
 
@@ -242,7 +243,7 @@ def _minimal_pdf_bytes(ticket_no: str) -> bytes:
     return pdf
 
 
-_WEASYPRINT_STATE = None  # None = untested, True = ok, False = broken
+_WEASYPRINT_STATE = None
 
 
 def _render_html_to_pdf(html_string):
@@ -411,7 +412,6 @@ def generate_challan_pdf(challan):
                 'Challan %s rendered %d pages with template %s | re-rendering compact',
                 getattr(challan, 'ticket_no', challan.pk), pages, tpl_key,
             )
-            # Overflow guard: re-render with the compact one-page template.
             compact_html = _render_template_to_html('compact_a4', context)
             if compact_html:
                 compact_bytes = _render_html_to_pdf(compact_html)
@@ -421,7 +421,7 @@ def generate_challan_pdf(challan):
                 return _fallback_reportlab_pdf(challan)
             except Exception as e:
                 logger.warning('ReportLab fallback failed: %s', e)
-                return pdf_bytes  # best effort: keep multi-page over no challan
+                return pdf_bytes
 
     try:
         return _fallback_reportlab_pdf(challan)
@@ -437,3 +437,91 @@ def save_challan_pdf(challan, force=False):
     name = f"{getattr(challan, 'ticket_no', challan.pk) or challan.pk}.pdf".replace('/', '-')
     challan.pdf_file.save(name, ContentFile(pdf_bytes), save=True)
     return challan.pdf_file
+
+
+def _sample_preview_challan():
+    from datetime import timedelta
+    from django.utils import timezone
+
+    now = timezone.now()
+    camera = SimpleNamespace(
+        camera_id='SCC-LHR-014', name='Jail Road Interchange', area='Gulberg',
+        location='Jail Road, Gulberg, Lahore',
+    )
+    detection = SimpleNamespace(
+        id=100254,
+        evidence_checks=[
+            {'name': 'Vehicle Detected', 'passed': True, 'detail': 'Car classified at 96.4%'},
+            {'name': 'Direction Analysis', 'passed': True, 'detail': 'Observed: NORTH (legal: SOUTH)'},
+            {'name': 'Plate Captured', 'passed': True, 'detail': 'LEA-1234 read at 94.0% confidence'},
+            {'name': 'Frame Sequence', 'passed': True, 'detail': '3 sequential frames verified'},
+            {'name': 'Evidence Hash', 'passed': True, 'detail': 'SHA-256 integrity sealed'},
+        ],
+        evidence_hash='a3f9c2e8b7d1',
+        track_id='TRK-88214',
+        track_frames=3,
+        track_consistency='HIGH',
+        evidence_frames_meta=[{'slot': 1}, {'slot': 2}, {'slot': 3}],
+        annotated_image=None,
+        raw_image=None,
+    )
+
+    def _display():
+        return 'Wrong Way'
+
+    return SimpleNamespace(
+        id=202600042, ticket_no='SC-2026-000042', plate_number='LEA-1234',
+        owner_name='Ahmad Raza', cnic='35202-1234567-1', phone='0300-1234567',
+        address='House 12, Street 4, Model Town, Lahore', fine_amount=1500,
+        issue_date=now, due_date=now + timedelta(days=7), payment_status='UNPAID',
+        psid='1-2345678901234', violation_type='wrong_way',
+        get_violation_type_display=_display,
+        violation_type_display_urdu='غلط سمت',
+        legal_direction='SOUTH', moving_direction='NORTH',
+        location='Jail Road Interchange, Gulberg', province='PUNJAB',
+        color='White', make_year='2022', vehicle_type='Car',
+        confidence_percent=94.0, is_overdue=False,
+        camera=camera, detection=detection, created_by=None,
+        payment_qr_payload='SAFECITY|TKT:SC-2026-000042|PLT:LEA-1234|AMT:1500',
+    )
+
+
+def _preview_urlize(html):
+    """Rewrite embedded filesystem asset paths to servable URLs for browser previews."""
+    if not html:
+        return html
+    from django.conf import settings as dj_settings
+    static_root = str(Path(dj_settings.BASE_DIR) / 'static')
+    media_root = str(getattr(dj_settings, 'MEDIA_ROOT', ''))
+    html = html.replace(static_root + '/', '/static/')
+    if media_root:
+        html = html.replace(media_root + '/', '/media/')
+    return html
+
+
+def get_challan_preview_html(tpl_key):
+    """Fully rendered standalone HTML preview of a challan print template."""
+    from django.template.loader import render_to_string
+
+    challan = None
+    try:
+        from challans.models import Challan
+        challan = Challan.objects.select_related('detection', 'camera').order_by('-issue_date').first()
+    except Exception as e:
+        logger.warning('preview challan lookup failed: %s', e)
+    if challan is None:
+        challan = _sample_preview_challan()
+    try:
+        context = _build_context(challan)
+        if isinstance(tpl_key, str) and tpl_key.startswith('db:'):
+            from admin.dig_portal.models import ChallanTemplate
+            from django.template import Context, Template
+            row = ChallanTemplate.objects.filter(pk=tpl_key[3:]).first()
+            if row and row.html_content:
+                return _preview_urlize(Template(row.html_content).render(Context(context)))
+            return ''
+        tpl_name = TEMPLATE_MAP.get(tpl_key) or TEMPLATE_MAP['modern_a4']
+        return _preview_urlize(render_to_string(tpl_name, context))
+    except Exception as e:
+        logger.warning('challan preview render failed for %s: %s', tpl_key, e)
+        return ''

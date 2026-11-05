@@ -349,9 +349,6 @@ def issue_challan(detection, camera, user=None):
     if existing:
         return existing
 
-    # The violation type is picked from the analysis conclusion. It is never
-    # defaulted: if the analysis does not conclude a live type, no challan is
-    # issued from the pipeline.
     violation_type = conclude_violation_type(detection)
     if not violation_type:
         logger.info(
@@ -530,9 +527,6 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
                 challan.violation_type,
             )
             return detection, challan, 'challan_issued'
-        # The analysis did not conclude a violation type that is live for
-        # enforcement. The event is parked for an officer decision instead of
-        # being auto-confirmed with an assumed type.
         detection.status = Detection.PENDING
         detection.reviewed_at = None
         detection.review_notes = (

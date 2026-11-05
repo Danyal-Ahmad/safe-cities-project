@@ -1,8 +1,8 @@
-/* DIG Command Center dashboard - extracted from templates/dashboard/dig/dashboard.html */
+
 (function () {
   'use strict';
 
-  // Live clock
+  
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -15,7 +15,7 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Fetch helper (CSRF-safe)
+  
   async function scFetch(url, options={}){
     const resp = await fetch(url, {
       ...options,
@@ -25,10 +25,10 @@
     return resp.json();
   }
 
-  // KPI real-time loading
+  
   async function loadKPIs(){
-    // The KPI card exposes the dashboard KPI API endpoint via data-api-url
-    // (previously injected inline with {% url 'dig:api_dashboard_kpis' %}).
+    
+    
     const card = document.querySelector('.scr-stat-value[data-api-url]');
     if(!card) return;
     try {
@@ -48,7 +48,7 @@
     } catch(e) { console.warn('KPI load failed:', e); }
   }
 
-  // Generic Chart.js from API
+  
   async function initChartFromAPI(canvas){
     if(typeof Chart === 'undefined') return;
     try {
@@ -85,13 +85,13 @@
     }
   }
 
-  // Recent detections table renderer
+  
   async function initRecentDetections(){
     const tbl = document.getElementById('recent-detections-table');
     if(!tbl) return;
 
-    // Rows are supplied by the server via data-recent-detections (JSON)
-    // (previously inlined by the Django template loop).
+    
+    
     let recent = [];
     try { recent = JSON.parse(tbl.dataset.recentDetections || '[]'); } catch(e) { recent = []; }
 

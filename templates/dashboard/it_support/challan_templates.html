@@ -67,7 +67,7 @@
           </div>
           <h3 class="it-tpl-name">{{ t.name }}</h3>
           <p class="it-tpl-blurb">{{ t.blurb }}</p>
-          <div class="it-tpl-frame" data-it-preview="{{ t.preview_html|default:'' }}" role="img" aria-label="Preview of {{ t.name }}"></div>
+          <div class="it-tpl-frame" data-it-preview="{{ t.preview_html|default:''|force_escape }}" role="img" aria-label="Preview of {{ t.name }}"></div>
           <form method="post" action="{% url 'it_support_portal:challan_templates' %}" class="it-tpl-actions">
             {% csrf_token %}
             <input type="hidden" name="action" value="activate_file_template">
@@ -145,7 +145,7 @@
             {% elif ct.html_content %}HTML template{% else %}no content{% endif %}
             &middot; added {{ ct.created_at|date:"d M Y" }}{% if ct.uploaded_by %} by {{ ct.uploaded_by.username }}{% endif %}
           </p>
-          <div class="it-tpl-frame" data-it-preview="{{ ct.preview_html|default:ct.html_content|default:'' }}" role="img" aria-label="Preview of {{ ct.name }}"></div>
+          <div class="it-tpl-frame" data-it-preview="{{ ct.preview_html|default:ct.html_content|default:''|force_escape }}" role="img" aria-label="Preview of {{ ct.name }}"></div>
           <div class="it-tpl-actions">
             <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
               {% csrf_token %}

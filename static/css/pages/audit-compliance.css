@@ -1,8 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | Compliance Reports (audit-compliance)
-   ========================================================================== */
 
-/* Chart boxes - fixed height keeps both cards visually balanced --------- */
 
 .audit-chart-box {
   position: relative;
@@ -13,15 +9,11 @@
   max-height: 280px;
 }
 
-/* Status/type value chips inside KPI cards ------------------------------ */
-
 .audit-kpi-note {
   font-size: 0.72rem;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
   margin-top: 4px;
 }
-
-/* Location rank numbers -------------------------------------------------- */
 
 .audit-loc-rank {
   display: inline-flex;
@@ -31,7 +23,7 @@
   height: 26px;
   border-radius: 8px;
   background: var(--sc-info-bg, #EEF3FC);
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   font-size: 0.74rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -39,7 +31,7 @@
 
 .audit-loc-count {
   font-weight: 700;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   font-variant-numeric: tabular-nums;
 }
 

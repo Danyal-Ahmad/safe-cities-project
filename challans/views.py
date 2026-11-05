@@ -17,19 +17,11 @@ import re
 
 import os as _os
 
-# Per-IP public search guard. Tunable for deployments behind a trusted
-# proxy; defaults keep the public portal safe from single-source floods.
 RATE_LIMIT_MAX_REQUESTS = int(_os.environ.get('SEARCH_RATE_LIMIT', 20))
-RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))  # seconds
+RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))
 
-# PDF download limit: 20/min per user (or per IP for guests). PDF generation
-# is the expensive operation here (regen=1 re-renders the document), so every
-# identity - staff included - gets its own bucket. Counted only AFTER the
-# auth/token gate passes, so rejected probes never consume budget.
 PDF_RATE_LIMIT = (20, 60)
 
-# Guest-appeal evidence uploads: extension whitelist + real image sniffing
-# (PIL) + size cap. Blocks .html/.php/polyglot uploads served from /media/.
 _EVIDENCE_EXT_WHITELIST = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
 _EVIDENCE_MAX_BYTES = 5 * 1024 * 1024
 
@@ -292,7 +284,7 @@ def challan_detail(request, challan_id):
     can_appeal = (
         challan.payment_status == Challan.UNPAID
         and not has_active
-    )  # guests allowed (CNIC verified on submit)
+    )
     existing_appeals = list(
         ChallanAppeal.objects.filter(challan=challan).order_by('-created_at')[:5]
     )
@@ -356,7 +348,6 @@ def challan_detail(request, challan_id):
                 status=ChallanAppeal.PENDING,
             )
         if request.FILES.get('evidence_file'):
-            # Authenticated path goes through the same whitelist + sniffing.
             evidence = request.FILES['evidence_file']
             ok, err = _validate_evidence_file(evidence)
             if not ok:
@@ -436,9 +427,6 @@ def challan_pdf(request, challan_id):
 
     force = (request.GET.get('regen') or '') == '1'
 
-    # Rate limit the expensive part: PDF generation/download. Applied after
-    # the auth/token gate so unauthorised probes are free and NEVER consume
-    # the download budget of a legitimate identity.
     if _pdf_rate_limited(request):
         return rate_limit_response(request)
 

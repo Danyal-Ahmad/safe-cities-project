@@ -1,3 +1,3 @@
 .ads-priority-form{display:flex;gap:6px;align-items:center}
-.ads-priority-input{width:76px;padding:6px 8px;border:1px solid var(--sc-border-soft,#dbe2ea);border-radius:6px;font-size:13px;color:var(--sc-heading,#0f2557);background:#fff}
+.ads-priority-input{width:76px;padding:6px 8px;border:1px solid var(--sc-border-soft,#dbe2ea);border-radius:6px;font-size:13px;color:var(--sc-heading,#14213D);background:#fff}
 .ads-priority-input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}

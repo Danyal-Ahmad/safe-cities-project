@@ -87,7 +87,7 @@
       <div class="lbl">CNIC</div><div class="val mono">{{ challan.cnic|default:'-' }}</div>
       <div class="lbl">Detected At</div><div class="val">{{ challan.location|default:'-' }} | CAM {{ challan.camera.camera_id|default:'-' }}</div>
       <div class="lbl">Direction</div><div class="val">Legal: {{ challan.legal_direction|default:'-'|title }} | Moving: {{ challan.moving_direction|default:'-'|title }}</div>
-      <div class="lbl">AI Confidence</div><div class="val">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</div>
+      <div class="lbl">Detection Confidence</div><div class="val">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</div>
       <div class="evidence" style="margin-top:4px;">
         {% if evidence_image_path %}<img src="{{ evidence_image_path }}" alt="Evidence">{% endif %}
         <div class="cap"><span>EVIDENCE | {{ challan.get_violation_type_display|upper }}</span><span>{{ challan.issue_date|date:"d-m-Y" }}</span></div>

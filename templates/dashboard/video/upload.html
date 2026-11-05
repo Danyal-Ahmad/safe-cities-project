@@ -12,12 +12,12 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-cloud-arrow-up me-2"></i>Upload Video</h1>
-    <p class="sc-lead">Upload a recorded traffic clip, link it to a camera and run the AI violation-detection pipeline on it.</p>
+    <p class="sc-lead">Upload a recorded traffic clip, link it to a camera and run the violation-detection pipeline on it.</p>
   </div>
 </div>
 
 <div class="row g-4">
-  <!-- Upload form -->
+
   <div class="col-lg-7">
     <div class="sc-card h-100">
       <div class="sc-card-header d-flex align-items-center gap-2">
@@ -51,7 +51,7 @@
           </div>
 
           <button type="submit" class="sc-btn sc-btn-primary sc-btn-block">
-            <i class="bi bi-cpu me-1"></i> Upload &amp; Start AI Processing
+            <i class="bi bi-cpu me-1"></i> Upload &amp; Start Processing
           </button>
         </form>
         {% else %}
@@ -69,7 +69,6 @@
     </div>
   </div>
 
-  <!-- What happens next -->
   <div class="col-lg-5">
     <div class="sc-card h-100">
       <div class="sc-card-header d-flex align-items-center gap-2">
@@ -96,7 +95,7 @@
             <span class="vp-step-num">3</span>
             <span>
               <span class="vp-step-title d-block">Violation detection</span>
-              <span class="vp-step-text">The AI pipeline classifies violations and raises detections.</span>
+              <span class="vp-step-text">The pipeline classifies violations and raises detections.</span>
             </span>
           </li>
           <li class="vp-step">
@@ -115,7 +114,6 @@
   </div>
 </div>
 
-<!-- Recent uploads (IT only) -->
 {% if recent_uploads %}
 <div class="sc-card mt-4">
   <div class="sc-card-header d-flex align-items-center gap-2">

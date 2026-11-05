@@ -1,8 +1,8 @@
-/* Alert Hub - extracted from templates/dashboard/dig/alerts_hub.html */
+
 (function () {
   'use strict';
 
-  // Card/List view toggles
+  
   document.querySelectorAll('.ah-view-toggle').forEach(function(toggle){
     var kind = toggle.getAttribute('data-view-toggle');
     var grid = document.getElementById(kind + 'Grid');
@@ -18,7 +18,7 @@
     });
   });
 
-  // Live filters
+  
   function bindFilter(inputId, sevId, statusId, containerIds){
     function apply(){
       var q = (document.getElementById(inputId)?.value || '').toLowerCase().trim();
@@ -41,7 +41,7 @@
   bindFilter('alertSearch', 'alertSevFilter', 'alertStatusFilter', ['alertGrid', 'alertTableWrap']);
   bindFilter('broadcastSearch', null, null, ['broadcastGrid', 'broadcastTableWrap']);
 
-  // Edit alert modal - prefill
+  
   var editAlertModal = document.getElementById('editAlertModal');
   if (editAlertModal) editAlertModal.addEventListener('show.bs.modal', function(e){
     var btn = e.relatedTarget;
@@ -53,7 +53,7 @@
     document.getElementById('editAlertActive').checked = btn.getAttribute('data-active') === '1';
   });
 
-  // Edit banner modal - prefill
+  
   var editBannerModal = document.getElementById('editBannerModal');
   if (editBannerModal) editBannerModal.addEventListener('show.bs.modal', function(e){
     var btn = e.relatedTarget;
@@ -67,7 +67,7 @@
     document.getElementById('editBannerActive').checked = btn.getAttribute('data-active') === '1';
   });
 
-  // Delete confirmation modal
+  
   var delModal = document.getElementById('confirmDeleteModal');
   if (delModal) delModal.addEventListener('show.bs.modal', function(e){
     var btn = e.relatedTarget;

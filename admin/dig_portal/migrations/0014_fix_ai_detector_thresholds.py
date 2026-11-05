@@ -27,9 +27,6 @@ def repair_ai_config(apps, schema_editor):
             if pd.get('input_normalize') == '0_1':
                 pd['input_normalize'] = 'imagenet'
                 changed = True
-            # Class-map repair: class 1 of the shipped model is the plate
-            # class; the old config zeroed it as "person" and scanned class 0
-            # (never fired) - so nothing was ever detected.
             if pd.get('person_class_id') == 1:
                 pd['person_class_id'] = -1
                 changed = True
@@ -45,7 +42,6 @@ def repair_ai_config(apps, schema_editor):
 
 
 def unapply(apps, schema_editor):
-    # Leave repaired values in place on rollback - they are strictly safer.
     pass
 
 

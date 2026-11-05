@@ -439,8 +439,6 @@ class Banner(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # Stored-XSS guard: banner HTML is rendered |safe on public pages, so
-        # every write path sanitizes executable constructs at the model layer.
         from admin.dig_portal.sanitize import sanitize_banner_html
         if self.html_content:
             self.html_content = sanitize_banner_html(self.html_content)

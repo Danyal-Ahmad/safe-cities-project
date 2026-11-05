@@ -11,9 +11,6 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
-# Demo checkout POST limit: 30/min per IP (see docs/SECURITY_AUDIT.md matrix).
-# GET is unlimited - it only renders a confirmation page for an existing
-# pending reference and never mutates anything.
 DEMO_CHECKOUT_LIMIT = (30, 60)
 
 
@@ -126,11 +123,6 @@ def demo_checkout(request):
         challan = txn.challan
         return_url = f"/challan/{challan.id}/pay/done/"
         if status == 'paid':
-            # Atomic idempotent settlement (2026 hardening pass). Previously
-            # check-then-act: a double-submit or a webhook racing the visitor's
-            # confirmation could both run mark_paid. Now the challan row is
-            # locked, and the transaction is claimed with a guarded UPDATE -
-            # only the first claimant settles; everyone else sees PAID.
             with transaction.atomic():
                 locked = type(challan).objects.select_for_update().get(pk=challan.pk)
                 if locked.payment_status != locked.PAID:

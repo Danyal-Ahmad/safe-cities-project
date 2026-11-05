@@ -28,9 +28,6 @@ logger = logging.getLogger('wrongway.pdf')
 LOGO_LEFT = Path(settings.BASE_DIR) / 'static' / 'img' / 'project_logo.png'
 LOGO_RIGHT = Path(settings.BASE_DIR) / 'static' / 'img' / 'university_logo.png'
 
-# ---------------------------------------------------------------------------
-# Registry of the 8 built-in audit document templates
-# ---------------------------------------------------------------------------
 
 BUILTIN_TEMPLATES = {
     'government_classic': {
@@ -77,9 +74,6 @@ BUILTIN_TEMPLATES = {
 
 DEFAULT_TEMPLATE_KEY = 'government_classic'
 
-# ---------------------------------------------------------------------------
-# Supported export kinds (URL-safe aliases map onto canonical keys)
-# ---------------------------------------------------------------------------
 
 KIND_LABELS = {
     'operational': 'Operational Audit Report',
@@ -103,8 +97,8 @@ _KIND_ALIASES = {
     'summary': 'dashboard',
 }
 
-MAX_ROWS = 25          # rows per table for the first render
-FALLBACK_ROWS = 15     # rows when re-rendering with government_classic
+MAX_ROWS = 25
+FALLBACK_ROWS = 15
 
 LOG_COLUMNS = ['Timestamp', 'Actor', 'Action', 'Target', 'IP', 'Details']
 
@@ -135,9 +129,6 @@ def normalize_kind(kind):
     return key if key in KIND_LABELS else None
 
 
-# ---------------------------------------------------------------------------
-# Context builders
-# ---------------------------------------------------------------------------
 
 def _fmt_int(n):
     try:
@@ -270,7 +261,6 @@ def _zip_distribution_grid(ctx, max_rows=10):
         l = ctx['by_location'][i] if i < len(ctx['by_location']) else ['', '']
         grid.append([t[0], t[1], s[0], s[1], l[0], l[1]])
     ctx['distribution_grid'] = grid
-    # maxima used by the digest template for inline bar widths (1-100 pct)
     ctx['by_type_max'] = max([v for _, v in ctx['by_type']] or [1])
     ctx['by_status_max'] = max([v for _, v in ctx['by_status']] or [1])
     ctx['by_location_max'] = max([v for _, v in ctx['by_location']] or [1])
@@ -364,7 +354,6 @@ def _db_context(kind, row_limit, now):
 
     ctx = _base_meta(kind, now)
 
-    # --- cheap aggregates everyone shares -------------------------------
     audit_total = AuditLog.objects.count()
     audit_24h = AuditLog.objects.filter(
         timestamp__gte=now - datetime.timedelta(hours=24)).count()
@@ -382,7 +371,7 @@ def _db_context(kind, row_limit, now):
 
     try:
         anomalies = _detect_anomalies() or []
-    except Exception as exc:  # pragma: no cover - defensive
+    except Exception as exc:
         logger.warning("anomaly detection failed during PDF export: %s", exc)
         anomalies = []
     ctx['anomalies'] = anomalies
@@ -428,7 +417,6 @@ def _db_context(kind, row_limit, now):
             {'label': 'Average Payment', 'value': _fmt_pkr(avg), 'hint': 'per challan'},
             {'label': 'Revenue Pending', 'value': _fmt_pkr(revenue_pending), 'hint': 'unpaid'},
         ]
-        # ledger view of the same rows (credit = collected funds)
         ledger_rows = []
         debit_total = 0.0
         credit_total = 0.0
@@ -521,7 +509,7 @@ def _db_context(kind, row_limit, now):
             {'label': 'Open Anomalies', 'value': _fmt_int(len(anomalies)), 'hint': 'needs review'},
         ]
 
-    else:  # user_activity / auth_events / permission_changes / changes_log
+    else:
         auth_filter = (kind == 'auth_events')
         actions = {
             'user_activity': _USER_ACTIVITY_ACTIONS,
@@ -542,9 +530,6 @@ def _db_context(kind, row_limit, now):
     return ctx
 
 
-# ---------------------------------------------------------------------------
-# Preview context (placeholder rows for the management page cards)
-# ---------------------------------------------------------------------------
 
 _PREVIEW_LOG_ROWS = [
     ['08 Jan 2025 09:41', 'audit.officer1', 'challan.mark_paid', 'Challan #10428', '10.20.3.17', 'ticket=SC-10428, amount=500'],
@@ -645,11 +630,8 @@ def build_audit_context(kind, row_limit=MAX_ROWS, preview=False):
         return ctx
 
 
-# ---------------------------------------------------------------------------
-# Rendering (engine chain identical to challans/pdf_service.py)
-# ---------------------------------------------------------------------------
 
-_WEASYPRINT_STATE = None  # None = untested, True = ok, False = broken
+_WEASYPRINT_STATE = None
 
 
 def _render_html_to_pdf(html_string):
@@ -702,7 +684,6 @@ def _render_template_html(template_key, context):
                 BUILTIN_TEMPLATES[DEFAULT_TEMPLATE_KEY]['template'], context)
         except Exception as e:
             logger.warning("audit fallback template failed: %s", e)
-    # last ditch: minimal valid document
     return (
         "<!DOCTYPE html><html><head><meta charset='utf-8'></head><body>"
         f"<h1>SAFE CITIES PROJECT</h1><h2>{context.get('kind_label', 'Audit Report')}</h2>"
@@ -773,9 +754,6 @@ def _fallback_reportlab_audit_pdf(kind, context):
     return buf.getvalue()
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def get_active_template_key():
     """Current audit PDF template key from SystemSettings (singleton)."""
@@ -816,11 +794,24 @@ def get_audit_templates():
     return out
 
 
+def _preview_urlize(html):
+    """Rewrite embedded filesystem asset paths to servable URLs for browser previews."""
+    if not html:
+        return html
+    from django.conf import settings as dj_settings
+    static_root = str(Path(dj_settings.BASE_DIR) / 'static')
+    media_root = str(getattr(dj_settings, 'MEDIA_ROOT', ''))
+    html = html.replace(static_root + '/', '/static/')
+    if media_root:
+        html = html.replace(media_root + '/', '/media/')
+    return html
+
+
 def get_template_preview_html(template_key, kind='dashboard'):
     """Rendered standalone HTML for the preview cards (placeholder data)."""
     try:
         ctx = _preview_context(normalize_kind(kind) or 'dashboard')
-        return _render_template_html(template_key, ctx)
+        return _preview_urlize(_render_template_html(template_key, ctx))
     except Exception as e:
         logger.warning("preview render failed for %s: %s", template_key, e)
         return ('<!DOCTYPE html><html><body style="font-family:sans-serif;'
@@ -844,7 +835,6 @@ def generate_audit_pdf(kind, context=None, template_key=None):
     if pdf_bytes:
         if _pdf_page_count(pdf_bytes) <= 1:
             return pdf_bytes
-        # Single-page enforcement: retry with the compact classic layout.
         logger.warning(
             "audit PDF for kind=%s exceeded one page - re-rendering with "
             "government_classic and %d rows", kind, FALLBACK_ROWS)
@@ -866,7 +856,6 @@ def generate_audit_pdf(kind, context=None, template_key=None):
         return _fallback_reportlab_audit_pdf(kind, ctx)
     except Exception as e:
         logger.warning("reportlab audit fallback failed: %s", e)
-        # minimal valid PDF (same trick as challans service)
         body = b"BT /F1 12 Tf 50 750 Td (SAFE CITIES PROJECT - Audit Report) Tj ET"
         parts = [
             b"1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj\n",

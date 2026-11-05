@@ -1,4 +1,4 @@
-/* Public popup ad dismiss - extracted from templates/challan/_public_ads.html */
+
 (function () {
   'use strict';
 
@@ -12,10 +12,10 @@
     try {
       var seen = seenIds();
       if (seen.indexOf(id) === -1) { seen.push(id); sessionStorage.setItem(SEEN_KEY, JSON.stringify(seen)); }
-    } catch (e) { /* storage unavailable: fall back to once per page view */ }
+    } catch (e) {  }
   }
 
-  /* ---- popup channel ---- */
+  
   function initPopup() {
     var popup = document.getElementById('psPopup');
     if (!popup) return;
@@ -38,7 +38,7 @@
     }, 900);
   }
 
-  /* ---- ticker channel ---- */
+  
   function initTicker() {
     var track = document.getElementById('psTickerTrack');
     if (!track) return;
@@ -71,7 +71,7 @@
     requestAnimationFrame(step);
   }
 
-  /* ---- hidden static post staging (index -100) ---- */
+  
   function initStaging() {
     var staging = document.getElementById('psAdStaging');
     if (!staging) return;

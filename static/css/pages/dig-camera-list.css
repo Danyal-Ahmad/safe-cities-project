@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG - Camera Network  (dashboard/dig/camera_list.html)
-   ========================================================================== */
 
-/* ---------- Filter bar (also a GET form for server-side search) ---------- */
 
 .cam-filter-bar {
   display: flex;
@@ -11,12 +7,10 @@
   flex-wrap: wrap;
   padding: 12px 14px;
   margin-bottom: 14px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius, 14px);
-  background: var(--sc-bg-soft, #F1F4F9);
+  background: var(--sc-bg-soft, #F7F9FC);
 }
-
-/* ---------- Server-side search notice ---------- */
 
 .cam-server-note {
   display: flex;
@@ -25,20 +19,20 @@
   gap: 8px;
   padding: 9px 14px;
   margin-bottom: 14px;
-  border-left: 3px solid var(--sc-primary, #2563EB);
+  border-left: 3px solid var(--sc-primary, #2E6BE6);
   border-radius: 8px;
   background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
   font-size: 0.8rem;
   font-weight: 600;
 }
 
-.cam-server-note i { color: var(--sc-primary, #2563EB); }
-.cam-server-note strong { color: var(--sc-heading, #0F2557); }
+.cam-server-note i { color: var(--sc-primary, #2E6BE6); }
+.cam-server-note strong { color: var(--sc-heading, #14213D); }
 
 .cam-server-note a {
   margin-left: auto;
-  color: var(--sc-primary, #2563EB);
+  color: var(--sc-primary, #2E6BE6);
   font-weight: 800;
   text-decoration: none;
   letter-spacing: 0.03em;
@@ -53,11 +47,11 @@
   gap: 8px;
   padding: 8px 14px;
   background: var(--sc-surface, #FFFFFF);
-  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border: 1px solid var(--sc-border-strong, #D6DCE8);
   border-radius: 999px;
 }
 
-.cam-filter-search i { color: var(--sc-text-faint, #8A94B0); }
+.cam-filter-search i { color: var(--sc-text-faint, #9AA3B8); }
 
 .cam-filter-search input {
   flex: 1;
@@ -65,24 +59,22 @@
   outline: none;
   background: transparent;
   font-size: 0.85rem;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
 }
 
 .cam-filter-select {
   padding: 8px 12px;
-  border: 1px solid var(--sc-border-strong, #D3DAE7);
+  border: 1px solid var(--sc-border-strong, #D6DCE8);
   border-radius: 999px;
   background: var(--sc-surface, #FFFFFF);
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
   font-size: 0.8rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
 }
 
-.cam-filter-select:focus { border-color: var(--sc-primary, #2563EB); }
-
-/* ---------- Camera id icon ---------- */
+.cam-filter-select:focus { border-color: var(--sc-primary, #2E6BE6); }
 
 .cam-id-icon {
   width: 30px;
@@ -92,15 +84,13 @@
   align-items: center;
   justify-content: center;
   background: var(--sc-info-bg, #EEF3FC);
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   font-size: 0.9rem;
 }
 
 .cam-location { max-width: 230px; }
 
 .cam-dir-badge { min-width: 78px; justify-content: center; }
-
-/* ---------- Health chip (online / offline / degraded / unknown) ---------- */
 
 .cam-health-chip {
   display: inline-flex;
@@ -125,7 +115,7 @@
 
 .cam-health-online {
   background: var(--sc-success-bg, #EAF7F0);
-  color: var(--sc-success, #22A45D);
+  color: var(--sc-success, #1E9E5A);
   border-color: #BCE3CC;
 }
 
@@ -133,7 +123,7 @@
 
 .cam-health-offline {
   background: var(--sc-danger-bg, #FDF3F5);
-  color: var(--sc-danger, #E23B4E);
+  color: var(--sc-danger, #D9364C);
   border-color: #F3C6CC;
 }
 
@@ -144,9 +134,9 @@
 }
 
 .cam-health-unknown {
-  background: var(--sc-bg-soft, #F1F4F9);
-  color: var(--sc-text-muted, #5B6B85);
-  border-color: var(--sc-border-strong, #D3DAE7);
+  background: var(--sc-bg-soft, #F7F9FC);
+  color: var(--sc-text-muted, #6B7891);
+  border-color: var(--sc-border-strong, #D6DCE8);
 }
 
 @keyframes cam-pulse {
@@ -154,8 +144,6 @@
   70% { box-shadow: 0 0 0 6px rgba(34, 164, 93, 0); }
   100% { box-shadow: 0 0 0 0 rgba(34, 164, 93, 0); }
 }
-
-/* ---------- Read-only note (non-IT roles) ---------- */
 
 .cam-readonly-note {
   display: inline-flex;
@@ -165,13 +153,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
   white-space: nowrap;
 }
 
 .cam-actions { flex-wrap: nowrap; }
 
-/* Hide verbose action labels on narrow screens */
 @media (max-width: 1280px) {
   .cam-action-label { display: none; }
 }

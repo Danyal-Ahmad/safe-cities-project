@@ -1,25 +1,21 @@
-/**
- * SafeCities Project - Live Workstation Module
- * Camera stream handling, AI detection overlay, frame snapshots,
- * detection polling, and timeline management.
- */
+
 (function () {
     'use strict';
 
     const scLive = {};
 
-    // ============================================================
-    // State
-    // ============================================================
+    
+    
+    
 
     scLive._streams = scLive._streams || {};
     scLive._polling = scLive._polling || {};
     scLive._timelineFrames = scLive._timelineFrames || {};
     scLive._annotationLayers = scLive._annotationLayers || {};
 
-    // ============================================================
-    // Init camera stream
-    // ============================================================
+    
+    
+    
 
     scLive.init = function (canvasId, streamUrl) {
         const canvas = document.getElementById(canvasId);
@@ -40,7 +36,7 @@
 
         scLive._streams[canvasId] = state;
 
-        // Size canvas to container
+        
         function resize() {
             const parent = canvas.parentElement;
             canvas.width = parent.clientWidth;
@@ -49,15 +45,15 @@
         resize();
         window.addEventListener('resize', resize);
 
-        // Placeholder
+        
         if (placeholder) placeholder.style.display = 'flex';
 
         return state;
     };
 
-    // ============================================================
-    // Start / Stop
-    // ============================================================
+    
+    
+    
 
     scLive.start = function (canvasId, streamUrl) {
         streamUrl = streamUrl || '/api/live/stream/';
@@ -87,7 +83,7 @@
             })
             .catch(function (err) {
                 console.error('[scLive] Stream error:', err);
-                // Fallback: use navigator.mediaDevices
+                
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     navigator.mediaDevices.getUserMedia({ video: true })
                         .then(function (stream) {
@@ -121,9 +117,9 @@
         if (badge) badge.style.display = 'none';
     };
 
-    // ============================================================
-    // Draw loop
-    // ============================================================
+    
+    
+    
 
     scLive._drawLoop = function (canvasId) {
         const state = scLive._streams[canvasId];
@@ -134,7 +130,7 @@
 
         if (video.readyState >= 2) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Cover fit
+            
             const vw = video.videoWidth, vh = video.videoHeight;
             const cw = canvas.width, ch = canvas.height;
             const scale = Math.max(cw / vw, ch / vh);
@@ -146,9 +142,9 @@
         state.animationId = requestAnimationFrame(function () { scLive._drawLoop(canvasId); });
     };
 
-    // ============================================================
-    // Draw detection overlay (bounding boxes)
-    // ============================================================
+    
+    
+    
 
     scLive.drawOverlay = function (canvasId, detections) {
         const state = scLive._streams[canvasId];
@@ -157,7 +153,7 @@
         const canvas = state.canvas;
         detections = detections || [];
 
-        // Draw on top of the frame
+        
         detections.forEach(function (det) {
             const x = det.x * canvas.width;
             const y = det.y * canvas.height;
@@ -170,7 +166,7 @@
             ctx.lineWidth = 2;
             ctx.strokeRect(x, y, w, h);
 
-            // Corner highlights
+            
             const cs = 8;
             ctx.beginPath();
             ctx.moveTo(x, y + cs); ctx.lineTo(x, y); ctx.lineTo(x + cs, y);
@@ -192,9 +188,9 @@
         });
     };
 
-    // ============================================================
-    // Manual annotation (plate / vehicle / helmet)
-    // ============================================================
+    
+    
+    
 
     scLive.annotate = function (canvasId, x, y, label, type) {
         const state = scLive._streams[canvasId];
@@ -218,9 +214,9 @@
         }
     };
 
-    // ============================================================
-    // Snapshot current frame
-    // ============================================================
+    
+    
+    
 
     scLive.snapshot = function (canvasId) {
         const canvas = document.getElementById(canvasId);
@@ -229,9 +225,9 @@
         return data;
     };
 
-    // ============================================================
-    // Upload frame to server
-    // ============================================================
+    
+    
+    
 
     scLive.uploadFrame = function (file) {
         var formData = new FormData();
@@ -249,9 +245,9 @@
         return el ? el.value : '';
     };
 
-    // ============================================================
-    // Poll detections
-    // ============================================================
+    
+    
+    
 
     scLive.pollDetections = function (cameraId, intervalMs) {
         intervalMs = intervalMs || 2000;
@@ -266,7 +262,7 @@
                         });
                     }
                 })
-                .catch(function () { /* silent */ });
+                .catch(function () {  });
         }, intervalMs);
     };
 
@@ -277,9 +273,9 @@
         }
     };
 
-    // ============================================================
-    // Show detection in side panel
-    // ============================================================
+    
+    
+    
 
     scLive.showDetection = function (det) {
         const container = document.querySelector('.sc-ws-detections');
@@ -291,13 +287,13 @@
             '<div class="sc-ws-detection-plate">' + (det.plate || '---') + '</div>' +
             '<div class="sc-ws-detection-type">' + (det.violation_type || 'Unknown') + '</div>';
         container.insertBefore(el, container.firstChild);
-        // Keep max 20
+        
         while (container.children.length > 20) container.removeChild(container.lastChild);
     };
 
-    // ============================================================
-    // Timeline
-    // ============================================================
+    
+    
+    
 
     scLive.initTimeline = function (containerId) {
         const container = document.getElementById(containerId);
@@ -339,16 +335,16 @@
         frames.unshift(frameData);
         container.insertBefore(frame, container.firstChild);
 
-        // Keep max 30
+        
         while (container.children.length > 30) {
             container.removeChild(container.lastChild);
             frames.pop();
         }
     };
 
-    // ============================================================
-    // Start all cameras with data-live-camera attr
-    // ============================================================
+    
+    
+    
 
     function autoInit() {
         document.querySelectorAll('[data-live-camera]').forEach(function (el) {

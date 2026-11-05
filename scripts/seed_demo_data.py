@@ -15,7 +15,6 @@ from detections.models import Detection
 TEST_VIDEO = '/home/z/my-project/upload/folder/a3d29032/16385744-hd_1920_1080_30fps.mp4'
 MEDIA = 'uploads/live_feeds/demo'
 
-# --- Cameras (CCTV wall) ---
 CAMERAS = [
     ('CAM-001', 'Main Boulevard Gulberg', 'north', 'back'),
     ('CAM-002', 'Canal Road Bridge', 'east', 'front'),
@@ -44,7 +43,6 @@ for cam_id, location, legal, violation_side in CAMERAS:
     created.append(cam)
 print(f'cameras ready: {len(created)}')
 
-# --- LiveFeed from the uploaded test video (loops on the CCTV wall) ---
 if os.path.exists(TEST_VIDEO):
     feed_dir = os.path.join('uploads', 'live_feeds', 'demo')
     os.makedirs(feed_dir, exist_ok=True)
@@ -56,7 +54,6 @@ if os.path.exists(TEST_VIDEO):
         title='CAM-001 | Demo Traffic Stream',
         defaults=dict(video_file='uploads/live_feeds/demo/test_traffic.mp4', camera=cam0, is_active=True),
     )
-    # second feed for another camera so the wall shows two video tiles
     dst2 = os.path.join(feed_dir, 'test_traffic_2.mp4')
     if not os.path.exists(dst2):
         shutil.copy(TEST_VIDEO, dst2)
@@ -66,7 +63,6 @@ if os.path.exists(TEST_VIDEO):
     )
     print('live feeds ready: 2')
 
-# --- Assign cameras to the demo officer ---
 officer = User.objects.filter(email='officer@safecity.fyp').first()
 if officer:
     for cam in created[:4]:
@@ -74,7 +70,6 @@ if officer:
     CameraAssignment.objects.filter(officer=officer).exclude(camera__in=created[:4]).update(is_active=False)
     print('officer assignments: 4')
 
-# --- Vehicle registrations (owner lookup works in demo mode) ---
 citizen = User.objects.filter(email='citizen@safecity.fyp').first()
 if citizen:
     VehicleRegistration.objects.update_or_create(

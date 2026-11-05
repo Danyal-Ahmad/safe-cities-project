@@ -87,9 +87,6 @@ for key in ('modern_a4', 'classic_a4', 'legal_notice_99a', 'digital_slip',
         if navy < 200: fails.append('command_brief: navy structure missing')
 
     if key == 'secure_instrument':
-        # Locate the guilloche hatch: scan 4mm strips in the top 30%, take the
-        # strip with the most distinct colors (a fine two-angle hatch yields
-        # many shades; flat areas yield 1-3).
         best = (0, -1)
         for frac in [i / 400 for i in range(0, 121)]:
             y0, y1 = int(h * frac), int(h * frac) + 10

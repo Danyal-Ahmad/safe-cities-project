@@ -27,9 +27,6 @@ class Detection(models.Model):
     raw_image = models.ImageField(upload_to='detections/raw/%Y/%m/%d/')
     plate_crop_image = models.ImageField(upload_to='detections/plate/%Y/%m/%d/', null=True, blank=True)
 
-    # Three-frame sequential evidence (90FPS style): the primary frame is
-    # raw_image; these hold the two immediately consecutive frames captured
-    # around the violation instant so reviewers can step through the sequence.
     evidence_frame_2 = models.ImageField(upload_to='detections/seq/%Y/%m/%d/', null=True, blank=True)
     evidence_frame_3 = models.ImageField(upload_to='detections/seq/%Y/%m/%d/', null=True, blank=True)
     evidence_frames_meta = models.JSONField(default=list, blank=True,

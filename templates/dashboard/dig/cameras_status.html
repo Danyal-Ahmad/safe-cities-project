@@ -11,7 +11,6 @@
 {% block content %}
 <div class="cams-dark">
 
-  <!-- ======== Hero ======== -->
   <div class="cd-hero">
     <div>
       <h1 class="cd-title"><i class="bi bi-broadcast"></i> Camera Status</h1>
@@ -24,7 +23,7 @@
       </a>
       {% endif %}
       <a class="cd-btn" href="{% url portal_ns|add:':camera_health' %}">
-        <i class="bi bi-heart-pulse"></i> Health Dashboard
+        <i class="bi bi-activity"></i> Health Dashboard
       </a>
       {% if request.resolver_match.namespace == 'dig' or request.resolver_match.namespace == 'it_support_portal' or request.resolver_match.namespace == 'it' %}
       <a class="cd-btn" href="{% url portal_ns|add:':camera_list' %}">
@@ -34,7 +33,6 @@
     </div>
   </div>
 
-  <!-- ======== KPI chips ======== -->
   <div class="cd-kpis">
     <div class="cd-kpi">
       <span class="cd-kpi-label"><i class="bi bi-camera-video"></i> Total Cameras</span>
@@ -62,7 +60,6 @@
     </div>
   </div>
 
-  <!-- ======== Search + filters ======== -->
   <form method="get" class="cd-filter-bar" data-camera-filters
         data-server-filtered="{% if q %}1{% else %}0{% endif %}">
     <div class="cd-filter-search">
@@ -100,7 +97,6 @@
   </div>
   {% endif %}
 
-  <!-- ======== Status table ======== -->
   {% if cameras %}
   <div class="cd-table-wrap">
     <table class="cd-table">
@@ -181,7 +177,7 @@
 
   <p class="cd-foot-note">
     <i class="bi bi-info-circle"></i>
-    Health is refreshed from the latest worker heartbeats. Degraded means frames stopped arriving
+    Health is refreshed from the latest worker check-ins. Degraded means frames stopped arriving
     within the last check window. Configuration changes are made by IT Support.
   </p>
 

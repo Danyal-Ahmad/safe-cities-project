@@ -15,7 +15,7 @@
 
   .sheet { width: 192mm; margin: 0 auto; }
 
-  /* Masthead: logo group one side, titles the other, emerald rule */
+  
   .masthead { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #065f46; padding-bottom: 5px; }
   .logogroup { display: flex; align-items: center; gap: 8px; }
   .logogroup img { width: 50px; height: 50px; object-fit: contain; border: 1px solid #d1d5db; padding: 2px; }
@@ -25,7 +25,7 @@
   .mast-titles .sub { font-size: 10px; color: #6b7280; line-height: 1.6; }
   .mast-titles .sub .ltr { font-size: 9px; letter-spacing: .18em; color: #9ca3af; }
 
-  /* Identity band: analyzed offence + status + dates */
+  
   .idband { display: flex; align-items: center; gap: 8px; background: #f0fdf7; border: 1px solid #a7f3d0; border-right: 4px solid #065f46; padding: 6px 10px; margin-top: 8px; }
   .idband .offence { font-size: 14px; font-weight: 700; color: #065f46; line-height: 1.8; }
   .idband .offence .en { display: block; font-size: 8.5px; color: #9ca3af; letter-spacing: .14em; }
@@ -37,7 +37,7 @@
   .idband .dates { margin-right: auto; text-align: left; font-size: 10px; color: #6b7280; line-height: 1.9; }
   .idband .dates b { color: #1f2937; }
 
-  /* Hero: plate + fine + due, emerald frame */
+  
   .hero { display: flex; align-items: center; margin-top: 8px; border: 1px solid #a7f3d0; background: #fff; }
   .hero .cell { padding: 5px 12px; border-left: 1px solid #d1fae5; }
   .hero .cell:first-child { border-left: none; }
@@ -47,7 +47,7 @@
   .hero .plate { font-size: 24px; font-weight: 800; letter-spacing: .05em; }
   .hero .push { margin-right: auto; }
 
-  /* Urdu register */
+  
   .sec-title { font-size: 13.5px; color: #065f46; border-bottom: 1.5px solid #065f46; padding-bottom: 1px; margin: 10px 0 2px; line-height: 1.9; }
   .sec-title .en { font-size: 8.5px; color: #9ca3af; letter-spacing: .16em; }
   .reg { display: flex; gap: 14px; }
@@ -57,7 +57,7 @@
   .kv .v { font-weight: 700; }
   .kv .v.ltr { text-align: left; }
 
-  /* Evidence anchor: undistorted photo at natural aspect + Urdu verification rail */
+  
   .evidence { margin-top: 7px; display: flex; gap: 10px; }
   .ev-photo { width: 106mm; border: 1.5px solid #065f46; padding: 4px; }
   .ev-photo img { width: 100%; display: block; }
@@ -66,7 +66,7 @@
   .ev-rail .rail-title { font-size: 12.5px; color: #065f46; border-bottom: 1.5px solid #065f46; padding-bottom: 2px; margin-bottom: 4px; line-height: 1.9; }
   .ev-rail .rail-title .en { font-size: 8px; color: #9ca3af; letter-spacing: .14em; font-family: 'Segoe UI', Arial, sans-serif; }
 
-  /* Payment panel */
+  
   .paypanel { display: flex; align-items: center; margin-top: 7px; border: 1px solid #d1d5db; background: #f9fafb; padding: 6px 12px; }
   .paypanel .psid .k { font-size: 10px; color: #6b7280; line-height: 1.8; }
   .paypanel .psid .v { font-size: 16px; font-weight: 800; color: #065f46; letter-spacing: .04em; }
@@ -77,7 +77,7 @@
   .notice { margin-top: 6px; background: #fffbeb; border-right: 3px solid #b45309; padding: 5px 10px; font-size: 11px; line-height: 1.85; }
   .notice .en { font-size: 9px; color: #9ca3af; }
 
-  /* Signature zone */
+  
   .sigrow { display: flex; justify-content: space-between; margin-top: 8px; }
   .sig { text-align: center; width: 62mm; }
   .sig .line { border-top: 1px solid #1f2937; margin-top: 16px; padding-top: 3px; font-size: 10px; color: #6b7280; line-height: 1.8; }
@@ -147,7 +147,7 @@
     </div>
     <div class="regcol">
       <div class="kv"><span class="k">صوبہ</span><span class="v">{{ challan.province|default:'-' }}</span></div>
-      <div class="kv"><span class="k">کیمرہ</span><span class="v ltr">{{ challan.camera.camera_id|default:'AI Detection' }}</span></div>
+      <div class="kv"><span class="k">کیمرہ</span><span class="v ltr">{{ challan.camera.camera_id|default:'Detection' }}</span></div>
     </div>
     <div class="regcol">
       <div class="kv"><span class="k">مقام</span><span class="v">{{ challan.location|default:'-' }}</span></div>

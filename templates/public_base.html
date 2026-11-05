@@ -5,22 +5,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Safe Cities Project{% endblock %} &middot; SAFE CITIES PROJECT</title>
-  <meta name="theme-color" content="#0a1a3a">
+  <meta name="theme-color" content="#FFFFFF">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'css/public-shell.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="ps-page {% block body_class %}{% endblock %}">
-  <div class="ps-bg" aria-hidden="true">
-    <img src="{% static 'img/login_background.jpg' %}" alt="">
-    <div class="ps-bg-overlay"></div>
-  </div>
-
   <div class="ps-shell">
     <header class="ps-header">
       <div class="ps-brand">
@@ -38,12 +33,30 @@
         {% block header_actions %}
           {% if user.is_authenticated %}
             {% if user.role == 'USER' %}
-            <a href="{% url 'citizen_portal:home' %}" class="ps-btn ps-btn-ghost"><i class="bi bi-speedometer2"></i> My Dashboard</a>
+            <a href="{% url 'citizen_portal:home' %}" class="ps-citizen-entry">
+              <span class="ps-citizen-logo"><i class="bi bi-speedometer2"></i></span>
+              <span class="ps-citizen-text">
+                <span class="ps-citizen-title">MY DASHBOARD</span>
+                <span class="ps-citizen-sub">Citizen Portal</span>
+              </span>
+            </a>
             {% else %}
-            <a href="{% url 'auth_portal:role_redirect' %}" class="ps-btn ps-btn-ghost"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'auth_portal:role_redirect' %}" class="ps-citizen-entry">
+              <span class="ps-citizen-logo"><i class="bi bi-shield-lock"></i></span>
+              <span class="ps-citizen-text">
+                <span class="ps-citizen-title">STAFF DASHBOARD</span>
+                <span class="ps-citizen-sub">Command Portal</span>
+              </span>
+            </a>
             {% endif %}
           {% else %}
-          <a href="{% url 'auth_portal:citizen_login' %}" class="ps-btn ps-btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Citizen Sign In</a>
+          <a href="{% url 'auth_portal:citizen_login' %}" class="ps-citizen-entry">
+            <span class="ps-citizen-logo"><i class="bi bi-person-badge"></i></span>
+            <span class="ps-citizen-text">
+              <span class="ps-citizen-title">CITIZEN LOGIN</span>
+              <span class="ps-citizen-sub">E-Challan Account</span>
+            </span>
+          </a>
           {% endif %}
         {% endblock %}
       </div>
@@ -51,7 +64,7 @@
 
     {% if ticker_ads %}
     <div class="ps-ticker" id="psTicker" role="region" aria-label="Announcements">
-      <span class="ps-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
+      <span class="ps-ticker-label"><i class="bi bi-megaphone-fill"></i> ANNOUNCEMENTS</span>
       <div class="ps-ticker-viewport"><div class="ps-ticker-track" id="psTickerTrack">
         {% for ad in ticker_ads %}
         <span class="ps-ticker-item" data-id="tick-{{ ad.id }}">
@@ -80,7 +93,7 @@
   {% if messages %}
   <div class="ps-messages">
     {% for m in messages %}
-    <div class="ps-msg ps-msg-{{ m.tags|default:'info' }}"><i class="bi bi-info-circle-fill"></i> {{ m }}</div>
+    <div class="ps-msg {{ m.tags|default:'info' }}"><i class="bi bi-info-circle-fill"></i> {{ m }}</div>
     {% endfor %}
   </div>
   {% endif %}

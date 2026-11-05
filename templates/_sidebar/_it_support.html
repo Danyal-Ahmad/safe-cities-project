@@ -1,7 +1,4 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   IT Support - infrastructure &amp; system admin sidebar
-   ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -12,7 +9,7 @@
   <div class="sc-nav-title">Infrastructure</div>
   {% if request.user|has_any_perm:"view_cameras,view_camera_health" %}
   <a href="{% url 'it_support_portal:camera_list' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras/' %}sc-active{% endif %}"><i class="bi bi-camera"></i> <span class="sc-nav-link-text">Cameras</span></a>
-  <a href="{% url 'it_support_portal:camera_health' %}" class="sc-nav-link {% if request.path == '/portal/it/camera-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse"></i> <span class="sc-nav-link-text">Camera Health</span></a>
+  <a href="{% url 'it_support_portal:camera_health' %}" class="sc-nav-link {% if request.path == '/portal/it/camera-health/' %}sc-active{% endif %}"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Camera Health</span></a>
   <a href="{% url 'it_support_portal:cameras_status' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras-status/' %}sc-active{% endif %}"><i class="bi bi-broadcast"></i> <span class="sc-nav-link-text">Cameras Status</span></a>
   {% endif %}
   {% if request.user|has_perm:"manage_camera_assignments" %}
@@ -32,7 +29,7 @@
 <div class="sc-nav-section" data-section="System">
   <div class="sc-nav-title">System</div>
   {% if request.user|has_perm:"system_health" %}
-  <a href="{% url 'it_support_portal:system_health' %}" class="sc-nav-link {% if request.path == '/portal/it/system-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse-fill"></i> <span class="sc-nav-link-text">System Health</span></a>
+  <a href="{% url 'it_support_portal:system_health' %}" class="sc-nav-link {% if request.path == '/portal/it/system-health/' %}sc-active{% endif %}"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">System Health</span></a>
   {% endif %}
   {% if request.user|has_perm:"edit_system_settings" %}
   <a href="{% url 'it_support_portal:settings_edit' %}" class="sc-nav-link {% if request.path == '/portal/it/settings/' %}sc-active{% endif %}"><i class="bi bi-sliders"></i> <span class="sc-nav-link-text">Settings</span></a>

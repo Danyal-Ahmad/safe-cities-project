@@ -2,15 +2,15 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}AI Review Queue{% endblock %}
+{% block title %}Review Queue{% endblock %}
 
 {% block content %}
 <div class="sc-page-hero">
   <div>
-    <h1><i class="bi bi-inbox-fill me-2"></i>AI Violation Triage &amp; Review Queue
+    <h1><i class="bi bi-inbox-fill me-2"></i>Violation Triage &amp; Review Queue
       <span class="md-badge md-badge-amber" id="queueCountBadge">{{ detections|length }} PENDING</span>
     </h1>
-    <p class="sc-lead">Rapid-action decision hub · verified AI inferences · hotkey-enabled verification.</p>
+    <p class="sc-lead">Rapid-action decision hub · verified detections · hotkey-enabled verification.</p>
   </div>
   <div class="sc-flex sc-gap-2 sc-items-center">
     <div class="sc-flex sc-items-center" style="gap: 0.4rem; padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid var(--sc-border); background: var(--sc-bg-soft); color: var(--sc-text-muted);">
@@ -20,15 +20,13 @@
       <span class="md-action-key" style="background:#f59e0b;color:#fff;">F</span> Flag
     </div>
     <a href="{% url 'officer_portal:live_tracking' %}" class="sc-btn">
-      <i class="bi bi-radar me-1"></i>Live Radar
+      <i class="bi bi-camera-video me-1"></i>Live Tracking
     </a>
   </div>
 </div>
 
-<!-- Main Split Triage Grid (Left Queue | Right Interactive Detail) -->
 <div class="md-triage-grid" {% if selected %}data-has-selected="1"{% endif %}>
 
-  <!-- LEFT PANEL: Detection Items Queue -->
   <div class="md-card" style="padding: 0; overflow: hidden;">
     <div class="md-card-head" style="padding: 0.875rem 1rem;">
       <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
@@ -40,14 +38,13 @@
       </span>
     </div>
 
-    <!-- Scrollable Queue Stream -->
     <div style="max-height: calc(100vh - 240px); overflow-y: auto;" id="queueItemsList">
       {% for d in detections %}
         <a href="?detection_id={{ d.id }}"
            class="md-queue-item {% if selected and selected.id == d.id %}active{% endif %}"
            data-det-id="{{ d.id }}"
            style="border-left: 3px solid {% if selected and selected.id == d.id %}#0284c7{% else %}transparent{% endif %};">
-          <!-- Frame Thumbnail -->
+
           <div style="width: 58px; height: 42px; background: #0f172a; border-radius: var(--md-radius-sm); overflow: hidden; flex-shrink: 0; position: relative;">
             {% if d.raw_image %}
               <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Frame" style="width: 100%; height: 100%; object-fit: cover; background:#0A0E14;">
@@ -56,7 +53,6 @@
             {% endif %}
           </div>
 
-          <!-- Meta Information -->
           <div style="flex-grow: 1; min-width: 0;">
             <div class="sc-flex sc-items-center sc-justify-between">
               <span class="md-plate-tag" style="font-size: 0.85rem; color: #0b192c;">
@@ -82,13 +78,12 @@
         <div style="padding: 3rem 1.5rem; text-align: center; color: var(--md-text-muted);">
           <i class="bi bi-check2-all" style="font-size: 2.5rem; color: #10b981; display: block; margin-bottom: 0.5rem;"></i>
           <div style="font-weight: 600; color: var(--md-text-title);">Queue is Clear!</div>
-          <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">All pending AI violation frames have been triaged by officers.</p>
+          <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">All pending violation frames have been triaged by officers.</p>
         </div>
       {% endfor %}
     </div>
   </div>
 
-  <!-- RIGHT PANEL: Full Detection Detail & Decision Station -->
   <div class="md-card" style="padding: 1.25rem;">
     {% if selected %}
       {% include "dashboard/officer/_detection_detail.html" with detection=selected %}

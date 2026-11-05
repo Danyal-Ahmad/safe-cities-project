@@ -1,20 +1,15 @@
-/* ==========================================================================
-   Video Upload page | file picker, camera select, recent uploads
-   Loaded by templates/dashboard/video/upload.html
-   ========================================================================== */
 
-/* ===== Upload form layout ===== */
+
 .vp-form {
   display: grid;
   gap: 6px;
 }
 
 .vp-req {
-  color: var(--sc-danger, #E23B4E);
+  color: var(--sc-danger, #D9364C);
   font-weight: 700;
 }
 
-/* ===== Custom file picker (label wraps a visually-hidden native input) ===== */
 .vp-file-box {
   position: relative;
   display: flex;
@@ -22,9 +17,9 @@
   align-items: center;
   gap: 4px;
   padding: 30px 18px;
-  border: 2px dashed var(--sc-border-strong, #D3DAE7);
+  border: 2px dashed var(--sc-border-strong, #D6DCE8);
   border-radius: 14px;
-  background: var(--sc-bg-soft, #F1F4F9);
+  background: var(--sc-bg-soft, #F7F9FC);
   cursor: pointer;
   text-align: center;
   overflow: hidden;
@@ -33,9 +28,9 @@
 
 .vp-file-box:hover,
 .vp-file-box:focus-within {
-  border-color: var(--sc-primary, #2563EB);
+  border-color: var(--sc-primary, #2E6BE6);
   background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
-  box-shadow: 0 4px 16px rgba(15, 37, 87, 0.08);
+  box-shadow: 0 4px 16px rgba(20, 33, 61, 0.08);
 }
 
 .vp-file-input {
@@ -49,30 +44,28 @@
 
 .vp-file-icon {
   font-size: 2.1rem;
-  color: var(--sc-primary, #2563EB);
+  color: var(--sc-primary, #2E6BE6);
   line-height: 1;
 }
 
 .vp-file-text {
   font-size: 0.92rem;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
 }
 
 .vp-file-text strong {
-  color: var(--sc-heading, #0F2557);
+  color: var(--sc-heading, #14213D);
 }
 
 .vp-file-hint {
   font-size: 0.76rem;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
 }
 
-/* ===== Camera select tweak ===== */
 .vp-camera-select {
   font-size: 0.9rem;
 }
 
-/* ===== Pipeline steps (side card) ===== */
 .vp-steps {
   list-style: none;
   margin: 0;
@@ -93,7 +86,7 @@
   height: 26px;
   border-radius: 8px;
   background: var(--sc-info-bg, #EEF3FC);
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   font-size: 0.78rem;
   font-weight: 700;
   display: flex;
@@ -103,35 +96,34 @@
 
 .vp-step-title {
   font-weight: 600;
-  color: var(--sc-heading, #0F2557);
+  color: var(--sc-heading, #14213D);
   font-size: 0.88rem;
 }
 
 .vp-step-text {
   font-size: 0.78rem;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
 }
 
-/* ===== Progress bar for recent uploads (CSS-only, bucketed widths) ===== */
 .vp-progress {
   width: 100%;
   min-width: 110px;
   height: 7px;
   border-radius: 999px;
-  background: var(--sc-border, #E4E8EF);
+  background: var(--sc-border, #E8ECF4);
   overflow: hidden;
 }
 
 .vp-progress-bar {
   height: 100%;
-  width: 0; /* default: empty bar - bucket classes below raise the fill */
+  width: 0; 
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--sc-banner-a, #1E4E9C), var(--sc-banner-b, #3B6FC4));
+  background: linear-gradient(90deg, var(--sc-banner-a, #2E6BE6), var(--sc-banner-b, #3B6FC4));
   transition: width 0.3s ease;
 }
 
 .vp-progress-bar.vp-failed {
-  background: var(--sc-danger, #E23B4E);
+  background: var(--sc-danger, #D9364C);
 }
 
 .vp-progress-bar.vp-w0   { width: 0%; }
@@ -148,6 +140,6 @@
 
 .vp-progress-num {
   font-size: 0.72rem;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
   font-variant-numeric: tabular-nums;
 }

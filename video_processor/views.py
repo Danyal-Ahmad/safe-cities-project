@@ -31,8 +31,6 @@ def upload_video(request):
         if video_file.size > 200 * 1024 * 1024:
             messages.error(request, "Video exceeds the 200 MB limit.")
             return redirect('video_processor:upload_video')
-        # Extension whitelist + magic-byte sniff (blocks renamed executables,
-        # HTML/polyglot uploads served back from /media/).
         vname = (getattr(video_file, 'name', '') or '').lower()
         if not any(vname.endswith(ext) for ext in ('.mp4', '.avi', '.mov', '.m4v')):
             messages.error(request, "Only MP4, AVI or MOV videos are accepted.")
@@ -41,10 +39,10 @@ def upload_video(request):
             head = video_file.read(64)
             video_file.seek(0)
             valid_magic = (
-                head[4:8] == b'ftyp'                     # MP4 / M4V
-                or head.startswith(b'RIFF')               # AVI container
+                head[4:8] == b'ftyp'
+                or head.startswith(b'RIFF')
                 or head.startswith(b'\x00\x00\x00') and head[4:12] in (b'moov', b'wide', b'mdat', b'free', b'skip')
-                or head.startswith(b'\x1aE\xdf\xa3')      # Matroska/WebM family
+                or head.startswith(b'\x1aE\xdf\xa3')
             )
         except Exception:
             valid_magic = False

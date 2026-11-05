@@ -1,8 +1,3 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Signed link expired page
-   Loaded after public-home.css (shared dark glass system).
-   ============================================================================ */
-
 .scpub-signed-expired .scpub-inner {
   max-width: 480px;
   justify-content: center;
@@ -21,9 +16,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  background: rgba(239, 68, 68, 0.10);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: #fca5a5;
+  background: #FCF0F2;
+  border: 1px solid #F2CBD2;
+  color: #D9364C;
   font-size: 26px;
 }
 
@@ -32,25 +27,25 @@
 .ple-title {
   font-size: 20px;
   font-weight: 800;
-  color: #F0F4F8;
+  color: #14213D;
   margin-bottom: 8px;
 }
 
 .ple-text {
   font-size: 13.5px;
   line-height: 1.65;
-  color: rgba(232, 240, 255, 0.68);
+  color: #6B7891;
   margin-bottom: 18px;
 }
 
 .ple-facts {
   text-align: left;
-  border: 1px solid rgba(96, 165, 250, 0.10);
+  border: 1px solid #E8ECF4;
   border-radius: 10px;
   padding: 4px 14px;
-  background: rgba(8, 18, 46, 0.4);
+  background: #F7F9FC;
   margin-bottom: 20px;
 }
-.ple-status { color: #fca5a5; font-weight: 700; }
+.ple-status { color: #C42B40; font-weight: 700; }
 
 .ple-cta { margin-top: 4px; }

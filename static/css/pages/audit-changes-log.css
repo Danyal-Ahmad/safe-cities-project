@@ -1,9 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | Consolidated Changes Log (audit-changes-log)
-   Shared by camera / challan / payment / banner / alert change views.
-   ========================================================================== */
 
-/* Tracked-action chips ---------------------------------------------------- */
 
 .audit-chips {
   display: flex;
@@ -18,7 +13,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
-  color: var(--sc-primary, #2563EB);
+  color: var(--sc-primary, #2E6BE6);
   font-family: var(--sc-mono, monospace);
   font-size: 0.7rem;
   font-weight: 600;
@@ -29,16 +24,12 @@
   font-size: 0.65rem;
 }
 
-/* Hero meta (event count next to the dashboard button) -------------------- */
-
 .audit-hero-meta {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
-
-/* Table helpers ------------------------------------------------------------ */
 
 .audit-action-badge {
   font-family: var(--sc-mono, monospace);
@@ -55,20 +46,18 @@
 
 .audit-actor-name {
   font-weight: 600;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   font-size: 0.85rem;
 }
 
 .audit-actor-sub {
   font-size: 0.72rem;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
 }
 
 .audit-ip {
   white-space: nowrap;
 }
-
-/* Read-only banner strip --------------------------------------------------- */
 
 .audit-readonly {
   display: inline-flex;
@@ -76,9 +65,9 @@
   gap: 7px;
   font-size: 0.74rem;
   font-weight: 600;
-  color: var(--sc-text-muted, #5B6B85);
-  background: var(--sc-bg-soft, #F1F4F9);
-  border: 1px solid var(--sc-border, #E4E8EF);
+  color: var(--sc-text-muted, #6B7891);
+  background: var(--sc-bg-soft, #F7F9FC);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: 999px;
   padding: 5px 12px;
 }

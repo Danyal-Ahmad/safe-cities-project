@@ -10,9 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     CITIZEN PORTAL SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -22,11 +20,7 @@
         <div class="scr-rail-kicker">Safe Cities Project · Citizen Services</div>
         <div class="scr-rail-title">
           My E-Challan Portal
-          {% if unpaid_count > 0 %}
-          <span class="scr-rail-tag scr-rail-tag--danger"><i class="bi bi-exclamation-circle"></i> {{ unpaid_count }} Unpaid</span>
-          {% else %}
-          <span class="scr-rail-tag scr-rail-tag--success"><i class="bi bi-check-circle"></i> All Clear</span>
-          {% endif %}
+
         </div>
         <div class="scr-rail-sub">
           Your one-stop solution for traffic fines and services{% if user_cnic %} · Linked CNIC: <b>{{ user_cnic }}</b>{% endif %}
@@ -35,7 +29,7 @@
         </div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i" %}</span></span>
+        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i" %}</span></span>
         {% if unpaid_count > 0 and request.user|has_perm:"pay_own_challans" %}
         <a href="{% url 'citizen_portal:pay_challan' challans.0.id %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-credit-card-2-front-fill"></i> Pay Now</a>
         {% endif %}
@@ -45,7 +39,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
       {% if request.user|has_perm:"view_own_challans" %}
       <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
@@ -81,14 +74,13 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_own_challans" and challans %}
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-bar-chart-line-fill"></i> 6-Month Challan Activity</div>
-        <span class="md-badge md-badge-secondary">Monthly Trend</span>
+
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"
@@ -100,7 +92,7 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Infraction Breakdown</div>
-        <span class="md-badge md-badge-secondary">Category Share</span>
+
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"

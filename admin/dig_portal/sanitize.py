@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 
-# Tags that carry no risk and may survive sanitization.
 _ALLOWED_TAGS = {
     'a', 'b', 'strong', 'i', 'em', 'u', 's', 'small', 'span', 'div', 'p',
     'br', 'hr', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -37,7 +36,6 @@ def sanitize_banner_html(raw: str) -> str:
     text = _EVENT_ATTR_RE.sub('', text)
     text = _JS_URL_RE.sub('', text)
     text = _STYLE_DANGER_RE.sub('', text)
-    # Drop any tag outside the allowlist (keeps its inner text).
     def _tag_allowed(match):
         tag = match.group(1).lower()
         return match.group(0) if tag in _ALLOWED_TAGS else ''

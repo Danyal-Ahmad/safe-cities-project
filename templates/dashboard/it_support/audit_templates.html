@@ -41,7 +41,6 @@
   </div>
 </div>
 
-<!-- Template editor (Canva-lite) -->
 <div class="sc-card">
   <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
     <i class="bi bi-brush"></i>
@@ -75,7 +74,7 @@
           </div>
         </div>
         <div>
-          <label class="sc-text-xs sc-text-muted d-block mb-1">Live preview (placeholder data)</label>
+          <label class="sc-text-xs sc-text-muted d-block mb-1">Live preview</label>
           <iframe id="it-aud-frame" class="it-aud-frame" sandbox="" title="Live preview"></iframe>
           <p class="sc-hint sc-mt-1 mb-0"><i class="bi bi-info-circle me-1"></i>Tip: keep everything on one A4 page. Exports auto-fall back to the compact classic layout if a template overflows.</p>
         </div>
@@ -84,7 +83,6 @@
   </div>
 </div>
 
-<!-- Built-in layouts -->
 <div class="sc-card">
   <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
     <i class="bi bi-file-earmark-break"></i>
@@ -107,7 +105,7 @@
           </div>
           <h3 class="it-aud-name">{{ t.name }}</h3>
           <p class="it-aud-blurb">{{ t.blurb }}</p>
-          <iframe class="it-aud-frame" srcdoc="{{ t.preview_html }}" title="Preview of {{ t.name }}" sandbox="" loading="lazy"></iframe>
+          <iframe class="it-aud-frame" srcdoc="{{ t.preview_html|force_escape }}" title="Preview of {{ t.name }}" sandbox="" loading="lazy"></iframe>
           <form method="post" action="{% url 'it_support_portal:audit_templates' %}" class="it-aud-actions">
             {% csrf_token %}
             <input type="hidden" name="action" value="activate_audit_template">
@@ -129,7 +127,6 @@
   </div>
 </div>
 
-<!-- Database templates -->
 <div class="sc-card">
   <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
     <i class="bi bi-database"></i>
@@ -158,7 +155,7 @@
             {{ ct.description|default:"Custom database template" }} &middot;
             added {{ ct.created_at|date:"d M Y" }}{% if ct.uploaded_by %} by {{ ct.uploaded_by.username }}{% endif %}
           </p>
-          <iframe class="it-aud-frame" srcdoc="{{ ct.preview_html }}" title="Preview of {{ ct.name }}" sandbox="" loading="lazy"></iframe>
+          <iframe class="it-aud-frame" srcdoc="{{ ct.preview_html|force_escape }}" title="Preview of {{ ct.name }}" sandbox="" loading="lazy"></iframe>
           <div class="it-aud-actions">
             <form method="post" action="{% url 'it_support_portal:audit_templates' %}">
               {% csrf_token %}

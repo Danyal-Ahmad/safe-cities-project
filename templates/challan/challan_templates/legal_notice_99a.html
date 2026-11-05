@@ -62,7 +62,7 @@
   <table class="ln">
     <tr><th>Registered Owner</th><td>{{ challan.owner_name|default:'Registry verification pending' }}</td><th>CNIC</th><td>{{ challan.cnic|default:'-' }}</td></tr>
     <tr><th>Vehicle</th><td>{{ challan.vehicle_type|default:'Car' }}, {{ challan.color|default:'-' }}</td><th>Province</th><td>{{ challan.province|default:'-' }}</td></tr>
-    <tr><th>Offence</th><td>{{ challan.get_violation_type_display }}</td><th>AI Confidence</th><td>{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
+    <tr><th>Offence</th><td>{{ challan.get_violation_type_display }}</td><th>Detection Confidence</th><td>{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
     <tr><th>Legal Direction</th><td>{{ challan.legal_direction|default:'-'|title }}</td><th>Observed Direction</th><td>{{ challan.moving_direction|default:'-'|title }}</td></tr>
   </table>
 

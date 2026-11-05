@@ -8,9 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     OFFICER COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -20,18 +18,17 @@
         <div class="scr-rail-kicker">Safe Cities Project · Enforcement Desk</div>
         <div class="scr-rail-title">
           Officer Command Center
-          <span class="scr-rail-tag scr-rail-tag--warning"><i class="bi bi-inbox"></i> <span id="kpiQueuePill">{{ queue_count|default:0 }}</span> Pending</span>
+
         </div>
-        <div class="scr-rail-sub">AI detection triage, live surveillance tracking and the automated evidence pipeline in one workstation.</div>
+        <div class="scr-rail-sub">Detection triage, live surveillance tracking and the automated evidence pipeline in one workstation.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="liveClock">{% now "D, d M Y · H:i:s" %}</span></span>
+        <span class="scr-rail-clock"><span id="liveClock">{% now "D, d M Y · H:i:s" %}</span></span>
         <a href="{% url 'officer_portal:review_queue' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-inbox-fill"></i> Open Review Queue</a>
-        <a href="{% url 'officer_portal:live_tracking' %}" class="scr-rail-btn"><i class="bi bi-broadcast"></i> Live Tracking</a>
+        <a href="{% url 'officer_portal:live_tracking' %}" class="scr-rail-btn"><i class="bi bi-camera-video"></i> Live Tracking</a>
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       <div class="scr-stat scr-stat--warning">
         <div class="scr-stat-label">Review Queue</div>
@@ -56,7 +53,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     <section class="scr-panel scr-panel-8">

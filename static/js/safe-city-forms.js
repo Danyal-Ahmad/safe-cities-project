@@ -1,16 +1,12 @@
-/**
- * SafeCities Project - Form Handling Module
- * Provides validation rules, AJAX submit, password strength,
- * image preview, and CNIC/phone auto-formatting.
- */
+
 (function () {
     'use strict';
 
     const scForms = {};
 
-    // ============================================================
-    // CSRF helper
-    // ============================================================
+    
+    
+    
 
     scForms.csrf = function () {
         if (window.scApp && typeof window.scApp.csrfToken === 'function') {
@@ -20,9 +16,9 @@
         return el ? el.value : '';
     };
 
-    // ============================================================
-    // Validation rules
-    // ============================================================
+    
+    
+    
 
     scForms.rules = {
         required: function (val) {
@@ -73,9 +69,9 @@
         }
     };
 
-    // ============================================================
-    // Field error display
-    // ============================================================
+    
+    
+    
 
     scForms.showError = function (field, message) {
         const el = (typeof field === 'string') ? document.getElementById(field) : field;
@@ -111,9 +107,9 @@
         }
     };
 
-    // ============================================================
-    // Validation
-    // ============================================================
+    
+    
+    
 
     scForms.validate = function (formId) {
         const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
@@ -141,9 +137,9 @@
         return valid;
     };
 
-    // ============================================================
-    // AJAX submit
-    // ============================================================
+    
+    
+    
 
     scForms.submit = function (formId, options) {
         options = options || {};
@@ -188,9 +184,9 @@
         });
     };
 
-    // ============================================================
-    // Image preview
-    // ============================================================
+    
+    
+    
 
     scForms.previewImage = function (fileInputId, imgPreviewId) {
         const input = document.getElementById(fileInputId);
@@ -208,9 +204,9 @@
         });
     };
 
-    // ============================================================
-    // Toggle password visibility
-    // ============================================================
+    
+    
+    
 
     scForms.togglePassword = function (inputId, toggleBtnId) {
         const input = document.getElementById(inputId);
@@ -227,9 +223,9 @@
         });
     };
 
-    // ============================================================
-    // Password strength meter
-    // ============================================================
+    
+    
+    
 
     scForms.initPasswordStrength = function (inputId, meterId) {
         const input = document.getElementById(inputId);
@@ -263,9 +259,9 @@
         });
     };
 
-    // ============================================================
-    // CNIC auto-format: 35202-1234567-1
-    // ============================================================
+    
+    
+    
 
     scForms.autoFormatCNIC = function (inputId) {
         const el = document.getElementById(inputId);
@@ -278,9 +274,9 @@
         });
     };
 
-    // ============================================================
-    // Phone auto-format: 0300-1234567
-    // ============================================================
+    
+    
+    
 
     scForms.autoFormatPhone = function (inputId) {
         const el = document.getElementById(inputId);
@@ -292,9 +288,9 @@
         });
     };
 
-    // ============================================================
-    // Auto-init by data-* attribute
-    // ============================================================
+    
+    
+    
 
     function autoInit() {
         document.querySelectorAll('[data-cnic]').forEach(function (el) { scForms.autoFormatCNIC(el.id); });

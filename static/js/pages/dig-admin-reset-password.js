@@ -1,8 +1,8 @@
-/* DIG admin password reset - extracted from templates/dashboard/dig/admin_reset_password.html */
+
 (function () {
   'use strict';
 
-  // password visibility toggles
+  
   document.querySelectorAll('input[type=password]').forEach(function(inp) {
     const wrap = inp.parentElement;
     const btn = document.createElement('button');

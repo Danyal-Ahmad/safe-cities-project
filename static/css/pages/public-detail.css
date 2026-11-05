@@ -1,14 +1,7 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Public challan detail page
-   Loaded after public-home.css (shared dark glass system).
-   ============================================================================ */
-
 .scpub-detail .scpub-inner { max-width: 1040px; }
 
-/* Back link */
 .pd-back { display: flex; margin-bottom: 14px; }
 
-/* Compact hero */
 .pd-hero {
   display: flex;
   align-items: center;
@@ -20,21 +13,21 @@
 .pd-title {
   font-size: 21px;
   font-weight: 800;
-  color: #F0F4F8;
+  color: #14213D;
   letter-spacing: 0.01em;
 }
-.pd-title .scpub-mono { color: #93c5fd; }
+.pd-title .scpub-mono { color: #2E6BE6; }
 .pd-meta {
   margin: 6px 0 10px;
   font-size: 13px;
-  color: rgba(232, 240, 255, 0.6);
+  color: #6B7891;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
-.pd-meta-sep { color: rgba(96, 165, 250, 0.4); }
-.pd-meta-amount { font-weight: 800; color: #fbbf24; }
+.pd-meta-sep { color: #C2CBDC; }
+.pd-meta-amount { font-weight: 800; color: #A16E06; }
 .pd-hero-actions {
   display: flex;
   align-items: center;
@@ -44,7 +37,6 @@
 .pd-hero-actions .scpub-btn,
 .pd-hero-actions .scpub-btn-ghost { width: auto; }
 
-/* Two column layout */
 .pd-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
@@ -54,7 +46,6 @@
 .pd-col-main,
 .pd-col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
-/* Evidence */
 .pd-evidence {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
@@ -65,9 +56,9 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 8px;
-  border: 1px solid rgba(96, 165, 250, 0.14);
-  background: #060d24;
+  border-radius: 10px;
+  border: 1px solid #E8ECF4;
+  background: #10141C;
   min-height: 120px;
   object-fit: cover;
   transition: opacity 0.2s ease;
@@ -79,43 +70,42 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(232, 240, 255, 0.4);
+  color: #9AA3B8;
 }
 
-/* Appeal */
 .pd-hint {
   font-size: 11px;
-  color: rgba(232, 240, 255, 0.4);
+  color: #9AA3B8;
   margin-top: 5px;
 }
 .scpub-file {
   width: 100%;
   font-size: 13px;
-  color: rgba(232, 240, 255, 0.75);
-  background: rgba(8, 18, 46, 0.7);
-  border: 1px solid rgba(96, 165, 250, 0.15);
-  border-radius: 12px;
+  color: #3D4A63;
+  background: #FFFFFF;
+  border: 1px solid #D6DCE8;
+  border-radius: 10px;
   padding: 10px 14px;
   outline: none;
 }
 .scpub-file::file-selector-button {
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  border-radius: 9px;
-  background: rgba(96, 165, 250, 0.08);
-  color: #93c5fd;
+  border: 1px solid #D6DCE8;
+  border-radius: 8px;
+  background: #F7F9FC;
+  color: #14213D;
   font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
   margin-right: 12px;
   cursor: pointer;
 }
-.pd-appeals { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(96, 165, 250, 0.10); }
+.pd-appeals { margin-top: 18px; padding-top: 14px; border-top: 1px solid #E8ECF4; }
 .pd-appeals-title {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(232, 240, 255, 0.45);
+  color: #6B7891;
   margin-bottom: 8px;
 }
 .pd-appeal-row {
@@ -124,27 +114,25 @@
   gap: 12px;
   flex-wrap: wrap;
   font-size: 13px;
-  color: rgba(232, 240, 255, 0.8);
+  color: #3D4A63;
   padding: 7px 0;
-  border-bottom: 1px dashed rgba(96, 165, 250, 0.10);
+  border-bottom: 1px dashed #E8ECF4;
 }
 .pd-appeal-row:last-child { border-bottom: none; }
-.pd-appeal-date { font-size: 12px; color: rgba(232, 240, 255, 0.5); }
+.pd-appeal-date { font-size: 12px; color: #9AA3B8; }
 
-/* Actions column */
 .pd-actions { display: flex; flex-direction: column; gap: 10px; }
 .pd-actions .scpub-btn-ghost { width: 100%; }
 
-/* Officer signature */
 .pd-officer { margin-bottom: 12px; }
-.pd-officer-name { font-size: 15px; font-weight: 700; color: #F0F4F8; }
-.pd-officer-role { font-size: 12.5px; color: rgba(232, 240, 255, 0.55); }
+.pd-officer-name { font-size: 15px; font-weight: 700; color: #14213D; }
+.pd-officer-role { font-size: 12.5px; color: #6B7891; }
 .pd-sign-box {
   position: relative;
   min-height: 88px;
-  background: #ffffff;
-  border: 1px solid rgba(96, 165, 250, 0.2);
-  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E8ECF4;
+  border-radius: 10px;
   padding: 8px;
   display: flex;
   align-items: center;
@@ -163,11 +151,10 @@
 }
 .pd-sign-empty {
   font-size: 12px;
-  color: #8A94B0;
+  color: #9AA3B8;
   padding: 24px;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .pd-grid { grid-template-columns: 1fr; }
   .pd-evidence { grid-template-columns: 1fr; }

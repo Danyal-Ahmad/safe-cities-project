@@ -11,11 +11,10 @@
 {% block content %}
 <div class="cams-dark">
 
-  <!-- ======== Hero ======== -->
   <div class="cd-hero">
     <div>
-      <h1 class="cd-title"><i class="bi bi-heart-pulse"></i> Camera Health</h1>
-      <p class="cd-sub">Online / offline status of every camera, with heartbeat and frame age.</p>
+      <h1 class="cd-title"><i class="bi bi-activity"></i> Camera Health</h1>
+      <p class="cd-sub">Online / offline status of every camera, with health signal and frame age.</p>
     </div>
     <div class="cd-actions">
       {% if request.user|has_perm:"view_live_monitor" %}
@@ -34,7 +33,6 @@
     </div>
   </div>
 
-  <!-- ======== KPI chips ======== -->
   <div class="cd-kpis">
     <div class="cd-kpi">
       <span class="cd-kpi-label"><i class="bi bi-camera-video"></i> Total Cameras</span>
@@ -58,7 +56,6 @@
     </div>
   </div>
 
-  <!-- ======== Search + filters ======== -->
   <form method="get" class="cd-filter-bar" data-camera-filters
         data-server-filtered="{% if q %}1{% else %}0{% endif %}">
     <div class="cd-filter-search">
@@ -96,7 +93,6 @@
   </div>
   {% endif %}
 
-  <!-- ======== Health table ======== -->
   {% if cameras %}
   <div class="cd-table-wrap">
     <table class="cd-table">
@@ -107,7 +103,7 @@
           <th>Direction</th>
           <th>Status</th>
           <th>Active</th>
-          <th>Last Heartbeat</th>
+          <th>Last Check-In</th>
           <th>Last Frame</th>
         </tr>
       </thead>

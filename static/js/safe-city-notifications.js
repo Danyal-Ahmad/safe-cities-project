@@ -1,10 +1,4 @@
-/* ============================================================
-   SAFE CITIES PROJECT - portal push notifications + ticker
-   Polls the staff notification feed, renders the bell panel,
-   raises browser notifications for new push items and keeps
-   the announcement ticker moving. Seen state is tracked in
-   localStorage per item id.
-   ============================================================ */
+
 (function () {
   'use strict';
 
@@ -15,12 +9,12 @@
     try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
   }
   function lsSet(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* unavailable */ }
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {  }
   }
 
   function seenIds() { return lsGet(SEEN_KEY); }
 
-  /* ---- bell panel ---- */
+  
   function ensurePanel() {
     return {
       btn: document.getElementById('scBellBtn'),

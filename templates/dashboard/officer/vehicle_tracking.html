@@ -59,7 +59,7 @@
       <span class="sc-vt-step-num">2</span>
       <div>
         <div class="sc-vt-step-title"><i class="bi bi-diagram-2"></i> Review the detection timeline</div>
-        <p>See every AI detection for that plate with camera, cross-frame track data and the five-step evidence results.</p>
+        <p>See every detection for that plate with camera, cross-frame track data and the five-step evidence results.</p>
       </div>
     </div>
     <div class="sc-vt-step">
@@ -151,8 +151,8 @@
             <div class="sc-vt-meta sc-vt-meta-dim">
               <span>
                 {% if d.ai_confidence %}
-                  AI confidence <strong class="sc-mono">{{ d.ai_confidence|floatformat:2 }}</strong>
-                {% else %}AI confidence -{% endif %}
+                  Detection confidence <strong class="sc-mono">{{ d.ai_confidence|floatformat:2 }}</strong>
+                {% else %}Detection confidence -{% endif %}
               </span>
               {% with ev=d.evidence_summary %}
                 {% if ev.total %}

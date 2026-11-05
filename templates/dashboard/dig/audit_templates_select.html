@@ -66,7 +66,7 @@
           </div>
           <h3 class="dig-aud-name">{{ t.name }}</h3>
           <p class="dig-aud-blurb">{{ t.blurb }}</p>
-          <iframe class="dig-aud-frame" srcdoc="{{ t.preview_html }}" title="Preview of {{ t.name }}" sandbox="" loading="lazy"></iframe>
+          <iframe class="dig-aud-frame" srcdoc="{{ t.preview_html|force_escape }}" title="Preview of {{ t.name }}" sandbox="" loading="lazy"></iframe>
           <form method="post" action="{% url 'dig:audit_templates_select' %}" class="dig-aud-actions">
             {% csrf_token %}
             <input type="hidden" name="action" value="activate">

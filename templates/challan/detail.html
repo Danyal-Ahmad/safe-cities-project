@@ -19,7 +19,6 @@
       <a href="{% url 'challans:home' %}" class="scpub-btn-ghost"><i class="bi bi-arrow-left"></i> Back to Search</a>
     </div>
 
-    <!-- Compact glass hero -->
     <section class="pd-hero scpub-card">
       <div class="pd-hero-main">
         <h1 class="pd-title">E-Challan <span class="scpub-mono">{{ challan.ticket_no }}</span></h1>
@@ -49,7 +48,6 @@
 
       <div class="pd-col-main">
 
-        <!-- Challan summary -->
         <section class="scpub-card">
           <div class="scpub-card-title"><i class="bi bi-receipt"></i> Challan Summary</div>
           <div class="scpub-dl">
@@ -72,7 +70,6 @@
           </div>
         </section>
 
-        <!-- Detection evidence -->
         {% if challan.detection and challan.detection.raw_image %}
         <section class="scpub-card">
           <div class="scpub-card-title"><i class="bi bi-camera-video"></i> Detection Evidence</div>
@@ -91,7 +88,6 @@
         </section>
         {% endif %}
 
-        <!-- Appeal (guest CNIC appeal supported) -->
         <section class="scpub-card" id="appeal">
           <div class="scpub-card-title"><i class="bi bi-shield-check"></i> Appeal</div>
 
@@ -149,7 +145,6 @@
 
       <div class="pd-col-side">
 
-        <!-- Actions -->
         <section class="scpub-card">
           <div class="scpub-card-title"><i class="bi bi-lightning-charge"></i> Actions</div>
           <div class="pd-actions">
@@ -165,7 +160,6 @@
           </div>
         </section>
 
-        <!-- Issuing officer signature -->
         {% if issuing_officer or officer_signature_name %}
         <section class="scpub-card">
           <div class="scpub-card-title"><i class="bi bi-vector-pen"></i> Issuing Officer</div>

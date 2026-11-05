@@ -1,14 +1,14 @@
-/* AI Review Queue hotkeys - extracted from templates/dashboard/officer/review_queue.html */
+
 (function () {
   'use strict';
 
-  // Whether a detection is currently selected is flagged by the server on the
-  // triage grid via data-has-selected (previously an inline {% if selected %}).
+  
+  
   const triageGrid = document.querySelector('.md-triage-grid');
   const hasSelected = triageGrid ? triageGrid.dataset.hasSelected === '1' : false;
 
   document.addEventListener('keydown', function(e) {
-    // If user is focused on an input or textarea, do not trigger single-key hotkeys
+    
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
       return;
@@ -16,7 +16,7 @@
 
     const key = e.key.toUpperCase();
 
-    // 'C' -> Confirm & Issue Challan
+    
     if (key === 'C') {
       const btn = document.getElementById('btnConfirmTriage');
       if (btn) {
@@ -24,7 +24,7 @@
         btn.click();
       }
     }
-    // 'R' -> Reject False Positive
+    
     else if (key === 'R') {
       const btn = document.getElementById('btnRejectTriage');
       if (btn) {
@@ -32,7 +32,7 @@
         btn.click();
       }
     }
-    // 'F' -> Flag for DIG Escalation
+    
     else if (key === 'F') {
       const btn = document.getElementById('btnFlagTriage');
       if (btn) {
@@ -45,7 +45,7 @@
         e.preventDefault();
       }
     }
-    // Arrow Down / Arrow Up to navigate items in the queue
+    
     else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       const queueLinks = Array.from(document.querySelectorAll('.md-queue-item'));
       if (queueLinks.length === 0) return;
@@ -63,8 +63,8 @@
     }
   });
 
-  // Queue thumbnails: fade out when the frame image fails to load
-  // (previously inline onerror="this.style.opacity='0.15';").
+  
+  
   document.querySelectorAll('#queueItemsList img').forEach(function (img) {
     const fade = function () { img.style.opacity = '0.15'; };
     img.addEventListener('error', fade);
@@ -72,7 +72,6 @@
   });
 })();
 
-// --- 3-frame sequential evidence viewer (shared triage partial) ---
 (function () {
   var main = document.getElementById('detailTargetImage');
   var strip = document.getElementById('seqFrameStrip');

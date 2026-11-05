@@ -128,7 +128,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
 
         now = datetime.now()
         txn_datetime = now.strftime('%Y%m%d%H%M%S')
-        expiry = now.strftime('%Y%m%d%H%M%S')  # gateway may ignore; real deploy sets +1h
+        expiry = now.strftime('%Y%m%d%H%M%S')
         bill_ref = (ticket or reference)[:20]
         fields = {
             'pp_Version': '1.1',

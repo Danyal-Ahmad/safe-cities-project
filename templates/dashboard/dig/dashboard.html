@@ -6,10 +6,7 @@
 {% block title %}DIG Command Center{% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     DIG COMMAND SCREEN · one cohesive surface
-     command rail + stat strip + unified workspace
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -19,12 +16,12 @@
         <div class="scr-rail-kicker">Safe Cities Project · Directorate Command</div>
         <div class="scr-rail-title">
           DIG Command Center
-          <span class="scr-rail-tag scr-rail-tag--success"><i class="bi bi-broadcast"></i> All Systems Live</span>
+
         </div>
         <div class="scr-rail-sub">Directorate-level operational overview, real-time revenue, network status and dispute escalations across every district desk.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
+        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_revenue_dashboard" %}
         <a href="{% url 'dig:revenue_dashboard' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-graph-up-arrow"></i> Revenue Analytics</a>
         {% endif %}
@@ -34,7 +31,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip · live API driven -->
     <div class="scr-stats">
       <div class="scr-stat scr-stat--success">
         <div class="scr-stat-label">Revenue Collected</div>
@@ -91,14 +87,13 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_analytics" %}
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-bar-chart-fill"></i> Violations by Classification</div>
-        <span class="md-badge md-badge-secondary">All Cameras</span>
+
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="typeChart" data-api-url="{% url 'dig:api_chart_violation_distribution' %}" data-chart-type="bar" data-index-axis="y"></canvas>
@@ -108,7 +103,7 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-geo-alt-fill"></i> High-Violation Junctions</div>
-        <span class="md-badge md-badge-secondary">Top 10</span>
+
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="locChart" data-api-url="{% url 'dig:api_chart_location_distribution' %}" data-chart-type="bar" data-index-axis="y"></canvas>
@@ -118,7 +113,7 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> 7-Day Enforcement Velocity</div>
-        <span class="md-badge md-badge-secondary">Daily Volume</span>
+
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="trendChart" data-api-url="{% url 'dig:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
@@ -128,7 +123,7 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-trophy-fill"></i> Officer Triage Performance</div>
-        <span class="md-badge md-badge-secondary">30 Days</span>
+
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="officerChart" data-api-url="{% url 'dig:api_chart_officer_kpi' %}" data-chart-type="bar"></canvas>
@@ -207,8 +202,8 @@
     {% if request.user|has_perm:"view_detections" %}
     <section class="scr-panel">
       <div class="scr-panel-head">
-        <div class="scr-panel-title"><i class="bi bi-radar"></i> Latest Camera Inferences</div>
-        <span class="md-badge md-badge-secondary">Realtime Stream</span>
+        <div class="scr-panel-title"><i class="bi bi-radar"></i> Latest Detections</div>
+
       </div>
       <div class="scr-panel-body scr-panel-body--flush">
         <div style="overflow-x: auto;">
@@ -217,7 +212,7 @@
             <thead>
               <tr><th>ID</th><th>Surveillance Camera</th><th>Vehicle Plate</th><th>Confidence</th><th>Status</th><th>Capture Timestamp</th></tr>
             </thead>
-            <tbody><!-- populated by dig-dashboard.js --></tbody>
+            <tbody></tbody>
           </table>
         </div>
       </div>

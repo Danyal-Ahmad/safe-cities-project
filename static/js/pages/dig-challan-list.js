@@ -1,11 +1,8 @@
-/* ==========================================================================
-   DIG | E-Challan Register  (dashboard/dig/challan_list.html)
-   Uppercase plate input + status summary computed from rendered rows
-   ========================================================================== */
+
 (function () {
   'use strict';
 
-  /* ---------- Uppercase plate filter input ---------- */
+  
   var plateInput = document.querySelector('[data-uppercase-input]');
   if (plateInput) {
     plateInput.addEventListener('input', function () {
@@ -13,7 +10,7 @@
     });
   }
 
-  /* ---------- Status counts from the rendered rows ---------- */
+  
   var summary = document.querySelector('[data-challan-summary]');
   var rows = Array.prototype.slice.call(document.querySelectorAll('[data-challan-row]'));
   if (!summary || !rows.length) return;

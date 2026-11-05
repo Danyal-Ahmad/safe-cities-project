@@ -1,23 +1,4 @@
-/*!
- * SAFE CITIES PROJECT - portal-ticker.js
- * Behavior for the portal announcement ticker bar rendered by
- * templates/_partials/portal_ticker.html. Loaded by base.html for
- * authenticated staff only.
- *
- * Responsibilities:
- *   1. Rotate ticker items when more items exist than fit the viewport:
- *      the item set is duplicated once and a CSS translateX(-50%) marquee
- *      runs at a width-proportional duration, producing a seamless loop.
- *      When everything fits, items are shown statically with no animation.
- *   2. Pause on hover is handled in CSS (animation-play-state: paused).
- *   3. Listen for the DOM CustomEvent 'safecity:notification' (dispatched
- *      by static/js/realtime-socket.js) and prepend the new item live.
- *
- * The event payload is read defensively because it comes from another
- * module: {title|heading, message|body|text, severity|level|type} or a
- * plain string. All inserted text uses textContent, never innerHTML, so a
- * hostile payload cannot inject markup.
- */
+
 (function () {
   'use strict';
 
@@ -26,16 +7,16 @@
   var track = document.getElementById('scTickerTrack');
   if (!bar || !viewport || !track) { return; }
 
-  var MAX_ITEMS = 8;        // hard cap, live items included
-  var PX_PER_SECOND = 55;   // marquee scrolling speed
-  var MIN_DURATION_S = 18;  // never scroll faster than this
+  var MAX_ITEMS = 8;        
+  var PX_PER_SECOND = 55;   
+  var MIN_DURATION_S = 18;  
   var CLONE_FLAG = 'data-ticker-clone';
   var RESIZE_DELAY_MS = 200;
 
   var resizeTimer = null;
   var lastEvent = null;
 
-  /* ------------------------------ helpers -------------------------------- */
+  
 
   function originalItems() {
     var nodes = track.children;
@@ -56,12 +37,12 @@
     bar.classList.remove('is-scrolling');
   }
 
-  /* --------------------------- marquee control --------------------------- */
+  
 
-  // Measures the track and enables the seamless marquee only when the items
-  // overflow the viewport. Spacing between items is a margin on every item
-  // (see tailwind-bridge.css), so one duplicated set makes the track exactly
-  // twice as wide and the translateX(-50%) loop lands seamlessly.
+  
+  
+  
+  
   function ensureMarquee() {
     removeClones();
 
@@ -69,7 +50,7 @@
     if (!items.length) { return; }
 
     if (track.scrollWidth - viewport.clientWidth <= 8) {
-      // Everything fits: static display, no rotation needed.
+      
       return;
     }
 
@@ -86,7 +67,7 @@
     bar.classList.add('is-scrolling');
   }
 
-  /* --------------------------- live notifications ------------------------ */
+  
 
   function severityClass(raw) {
     switch (String(raw || '').toLowerCase()) {
@@ -116,13 +97,13 @@
 
   function flash() {
     bar.classList.remove('is-flashing');
-    void bar.offsetWidth; // force restyle so the animation restarts
+    void bar.offsetWidth; 
     bar.classList.add('is-flashing');
   }
 
   function onNotification(event) {
-    // The same event object can arrive via both the document and window
-    // listeners (it bubbles through both); process it exactly once.
+    
+    
     if (event === lastEvent) { return; }
     lastEvent = event;
 
@@ -161,19 +142,19 @@
     flash();
   }
 
-  // realtime-socket.js may dispatch on document, body or window; listening
-  // on document plus window covers every dispatch target that bubbles.
+  
+  
   document.addEventListener('safecity:notification', onNotification);
   window.addEventListener('safecity:notification', onNotification);
 
-  /* ------------------------------- wiring -------------------------------- */
+  
 
   window.addEventListener('resize', function () {
     if (resizeTimer) { clearTimeout(resizeTimer); }
     resizeTimer = setTimeout(ensureMarquee, RESIZE_DELAY_MS);
   });
 
-  // Re-measure once webfonts have settled.
+  
   window.addEventListener('load', ensureMarquee);
 
   function init() { ensureMarquee(); }

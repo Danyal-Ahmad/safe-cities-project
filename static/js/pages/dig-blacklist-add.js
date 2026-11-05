@@ -1,14 +1,11 @@
-/* ==========================================================================
-   DIG | Add to Blacklist  (dashboard/dig/blacklist_add.html)
-   Uppercase transform · placeholder switching · reason char counter
-   ========================================================================== */
+
 (function () {
   'use strict';
 
   var form = document.getElementById('blacklistAddForm');
   if (!form) return;
 
-  /* ---------- Uppercase + charset guard on the value input ---------- */
+  
   var valueInput = form.querySelector('[data-uppercase-input]');
   var typeSelect = form.querySelector('[data-type-select]');
 
@@ -18,7 +15,7 @@
     });
   }
 
-  /* ---------- Placeholder + label follow the selected type ---------- */
+  
   function syncPlaceholder() {
     if (!valueInput || !typeSelect) return;
     var isCnic = typeSelect.value === 'cnic';
@@ -32,7 +29,7 @@
     syncPlaceholder();
   }
 
-  /* ---------- Reason character counter ---------- */
+  
   var counter = form.querySelector('[data-char-counter-for]');
   var reason = document.getElementById('id-reason');
 
@@ -50,7 +47,7 @@
     updateCounter();
   }
 
-  /* ---------- Guard: trim before submit ---------- */
+  
   form.addEventListener('submit', function (ev) {
     var incomplete = [];
 

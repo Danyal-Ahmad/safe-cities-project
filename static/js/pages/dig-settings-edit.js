@@ -1,14 +1,11 @@
-/* ==========================================================================
-   DIG | System Settings  (dashboard/dig/settings_edit.html)
-   Secret visibility toggles · integration-mode warning · change tracking
-   ========================================================================== */
+
 (function () {
   'use strict';
 
   var form = document.getElementById('settingsForm');
   if (!form) return;
 
-  /* ---------- Show / hide secret fields ---------- */
+  
   Array.prototype.slice.call(document.querySelectorAll('[data-secret-toggle]')).forEach(function (btn) {
     btn.addEventListener('click', function () {
       var input = document.getElementById(btn.getAttribute('data-secret-toggle'));
@@ -20,7 +17,7 @@
     });
   });
 
-  /* ---------- Integration mode warning ---------- */
+  
   var modeSelect = document.getElementById('id-integration-mode');
   var modeBanner = document.querySelector('[data-mode-banner]');
 
@@ -37,7 +34,7 @@
     syncModeBanner();
   }
 
-  /* ---------- Track unsaved changes ---------- */
+  
   var initialState = new FormData(form).toString();
   var saveBtn = form.querySelector('[data-save-btn]');
   var savebar = document.querySelector('[data-savebar]');
@@ -63,7 +60,7 @@
     }
   });
 
-  /* ---------- Required-field guard ---------- */
+  
   form.addEventListener('submit', function (ev) {
     var missing = [];
 

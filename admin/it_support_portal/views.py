@@ -385,7 +385,6 @@ def audit_templates_manage(request):
     from admin.dig_portal.models import (AuditPDFTemplate, AuditLog,
                                          SystemSettings)
 
-    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         if sample_key not in {t['key'] for t in get_audit_templates()}:

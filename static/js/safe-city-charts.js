@@ -1,9 +1,4 @@
-/**
- * SafeCities Project - Chart.js Wrapper Module
- * Provides a consistent API for line/bar/doughnut charts with
- * prebuilt color palettes and an auto-fetch helper.
- * Requires Chart.js v4 to be loaded globally.
- */
+
 (function () {
     'use strict';
 
@@ -13,26 +8,26 @@
 
     const scCharts = {};
 
-    // ============================================================
-    // Prebuilt color palettes
-    // ============================================================
+    
+    
+    
 
     scCharts.palettes = {
-        navy: ['#1f3b73', '#2d5aa0', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe', '#eff6ff'],
-        green: ['#15803d', '#22c55e', '#4ade80', '#86efac', '#bbf7d0', '#16a34a', '#166534', '#14532d'],
-        warm: ['#b91c1c', '#dc2626', '#f97316', '#fb923c', '#fbbf24', '#facc15', '#eab308', '#ca8a04'],
-        cool: ['#0e7490', '#0891b2', '#06b6d4', '#22d3ee', '#67e8f9', '#a5f3fc', '#cffafe', '#ecfeff'],
-        all:  ['#1f3b73', '#15803d', '#b91c1c', '#b45309', '#0e7490', '#7c3aed', '#db2777', '#475569']
+        navy: ['#2E6BE6', '#5B8BEF', '#87A9F3', '#AEC5F7', '#7FA8E9', '#4478E8', '#3A6BD9', '#6C9AEE'],
+        green: ['#1E9E5A', '#4CB87E', '#79D0A1', '#A5E2C4', '#2FA96C', '#187F4B', '#1E9E5A', '#53Bd8A'.toLowerCase()],
+        warm: ['#D9806A', '#E39A83', '#EDB59D', '#F2C8B7', '#C96A52', '#DE937B', '#E8AB94', '#D07B62'],
+        cool: ['#10998B', '#3FB3A6', '#6ECBC0', '#9BDFD6', '#0D8074', '#2AA595', '#10998B', '#55BFB2'],
+        all:  ['#2E6BE6', '#1E9E5A', '#C98A0A', '#6E56D8', '#10998B', '#D9364C', '#3B66C6', '#8A94B0']
     };
 
-    // ============================================================
-    // Default options
-    // ============================================================
+    
+    
+    
 
     scCharts.defaults = {
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        color: '#64748b',
-        borderColor: '#e2e8f0',
+        color: '#6B7891',
+        borderColor: '#E8ECF4',
     };
 
     function mergeOpts(opts) {
@@ -52,7 +47,7 @@
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    backgroundColor: 'rgba(20, 33, 61, 0.92)',
                     titleColor: '#ffffff',
                     bodyColor: '#e2e8f0',
                     borderColor: '#334155',
@@ -67,18 +62,18 @@
         };
     }
 
-    // Apply Chart.js global defaults if available
+    
     if (typeof window.Chart !== 'undefined') {
         try {
             Chart.defaults.font.family = scCharts.defaults.fontFamily;
             Chart.defaults.color = scCharts.defaults.color;
             Chart.defaults.borderColor = scCharts.defaults.borderColor;
-        } catch (e) { /* noop */ }
+        } catch (e) {  }
     }
 
-    // ============================================================
-    // Internal helpers
-    // ============================================================
+    
+    
+    
 
     function getCanvas(canvasId) {
         if (typeof canvasId === 'string') {
@@ -119,13 +114,13 @@
         return 'rgba(' + r + ',' + g + ',' + b + ',' + (alpha == null ? 0.2 : alpha) + ')';
     }
 
-    // ============================================================
-    // Chart factory helpers
-    // ============================================================
+    
+    
+    
 
     function buildDatasets(datasets, paletteName) {
         return colorize(datasets, paletteName).map(function (ds) {
-            // Set sensible line defaults
+            
             if (!ds.tension) ds.tension = 0.35;
             if (ds.fill === undefined) ds.fill = true;
             if (ds.pointRadius === undefined) ds.pointRadius = 3;
@@ -199,9 +194,9 @@
         });
     };
 
-    // ============================================================
-    // Lifecycle helpers
-    // ============================================================
+    
+    
+    
 
     scCharts._registry = scCharts._registry || {};
 
@@ -228,10 +223,10 @@
         return Chart.getChart(canvas) || null;
     };
 
-    // ============================================================
-    // Fetch-and-render helper
-    // Expects: { labels: [...], datasets: [...], type: 'line'|'bar'|'doughnut', options: {} }
-    // ============================================================
+    
+    
+    
+    
 
     scCharts.fetchRender = function (canvasId, url, type) {
         type = type || 'line';
@@ -251,9 +246,9 @@
             });
     };
 
-    // ============================================================
-    // Auto-init: any <canvas data-chart> will be rendered
-    // ============================================================
+    
+    
+    
 
     function autoInit() {
         document.querySelectorAll('canvas[data-chart]').forEach(function (canvas) {

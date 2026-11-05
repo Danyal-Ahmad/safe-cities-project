@@ -21,7 +21,7 @@
   </div>
   <div class="sc-flex sc-gap-2">
     <a href="{% url portal_ns|add:':camera_health' %}" class="sc-btn">
-      <i class="bi bi-heart-pulse me-1"></i>Health Dashboard
+      <i class="bi bi-activity me-1"></i>Health Dashboard
     </a>
     {% if can_manage or request.user|has_perm:"edit_camera" %}
     <a href="{% url portal_ns|add:':camera_add' %}" class="sc-btn sc-btn-primary">
@@ -31,7 +31,6 @@
   </div>
 </div>
 
-<!-- ============ KPI ROW ============ -->
 <div class="sc-kpi-grid">
   <div class="sc-kpi">
     <div class="sc-kpi-icon"><i class="bi bi-camera-video"></i></div>
@@ -59,7 +58,6 @@
   </div>
 </div>
 
-<!-- ============ REGISTRY ============ -->
 <div class="sc-card">
   <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
     <span class="d-flex align-items-center gap-2">
@@ -75,9 +73,6 @@
 
   <div class="sc-card-body">
 
-    <!-- Server-side search + client-side quick filters.
-         The form submits a GET (?q=&health=&active=) so filtered views are
-         shareable URLs; typing still filters the rendered rows instantly. -->
     <form method="get" class="cam-filter-bar" data-camera-filters
           data-server-filtered="{% if q or health_filter or active_filter %}1{% else %}0{% endif %}">
       <div class="cam-filter-search">
@@ -200,7 +195,7 @@
             <td class="text-end">
               <div class="sc-flex sc-justify-end sc-gap-2 cam-actions">
                 <a href="{% url portal_ns|add:':camera_health' %}" class="sc-btn sc-btn-sm" title="Health dashboard">
-                  <i class="bi bi-heart-pulse"></i><span class="cam-action-label"> Health</span>
+                  <i class="bi bi-activity"></i><span class="cam-action-label"> Health</span>
                 </a>
                 {% if can_manage or request.user|has_perm:"edit_camera" %}
                 <a href="{% url portal_ns|add:':camera_edit' c.id %}" class="sc-btn sc-btn-sm sc-btn-outline" title="Edit camera">
@@ -234,7 +229,7 @@
 
     <p class="sc-hint mt-2 mb-0">
       <i class="bi bi-info-circle me-1"></i>
-      Direction shows the physical mounting (N/S/E/W); enforcement side is the vehicle side the AI
+      Direction shows the physical mounting (N/S/E/W); enforcement side is the vehicle side the system
       classifier treats as a wrong-way violation at that camera.
       {% if not can_manage %}Camera configuration is restricted to IT Support - this view is read-only for command staff.{% endif %}
     </p>

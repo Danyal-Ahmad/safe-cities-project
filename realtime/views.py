@@ -88,7 +88,7 @@ def api_dashboard_kpis(request):
                 {'label': 'My appeals', 'value': ChallanAppeal.objects.filter(challan__created_by=request.user).count(), 'icon': 'bi-shield-fill'},
             ],
         })
-    else:  # USER / SSP / SUPV / AUDIT
+    else:
         return JsonResponse({'role': role, 'kpis': []})
 
 

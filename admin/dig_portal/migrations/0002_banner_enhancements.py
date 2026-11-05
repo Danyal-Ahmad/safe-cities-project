@@ -1,7 +1,3 @@
-# Migration 0002 - adds banner_type, image, image_link fields to Banner
-# and updates field choices on Alert, AuditLog, Banner.
-# NO RenameIndex operations - they cause "relation does not exist" on PostgreSQL
-# when the index name in the DB doesn't match what Django expects.
 
 import django.db.models.deletion
 from django.conf import settings
@@ -16,7 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # ── New Banner fields ──────────────────────────────────
         migrations.AddField(
             model_name='banner',
             name='banner_type',
@@ -43,7 +38,6 @@ class Migration(migrations.Migration):
             ),
         ),
 
-        # ── Updated field choices (no schema change, just Django choices) ──
         migrations.AlterField(
             model_name='alert',
             name='created_by',

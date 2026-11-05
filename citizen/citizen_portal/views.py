@@ -65,7 +65,7 @@ def home(request):
         digits = _normalize_cnic(user.cnic)
         if digits:
             q |= Q(cnic=digits)
-            q |= Q(cnic__icontains=digits[:5])  # broad safety; filtered below
+            q |= Q(cnic__icontains=digits[:5])
     if user.phone:
         q |= Q(phone=user.phone)
     plates = _user_plates(user)

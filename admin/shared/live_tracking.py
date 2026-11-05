@@ -48,7 +48,7 @@ class LiveTrackingService:
 
     @property
     def camera_not_found(self) -> bool:
-        _ = self.camera  # triggers property logic
+        _ = self.camera
         return self._camera_not_found
 
     def get_available_cameras(self) -> list[Camera]:

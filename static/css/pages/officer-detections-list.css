@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Officer | Detections List (officer-detections-list)
-   Filter bar polish + evidence chip styling for the detections table.
-   ========================================================================== */
+
 
 .sc-table-wrap-flush {
   border: none;
@@ -36,7 +33,6 @@
   margin-bottom: 6px;
 }
 
-/* Slightly wider spacing for the action column */
 table.sc-data-table td:last-child {
   white-space: nowrap;
 }

@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Officer | Vehicle Tracking (officer-vehicle-tracking.js)
-   Timeline thumb fallbacks + clickable timeline items.
-   ========================================================================== */
+
 (function () {
   'use strict';
 
@@ -14,7 +11,7 @@
   }
 
   ready(function () {
-    // Broken frame thumbnails -> N/A placeholder.
+    
     document.querySelectorAll('img[data-img-fallback]').forEach(function (img) {
       img.addEventListener('error', function () {
         var thumb = img.closest('.sc-vt-thumb') || img.parentElement;
@@ -23,7 +20,7 @@
       });
     });
 
-    // Clickable timeline rows -> detection detail.
+    
     document.querySelectorAll('.sc-row-link[data-href]').forEach(function (row) {
       row.addEventListener('click', function (e) {
         if (e.target.closest('a, button, input, select, textarea')) {

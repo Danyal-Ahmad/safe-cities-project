@@ -1,8 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | User Activity (audit-user-activity)
-   ========================================================================== */
 
-/* Tracked-action chips ---------------------------------------------------- */
 
 .audit-chips {
   display: flex;
@@ -28,8 +24,6 @@
   font-size: 0.65rem;
 }
 
-/* Table helpers ----------------------------------------------------------- */
-
 .audit-action-badge {
   font-family: var(--sc-mono, monospace);
   font-size: 0.7rem;
@@ -45,13 +39,13 @@
 
 .audit-actor-name {
   font-weight: 600;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   font-size: 0.85rem;
 }
 
 .audit-actor-sub {
   font-size: 0.72rem;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
 }
 
 .audit-ip {

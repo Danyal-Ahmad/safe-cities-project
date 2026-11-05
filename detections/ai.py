@@ -527,7 +527,7 @@ def _ocr_plate_image(pil_image) -> tuple:
       2) EasyOCR
       3) pytesseract (optional fallback)
     """
-    candidates = []  # (text, conf, engine)
+    candidates = []
     variants = _preprocess_plate_for_ocr(pil_image)
 
     paddle = _get_paddle_ocr()

@@ -1,23 +1,19 @@
-/* ==========================================================================
-   Safe City | shared error page (standalone, no base.html)
-   Loaded by templates/errors/error_page.html for codes 400/401/402/403/404/
-   500/501/502/503 + CSRF failure. Light theme, #1E4E9C accents.
-   ========================================================================== */
+
 
 :root {
-  --ep-bg: #E8EEF7;
-  --ep-bg-soft: #F1F4F9;
+  --ep-bg: #F7F9FC;
+  --ep-bg-soft: #F7F9FC;
   --ep-surface: #FFFFFF;
-  --ep-border: #E4E8EF;
-  --ep-navy: #16294E;
-  --ep-heading: #0F2557;
-  --ep-accent: #1E4E9C;
+  --ep-border: #E8ECF4;
+  --ep-navy: #14213D;
+  --ep-heading: #14213D;
+  --ep-accent: #2E6BE6;
   --ep-accent-b: #3B6FC4;
-  --ep-text: #33415C;
-  --ep-muted: #5B6B85;
-  --ep-danger: #E23B4E;
+  --ep-text: #3D4A63;
+  --ep-muted: #6B7891;
+  --ep-danger: #D9364C;
   --ep-radius-lg: 22px;
-  --ep-shadow: 0 18px 50px rgba(15, 37, 87, 0.16);
+  --ep-shadow: 0 18px 50px rgba(20, 33, 61, 0.16);
   --ep-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -45,7 +41,6 @@ body.ep-body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ===== Card ===== */
 .ep-card {
   position: relative;
   width: 100%;
@@ -59,7 +54,6 @@ body.ep-body {
   overflow: hidden;
 }
 
-/* Top accent band */
 .ep-card::before {
   content: '';
   position: absolute;
@@ -68,7 +62,6 @@ body.ep-body {
   background: linear-gradient(90deg, var(--ep-accent) 0%, var(--ep-accent-b) 60%, #7EA4E0 100%);
 }
 
-/* Soft brand watermark behind the number */
 .ep-card::after {
   content: '';
   position: absolute;
@@ -81,7 +74,6 @@ body.ep-body {
   pointer-events: none;
 }
 
-/* ===== Icon ===== */
 .ep-icon {
   width: 84px;
   height: 84px;
@@ -96,7 +88,6 @@ body.ep-body {
   box-shadow: 0 10px 24px rgba(30, 78, 156, 0.32);
 }
 
-/* ===== Big code ===== */
 .ep-code {
   font-size: 4.6rem;
   font-weight: 800;
@@ -106,7 +97,6 @@ body.ep-body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ===== Title / message ===== */
 .ep-title {
   margin: 14px 0 8px;
   font-size: 1.35rem;
@@ -122,11 +112,10 @@ body.ep-body {
   color: var(--ep-muted);
 }
 
-/* Extra context lines */
 .ep-reason {
   margin: 12px auto 0;
   font-size: 0.76rem;
-  color: #8A94B0;
+  color: #9AA3B8;
   font-style: italic;
   max-width: 46ch;
 }
@@ -144,7 +133,6 @@ body.ep-body {
   font-weight: 600;
 }
 
-/* ===== Actions ===== */
 .ep-actions {
   display: flex;
   flex-wrap: wrap;
@@ -192,10 +180,9 @@ body.ep-body {
   color: #17407e;
 }
 
-/* ===== Footer ===== */
 .ep-foot {
   font-size: 0.76rem;
-  color: #8A94B0;
+  color: #9AA3B8;
   text-align: center;
 }
 
@@ -203,7 +190,6 @@ body.ep-body {
   color: var(--ep-muted);
 }
 
-/* ===== Small screens ===== */
 @media (max-width: 520px) {
   .ep-card { padding: 42px 24px 30px; }
   .ep-code { font-size: 3.8rem; }
@@ -211,7 +197,6 @@ body.ep-body {
   .ep-btn { justify-content: center; }
 }
 
-/* Respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .ep-btn { transition: none; }
   .ep-btn:hover { transform: none; }

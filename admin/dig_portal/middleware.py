@@ -82,8 +82,6 @@ class SecurityHeadersMiddleware:
 
     EMBEDDABLE_SUFFIXES = ('/profile/',)
 
-    # Fallbacks used only if a settings module omits the CSP_* constants
-    # (e.g. a trimmed test settings module). Mirrors the production policy.
     _FALLBACKS = {
         'CSP_DEFAULT_SRC': ("'self'",),
         'CSP_SCRIPT_SRC': ("'self'", "'unsafe-inline'",
@@ -114,9 +112,6 @@ class SecurityHeadersMiddleware:
     def __call__(self, request):
         from django.conf import settings
 
-        # Per-request CSP nonce. Exposed to templates as request.csp_nonce;
-        # only base.html's tailwind.config block uses it today, but any
-        # template can adopt it (then 'unsafe-inline' can shrink further).
         nonce = secrets.token_urlsafe(16)
         request.csp_nonce = nonce
 
@@ -135,15 +130,8 @@ class SecurityHeadersMiddleware:
 
         csp = (
             "default-src " + self._tokens(settings, 'CSP_DEFAULT_SRC') + "; "
-            # script-src carries the per-request nonce; browsers ignore the
-            # nonce while 'unsafe-inline' is present, but the nonce lets
-            # templates migrate off 'unsafe-inline' one file at a time.
             "script-src 'nonce-" + nonce + "' "
             + self._tokens(settings, 'CSP_SCRIPT_SRC') + "; "
-            # Inline EVENT handlers (onclick="toggle()") are governed by a
-            # dedicated fallback directive. Without it the nonce above would
-            # neutralise 'unsafe-inline' and silently break every inline
-            # handler in the templates (password toggles, radio switches).
             "script-src-attr 'unsafe-inline'; "
             "style-src " + self._tokens(settings, 'CSP_STYLE_SRC') + "; "
             "font-src " + self._tokens(settings, 'CSP_FONT_SRC') + "; "
@@ -152,14 +140,10 @@ class SecurityHeadersMiddleware:
             + frame_ancestors +
             "object-src " + self._tokens(settings, 'CSP_OBJECT_SRC') + "; "
             "base-uri " + self._tokens(settings, 'CSP_BASE_URI') + "; "
-            # Payment gateways POST cross-origin over https only
-            # (JazzCash / EasyPaisa form actions - integrations/payments.py).
             "form-action " + self._tokens(settings, 'CSP_FORM_ACTION')
         )
 
         response['Content-Security-Policy'] = csp
-        # Clickjacking: deny by default; the ?embed=1 profile fragments are
-        # the only pages allowed to be framed, and only by this origin.
         response['X-Frame-Options'] = 'SAMEORIGIN' if is_embed_fragment else 'DENY'
         response['X-Content-Type-Options'] = 'nosniff'
         response['Referrer-Policy'] = 'same-origin'

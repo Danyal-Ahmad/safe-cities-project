@@ -14,7 +14,7 @@
   <div>
     <h1><i class="bi bi-car-front me-2"></i>Vehicle Search</h1>
     <p class="sc-lead">
-      Trace any vehicle across the platform - raw AI detections and issued challans in one
+      Trace any vehicle across the platform - raw detections and issued challans in one
       lookup by plate, owner name or CNIC.
     </p>
   </div>
@@ -28,7 +28,6 @@
   </div>
 </div>
 
-<!-- ============ SEARCH ============ -->
 <div class="sc-card vs-search-card">
   <div class="sc-card-body">
     <form method="get" action="{% url portal_ns|add:':vehicle_search' %}" class="vs-search-form" role="search">
@@ -60,7 +59,6 @@
 
 {% if q %}
 
-<!-- ============ RESULT SUMMARY ============ -->
 <div class="sc-banner vs-result-banner">
   <i class="bi bi-binoculars"></i>
   <div>
@@ -73,7 +71,6 @@
 <div class="row g-4">
   <div class="col-12">
 
-    <!-- ============ DETECTIONS ============ -->
     <div class="sc-card">
       <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span class="d-flex align-items-center gap-2">
@@ -167,7 +164,6 @@
 
   <div class="col-12">
 
-    <!-- ============ CHALLANS ============ -->
     <div class="sc-card">
       <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span class="d-flex align-items-center gap-2">
@@ -238,7 +234,6 @@
 
 {% else %}
 
-<!-- ============ NO QUERY STATE ============ -->
 <div class="sc-card">
   <div class="sc-card-body">
     <div class="sc-empty vs-empty-cta">
@@ -246,7 +241,7 @@
       <h2 class="vs-empty-title">Start a vehicle lookup</h2>
       <p>
         Enter a plate number, owner name or CNIC above to pull the full enforcement history -
-        raw detections with AI confidence and tamper-evident evidence checks, plus every challan issued.
+        raw detections with Detection confidence and tamper-evident evidence checks, plus every challan issued.
       </p>
       <div class="vs-empty-quick">
         <button type="button" class="sc-btn sc-btn-outline" data-example="LEA-1100">

@@ -1,8 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | Anomaly Alerts (audit-anomalies)
-   ========================================================================== */
 
-/* Anomaly cards -------------------------------------------------------- */
 
 .audit-anomaly-card {
   display: flex;
@@ -16,12 +12,12 @@
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
 }
 
 .audit-anomaly-desc {
   font-size: 0.86rem;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
   line-height: 1.5;
   flex: 1;
 }
@@ -31,8 +27,8 @@
   align-items: center;
   gap: 6px;
   font-size: 0.74rem;
-  color: var(--sc-text-faint, #8A94B0);
-  border-top: 1px dashed var(--sc-border, #E4E8EF);
+  color: var(--sc-text-faint, #9AA3B8);
+  border-top: 1px dashed var(--sc-border, #E8ECF4);
   padding-top: 8px;
 }
 
@@ -41,24 +37,22 @@
 }
 
 .audit-anomaly-meta b {
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
   font-weight: 600;
 }
 
-/* Severity accents (severity values are uppercase: HIGH / MEDIUM / LOW) --- */
-
 .audit-sev-high {
-  border-left: 4px solid var(--sc-danger, #E23B4E);
+  border-left: 4px solid var(--sc-danger, #D9364C);
 }
 
 .audit-sev-medium {
-  border-left: 4px solid var(--sc-warning, #F5A623);
+  border-left: 4px solid var(--sc-warning, #C98A0A);
 }
 
 .audit-sev-low {
-  border-left: 4px solid var(--sc-primary, #2563EB);
+  border-left: 4px solid var(--sc-primary, #2E6BE6);
 }
 
 .audit-sev-none {
-  border-left: 4px solid var(--sc-border-strong, #D3DAE7);
+  border-left: 4px solid var(--sc-border-strong, #D6DCE8);
 }

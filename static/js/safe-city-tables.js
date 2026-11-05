@@ -1,17 +1,13 @@
-/**
- * SafeCities Project - DataTables Wrapper
- * Works WITH or WITHOUT jQuery/DataTables plugin.
- * Falls back to native JS sorting/filtering/pagination when DataTables is absent.
- */
+
 (function () {
     'use strict';
 
     const scTables = {};
     scTables._instances = scTables._instances || {};
 
-    // ============================================================
-    // Config
-    // ============================================================
+    
+    
+    
 
     scTables.config = {
         pageLength: 25,
@@ -31,17 +27,17 @@
         }
     };
 
-    // ============================================================
-    // Detect DataTables availability
-    // ============================================================
+    
+    
+    
 
     function hasDataTables() {
         return typeof window.jQuery !== 'undefined' && typeof window.jQuery.fn.DataTable !== 'undefined';
     }
 
-    // ============================================================
-    // Native sort/filter/paginate implementation
-    // ============================================================
+    
+    
+    
 
     function nativeSort(table, colIndex, direction) {
         const tbody = table.querySelector('tbody');
@@ -82,9 +78,9 @@
         return { total: total, page: page, perPage: perPage };
     }
 
-    // ============================================================
-    // Init native table
-    // ============================================================
+    
+    
+    
 
     function initNative(table) {
         const id = table.id || 'tbl_' + Math.random().toString(36).substr(2, 9);
@@ -97,7 +93,7 @@
         };
         scTables._instances[id] = instance;
 
-        // Sorting
+        
         table.querySelectorAll('thead th[data-sortable], thead th.sortable').forEach(function (th) {
             th.style.cursor = 'pointer';
             th.addEventListener('click', function () {
@@ -111,7 +107,7 @@
             });
         });
 
-        // Search
+        
         const searchEl = document.querySelector('[data-table-search="' + id + '"]');
         if (searchEl) {
             searchEl.addEventListener('input', function () {
@@ -123,7 +119,7 @@
             });
         }
 
-        // Initial pagination
+        
         nativePaginate(table, instance.state.page, instance.state.perPage);
         buildPagination(instance);
         updatePagination(instance);
@@ -182,9 +178,9 @@
         instance.paginationWrap.appendChild(controls);
     }
 
-    // ============================================================
-    // Init DataTables (jQuery)
-    // ============================================================
+    
+    
+    
 
     function initDataTables(table) {
         const id = table.id || 'tbl_' + Math.random().toString(36).substr(2, 9);
@@ -197,7 +193,7 @@
             dom: 'rt<"sc-table-pagination"ip>',
             columnDefs: [{ orderable: false, targets: 'no-sort' }],
             initComplete: function () {
-                // Wrap table in scrollable container if not already
+                
                 const wrapper = table.closest('.sc-table-wrap') || table.parentElement;
                 if (!wrapper.classList.contains('sc-table-wrap')) {
                     wrapper.classList.add('sc-table-wrap');
@@ -209,9 +205,9 @@
         return instance;
     }
 
-    // ============================================================
-    // Public API
-    // ============================================================
+    
+    
+    
 
     scTables.init = function (tableId, options) {
         options = options || {};
@@ -231,7 +227,7 @@
         fetch(url, { credentials: 'same-origin', headers: headers })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                // Replace tbody content
+                
                 const tbody = inst.table.querySelector('tbody');
                 if (tbody && data.rows) {
                     tbody.innerHTML = data.rows;
@@ -287,9 +283,9 @@
         });
     };
 
-    // ============================================================
-    // Auto-init tables with data-table-init attribute
-    // ============================================================
+    
+    
+    
 
     function autoInit() {
         document.querySelectorAll('[data-table-init], table.sc-data-table').forEach(function (el) {

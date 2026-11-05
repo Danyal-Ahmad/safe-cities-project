@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG | System Settings  (dashboard/dig/settings_edit.html)
-   ========================================================================== */
 
-/* ---------- Section quick-nav ---------- */
 
 .set-nav {
   display: flex;
@@ -18,31 +14,27 @@
   gap: 7px;
   padding: 7px 14px;
   border-radius: 999px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   background: var(--sc-surface, #FFFFFF);
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
   font-size: 0.76rem;
   font-weight: 700;
   text-decoration: none;
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
-.set-nav-chip i { color: var(--sc-primary, #2563EB); }
+.set-nav-chip i { color: var(--sc-primary, #2E6BE6); }
 
 .set-nav-chip:hover {
   border-color: #B9C9E8;
-  background: var(--sc-bg-soft, #F1F4F9);
-  color: var(--sc-navy-deep, #0F2557);
+  background: var(--sc-bg-soft, #F7F9FC);
+  color: var(--sc-navy-deep, #14213D);
 }
-
-/* ---------- Required marker ---------- */
 
 .set-req {
-  color: var(--sc-danger, #E23B4E);
+  color: var(--sc-danger, #D9364C);
   font-weight: 800;
 }
-
-/* ---------- Fines reference ---------- */
 
 .set-fines-grid {
   display: grid;
@@ -66,7 +58,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   margin-bottom: 10px;
 }
 
@@ -81,8 +73,6 @@
   .set-fines-grid { grid-template-columns: 1fr; }
 }
 
-/* ---------- AI model strip ---------- */
-
 .set-model-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -91,9 +81,9 @@
 }
 
 .set-model-item {
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius-sm, 10px);
-  background: var(--sc-bg-soft, #F1F4F9);
+  background: var(--sc-bg-soft, #F7F9FC);
   padding: 12px 14px;
   display: grid;
   gap: 3px;
@@ -104,14 +94,12 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
 }
 
-.set-model-value { font-size: 0.8rem; font-weight: 700; color: var(--sc-navy-deep, #0F2557); word-break: break-all; }
+.set-model-value { font-size: 0.8rem; font-weight: 700; color: var(--sc-navy-deep, #14213D); word-break: break-all; }
 
-.set-model-meta { font-size: 0.72rem; color: var(--sc-text-faint, #8A94B0); }
-
-/* ---------- Secret (password) fields ---------- */
+.set-model-meta { font-size: 0.72rem; color: var(--sc-text-faint, #9AA3B8); }
 
 .set-secret-field { position: relative; }
 
@@ -127,7 +115,7 @@
   border: none;
   border-radius: 9px;
   background: transparent;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -135,9 +123,7 @@
   transition: color 0.15s ease, background 0.15s ease;
 }
 
-.set-secret-toggle:hover { color: var(--sc-primary, #2563EB); background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08)); }
-
-/* ---------- Toggle switches ---------- */
+.set-secret-toggle:hover { color: var(--sc-primary, #2E6BE6); background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08)); }
 
 .set-switch-label {
   display: flex !important;
@@ -151,9 +137,9 @@
 
 .set-switch-row {
   padding: 12px 14px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius-sm, 10px);
-  background: var(--sc-bg-soft, #F1F4F9);
+  background: var(--sc-bg-soft, #F7F9FC);
 }
 
 .set-switch { position: relative; display: inline-block; flex: 0 0 auto; margin-top: 2px; }
@@ -186,19 +172,18 @@
   height: 20px;
   border-radius: 50%;
   background: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(15, 37, 87, 0.25);
+  box-shadow: 0 1px 4px rgba(20, 33, 61, 0.25);
   transition: transform 0.18s ease;
 }
 
-.set-switch input:checked + .set-switch-slider { background: var(--sc-success, #22A45D); }
+.set-switch input:checked + .set-switch-slider { background: var(--sc-success, #1E9E5A); }
 .set-switch input:checked + .set-switch-slider::after { transform: translateX(20px); }
 .set-switch input:focus-visible + .set-switch-slider { box-shadow: 0 0 0 3px var(--sc-primary-subtle, rgba(37, 99, 235, 0.08)); }
 
-.set-switch-text strong { display: block; font-size: 0.85rem; color: var(--sc-navy-deep, #0F2557); }
+.set-switch-text strong { display: block; font-size: 0.85rem; color: var(--sc-navy-deep, #14213D); }
 
-/* Missing required field flash */
 .set-invalid {
-  border-color: var(--sc-danger, #E23B4E) !important;
+  border-color: var(--sc-danger, #D9364C) !important;
   box-shadow: 0 0 0 3px var(--sc-danger-bg, #FDF3F5) !important;
   animation: set-shake 0.3s ease;
 }
@@ -209,7 +194,6 @@
   75% { transform: translateX(4px); }
 }
 
-/* Save bar state once the user edits anything */
 .set-savebar-dirty {
   border-color: #B9C9E8;
   box-shadow: 0 10px 30px rgba(30, 78, 156, 0.18);
@@ -220,8 +204,6 @@
   color: #B87A10;
   font-weight: 700;
 }
-
-/* ---------- Sticky save bar ---------- */
 
 .set-savebar {
   position: sticky;
@@ -236,8 +218,8 @@
   padding: 14px 20px;
   border-radius: var(--sc-radius-lg, 20px);
   background: var(--sc-surface, #FFFFFF);
-  border: 1px solid var(--sc-border, #E4E8EF);
-  box-shadow: var(--sc-shadow-lg, 0 10px 30px rgba(15, 37, 87, 0.10));
+  border: 1px solid var(--sc-border, #E8ECF4);
+  box-shadow: var(--sc-shadow-lg, 0 10px 30px rgba(20, 33, 61, 0.10));
 }
 
 .set-savebar-meta {
@@ -245,10 +227,10 @@
   align-items: center;
   gap: 8px;
   font-size: 0.78rem;
-  color: var(--sc-text-muted, #5B6B85);
+  color: var(--sc-text-muted, #6B7891);
 }
 
-.set-savebar-meta i { color: var(--sc-text-faint, #8A94B0); }
+.set-savebar-meta i { color: var(--sc-text-faint, #9AA3B8); }
 
 .set-savebar-actions { display: flex; align-items: center; gap: 10px; }
 

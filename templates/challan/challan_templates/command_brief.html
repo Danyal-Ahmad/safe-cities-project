@@ -8,9 +8,9 @@
 <style>
   @page { size: A4 portrait; margin: 8mm 9mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #16294e; font-size: 10.5px; background: #fff; }
+  body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #14213D; font-size: 10.5px; background: #fff; }
 
-  /* Masthead: serif document line over the operational band */
+  
   .masthead { display: flex; align-items: stretch; border-bottom: 2.5px solid #0b1f3a; padding-bottom: 7px; }
   .brandblock { display: flex; align-items: center; gap: 9px; }
   .brandblock img { width: 50px; height: 50px; object-fit: contain; border: 1px solid #c7d2e3; padding: 2px; }
@@ -21,7 +21,7 @@
   .doc-ref { font-size: 10px; color: #5c7291; margin-top: 3px; }
   .doc-ref b { color: #0b1f3a; font-family: 'Courier New', monospace; font-size: 11px; }
 
-  /* Operational strip: status + analyzed violation code */
+  
   .opstrip { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
   .code-chip { background: #0b1f3a; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .14em; padding: 5px 12px; }
   .code-chip .light { color: #9db1cc; font-weight: 600; }
@@ -31,9 +31,9 @@
   .status-tag.overdue { color: #b91c1c; border-color: #b91c1c; background: #fef2f2; }
   .status-tag.voided { color: #475569; border-color: #94a3b8; background: #f8fafc; }
   .opstrip .dates { margin-left: auto; font-size: 9px; color: #5c7291; text-align: right; line-height: 1.5; }
-  .opstrip .dates b { color: #16294e; }
+  .opstrip .dates b { color: #14213D; }
 
-  /* Hero block: plate identity + fine in display numerals */
+  
   .hero { display: flex; align-items: center; margin-top: 9px; background: #f4f7fb; border-left: 4px solid #d97706; padding: 9px 12px; }
   .hero-plate .lbl, .hero-fine .lbl, .hero-due .lbl { font-size: 8px; letter-spacing: .18em; text-transform: uppercase; color: #5c7291; }
   .hero-plate .plate { font-family: 'Courier New', monospace; font-size: 25px; font-weight: 800; color: #0b1f3a; letter-spacing: .06em; }
@@ -42,9 +42,9 @@
   .hero-fine .fine { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; color: #b45309; line-height: 1.05; }
   .hero-fine .fine .cur { font-size: 13px; vertical-align: 4px; color: #8a6a3b; letter-spacing: .04em; }
   .hero-due { margin-left: 26px; text-align: right; }
-  .hero-due .due { font-size: 14px; font-weight: 800; color: #16294e; margin-top: 1px; }
+  .hero-due .due { font-size: 14px; font-weight: 800; color: #14213D; margin-top: 1px; }
 
-  /* Direction analysis panel: the violation, visualized */
+  
   .dirpanel { margin-top: 9px; border: 1px solid #c7d2e3; }
   .dirpanel .head { background: #0b1f3a; color: #fff; font-size: 8.5px; font-weight: 800; letter-spacing: .16em; padding: 4px 10px; display: flex; justify-content: space-between; }
   .dirpanel .head .soft { color: #9db1cc; font-weight: 600; }
@@ -64,7 +64,7 @@
   .lane .val.observed { color: #b91c1c; }
   .lane .note { font-size: 8px; color: #5c7291; margin-left: 10px; width: 150px; }
 
-  /* Data grid */
+  
   .grid { display: flex; gap: 14px; margin-top: 9px; }
   .col { flex: 1; }
   .col h3 { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #0b1f3a; border-bottom: 1.5px solid #0b1f3a; padding-bottom: 3px; margin-bottom: 4px; }
@@ -73,7 +73,7 @@
   .row .v { font-weight: 700; text-align: right; }
   .row .v.mono { font-family: 'Courier New', monospace; }
 
-  /* Evidence anchor: undistorted 4:3 photo at natural aspect + verification rail */
+  
   .anchor { margin-top: 10px; display: flex; gap: 10px; }
   .anchor-photo { width: 118mm; position: relative; border: 1px solid #0b1f3a; padding: 4px; }
   .corner { position: absolute; width: 9px; height: 9px; border-color: #d97706; border-style: solid; }
@@ -92,10 +92,10 @@
   .rail-row .rv.mono { font-family: 'Courier New', monospace; font-size: 9px; }
   .rail-row .rv.pass { color: #15803d; }
   .rail-row .rv.fail { color: #b91c1c; }
-  .rail-digest { margin-top: auto; font-family: 'Courier New', monospace; font-size: 9px; color: #16294e; letter-spacing: .02em; border-top: 1px solid #c7d2e3; padding-top: 5px; }
+  .rail-digest { margin-top: auto; font-family: 'Courier New', monospace; font-size: 9px; color: #14213D; letter-spacing: .02em; border-top: 1px solid #c7d2e3; padding-top: 5px; }
   .rail-digest .cap { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 7.5px; color: #5c7291; letter-spacing: .14em; text-transform: uppercase; }
 
-  /* Payment panel */
+  
   .paypanel { display: flex; align-items: center; margin-top: 9px; border: 1px solid #c7d2e3; background: #f8fafc; }
   .psid-block { padding: 8px 12px; border-right: 1px solid #c7d2e3; }
   .psid-block .lbl { font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: #5c7291; }
@@ -107,7 +107,7 @@
   .paypanel .qr .qrbox { width: 62px; height: 62px; }
   .paypanel .qr .qrlbl { font-size: 7.5px; color: #5c7291; margin-left: 6px; width: 64px; line-height: 1.5; letter-spacing: .04em; }
 
-  /* Signature zone */
+  
   .sigzone { display: flex; margin-top: 10px; gap: 14px; }
   .sig { flex: 1; border-top: 1px solid #0b1f3a; padding-top: 4px; display: flex; justify-content: space-between; align-items: flex-start; }
   .sig .who { font-size: 9.5px; font-weight: 800; color: #0b1f3a; }
@@ -115,7 +115,7 @@
   .stampbox { width: 64px; text-align: center; font-size: 7.5px; color: #5c7291; letter-spacing: .08em; border: 1.5px solid #0b1f3a; padding: 6px 4px 4px; }
   .stampbox b { display: block; font-size: 8.5px; color: #0b1f3a; letter-spacing: .12em; margin-bottom: 2px; }
 
-  .urdu-hint { text-align: right; font-size: 11px; color: #16294e; margin-top: 7px; }
+  .urdu-hint { text-align: right; font-size: 11px; color: #14213D; margin-top: 7px; }
   .footer { margin-top: 8px; border-top: 1px solid #c7d2e3; padding-top: 5px; display: flex; justify-content: space-between; font-size: 8.5px; color: #5c7291; }
 </style>
 </head>
@@ -190,10 +190,10 @@
     </div>
     <div class="col">
       <h3>Detection Record</h3>
-      <div class="row"><span class="k">Camera</span><span class="v">{{ challan.camera.camera_id|default:'AI Detection' }}</span></div>
+      <div class="row"><span class="k">Camera</span><span class="v">{{ challan.camera.camera_id|default:'Detection' }}</span></div>
       <div class="row"><span class="k">Location</span><span class="v">{{ challan.location|default:'-' }}</span></div>
       <div class="row"><span class="k">Offence</span><span class="v">{{ challan.get_violation_type_display }}</span></div>
-      <div class="row"><span class="k">AI Confidence</span><span class="v">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
+      <div class="row"><span class="k">Detection Confidence</span><span class="v">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
     </div>
     <div class="col">
       <h3>Evidence Chain</h3>

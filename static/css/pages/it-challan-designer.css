@@ -1,6 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT | Challan Template Designer (it-challan-designer)
-   ========================================================================== */
+
 
 .it-ds-pal {
   display: grid;
@@ -13,14 +11,14 @@
   gap: 10px;
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius, 14px);
   background: #FFFFFF;
   cursor: grab;
   text-align: left;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--sc-text, #33415C);
+  color: var(--sc-text, #3D4A63);
   transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
 }
 
@@ -41,22 +39,21 @@
   justify-content: center;
   border-radius: 10px;
   background: var(--sc-info-bg, #EEF3FC);
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   font-size: 0.95rem;
 }
 
 .it-ds-pal-add {
   margin-left: auto;
-  color: var(--sc-primary, #2563EB);
+  color: var(--sc-primary, #2E6BE6);
   font-size: 1rem;
 }
 
-/* Canvas */
 .it-ds-canvas {
   position: relative;
   min-height: 520px;
   padding: 18px;
-  border: 2px dashed var(--sc-border-strong, #D3DAE7);
+  border: 2px dashed var(--sc-border-strong, #D6DCE8);
   border-radius: var(--sc-radius, 14px);
   background: #F8FAFD;
   display: flex;
@@ -66,7 +63,7 @@
 }
 
 .it-ds-canvas.it-drag-over {
-  border-color: var(--sc-primary, #2563EB);
+  border-color: var(--sc-primary, #2E6BE6);
   background: rgba(37, 99, 235, 0.04);
 }
 
@@ -77,7 +74,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
   font-size: 0.85rem;
   padding: 40px 12px;
 }
@@ -89,8 +86,8 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid var(--sc-border, #E4E8EF);
-  border-left: 4px solid var(--sc-primary, #2563EB);
+  border: 1px solid var(--sc-border, #E8ECF4);
+  border-left: 4px solid var(--sc-primary, #2E6BE6);
   border-radius: 10px;
   background: #FFFFFF;
   box-shadow: var(--sc-shadow);
@@ -109,7 +106,7 @@
   justify-content: center;
   border-radius: 8px;
   background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
-  color: var(--sc-primary, #2563EB);
+  color: var(--sc-primary, #2E6BE6);
   font-size: 0.9rem;
 }
 
@@ -118,19 +115,19 @@
 .it-ds-placed-name {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
 }
 
 .it-ds-placed-pos {
   font-family: var(--sc-mono, monospace);
   font-size: 0.68rem;
-  color: var(--sc-text-faint, #8A94B0);
+  color: var(--sc-text-faint, #9AA3B8);
 }
 
 .it-ds-placed-x {
   border: 0;
   background: none;
-  color: var(--sc-danger, #E23B4E);
+  color: var(--sc-danger, #D9364C);
   font-size: 1.05rem;
   line-height: 1;
   padding: 6px;
@@ -140,7 +137,6 @@
 
 .it-ds-placed-x:hover { background: var(--sc-danger-bg, #FDF3F5); }
 
-/* Code output */
 .it-ds-code {
   font-size: 0.72rem;
   line-height: 1.45;

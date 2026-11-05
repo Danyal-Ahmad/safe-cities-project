@@ -362,12 +362,9 @@ def audit_export(request):
     return resp
 
 
-# ---------------------------------------------------------------------------
-# Audit report PDF export (single A4 page, template-driven)
-# ---------------------------------------------------------------------------
 
 PDF_EXPORT_MAX_REQUESTS = 10
-PDF_EXPORT_WINDOW = 60  # seconds
+PDF_EXPORT_WINDOW = 60
 
 
 def _check_pdf_export_rate(request) -> bool:
@@ -431,7 +428,6 @@ def templates_select(request):
                             get_active_template_key, get_audit_templates,
                             get_template_preview_html)
 
-    # GET ?sample=<template_key> -> inline sample PDF (middleware-safe preview)
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         from django.http import HttpResponse
@@ -483,9 +479,6 @@ def templates_select(request):
 
 
 
-# ---------------------------------------------------------------------------
-# Login/device tracking and upload audit (ported from the parallel branch)
-# ---------------------------------------------------------------------------
 @role_required(*AUDIT_ROLES)
 def login_events(request):
     """Every authentication attempt with account, IP and device fingerprint."""

@@ -18,7 +18,7 @@ from django.utils import timezone
 logger = logging.getLogger('wrongway.video_upload')
 
 MAX_FRAMES_PER_UPLOAD = 500
-SEQUENTIAL_EVIDENCE_FRAMES = 2  # extra consecutive frames captured per plate hit
+SEQUENTIAL_EVIDENCE_FRAMES = 2
 
 
 def _extract_frame_timestamps(duration_seconds, interval_seconds):
@@ -181,7 +181,6 @@ def process_video_upload(upload_id):
                         except Exception:
                             pass
 
-                    # --- 3-frame sequential evidence (90FPS-style burst) ---
                     evidence_meta = [{
                         'slot': 1,
                         'timestamp': round(ts, 3),
@@ -226,8 +225,6 @@ def process_video_upload(upload_id):
                                 'source': 'sequential',
                             })
                     detection.evidence_frames_meta = evidence_meta
-                    # Strict-evidence contract: expose the per-frame reads and
-                    # the car-only gate in the raw AI response the pipeline reads.
                     raw_resp = detection.ai_raw_response or {}
                     raw_resp['frame_evidence'] = [
                         {'plate': m.get('plate'), 'confidence': m.get('confidence'),

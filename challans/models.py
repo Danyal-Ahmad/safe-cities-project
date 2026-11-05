@@ -26,7 +26,7 @@ class ChallanManager(models.Manager):
             n = None
         if n is None:
             year = timezone.localdate().year
-            base = year * 100000  # e.g. 202600000
+            base = year * 100000
             n = base + self.count() + 1
         while self.filter(ticket_no=str(n)).exists():
             n += 1
@@ -48,14 +48,8 @@ class Challan(models.Model):
         (OTHER, 'Other'),
     ]
 
-    # Catalog of violation types. Multiple types exist; only the types listed
-    # in ENABLED_VIOLATIONS are live for enforcement. The violation type on a
-    # challan is always the conclusion of the detection analysis, never a
-    # default assigned at write time.
     ENABLED_VIOLATIONS = [WRONG_WAY]
 
-    # Limited targeted translation of the violation catalog for Urdu-primary
-    # documents. English remains the primary label via get_violation_type_display.
     VIOLATION_LABELS_URDU = {
         WRONG_WAY: 'غلط سمت میں گاڑی چلانا',
         NO_HELMET: 'ہیلمٹ کے بغیر دو پہیہ والی گاڑی چلانا',

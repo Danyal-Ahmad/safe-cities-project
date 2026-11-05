@@ -74,7 +74,7 @@
   <div class="sec-head">Section B: Violation</div>
   <table class="form">
     <tr><th>Offence</th><td>{{ challan.get_violation_type_display }}</td><th>Place</th><td>{{ challan.location|default:'-' }}</td></tr>
-    <tr><th>Camera ID</th><td>{{ challan.camera.camera_id|default:'AI Detection' }}</td><th>AI Confidence</th><td>{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
+    <tr><th>Camera ID</th><td>{{ challan.camera.camera_id|default:'Detection' }}</td><th>Detection Confidence</th><td>{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
     <tr><th>Legal Direction</th><td>{{ challan.legal_direction|default:'-'|title }}</td><th>Moving Direction</th><td>{{ challan.moving_direction|default:'-'|title }}</td></tr>
     <tr><th>Fine Amount</th><td><b>PKR {{ challan.fine_amount|floatformat:0 }}</b></td><th>Payable By</th><td><b>{{ challan.due_date|date:"d-m-Y" }}</b></td></tr>
   </table>

@@ -10,9 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     SSP DISTRICT COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -22,12 +20,12 @@
         <div class="scr-rail-kicker">Safe Cities Project · District Oversight</div>
         <div class="scr-rail-title">
           SSP District Command
-          <span class="scr-rail-tag"><i class="bi bi-geo-alt"></i> Regional Command</span>
+
         </div>
         <div class="scr-rail-sub">District-wide enforcement oversight, appeal adjudication, revenue and high-value challan approvals.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
+        <span class="scr-rail-clock"><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_analytics" %}
         <a href="{% url 'ssp_portal:analytics' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-graph-up-arrow"></i> Analytics</a>
         {% endif %}
@@ -37,7 +35,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_challans" %}
       <div class="scr-stat">
@@ -75,7 +72,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_analytics" %}

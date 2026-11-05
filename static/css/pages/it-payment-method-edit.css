@@ -1,12 +1,10 @@
-/* ==========================================================================
-   IT SUPPORT | Payment Method Edit (it-payment-method-edit)
-   ========================================================================== */
+
 
 .it-pm-form { max-width: 980px; }
 
 .it-pm-section {
   padding: 16px 0 4px 0;
-  border-top: 1px dashed var(--sc-border-strong, #D3DAE7);
+  border-top: 1px dashed var(--sc-border-strong, #D6DCE8);
 }
 
 .it-pm-form .sc-card-body > .it-pm-section:first-child { border-top: none; padding-top: 0; }
@@ -18,15 +16,15 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--sc-navy-deep, #0F2557);
+  color: var(--sc-navy-deep, #14213D);
   margin-bottom: 14px;
 }
 
-.it-pm-section-t i { color: var(--sc-primary, #2563EB); font-size: 0.95rem; }
+.it-pm-section-t i { color: var(--sc-primary, #2E6BE6); font-size: 0.95rem; }
 
 .it-pm-group {
   padding: 14px;
-  border: 1px solid var(--sc-border, #E4E8EF);
+  border: 1px solid var(--sc-border, #E8ECF4);
   border-radius: var(--sc-radius, 14px);
   background: #FBFCFE;
   margin-bottom: 12px;
@@ -39,13 +37,13 @@
   align-items: center;
   font-size: 0.8rem;
   font-weight: 800;
-  color: var(--sc-info, #2E5FB7);
+  color: var(--sc-info, #3B66C6);
   margin-bottom: 12px;
 }
 
 .it-pm-submit {
   padding-top: 16px;
-  border-top: 1px dashed var(--sc-border-strong, #D3DAE7);
+  border-top: 1px dashed var(--sc-border-strong, #D6DCE8);
   margin-top: 8px;
 }
 

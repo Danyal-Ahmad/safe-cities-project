@@ -582,10 +582,6 @@ def run_server(realtime: bool = False) -> None:
     step('Collect static (idempotent)')
     manage(py, 'collectstatic', '--noinput')
 
-    # Realtime mode (--realtime flag or REALTIME=1 env): serve the ASGI app
-    # (Django + Socket.IO at /ws/socket.io) with uvicorn. SINGLE WORKER is
-    # REQUIRED: the pipeline emits Socket.IO events in-process, so the
-    # server and the emits must share one process (see docs/REALTIME.md).
     if realtime or _env_flag('REALTIME'):
         if uvicorn_available(py):
             port = os.environ.get('PORT', '').strip() or '8000'

@@ -25,7 +25,6 @@
       </p>
       <p class="pr-wait">Please do not close or refresh this page.</p>
 
-      <!-- Gateway auto-submit form: id, method, action and hidden fields must stay intact -->
       <form id="gw" method="{{ init.method|default:'POST' }}" action="{{ init.action }}">
         {% for k, v in init.fields.items %}
         <input type="hidden" name="{{ k }}" value="{{ v }}">

@@ -13,18 +13,18 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wrongway_system.settings')
 
-import django  # noqa: E402
+import django
 
 django.setup()
 
-from django.test import Client, override_settings  # noqa: E402
-from django.contrib.auth import get_user_model  # noqa: E402
-from django.core.cache import cache  # noqa: E402
+from django.test import Client, override_settings
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
-from accounts.models import User  # noqa: E402
-from cameras.models import Camera  # noqa: E402
-from challans.models import Challan  # noqa: E402
-from detections.models import Detection  # noqa: E402
+from accounts.models import User
+from cameras.models import Camera
+from challans.models import Challan
+from detections.models import Detection
 
 PASS = 0
 FAIL = 0
@@ -64,7 +64,6 @@ def main():
 
     User = get_user_model()
 
-    # ---------- Public REST/page surface ----------
     anon = Client()
     r = anon.get('/')
     check('public home 200', r.status_code == 200, str(r.status_code))
@@ -83,12 +82,10 @@ def main():
     r = anon.post('/api/v1/payment/webhook/', data='{}', content_type='application/json')
     check('payment webhook accepts (HMAC layer)', r.status_code in (200, 400, 403), str(r.status_code))
 
-    # Rate limit: public search
     cache.clear()
     codes = [anon.get('/', {'plate': f'LEA-{i}'}).status_code for i in range(25)]
     check('public search rate limit 429', 429 in codes, str(sorted(set(codes))))
 
-    # ---------- Camera enroll + ingest + heartbeat (API key flow) ----------
     staff = client_for('itsupport@safecity.fyp')
     check('IT login works', staff is not None)
     if staff:
@@ -124,7 +121,6 @@ def main():
         except Exception:
             pass
         check('api key returned', bool(api_key))
-        # Second enrollment with the same token must be rejected (single-use).
         r2 = api.post('/api/v1/enroll/', {'enrollment_token': str(cam.enrollment_token)})
         check('enroll token single-use', r2.status_code in (400, 403), str(r2.status_code))
 
@@ -138,7 +134,6 @@ def main():
                 data={'moving_direction': 'north'},
                 HTTP_AUTHORIZATION=f'Bearer {api_key}',
             )
-            # Note: real ingest needs the image file; without it we still prove auth works
             check('ingest with bearer auth reaches handler', r.status_code in (200, 201, 400), str(r.status_code))
             r = api.post(
                 '/api/v1/heartbeat/',
@@ -147,7 +142,6 @@ def main():
             )
             check('heartbeat with bearer auth', r.status_code in (200, 204, 400), str(r.status_code))
 
-        # Ingest rate limit (300/min per IP)
         codes = []
         for i in range(305):
             rr = api.post('/api/v1/ingest/', {}, HTTP_AUTHORIZATION=f'Bearer {api_key or "x"}')
@@ -156,7 +150,6 @@ def main():
                 break
         check('ingest rate limit 429', 429 in codes, f'{len(codes)} calls')
 
-    # ---------- Portal page renders per role ----------
     role_pages = {
         'DIG': ['/portal/dig/', '/portal/dig/dashboard/', '/portal/dig/live-monitor/',
                 '/portal/dig/cameras/', '/portal/dig/cameras/list/', '/portal/dig/challans/',
@@ -192,7 +185,6 @@ def main():
             ok = r.status_code == 200
             check(f'{role} {page}', ok, str(r.status_code))
 
-    # ---------- Portal isolation ----------
     officer = client_for('officer@safecity.fyp')
     if officer:
         r = officer.get('/portal/dig/')
@@ -204,7 +196,6 @@ def main():
         r = cit.get('/portal/officer/')
         check('citizen blocked from officer portal', r.status_code in (302, 403), str(r.status_code))
 
-    # ---------- Audit PDF export ----------
     audit_client = client_for('audit@safecity.fyp')
     if audit_client:
         for kind in ['operational', 'financial', 'compliance', 'auth_events']:
@@ -212,7 +203,6 @@ def main():
             ok = r.status_code == 200 and b'%PDF' in r.content[:10]
             check(f'audit PDF export {kind}', ok, f'{r.status_code} len={len(r.content)}')
 
-    # ---------- Cleanup ----------
     Camera.objects.filter(camera_id='APITEST-01').delete()
 
     print()

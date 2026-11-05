@@ -10,10 +10,10 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Georgia, 'Times New Roman', serif; color: #15202e; font-size: 10.5px; background: #fff; }
 
-  /* Cheque-grade page frame: outer rule + inner hairline */
+  
   .instrument { border: 1.6px solid #15202e; outline: 0.5px solid #97a6bb; outline-offset: 2.5px; padding: 10px 12px 8px; }
 
-  /* Masthead: engraved serif + logo group on one side, text on the other */
+  
   .mast { display: flex; align-items: center; justify-content: space-between; padding-bottom: 7px; border-bottom: 2.5px double #15202e; }
   .logogroup { display: flex; align-items: center; gap: 8px; }
   .logogroup img { width: 47px; height: 47px; object-fit: contain; border: 1px solid #15202e; padding: 2px; }
@@ -24,13 +24,13 @@
   .mast-titles .refline { font-size: 9.5px; color: #6b7a90; margin-top: 3px; font-family: Arial, sans-serif; }
   .mast-titles .refline b { color: #15202e; font-family: 'Courier New', monospace; }
 
-  /* Guilloche security band (microrule print) */
+  
   .guilloche { height: 5mm; margin: 7px 0 8px; border-top: 0.5px solid #97a6bb; border-bottom: 0.5px solid #97a6bb;
     background:
       repeating-linear-gradient(45deg, #c9d4e3 0, #c9d4e3 0.4mm, transparent 0.4mm, transparent 1.6mm),
       repeating-linear-gradient(-45deg, #e2e9f3 0, #e2e9f3 0.3mm, transparent 0.3mm, transparent 1.2mm); }
 
-  /* Offence band: analysed type + status, instrument style */
+  
   .offence-band { display: flex; align-items: center; justify-content: space-between; border: 1px solid #15202e; margin-bottom: 8px; }
   .offence-band .offence { padding: 6px 10px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; color: #9f1239; }
   .offence-band .offence .soft { color: #6b7a90; font-weight: 400; font-size: 9px; letter-spacing: .18em; font-family: Arial, sans-serif; }
@@ -42,7 +42,7 @@
   .offence-band .state.overdue { color: #b91c1c; }
   .offence-band .state.voided { color: #475569; }
 
-  /* Instrument register: cheque register rows, small-cap labels right aligned */
+  
   .register { display: flex; gap: 16px; }
   .regcol { flex: 1; }
   .regcol h3 { font-size: 9px; letter-spacing: .20em; text-transform: uppercase; color: #15202e; border-bottom: 1px solid #15202e; padding-bottom: 3px; margin-bottom: 5px; }
@@ -52,7 +52,7 @@
   .regrow .rv.mono { font-family: 'Courier New', monospace; }
   .regrow .rv.crimson { color: #9f1239; }
 
-  /* Evidence plate: photo at natural aspect + integrated tamper-evident seal */
+  
   .evidence { margin-top: 9px; display: flex; gap: 10px; }
   .ev-photo { width: 116mm; border: 2.2px solid #15202e; outline: 0.5px solid #97a6bb; outline-offset: 2px; padding: 5px; }
   .ev-photo img { width: 100%; display: block; }
@@ -65,7 +65,7 @@
   .ev-seal .checks b { color: #15803d; }
   .ev-seal .digest-foot { margin-top: auto; border-top: 0.5px solid #c9d4e3; padding-top: 4px; font-size: 8px; color: #6b7a90; font-family: Arial, sans-serif; letter-spacing: .10em; text-transform: uppercase; }
 
-  /* Signature row */
+  
   .sigrow2 { margin-top: 9px; }
   .sig { border-top: 1px solid #15202e; padding-top: 4px; display: flex; justify-content: space-between; align-items: flex-start; font-size: 9.5px; }
   .sig .who { font-weight: 700; }
@@ -73,7 +73,7 @@
   .sig .auth { text-align: right; color: #6b7a90; font-size: 8.5px; }
   .sig .auth b { color: #15202e; }
 
-  /* Tear-off payment counterfoil, Pakistani utility-bill pattern */
+  
   .perfo { margin-top: 10px; border-top: 1.6px dashed #6b7a90; position: relative; }
   .perfo::before { content: ''; position: absolute; top: -4.2mm; left: -4mm; width: 2.6mm; height: 2.6mm; border: 1px solid #6b7a90; border-radius: 50%; background: #fff; }
   .perfo::after { content: ''; position: absolute; top: -4.2mm; right: -4mm; width: 2.6mm; height: 2.6mm; border: 1px solid #6b7a90; border-radius: 50%; background: #fff; }
@@ -139,7 +139,7 @@
     <div class="regcol">
       <h3>Detection</h3>
       <div class="regrow"><span class="rk">Offence</span><span class="rv crimson">{{ challan.get_violation_type_display }}</span></div>
-      <div class="regrow"><span class="rk">Camera</span><span class="rv">{{ challan.camera.camera_id|default:'AI Detection' }}</span></div>
+      <div class="regrow"><span class="rk">Camera</span><span class="rv">{{ challan.camera.camera_id|default:'Detection' }}</span></div>
       <div class="regrow"><span class="rk">Confidence</span><span class="rv">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
       <div class="regrow"><span class="rk">Legal direction</span><span class="rv">{{ challan.legal_direction|default:'-'|title }}</span></div>
       <div class="regrow"><span class="rk">Observed direction</span><span class="rv crimson">{{ challan.moving_direction|default:'-'|title }}</span></div>

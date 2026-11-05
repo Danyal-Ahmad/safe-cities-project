@@ -1,23 +1,12 @@
-/**
- * SafeCities Project - Master App JS
- * Core application functionality:
- * - CSRF token handling for fetch
- * - Live topbar clock
- * - User dropdown menu
- * - Sidebar toggle with localStorage persistence
- * - SweetAlert2 wrappers (alert, confirm, toast)
- * - Django flash messages display
- * - Table sort/search
- * - Bootstrap tooltips init
- */
+
 (function () {
     'use strict';
 
     window.scApp = window.scApp || {};
 
-    // ============================================================
-    // CSRF / Fetch helpers
-    // ============================================================
+    
+    
+    
 
     function getCookie(name) {
         if (!document.cookie) return null;
@@ -57,9 +46,9 @@
         return scFetch(url, { method: 'POST', body: data });
     }
 
-    // ============================================================
-    // Live Clock
-    // ============================================================
+    
+    
+    
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -83,9 +72,9 @@
         setInterval(tick, 1000);
     }
 
-    // ============================================================
-    // User Menu
-    // ============================================================
+    
+    
+    
 
     function closeUserMenu() {
         const dd = document.querySelector('.sc-user-dropdown');
@@ -109,9 +98,9 @@
         });
     }
 
-    // ============================================================
-    // SweetAlert2 wrappers
-    // ============================================================
+    
+    
+    
 
     function hasSwal() { return typeof window.Swal !== 'undefined'; }
 
@@ -155,7 +144,7 @@
         }
         const Toast = Swal.mixin({
             toast: true,
-            position: 'top-end',
+            position: 'bottom-end',
             showConfirmButton: false,
             timer: 3500,
             timerProgressBar: true,
@@ -185,9 +174,9 @@
         }
     }
 
-    // ============================================================
-    // Simple table sort + search
-    // ============================================================
+    
+    
+    
 
     function scInitTables() {
         document.querySelectorAll('.sc-data-table').forEach(function (table) {
@@ -225,20 +214,20 @@
         });
     }
 
-    // ============================================================
-    // Tooltips
-    // ============================================================
+    
+    
+    
 
     function scInitTooltips() {
         if (typeof window.bootstrap === 'undefined' || !window.bootstrap.Tooltip) return;
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-            try { new bootstrap.Tooltip(el); } catch (e) { /* noop */ }
+            try { new bootstrap.Tooltip(el); } catch (e) {  }
         });
     }
 
-    // ============================================================
-    // Auto-dismiss messages
-    // ============================================================
+    
+    
+    
 
     function initMsgDismiss() {
         document.querySelectorAll('.sc-msg .sc-msg-close, .sc-banner-dismiss').forEach(function (btn) {
@@ -249,9 +238,9 @@
         });
     }
 
-    // ============================================================
-    // Confirm-on-click for any element with data-confirm attr
-    // ============================================================
+    
+    
+    
 
     function initConfirmLinks() {
         document.querySelectorAll('[data-confirm]').forEach(function (el) {
@@ -268,16 +257,16 @@
                     } else if (el.tagName === 'BUTTON' && (el.type || '').toLowerCase() === 'submit') {
                         el.closest('form')?.submit();
                     } else if (typeof el.click === 'function') {
-                        // re-trigger
+                        
                     }
                 });
             });
         });
     }
 
-    // ============================================================
-    // DOMContentLoaded init
-    // ============================================================
+    
+    
+    
 
     function init() {
         startClock();
@@ -295,9 +284,9 @@
         init();
     }
 
-    // ============================================================
-    // Public API
-    // ============================================================
+    
+    
+    
 
     window.scApp = {
         getCookie: getCookie,

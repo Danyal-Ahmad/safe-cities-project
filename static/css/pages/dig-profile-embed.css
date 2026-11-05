@@ -1,14 +1,14 @@
-body { font-family: 'Inter', system-ui, sans-serif; background: #E8EEF7; margin: 0; padding: 16px; color: #33415C; font-size: 14px; }
-.sec-card { background: #FFFFFF; border: 1px solid #E4E8EF; border-radius: 14px; box-shadow: 0 4px 16px rgba(15,37,87,0.06); padding: 18px; margin-bottom: 14px; }
-.sec-title { font-size: 1rem; font-weight: 700; color: #0F2557; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid #E4E8EF; display: flex; align-items: center; gap: 8px; }
-.sec-title i { color: #2563EB; }
-.sec-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #E4E8EF; font-size: 0.85rem; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #F7F9FC; margin: 0; padding: 16px; color: #3D4A63; font-size: 14px; }
+.sec-card { background: #FFFFFF; border: 1px solid #E8ECF4; border-radius: 14px; box-shadow: 0 4px 16px rgba(20,33,61,0.06); padding: 18px; margin-bottom: 14px; }
+.sec-title { font-size: 1rem; font-weight: 700; color: #14213D; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid #E8ECF4; display: flex; align-items: center; gap: 8px; }
+.sec-title i { color: #2E6BE6; }
+.sec-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #E8ECF4; font-size: 0.85rem; }
 .sec-row:last-child { border-bottom: none; }
-.sec-k { color: #5B6B85; }
-.sec-v { font-weight: 700; color: #0F2557; }
-.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22A45D; margin-right: 6px; }
-.status-dot.locked { background: #E23B4E; }
-.sec-card form input.form-control { border-radius: 10px; border-color: #D3DAE7; margin-bottom: 9px; }
-.sec-card form input.form-control:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
-.btn-primary { background: #16294E !important; border-color: #16294E !important; border-radius: 999px; font-weight: 600; }
+.sec-k { color: #6B7891; }
+.sec-v { font-weight: 700; color: #14213D; }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #1E9E5A; margin-right: 6px; }
+.status-dot.locked { background: #D9364C; }
+.sec-card form input.form-control { border-radius: 10px; border-color: #D6DCE8; margin-bottom: 9px; }
+.sec-card form input.form-control:focus { border-color: #2E6BE6; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.btn-primary { background: #14213D !important; border-color: #14213D !important; border-radius: 999px; font-weight: 600; }
 .btn-primary:hover { background: #1E3763 !important; border-color: #1E3763 !important; }

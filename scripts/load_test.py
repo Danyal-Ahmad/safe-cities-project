@@ -105,15 +105,12 @@ async def run(url, users, duration):
     conn = aiohttp.TCPConnector(limit=users + 50)
 
     async with aiohttp.ClientSession(timeout=timeout, connector=conn) as session:
-        # sanity check
         async with session.get(f'{base}/') as r:
             if r.status != 200:
                 print(f'Server not reachable ({r.status}) at {base}')
                 return 1
 
         workers = []
-        # Traffic mix (Pakistan scale simulation):
-        #   62% citizen search, 18% login page, 20% stats polling
         n_search = int(users * 0.62)
         n_login = int(users * 0.18)
         n_stats = users - n_search - n_login

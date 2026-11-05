@@ -32,11 +32,7 @@ from django.utils import timezone
 
 logger = logging.getLogger('wrongway.realtime')
 
-# ---------------------------------------------------------------------------
-# Rooms and role routing
-# ---------------------------------------------------------------------------
 
-#: Every staff portal room (DIG, SSP, SUPERVISOR, OFFICER, AUDIT, IT).
 STAFF_ROOMS = (
     'portal:dig',
     'portal:ssp',
@@ -46,10 +42,8 @@ STAFF_ROOMS = (
     'portal:it',
 )
 
-#: Rooms used for challan lifecycle pushes (staff + citizen portal).
 CHALLAN_ROOMS = STAFF_ROOMS + ('portal:citizen',)
 
-#: Map of Django role keys (see accounts.User.ROLE_CHOICES) to rooms.
 ROLE_ROOMS = {
     'DIG': 'portal:dig',
     'SSP': 'portal:ssp',
@@ -63,12 +57,10 @@ ROLE_ROOMS = {
     'USER': 'portal:citizen',
 }
 
-#: Roles that additionally join the aggregate 'staff' room.
 STAFF_ROLE_KEYS = frozenset({
     'DIG', 'SSP', 'SUPERVISOR', 'SUPV', 'OFFICER', 'AUDIT', 'IT', 'IT_SUPPORT',
 })
 
-#: Audience names accepted by emit_portal_notification() -> rooms.
 AUDIENCE_ROOMS = {
     'all': ('everyone',),
     'everyone': ('everyone',),
@@ -97,8 +89,6 @@ def _cors_allowed_origins():
     return None
 
 
-#: The Socket.IO server. AsyncServer is the ASGI-mode variant of the
-#: python-socketio Server (the sync Server class has no 'asgi' async mode).
 sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins=_cors_allowed_origins(),
@@ -106,9 +96,6 @@ sio = socketio.AsyncServer(
     engineio_logger=False,
 )
 
-# ---------------------------------------------------------------------------
-# Event-loop bridge: sync pipeline code -> async Socket.IO server
-# ---------------------------------------------------------------------------
 
 _event_loop = None
 _loop_lock = threading.Lock()
@@ -173,10 +160,8 @@ def _schedule_emit(event, payload, rooms):
         except RuntimeError:
             running = None
         if running is loop:
-            # Called from inside the event loop thread (async context).
             asyncio.ensure_future(coro)
         else:
-            # Called from a worker thread (sync Django view / pipeline).
             asyncio.run_coroutine_threadsafe(coro, loop)
         return True
     except Exception:
@@ -184,9 +169,6 @@ def _schedule_emit(event, payload, rooms):
         return False
 
 
-# ---------------------------------------------------------------------------
-# Connection handling
-# ---------------------------------------------------------------------------
 
 
 @sio.event
@@ -197,7 +179,7 @@ async def connect(sid, environ, auth=None):
     as a routing hint only; pushed payloads stay non-sensitive (see the
     module docstring). Unknown or missing roles join 'everyone' only.
     """
-    _capture_event_loop()  # fallback loop capture if lifespan never fired
+    _capture_event_loop()
 
     role = ''
     if isinstance(auth, dict):
@@ -227,9 +209,6 @@ async def disconnect(sid):
     logger.info('socket %s disconnected', sid)
 
 
-# ---------------------------------------------------------------------------
-# Payload builders (non-sensitive fields only)
-# ---------------------------------------------------------------------------
 
 
 def _detection_payload(detection, action):
@@ -298,9 +277,6 @@ def _audiences_to_rooms(audiences):
     return tuple(rooms) or ('staff',)
 
 
-# ---------------------------------------------------------------------------
-# Public emit API (safe to call from anywhere; never raises)
-# ---------------------------------------------------------------------------
 
 
 def emit_detection_event(detection, action):

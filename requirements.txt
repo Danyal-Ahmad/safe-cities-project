@@ -1,5 +1,5 @@
 # =============================================================================
-# SAFE CITY FYP — complete dependency list
+# SAFE CITY FYP - complete dependency list
 # Database: PostgreSQL ONLY (no SQLite)
 # AI: ONNX plate detector + side classifier + OCR (EasyOCR / optional Paddle / Tesseract)
 # Python: 3.10 – 3.12 recommended on Windows. 3.13/3.14: use EasyOCR or Tesseract only.
@@ -17,6 +17,9 @@ psycopg2-binary>=2.9,<3
 
 # ----- Production server / static -----
 gunicorn>=21.2,<24
+# WhiteNoise: actually wired since the 2026 hardening pass - see
+# wrongway_system/settings.py (MIDDLEWARE + STORAGE + WHITENOISE_* settings).
+# Serves /static/ with immutable cache headers for fingerprinted assets.
 whitenoise>=6.6,<7
 
 # ----- Security / hashing -----
@@ -29,7 +32,7 @@ numpy>=1.24
 Pillow>=10.0
 opencv-python-headless>=4.8
 
-# ----- OCR (plate text) — core path that works on most Windows Pythons -----
+# ----- OCR (plate text) - core path that works on most Windows Pythons -----
 # EasyOCR (primary when Paddle is unavailable)
 easyocr>=1.7.0
 # Optional OS Tesseract binding (install Tesseract binary separately on Windows)
@@ -68,3 +71,13 @@ tzdata>=2024.1
 reportlab>=4.0
 xhtml2pdf>=0.2.16
 
+
+# --- Realtime push (Socket.IO server + ASGI serving) ---
+python-socketio>=5.11,<6
+uvicorn>=0.29
+
+# --- PDF verification (single-page A4 enforcement) ---
+pypdf>=4.2
+
+# --- System telemetry (health dashboards) ---
+psutil>=5.9

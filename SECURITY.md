@@ -7,7 +7,7 @@ guarantees each layer provides.
 
 - A challan can **only** be created by `detections.pipeline.process_detection`
   after all five evidence checks pass. No view, officer, or admin can issue a
-  challan by hand — the manual-challan and annotation surfaces were removed.
+  challan by hand - the manual-challan and annotation surfaces were removed.
 - Every issued challan carries a tamper-evident SHA-256 chain digest over the
   camera, plate, both evidence images and the check results. Altering any
   input changes the digest stored on the detection record.
@@ -43,7 +43,7 @@ guarantees each layer provides.
 - Challan detail pages **mask PII in memory** for guests: owner name is
   shortened, CNIC/phone are dotted out, addresses/chassis are truncated. The
   database rows are never modified by masking.
-- Guest appeals require the 13-digit CNIC linked to the challan — which is no
+- Guest appeals require the 13-digit CNIC linked to the challan - which is no
   longer displayed, so an attacker must already know it.
 - Challan PDFs require either an authenticated owner/staff session or a
   **signed (HMAC) token**. Ticket numbers and numeric IDs are not accepted
@@ -54,7 +54,7 @@ guarantees each layer provides.
 ## Payments
 
 - Settlement happens in exactly two places: the HMAC-verified gateway webhook,
-  or the demo checkout when the visitor explicitly confirms — and the demo
+  or the demo checkout when the visitor explicitly confirms - and the demo
   checkout only settles a **pending PaymentTransaction** whose reference was
   issued by `initiate_payment`. Forged references are rejected, references
   are single-use, and every settlement is audit-logged.
@@ -91,7 +91,7 @@ SAMEORIGIN, Referrer-Policy and Permissions-Policy headers. A strong
   classes, length caps) and auto-escaped by the template engine.
 - File uploads: size caps per route (5 MB default, 50 MB media, 200 MB
   videos), content-type checks on camera ingest, upload paths constrained
-  to their directories (path traversal guarded — covered by tests).
+  to their directories (path traversal guarded - covered by tests).
 - `RequestSizeLimitMiddleware` rejects oversized bodies before parsing.
 
 ## Known deployment requirements
@@ -100,5 +100,5 @@ SAMEORIGIN, Referrer-Policy and Permissions-Policy headers. A strong
   X-Forwarded-For; the in-sandbox rate limiter uses the socket peer address.
 - `locmem` rate limiting is per-process; switch
   `RATELIMIT_USE_CACHE`/`CACHES` to Redis for multi-worker deployments.
-- Backups (IT portal) serialize model data including password hashes —
+- Backups (IT portal) serialize model data including password hashes -
   restrict backup downloads to trusted IT staff and store them encrypted.

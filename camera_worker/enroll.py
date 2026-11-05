@@ -37,7 +37,7 @@ def main():
         print("ERROR: Invalid or already-used enrollment token.", file=sys.stderr)
         sys.exit(1)
     elif resp.status_code == 400:
-        print(f"ERROR: Bad request — {resp.text}", file=sys.stderr)
+        print(f"ERROR: Bad request - {resp.text}", file=sys.stderr)
         sys.exit(1)
     else:
         print(f"ERROR: Server returned {resp.status_code}: {resp.text}", file=sys.stderr)

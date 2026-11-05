@@ -97,7 +97,7 @@ def lookup_by_plate(plate_number: str) -> Dict[str, Any]:
                     out['source'] = 'excise_api'
                     vtype = (out.get('vehicle_type') or '').lower()
                     if vtype and vtype not in ('car', 'automobile', 'sedan', 'suv', 'hatchback', ''):
-                        logger.info('Excise returned non-car type=%s plate=%s — ignored (car-only scope)', vtype, plate)
+                        logger.info('Excise returned non-car type=%s plate=%s - ignored (car-only scope)', vtype, plate)
                         return {}
                     return out
             logger.warning('Excise API HTTP %s plate=%s', getattr(r, 'status_code', '?'), plate)

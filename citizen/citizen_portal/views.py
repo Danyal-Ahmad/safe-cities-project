@@ -194,7 +194,7 @@ def submit_appeal(request, challan_id):
                     f"Officer Role: {off.role_label}\n"
                 )
             else:
-                officer_info = "Issuing Officer: — (auto-generated challan)\n"
+                officer_info = "Issuing Officer: - (auto-generated challan)\n"
 
             detail_msg = (
                 f"NEW APPEAL SUBMITTED\n"
@@ -206,9 +206,9 @@ def submit_appeal(request, challan_id):
                 f"Fine Amount: PKR {challan.fine_amount}\n"
                 f"Issue Date: {challan.issue_date}\n"
                 f"Due Date: {challan.due_date}\n"
-                f"Location: {challan.location or '—'}\n"
-                f"Owner: {challan.owner_name or '—'}\n"
-                f"CNIC: {challan.cnic or '—'}\n"
+                f"Location: {challan.location or '-'}\n"
+                f"Owner: {challan.owner_name or '-'}\n"
+                f"CNIC: {challan.cnic or '-'}\n"
                 f"Payment Status: {challan.payment_status}\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
                 f"{officer_info}"
@@ -223,7 +223,7 @@ def submit_appeal(request, challan_id):
             for ssp in User.objects.filter(role=User.SSP, is_active=True):
                 Notification.objects.create(
                     recipient=ssp,
-                    title=f"[ACTION REQUIRED] New Appeal — {challan.ticket_no}",
+                    title=f"[ACTION REQUIRED] New Appeal | {challan.ticket_no}",
                     message=detail_msg,
                     category='appeal_submit',
                     target_url=reverse('ssp_portal:decide_appeal', args=[appeal.id]),
@@ -232,7 +232,7 @@ def submit_appeal(request, challan_id):
             for dig in User.objects.filter(role=User.DIG, is_active=True):
                 Notification.objects.create(
                     recipient=dig,
-                    title=f"[Info] Appeal submitted — {challan.ticket_no}",
+                    title=f"[Info] Appeal submitted | {challan.ticket_no}",
                     message=detail_msg + "\n\n(Directly routed to SSP for decision)",
                     category='appeal_pending',
                     target_url=reverse('ssp_portal:dashboard'),
@@ -303,7 +303,7 @@ def profile_edit(request):
             user.save()
             AuditLog.write(request, 'user.profile_edit', 'User', user.id, cnic_changed=(old_cnic != user.cnic))
             if old_cnic != user.cnic:
-                messages.success(request, "Profile updated. CNIC set — your dashboard will now auto-match challans.")
+                messages.success(request, "Profile updated. CNIC set - your dashboard will now auto-match challans.")
             else:
                 messages.success(request, "Profile updated.")
             return redirect('citizen_portal:profile_edit')
@@ -422,7 +422,7 @@ def pay_challan(request, challan_id):
         for staff in User.objects.filter(role__in=['DIG', 'SSP', 'SUPV'], is_active=True):
             Notification.objects.create(
                 recipient=staff,
-                title=f"Payment Verification Required — {challan.ticket_no}",
+                title=f"Payment Verification Required | {challan.ticket_no}",
                 message=f"Citizen {request.user.display_name} submitted payment of PKR {challan.fine_amount} via {payment_method.name}. Transaction Ref: {txn_ref}. Please verify and confirm.",
                 category='payment_verification',
                 target_url=_safe_verify_url(challan.id),
@@ -446,7 +446,7 @@ def pay_challan(request, challan_id):
 
 def _citizen_challans_qs(user):
     """All challans matching this citizen (CNIC / phone / registered plates),
-    strict ownership filtered — same rules as the dashboard home view."""
+    strict ownership filtered - same rules as the dashboard home view."""
     q = Q()
     if user.cnic:
         q |= Q(cnic=user.cnic)

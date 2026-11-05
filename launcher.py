@@ -536,7 +536,21 @@ def setup() -> None:
     print('  Next: python launcher.py run    (or .\\run.bat on Windows)')
 
 
-def run_server() -> None:
+def _env_flag(name: str) -> bool:
+    return os.environ.get(name, '').strip().lower() in ('1', 'true', 'yes', 'on', 'y', 't')
+
+
+def uvicorn_available(py: Path) -> bool:
+    """True when the ASGI server (uvicorn) is importable in the venv."""
+    try:
+        r = subprocess.run([str(py), '-c', 'import uvicorn'],
+                           capture_output=True, cwd=str(ROOT))
+    except OSError:
+        return False
+    return r.returncode == 0
+
+
+def run_server(realtime: bool = False) -> None:
     banner('SAFE CITY FYP -- Run server')
     check_python_version()
 
@@ -567,6 +581,29 @@ def run_server() -> None:
 
     step('Collect static (idempotent)')
     manage(py, 'collectstatic', '--noinput')
+
+    # Realtime mode (--realtime flag or REALTIME=1 env): serve the ASGI app
+    # (Django + Socket.IO at /ws/socket.io) with uvicorn. SINGLE WORKER is
+    # REQUIRED: the pipeline emits Socket.IO events in-process, so the
+    # server and the emits must share one process (see docs/REALTIME.md).
+    if realtime or _env_flag('REALTIME'):
+        if uvicorn_available(py):
+            port = os.environ.get('PORT', '').strip() or '8000'
+            banner(f'Realtime server (uvicorn ASGI, 1 worker) -- http://127.0.0.1:{port}/')
+            print('  Socket.IO endpoint : /ws/socket.io')
+            print('  Single worker is REQUIRED for in-process Socket.IO emits.')
+            print('  Press CTRL+C to stop.\n')
+
+            safe_run(
+                [str(py), '-m', 'uvicorn', 'wrongway_system.asgi:application',
+                 '--host', '0.0.0.0', '--port', str(port),
+                 '--workers', '1', '--log-level', 'info'],
+                label='uvicorn realtime server',
+            )
+            return
+        warn('uvicorn not installed -- falling back to the Django dev server.')
+        print('        Enable realtime later with: '
+              'pip install uvicorn  (then: python launcher.py realtime)')
 
     banner('Starting Django dev server -- http://127.0.0.1:8000/')
     print('  Press CTRL+C to stop.\n')
@@ -651,6 +688,8 @@ def main() -> None:
         setup()
     elif mode in ('run', 'start', 'serve'):
         run_server()
+    elif mode in ('realtime', 'run-realtime'):
+        run_server(realtime=True)
     elif mode in ('auto', 'all'):
         auto()
     elif mode in ('fresh', 'reset'):

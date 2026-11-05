@@ -55,7 +55,8 @@ endpoints, 400 malformed checkout, 204 empty snapshot):
 - **Finding:** 773 em-dash characters and 22 `&mdash;` entities across 249
   files (the "AI generated" typographic fingerprint).
   **Fixed:** all replaced with plain hyphens by a scripted sweep; verified
-  by `grep -r '—'` returning zero matches.
+  by a repository-wide grep for the em-dash codepoint returning zero
+  matches.
 - **Finding:** `user-agents` was imported by the login audit path but absent
   from `requirements.txt` (silently degraded device fingerprints).
   **Fixed:** dependency added; tests re-run green.

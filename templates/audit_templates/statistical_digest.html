@@ -1,0 +1,235 @@
+{# Statistical data digest - distribution tables, percentile strips, methodology #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #0f172a;
+         margin: 0; padding: 0; line-height: 1.3; background: #fff; }
+
+  .sd-header { display: flex; justify-content: space-between; align-items: center;
+               border-bottom: 2.5px solid #0369a1; padding: 5px 8px; }
+  .sd-office h1 { font-size: 14px; margin: 0; font-weight: 900; letter-spacing: 1.2px;
+                  text-transform: uppercase; color: #0c4a6e; }
+  .sd-office h2 { font-size: 7.2px; margin: 2px 0 0 0; font-weight: 700; color: #0369a1;
+                  letter-spacing: 1.2px; text-transform: uppercase; }
+  .sd-office .sd-kind { font-size: 8px; margin-top: 2px; font-weight: 700; color: #0f172a; }
+  .sd-logos { display: flex; align-items: center; }
+  .sd-logos img { height: 36px; width: auto; object-fit: contain; }
+  .sd-logo-sep { font-size: 22px; color: #0369a1; margin: 0 6px; }
+
+  .sd-metastrip { display: grid; grid-template-columns: 1.6fr 1.3fr 1fr 1.4fr;
+                  border: 1px solid #bae6fd; border-top: none; background: #f0f9ff; }
+  .sd-metastrip div { padding: 3px 6px; border-right: 1px solid #bae6fd; font-size: 6.6px;
+                      font-weight: 800; text-transform: uppercase; color: #0c4a6e;
+                      letter-spacing: 0.5px; }
+  .sd-metastrip div:last-child { border-right: none; }
+  .sd-metastrip span { display: block; font-weight: 400; font-size: 6.5px; color: #075985;
+                       font-family: 'Courier New', monospace; }
+
+  .sd-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 7px; }
+  .sd-kpi { border: 1px solid #bae6fd; background: #f0f9ff; padding: 4px 6px; }
+  .sd-kpi b { display: block; font-size: 6.1px; color: #0369a1; text-transform: uppercase;
+              letter-spacing: 0.6px; }
+  .sd-kpi span { display: block; font-size: 11px; font-weight: 900; color: #0c4a6e;
+                 font-family: 'Courier New', monospace; }
+  .sd-kpi i { display: block; font-size: 5.9px; color: #0284c7; font-style: italic; }
+
+  .sd-h { font-size: 7.5px; font-weight: 900; color: #0c4a6e; text-transform: uppercase;
+          letter-spacing: 1.5px; margin: 9px 0 3px 0; border-bottom: 1.5px solid #0369a1;
+          padding-bottom: 1.5px; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .sd-table th { background: #0c4a6e; color: #e0f2fe; font-size: 6.5px; padding: 2.8px 5px;
+                 text-transform: uppercase; letter-spacing: 0.7px; text-align: left; }
+  .sd-table td { border: 1px solid #cbe6f5; padding: 2.6px 5px; font-size: 7px;
+                 color: #0f172a; }
+  .sd-table tr:nth-child(even) td { background: #f5fbfe; }
+  .sd-mono { font-family: 'Courier New', monospace; font-weight: 700; }
+
+  /* chart-ready placeholder rendered as clean bar tables (no JS in PDF) */
+  .sd-chartbar { background: #e0f2fe; height: 9px; width: 100%; }
+  .sd-chartbar span { display: block; height: 9px; background: #0369a1; }
+  .sd-chartbar-alt span { background: #0e7490; }
+  .sd-more { font-size: 6.4px; color: #0369a1; font-style: italic; margin-top: 2px; }
+
+  .sd-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .sd-pstrip { display: flex; gap: 3px; margin-top: 4px; }
+  .sd-pcell { flex: 1; border: 1px solid #bae6fd; background: #f0f9ff; text-align: center;
+              padding: 3px 2px; }
+  .sd-pcell b { display: block; font-size: 5.8px; color: #0369a1; letter-spacing: 0.6px; }
+  .sd-pcell span { display: block; font-size: 7.4px; font-weight: 900; color: #0c4a6e;
+                   font-family: 'Courier New', monospace; }
+
+  .sd-note { border: 1px dashed #0369a1; background: #f0f9ff; padding: 5px 7px;
+             font-size: 6.5px; color: #075985; margin-top: 8px; }
+  .sd-note b { text-transform: uppercase; letter-spacing: 1px; }
+
+  .sd-sigs { display: flex; justify-content: space-between; margin-top: 10px; }
+  .sd-sig { width: 46%; border: 1px solid #0369a1; padding: 5px 7px; }
+  .sd-sig .sd-stampbox { float: right; width: 44px; height: 38px; border: 1px dashed #0284c7;
+                         font-size: 5.3px; color: #0284c7; text-align: center; padding-top: 10px;
+                         text-transform: uppercase; letter-spacing: 0.5px; }
+  .sd-sig .sd-role { font-size: 7px; font-weight: 900; text-transform: uppercase; color: #0c4a6e;
+                     letter-spacing: 0.8px; margin-bottom: 12px; }
+  .sd-sig .sd-line { border-top: 1px solid #0f172a; padding-top: 2px; font-size: 6.8px;
+                     font-weight: 700; }
+  .sd-sig .sd-sub { font-size: 6.3px; color: #0369a1; }
+  .sd-sig .sd-date { border-top: 1px dotted #0284c7; margin-top: 6px; padding-top: 2px;
+                     font-size: 6.3px; color: #0369a1; }
+
+  .sd-footer { margin-top: 9px; border-top: 2px solid #0369a1; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.3px;
+               color: #0c4a6e; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="sd-header">
+  <div class="sd-office">
+    <h1>Safe Cities Project</h1>
+    <h2>Statistical Audit Data Digest</h2>
+    <div class="sd-kind">{{ kind_label }}</div>
+  </div>
+  <div class="sd-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="sd-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+<div class="sd-metastrip">
+  <div>Digest Ref<span>{{ doc_ref }}</span></div>
+  <div>Compiled On<span>{{ generated_at_str }}</span></div>
+  <div>Sheet<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="sd-kpis">
+  {% for k in kpis %}
+  <div class="sd-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+  {% endfor %}
+</div>
+
+<div class="sd-h">Headline Distribution (chart-ready tabulation)</div>
+<table class="sd-table">
+  <thead>
+    <tr><th style="width:26%;">Category / Violation</th><th style="width:6%;">Count</th>
+        <th style="width:20%;">Relative Frequency</th>
+        <th style="width:14%;">Status</th><th style="width:6%;">Count</th>
+        <th>Relative Frequency</th></tr>
+  </thead>
+  <tbody>
+    {% for g in distribution_grid %}
+    <tr>
+      <td>{{ g.0 }}</td><td class="sd-mono">{{ g.1 }}</td>
+      <td><div class="sd-chartbar"><span style="width:{% widthratio g.1 by_type_max 100 %}%;"></span></div></td>
+      <td>{{ g.2 }}</td><td class="sd-mono">{{ g.3 }}</td>
+      <td><div class="sd-chartbar sd-chartbar-alt"><span style="width:{% widthratio g.3 by_status_max 100 %}%;"></span></div></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No distribution data available in this scope.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="sd-two">
+  <div>
+    <div class="sd-h">Top Locations</div>
+    <table class="sd-table">
+      <thead><tr><th>Location</th><th style="width:30%;">Count</th><th style="width:30%;">Share</th></tr></thead>
+      <tbody>
+        {% for l in by_location %}
+        <tr>
+          <td>{{ l.0 }}</td><td class="sd-mono">{{ l.1 }}</td>
+          <td><div class="sd-chartbar"><span style="width:{% widthratio l.1 by_location_max 100 %}%;"></span></div></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No location data.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <div class="sd-h">Percentile Strip{% if not percentiles %} (not applicable){% endif %}</div>
+    {% if percentiles %}
+    <table class="sd-table">
+      <thead><tr><th>Band</th><th>Value (PKR)</th></tr></thead>
+      <tbody>
+        {% for p in percentiles %}
+        <tr><td>{{ p.label }}</td><td class="sd-mono">{{ p.value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="sd-pstrip">
+      {% for p in percentiles %}
+      <div class="sd-pcell"><b>{{ p.label }}</b><span>{{ p.value }}</span></div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <table class="sd-table">
+      <thead><tr><th>Summary Statistic</th><th>Value</th></tr></thead>
+      <tbody>
+        {% for s in stats %}
+        <tr><td>{{ s.label }}</td><td class="sd-mono">{{ s.value }}</td></tr>
+        {% empty %}
+        <tr><td colspan="2">No summary statistics available.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</div>
+
+<div class="sd-h">Detail Sample ({{ table.shown }} of {{ table.total }} rows)</div>
+<table class="sd-table">
+  <thead>
+    <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% empty %}
+    <tr><td colspan="{{ table.columns|length }}">No sampled records.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if more_rows > 0 %}<div class="sd-more">+{{ more_rows }} more rows in system (sample truncated for a single-page digest).</div>{% endif %}
+
+<div class="sd-note">
+  <b>Methodology Note:</b> Figures are computed live from the operational database at
+  generation time. Audit trail figures derive from the append-only audit ledger; financial
+  figures derive from settled challan records. Detail tables are truncated to the
+  {{ table.shown }} most recent qualifying rows to keep this digest to a single A4 sheet.
+  Relative frequency bars are scaled to the maximum observed count within each block.
+</div>
+
+<div class="sd-sigs">
+  <div class="sd-sig">
+    <div class="sd-stampbox">Stamp</div>
+    <div class="sd-role">Data Analyst (Audit)</div>
+    <div class="sd-line">Name: ______________________________</div>
+    <div class="sd-sub">Designation: Audit Data Analyst</div>
+    <div class="sd-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="sd-sig">
+    <div class="sd-stampbox">Stamp</div>
+    <div class="sd-role">Director Audit</div>
+    <div class="sd-line">Name: ______________________________</div>
+    <div class="sd-sub">Designation: Director, Internal Audit</div>
+    <div class="sd-date">Date: ____ / ____ / ________</div>
+  </div>
+</div>
+
+<div class="sd-footer">
+  <span>Ref: {{ doc_ref }}</span>
+  <span>Computer generated statistical digest</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

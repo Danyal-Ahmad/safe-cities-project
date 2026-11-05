@@ -1,10 +1,10 @@
 /* ============================================================================
-   SAFE CITY FYP — Public pages support styles
+   SAFE CITY FYP | Public pages support styles
    The public home is self-contained (inline CSS in the template).
    This file only: neutralizes the app shell + styles DB banner frames/popup.
    ============================================================================ */
 
-/* ═══ Neutralize the app shell — public pages are standalone, light ═══ */
+/* ═══ Neutralize the app shell - public pages are standalone, light ═══ */
 body.public-home {
   background: #f0f2f5;
   font-size: 13px;

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="44" viewBox="0 0 120 44">
+  <rect x="1" y="1" width="118" height="42" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <g stroke="#0f2557">
+    <rect x="12" y="14" width="1.6" height="16" fill="#0f2557" stroke="none"/>
+    <rect x="15" y="14" width="1.2" height="16" fill="#0f2557" stroke="none"/>
+    <rect x="17.5" y="14" width="3.4" height="16" fill="#0f2557" stroke="none"/>
+    <rect x="22.5" y="14" width="1.4" height="16" fill="#0f2557" stroke="none"/>
+    <rect x="25.5" y="14" width="1.2" height="16" fill="#0f2557" stroke="none"/>
+    <rect x="28" y="14" width="3.2" height="16" fill="#0f2557" stroke="none"/>
+    <rect x="32.6" y="14" width="1.4" height="16" fill="#0f2557" stroke="none"/>
+  </g>
+  <rect x="12" y="31" width="22" height="1.6" fill="#0f2557"/>
+  <text x="42" y="20" font-family="Arial, Helvetica, sans-serif" font-size="11.5" font-weight="bold" fill="#1f2937">PSID</text>
+  <text x="42" y="34" font-family="Arial, Helvetica, sans-serif" font-size="11.5" font-weight="bold" fill="#0f2557">1Link / Bank</text>
+</svg>

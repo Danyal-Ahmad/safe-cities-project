@@ -133,9 +133,25 @@ def dashboard(request):
 @staff_required
 @permission_required('view_live_monitor')
 def live_monitor(request):
-    cameras = list(Camera.objects.all().order_by('-is_active', '-installed_date')[:200])
+    """Senior-staff CCTV wall (DIG / SSP / SUPERVISOR portals).
 
-    from realtime.models import LiveFeed
+    Server-side search: ``?q=`` matches camera_id or location (case-insensitive).
+    The Camera model has no separate ``name`` / ``area`` columns, so ``location``
+    doubles as the area label. Per-camera display attributes (channel chip,
+    feed kind, camera type line) are derived here so the template stays simple.
+    """
+    from django.urls import reverse as _reverse, NoReverseMatch as _NoReverseMatch
+
+    q = (request.GET.get('q') or '').strip()
+    current_ns = getattr(getattr(request, 'resolver_match', None), 'namespace', '') or 'dig'
+
+    camera_qs = Camera.objects.all().order_by('-is_active', '-installed_date')
+    if q:
+        camera_qs = camera_qs.filter(
+            Q(camera_id__icontains=q) | Q(location__icontains=q)
+        )
+    cameras = list(camera_qs[:200])
+
     feed_by_cam = {}
     for f in LiveFeed.objects.filter(is_active=True).select_related('camera').order_by('-created_at'):
         if f.camera_id and f.camera_id not in feed_by_cam:
@@ -144,7 +160,6 @@ def live_monitor(request):
     cam_ids = [c.id for c in cameras]
     latest_detections = {}
     if cam_ids:
-        from detections.models import Detection
         for d in Detection.objects.filter(camera_id__in=cam_ids).order_by('-created_at'):
             if d.camera_id not in latest_detections:
                 if d.status == Detection.CONFIRMED:
@@ -156,7 +171,42 @@ def live_monitor(request):
                 else:
                     latest_detections[d.camera_id] = ''
 
+    # Snapshot endpoint: not every portal re-exports camera_snapshot and the
+    # endpoint itself requires camera_feed / view_cameras. Resolve a usable
+    # namespace once (current portal first, DIG portal as fallback) so the
+    # template never has to guess (which used to raise NoReverseMatch on the
+    # SSP / supervisor routes).
+    snapshot_ns = None
+    try:
+        user = request.user
+        if user.is_authenticated and user.has_any_permission('camera_feed', 'view_cameras'):
+            for candidate in dict.fromkeys((current_ns, 'dig')):
+                try:
+                    _reverse(f'{candidate}:camera_snapshot', args=[0])
+                    snapshot_ns = candidate
+                    break
+                except _NoReverseMatch:
+                    continue
+    except Exception:
+        snapshot_ns = None
+
+    direction_labels = dict(Camera._meta.get_field('legal_direction').choices)
+
+    def _feed_kind(stream):
+        """Classify a stream URL: browser-playable video, snapshot source, or none."""
+        low = (stream or '').lower()
+        if not low:
+            return 'none'
+        if low.startswith(('rtsp://', 'rtsps://')):
+            # Raw RTSP cannot be played by browsers; fall back to snapshots.
+            return 'snapshot'
+        if '/media/' in low or any(ext in low for ext in ('.mp4', '.webm', '.mov', '.m4v', '.avi', '.mkv')):
+            return 'video'
+        return 'snapshot'
+
     for c in cameras:
+        cid = (c.camera_id or '').strip()
+        c.channel_label = ('CAM ' + cid) if cid.isdigit() else (cid or 'CAM')
         c.latest_detection_status = latest_detections.get(c.id, '')
         stream = (c.rtsp_url or '').strip() or (c.http_snapshot_url or '').strip()
         if not stream and c.id in feed_by_cam:
@@ -167,21 +217,56 @@ def live_monitor(request):
             except Exception:
                 stream = ''
         c.playable_stream = stream
+        c.feed_kind = _feed_kind(stream)
+        c.snapshot_url = _reverse(f'{snapshot_ns}:camera_snapshot', args=[c.id]) if snapshot_ns else ''
+        # The Camera model has no camera_type column; derive it from the
+        # configured source so every channel shows an ANPR / SNAPSHOT tag.
+        if c.feed_kind == 'video':
+            c.camera_type_label = 'ANPR'
+        elif c.feed_kind == 'snapshot':
+            c.camera_type_label = 'SNAPSHOT'
+        else:
+            c.camera_type_label = 'NO SOURCE'
+        legal = (direction_labels.get(c.legal_direction) or c.legal_direction or 'N')
+        c.legal_direction_label = str(legal).upper()
+        c.violation_side_label = (c.violation_side or 'back').upper()
+        c.meta_line = '%s | LEGAL: %s | VIOLATION: %s' % (
+            c.camera_type_label, c.legal_direction_label, c.violation_side_label)
         if stream and c.health_status in ('unknown', '', None):
             c.health_status = 'online'
+        if c.health_status == 'online' and stream:
+            c.status_key = 'live'
+        elif c.health_status == 'online':
+            c.status_key = 'nofeed'
+        else:
+            c.status_key = 'offline'
 
     live_feeds = list(LiveFeed.objects.filter(is_active=True).order_by('-created_at')[:50])
     all_cameras = cameras
 
     online_count = sum(1 for c in cameras if c.health_status == 'online' or getattr(c, 'playable_stream', None))
     offline_count = max(0, len(cameras) - online_count)
+    no_feed_count = sum(1 for c in cameras if c.feed_kind == 'none')
 
     recent_detections = []
     if cam_ids:
-        from detections.models import Detection
         recent_detections = list(
             Detection.objects.filter(camera_id__in=cam_ids).order_by('-created_at')[:10]
         )
+
+    feed_url = ''
+    try:
+        feed_url = _reverse(f'{current_ns}:live_monitor_feed')
+    except _NoReverseMatch:
+        feed_url = ''
+
+    registry_url = ''
+    for candidate in dict.fromkeys((current_ns, 'dig')):
+        try:
+            registry_url = _reverse(f'{candidate}:camera_list')
+            break
+        except _NoReverseMatch:
+            continue
 
     return render(request, 'dashboard/dig/live_monitor.html', {
         'cameras': cameras,
@@ -189,8 +274,12 @@ def live_monitor(request):
         'all_cameras': all_cameras,
         'online_count': online_count,
         'offline_count': offline_count,
+        'no_feed_count': no_feed_count,
         'total_cameras': len(cameras),
         'recent_detections': recent_detections,
+        'q': q,
+        'feed_url': feed_url,
+        'registry_url': registry_url,
     })
 
 
@@ -382,7 +471,7 @@ def admin_edit(request, user_id):
     ]
 
     """DIG edits an admin/staff user. Avatar upload supported.
-    Role is editable via checkboxes — permissions are auto-derived from role
+    Role is editable via checkboxes - permissions are auto-derived from role
     via ROLE_PERMISSION_MATRIX. The DIG can reassign any admin role here.
     Name (first_name) is required."""
     from accounts.permissions import (
@@ -586,10 +675,38 @@ def _camera_list_redirect(request):
 
 @role_required('DIG', 'IT', 'SSP', 'SUPV', 'AUDIT')
 def camera_list(request):
-    cameras = list(Camera.objects.all().order_by('-installed_date'))
-    online_count = sum(1 for c in cameras if c.is_active and (c.health_status in ('online', 'unknown') or c.rtsp_url))
-    offline_count = sum(1 for c in cameras if not c.is_active or c.health_status == 'offline')
-    with_media = sum(1 for c in cameras if c.rtsp_url)
+    """Camera registry with server-side search.
+
+    ``?q=`` matches camera_id or location (case-insensitive); ``?health=`` and
+    ``?active=`` narrow by health status and active state so filtered views are
+    shareable URLs. The instant client-side filter in the template keeps
+    working on top of whatever the server returns.
+    """
+    q = (request.GET.get('q') or '').strip()
+    health = (request.GET.get('health') or '').strip()
+    active = (request.GET.get('active') or '').strip()
+    health = health if health in ('online', 'degraded', 'offline', 'unknown') else ''
+    active = active if active in ('active', 'inactive') else ''
+
+    base_qs = Camera.objects.all().order_by('-installed_date')
+    camera_qs = base_qs
+    if q:
+        camera_qs = camera_qs.filter(Q(camera_id__icontains=q) | Q(location__icontains=q))
+    if health:
+        camera_qs = camera_qs.filter(health_status=health)
+    if active:
+        camera_qs = camera_qs.filter(is_active=(active == 'active'))
+
+    cameras = list(camera_qs)
+
+    # KPI counters reflect the full registry, not just the current search.
+    if q or health or active:
+        all_cameras = list(base_qs)
+    else:
+        all_cameras = cameras
+    online_count = sum(1 for c in all_cameras if c.is_active and (c.health_status in ('online', 'unknown') or c.rtsp_url))
+    offline_count = sum(1 for c in all_cameras if not c.is_active or c.health_status == 'offline')
+    with_media = sum(1 for c in all_cameras if c.rtsp_url)
     is_it = request.user.role == 'IT'
     return render(request, 'dashboard/dig/camera_list.html', {
         'cameras': cameras,
@@ -597,6 +714,10 @@ def camera_list(request):
         'online_count': online_count,
         'offline_count': offline_count,
         'with_video': with_media,
+        'total_registry': len(all_cameras),
+        'q': q,
+        'health_filter': health,
+        'active_filter': active,
     })
 
 
@@ -690,7 +811,7 @@ def camera_add(request):
                     camera.last_health_check = timezone.now()
                     camera.save(update_fields=['last_frame_at', 'last_health_check'])
                     lf = LiveFeed.objects.create(
-                        title=f"Camera {camera.camera_id} — {camera.location}",
+                        title=f"Camera {camera.camera_id} | {camera.location}",
                         video_file=video_file,
                         camera=camera,
                         location_label=camera.location,
@@ -784,7 +905,7 @@ def camera_edit(request, camera_id):
             LiveFeed.objects.update_or_create(
                 camera=camera,
                 defaults={
-                    'title': f"Camera {camera.camera_id} — {camera.location}",
+                    'title': f"Camera {camera.camera_id} | {camera.location}",
                     'video_file': video_file,
                     'location_label': camera.location,
                     'uploaded_by': request.user,
@@ -802,7 +923,7 @@ def camera_edit(request, camera_id):
                     camera_location=camera.location or '',
                 )
                 start_processing_async(upload.id)
-                messages.info(request, "AI processing started on the uploaded video — detections will appear in the review queue and on Live Tracking.")
+                messages.info(request, "AI processing started on the uploaded video - detections will appear in the review queue and on Live Tracking.")
             except Exception as _vu_err:
                 logging.getLogger(__name__).warning("VideoUpload pipeline failed on camera_edit: %s", _vu_err)
         camera.save()
@@ -896,10 +1017,11 @@ def regenerate_enrollment_token(request, camera_id):
 
 @staff_required
 def cameras_status(request):
-    cameras = Camera.objects.all().order_by('-installed_date')
+    """Camera status board: auto health refresh plus server-side search (?q=)."""
+    all_cameras = list(Camera.objects.all().order_by('-installed_date'))
     threshold = timezone.now() - datetime.timedelta(minutes=3)
     manual_online_threshold = timezone.now() - datetime.timedelta(hours=24)
-    for c in cameras:
+    for c in all_cameras:
         is_demo = (c.rtsp_url and c.rtsp_url.startswith('file://'))
         if is_demo:
             if c.health_status != 'online' and c.is_active:
@@ -921,7 +1043,31 @@ def cameras_status(request):
                 if not (c.last_health_check and c.last_health_check > manual_online_threshold):
                     c.health_status = 'degraded'
                     c.save(update_fields=['health_status'])
-    return render(request, 'dashboard/dig/cameras_status.html', {'cameras': cameras, 'now': timezone.now()})
+
+    # Counters are computed after the refresh pass so they reflect reality.
+    online_count = sum(1 for c in all_cameras if c.health_status == 'online')
+    offline_count = sum(1 for c in all_cameras if c.health_status == 'offline')
+    degraded_count = sum(1 for c in all_cameras if c.health_status == 'degraded')
+    unknown_count = max(0, len(all_cameras) - online_count - offline_count - degraded_count)
+
+    q = (request.GET.get('q') or '').strip()
+    cameras = all_cameras
+    if q:
+        needle = q.lower()
+        cameras = [c for c in all_cameras
+                   if needle in (c.camera_id or '').lower()
+                   or needle in (c.location or '').lower()]
+
+    return render(request, 'dashboard/dig/cameras_status.html', {
+        'cameras': cameras,
+        'now': timezone.now(),
+        'q': q,
+        'total_count': len(all_cameras),
+        'online_count': online_count,
+        'offline_count': offline_count,
+        'degraded_count': degraded_count,
+        'unknown_count': unknown_count,
+    })
 
 
 @it_required
@@ -1180,23 +1326,9 @@ def challan_templates_manage(request):
             return redirect('it_support_portal:challan_templates')
 
 
-    DEFAULT_TEMPLATES = [
-        ("Safe City E-Challan (A4)", "{% load static %}\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<style>\n    @page { size: A4 portrait; margin: 8mm; }\n    * { box-sizing: border-box; }\n    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 7.5px; color: #333; margin: 0; padding: 0; line-height: 1.25; background: #fff; }\n    .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 6px 4px 6px; background: #fff; border: 1.5px solid #000; border-bottom: 2px solid #000; }\n    .header-title { flex: 1; text-align: left; padding: 0 8px; }\n    .header-title h1 { font-size: 18px; margin: 0; font-weight: 900; color: #000; letter-spacing: 1.5px; text-transform: uppercase; }\n    .header-title h2 { font-size: 8px; font-weight: 700; color: #000; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 1px; }\n    .header-logos { display: flex; gap: 4px; align-items: center; }\n    .logo-box img { height: 42px; width: auto; display: block; object-fit: contain; }\n    .top-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border: 1.5px solid #000; border-top: none; }\n    .tb-cell { padding: 3px 5px; border-right: 1px solid #000; }\n    .tb-cell:last-child { border-right: none; }\n    .tb-label { font-size: 5.5px; color: #444; font-weight: 700; display: block; margin-bottom: 1px; text-transform: uppercase; letter-spacing: 0.4px; }\n    .barcode-ticket svg, .barcode-ticket img { height: 36px; width: auto; max-width: 100%; display:block; margin:0 auto; }\n    .barcode-ticket { text-align:center; }\n    .barcode-ticket svg { height:38px; width:auto; max-width:100%; display:block; margin:0 auto; }\n    .ticket-no-text { font-size:8px; font-weight:700; letter-spacing:1px; margin-top:2px; }\n    .tb-val { font-size: 9px; font-weight: 800; color: #000; display: block; letter-spacing: 0.2px; }\n    .barcode-area { display: flex; align-items: stretch; border: 1.5px solid #000; border-top: none; }\n    .barcode-area > div:first-child { padding: 4px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #000; background: #fff; }\n    .pay-box { background: #f9f9f9; padding: 4px 8px; flex: 1; border-left: none; }\n    .pay-amt { font-size: 13px; font-weight: 900; color: #000; display: block; letter-spacing: 0.8px; margin-top: 1px; }\n    .section-header { background: #e0e0e0; color: #000; padding: 2px 5px; font-weight: 900; font-size: 6.5px; border: 1.5px solid #000; border-top: none; text-align: center; letter-spacing: 1.5px; text-transform: uppercase; }\n    .data-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 1.5px solid #000; border-top: none; }\n    .dg-cell { padding: 2px 4px; border-right: 1px solid #ccc; font-size: 7px; background: #fff; }\n    .dg-cell:last-child { border-right: none; }\n    .dg-label { color: #555; font-size: 5.5px; display: block; margin-bottom: 1px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }\n    .dg-val { font-weight: 700; color: #000; display: block; font-size: 7px; }\n    .dg-val.alert { font-weight: 900; color: #cc0000; }\n    .row-2 { display: grid; grid-template-columns: 3fr 1fr 1fr; border: 1.5px solid #000; border-top: none; }\n    .img-container { padding: 4px; background: #efefef; border: 1.5px solid #000; border-top: none; }\n    .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }\n    .img-box { border: 1px solid #666; background: #fff; position: relative; }\n    .img-box img { width: 100%; height: auto; display: block; }\n    .img-label { position: absolute; top: 2px; left: 2px; background: rgba(0,0,0,0.7); color: #fff; font-size: 5px; padding: 1px 3px; font-weight: 700; }\n    .notice { font-size: 6.5px; color: #000; padding: 5px 6px; border: 1.5px solid #000; border-top: none; background: #fff; text-align: justify; line-height: 1.4; }\n    .cutter { display: flex; align-items: center; gap: 4px; padding: 0; margin: 0 -5px 6px -5px; background: #fff; line-height: 1; height: 10px; }\n    .cutter span { font-size: 20px; font-weight: bold; display: block; margin-top: 4px; }\n    .cutter::after { content: ''; flex: 1; border-top: 1.5px dashed #555; margin-top: 10px; }\n    .po-stamp { float: right; width: 80px; height: 35px; border: 1.5px dashed #888; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 5.5px; color: #666; text-align: center; letter-spacing: 0.3px; text-transform: uppercase; margin-left: 15px; margin-bottom: 3px; line-height: 0.8; }\n    .post-office { margin-top: 6px; border: 1.5px solid #000; padding: 0 5px 5px 5px; }\n    .po-body { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; font-size: 7px; }\n    .po-row { margin-bottom: 2px; display: flex; gap: 3px; align-items: baseline; border-bottom: 1px dotted #bbb; padding-bottom: 1px; }\n    .po-label { font-weight: 700; color: #000; white-space: nowrap; font-size: 6px; text-transform: uppercase; letter-spacing: 0.2px; }\n    .po-cashier-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 6px; border-top: 1px solid #000; padding-top: 4px; }\n</style>\n</head>\n<body>\n\n<div class=\"header\">\n    <div class=\"header-title\">\n        <h1>SAFE CITY</h1>\n        <h2>Traffic Police Electronic-Challan</h2>\n    </div>\n    <div class=\"header-logos\">\n        <div class=\"logo-box\">\n            <img src=\"file://{{ logo_left_path }}\" alt=\"Logo Left\">\n        </div>\n        <div class=\"logo-box\">\n            <img src=\"file://{{ logo_right_path }}\" alt=\"Logo Right\">\n        </div>\n    </div>\n</div>\n\n<div class=\"top-bar\">\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Ticket No.</div>\n        <div class=\"tb-val barcode-ticket\">\n          {% if barcode_svg %}\n            {{ barcode_svg|safe }}\n          {% else %}\n            <svg id=\"ticket-barcode-fallback\" xmlns=\"http://www.w3.org/2000/svg\" width=\"180\" height=\"40\"></svg>\n          {% endif %}\n          <div class=\"ticket-no-text\">{{ challan.ticket_no }}</div>\n        </div>\n        </div>\n    </div>\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Registration No.</div>\n        <div class=\"tb-val\">{{ challan.plate_number }}</div>\n    </div>\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Issue Date</div>\n        <div class=\"tb-val\">{{ challan.issue_date|date:\"d-M-Y\" }}</div>\n    </div>\n    <div class=\"tb-cell\">\n        <div class=\"tb-label\">Payment Status</div>\n        <div class=\"tb-val\">\n            {% if challan.payment_status == 'PAID' %}<span style=\"color:#00aa00;font-weight:900;\">PAID</span>\n            {% elif challan.payment_status == 'VOIDED' %}<span style=\"color:#0066cc;font-weight:900;\">VOIDED</span>\n            {% else %}<span style=\"color:#cc0000;font-weight:900;\">UNPAID</span>{% endif %}\n        </div>\n    </div>\n</div>\n\n<div class=\"barcode-area\">\n      <div style=\"flex:1;text-align:center;padding:6px 8px;\">\n        {% if barcode_svg %}\n          {{ barcode_svg|safe }}\n        {% else %}\n          <div style=\"font-family:monospace;font-size:12px;letter-spacing:2px;\">{{ challan.ticket_no }}</div>\n        {% endif %}\n        <div style=\"font-size:7px;color:#000;margin-top:2px;letter-spacing:0.5px;\">{{ challan.ticket_no }}</div>\n      </div>\n    </div>\n    <div class=\"pay-box\">\n        <div style=\"font-size:5.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#444;\">Payment Within Due Date</div>\n        <div class=\"pay-amt\">PKR {{ challan.fine_amount|floatformat:0 }}/-</div>\n        <div style=\"font-size:6px;margin-top:2px;\"><b>Due Date:</b> {{ challan.due_date|date:\"d-M-Y\" }}</div>\n        <div style=\"font-size:5px;margin-top:3px;border-top:1px solid #ccc;padding-top:2px;color:#333;letter-spacing:0.2px;\">\n            To be credited under Head <b>\"C0263A\"</b> &mdash; IC3 E-Challans\n        </div>\n    </div>\n</div>\n\n<div class=\"section-header\">Offender Information</div>\n<div class=\"data-grid\" style=\"grid-template-columns: 2fr 1fr 1fr 1fr;\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Name (First, Middle, Last)</span>\n        <span class=\"dg-val\">{{ challan.owner_name|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Father's Name</span>\n        <span class=\"dg-val\">Awaiting Excise Integration</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Violation Type</span>\n        <span class=\"dg-val alert\">{{ challan.get_violation_type_display|upper }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Fine Amount</span>\n        <span class=\"dg-val\">PKR {{ challan.fine_amount|floatformat:0 }}/-</span>\n    </div>\n</div>\n<div class=\"row-2\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Address</span>\n        <span class=\"dg-val\">{{ challan.address|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">City</span>\n        <span class=\"dg-val\">{{ challan.location|default:\"—\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Phone No.</span>\n        <span class=\"dg-val\">{{ challan.phone|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n</div>\n\n<div class=\"section-header\">Vehicle Information</div>\n<div class=\"data-grid\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Vehicle Type</span>\n        <span class=\"dg-val\">{{ challan.vehicle_type|default:\"Car\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Make / Year</span>\n        <span class=\"dg-val\">{{ challan.make_year|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Color</span>\n        <span class=\"dg-val\">{{ challan.color|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Chassis No.</span>\n        <span class=\"dg-val\">{{ challan.chassis_no|default:\"Awaiting Excise Integration\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Date &amp; Time</span>\n        <span class=\"dg-val\">{{ challan.issue_date|date:\"Y-m-d\" }} {{ challan.created_at|time:\"H:i\" }}</span>\n    </div>\n</div>\n\n<div class=\"section-header\">Violation Evidence</div>\n<div class=\"data-grid\" style=\"grid-template-columns: repeat(5, 1fr);\">\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Location</span>\n        <span class=\"dg-val\">{{ challan.location|default:\"—\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Legal Direction</span>\n        <span class=\"dg-val\">{{ challan.legal_direction|default:\"UP\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Moving Direction</span>\n        <span class=\"dg-val alert\">{{ challan.moving_direction|default:\"DOWN\" }}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">AI Confidence</span>\n        <span class=\"dg-val\">{% if challan.ai_confidence %}{{ challan.ai_confidence|floatformat:2 }}{% else %}N/A{% endif %}</span>\n    </div>\n    <div class=\"dg-cell\">\n        <span class=\"dg-label\">Camera ID</span>\n        <span class=\"dg-val\">{{ challan.camera.camera_id|default:\"CAM-FYP-001\" }}</span>\n    </div>\n</div>\n\n<div class=\"img-container\">\n    <div style=\"font-size:6px;font-weight:900;margin-bottom:2px;letter-spacing:1px;text-transform:uppercase;\">\n        Captured Violation Evidence (2K Enhanced)</div>\n    <div class=\"img-grid\">\n        <div class=\"img-box\">\n            <div class=\"img-label\">WIDE ANGLE</div>\n            {% if challan.detection.raw_image %}\n            <img src=\"file://{{ challan.detection.raw_image.path }}\" alt=\"Wide Angle\">\n            {% else %}\n            <div style=\"height:100px;display:flex;align-items:center;justify-content:center;color:#999;font-size:8px;\">[Not Available]</div>\n            {% endif %}\n        </div>\n        <div class=\"img-box\">\n            <div class=\"img-label\">VEHICLE ZOOM</div>\n            {% if challan.detection.raw_image %}\n            <img src=\"file://{{ challan.detection.raw_image.path }}\" alt=\"Vehicle Zoom\">\n            {% else %}\n            <div style=\"height:100px;display:flex;align-items:center;justify-content:center;color:#999;font-size:8px;\">[Not Available]</div>\n            {% endif %}\n        </div>\n        <div class=\"img-box\">\n            <div class=\"img-label\">LICENSE PLATE</div>\n            {% if challan.detection.plate_crop_image %}\n            <img src=\"file://{{ challan.detection.plate_crop_image.path }}\" alt=\"License Plate\">\n            {% else %}\n            <div style=\"height:100px;display:flex;align-items:center;justify-content:center;color:#999;font-size:8px;\">[Not Available]</div>\n            {% endif %}\n        </div>\n        <div class=\"img-box\">\n            <div class=\"img-label\">DIRECTION</div>\n            <div style=\"height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f0f0f0;\">\n                <div style=\"font-size:32px;color:#cc0000;font-weight:bold;\">{{ challan.moving_direction|default:\"\u2193\" }}</div>\n                <div style=\"font-size:6px;color:#333;\">Moving: {{ challan.moving_direction|default:\"DOWN\" }}<br>Legal: {{ challan.legal_direction|default:\"UP\" }}</div>\n            </div>\n        </div>\n    </div>\n</div>\n\n<div class=\"notice\">\n    <b>INSTRUCTIONS:</b> You have been fined for a traffic violation under Section 99-A of the Motor Vehicles\n    Ordinance, 1965. Please pay your fine within <b>10 days</b> of the issuance of this notice. Failure to do so may\n    result in further legal action, and your vehicle may be impounded until the outstanding fine is paid.\n    <div style=\"margin-top:4px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ccc;padding-top:3px;font-size:6px;\">\n        <span><b>Paid Challans:</b> 0 &emsp; <b>Unpaid Challans:</b> 0 &emsp; <b>Issue Date:</b> {{ challan.issue_date|date:\"d-M-Y\" }}\n            &emsp; <b>Penalty Points:</b> 0 out of 20</span>\n    </div>\n</div>\n\n<div class=\"cutter\"><span>\u2702</span></div>\n\n<div class=\"post-office\">\n    <h2 style=\"text-align:center;font-weight:900;\">POST OFFICE COPY</h2>\n    <div class=\"po-stamp\"><span>Post Office</span><br><span>Received Stamp</span></div>\n    <div class=\"po-body\">\n        <div>\n            <div class=\"po-row\"><span class=\"po-label\">Ticket No.:</span> {{ challan.ticket_no }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Name:</span> {{ challan.owner_name|default:\"Awaiting Excise Integration\" }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Address:</span> {{ challan.address|default:\"Awaiting Excise Integration\" }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Violation Type:</span> {{ challan.get_violation_type_display }}</div>\n        </div>\n        <div>\n            <div class=\"po-row\"><span class=\"po-label\">Reg. No.:</span> {{ challan.plate_number }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Amount:</span> PKR {{ challan.fine_amount|floatformat:0 }}/-</div>\n            <div class=\"po-row\"><span class=\"po-label\">Due Date:</span> {{ challan.due_date|date:\"d-M-Y\" }}</div>\n            <div class=\"po-row\"><span class=\"po-label\">Account No.:</span> \"C0263A\" E-Challans</div>\n        </div>\n    </div>\n    <div class=\"po-cashier-row\">\n        <span style=\"font-size:5px;color:#444;font-style:italic;\">* This is a system-generated challan. No manual signature or stamp required.</span>\n        <span><b>Cashier / Counter Signature:</b> _______________</span>\n    </div>\n</div>\n\n\n\n<div class=\"barcode-wrap\">{% if barcode_svg %}{{ barcode_svg|safe }}{% endif %}<div class=\"barcode-text\">{{ challan.ticket_no }}</div></div>\n</body>\n</html>\n", "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#333;border:1.5px solid #000;background:#fff;padding:0;max-width:100%\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:2px solid #000\">\n    <div><div style=\"font-size:16px;font-weight:900;letter-spacing:1px\">SAFE CITY</div>\n    <div style=\"font-size:10px;font-weight:700\">Traffic Police Electronic-Challan</div></div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1.5px solid #000\">\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">TICKET NO.</div><b>CH-2026-0001</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">REG. NO.</div><b>LES-1234</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">ISSUE DATE</div><b>15-Aug-2026</b></div>\n    <div style=\"padding:6px\"><div style=\"font-size:8px;color:#444\">STATUS</div><b style=\"color:#cc0000\">UNPAID</b></div>\n  </div>\n  <div style=\"padding:8px;background:#f9f9f9;border-bottom:1.5px solid #000\">\n    <div style=\"font-size:8px\">PAYMENT WITHIN DUE DATE</div>\n    <div style=\"font-size:18px;font-weight:900\">PKR 2,000/-</div>\n    <div style=\"font-size:10px\">Due: 25-Aug-2026 \u00b7 Head C0263A</div>\n  </div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">OFFENDER INFORMATION</div>\n  <div style=\"padding:8px\"><b>Ahmed Khan</b> \u00b7 Wrong Way \u00b7 PKR 2,000<br>Location: Main Boulevard</div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">EVIDENCE</div>\n  <div style=\"padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px\">\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">WIDE ANGLE</div>\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">PLATE CROP</div>\n  </div>\n</div>"),
-        ("Safe City Compact", "<div style=\"font-family:Inter,Arial,sans-serif;border:2px solid #1d4f7c;border-radius:8px;overflow:hidden;background:#fff\">\n  <div style=\"background:#1d4f7c;color:#fff;padding:12px;font-weight:800\">SAFE CITY \u00b7 E-CHALLAN</div>\n  <div style=\"padding:12px;font-size:12px;line-height:1.6\">\n    <div><b>CH-2026-0002</b> \u00b7 LES-5678</div>\n    <div style=\"font-size:20px;font-weight:900;margin:8px 0\">PKR 2,000</div>\n    <div>Wrong-way driving \u00b7 Mall Road</div>\n    <div style=\"margin-top:8px;padding:8px;background:#f3f6fb;border-radius:6px;text-align:center\">[ QR / JazzCash ]</div>\n  </div>\n</div>", "<div style=\"font-family:Inter,Arial,sans-serif;border:2px solid #1d4f7c;border-radius:8px;overflow:hidden;background:#fff\">\n  <div style=\"background:#1d4f7c;color:#fff;padding:12px;font-weight:800\">SAFE CITY \u00b7 E-CHALLAN</div>\n  <div style=\"padding:12px;font-size:12px;line-height:1.6\">\n    <div><b>CH-2026-0002</b> \u00b7 LES-5678</div>\n    <div style=\"font-size:20px;font-weight:900;margin:8px 0\">PKR 2,000</div>\n    <div>Wrong-way driving \u00b7 Mall Road</div>\n    <div style=\"margin-top:8px;padding:8px;background:#f3f6fb;border-radius:6px;text-align:center\">[ QR / JazzCash ]</div>\n  </div>\n</div>"),
-        ("Legal Notice 99-A", "<div style=\"font-family:Georgia,serif;border:1px solid #000;padding:14px;background:#fff\">\n  <div style=\"text-align:center;font-weight:900;font-size:14px\">Section 99-A \u00b7 Motor Vehicles Ordinance, 1965</div>\n  <hr>\n  <p style=\"font-size:12px\">Ticket <b>CH-2026-0003</b> against vehicle <b>LES-9999</b> for <b>WRONG WAY</b> at Mall Road on 15-Aug-2026.</p>\n  <p style=\"font-size:12px\">Fine <b>PKR 2,000</b> payable before <b>25-Aug-2026</b> under head C0263A.</p>\n  <div style=\"border:1px dashed #888;padding:8px;text-align:center;font-size:11px;margin-top:8px\">POST OFFICE COPY</div>\n</div>", "<div style=\"font-family:Georgia,serif;border:1px solid #000;padding:14px;background:#fff\">\n  <div style=\"text-align:center;font-weight:900;font-size:14px\">Section 99-A \u00b7 Motor Vehicles Ordinance, 1965</div>\n  <hr>\n  <p style=\"font-size:12px\">Ticket <b>CH-2026-0003</b> against vehicle <b>LES-9999</b> for <b>WRONG WAY</b> at Mall Road on 15-Aug-2026.</p>\n  <p style=\"font-size:12px\">Fine <b>PKR 2,000</b> payable before <b>25-Aug-2026</b> under head C0263A.</p>\n  <div style=\"border:1px dashed #888;padding:8px;text-align:center;font-size:11px;margin-top:8px\">POST OFFICE COPY</div>\n</div>"),
-        ("Digital Slip", "<div style=\"font-family:Arial;background:#0a1628;color:#fff;padding:14px;border-radius:10px\">\n  <div style=\"font-size:11px;opacity:.8\">DIGITAL SLIP</div>\n  <div style=\"font-size:18px;font-weight:800;margin:4px 0\">CH-2026-0004</div>\n  <div style=\"font-size:13px\">LES-4321 \u00b7 Wrong Way</div>\n  <div style=\"font-size:22px;font-weight:900;margin:10px 0;color:#7dd3fc\">PKR 2,000</div>\n  <div style=\"font-size:11px;opacity:.85\">Due 25-Aug-2026 \u00b7 Pay via app / bank / post office</div>\n</div>", "<div style=\"font-family:Arial;background:#0a1628;color:#fff;padding:14px;border-radius:10px\">\n  <div style=\"font-size:11px;opacity:.8\">DIGITAL SLIP</div>\n  <div style=\"font-size:18px;font-weight:800;margin:4px 0\">CH-2026-0004</div>\n  <div style=\"font-size:13px\">LES-4321 \u00b7 Wrong Way</div>\n  <div style=\"font-size:22px;font-weight:900;margin:10px 0;color:#7dd3fc\">PKR 2,000</div>\n  <div style=\"font-size:11px;opacity:.85\">Due 25-Aug-2026 \u00b7 Pay via app / bank / post office</div>\n</div>"),
-    ]
     templates = list(ChallanTemplate.objects.all().order_by('-created_at')[:50])
-    if not templates:
-        for name, html, preview in DEFAULT_TEMPLATES:
-            obj = ChallanTemplate.objects.create(name=name, html_content=html, uploaded_by=request.user)
-        templates = list(ChallanTemplate.objects.all().order_by('-created_at')[:50])
     for obj in templates:
-        raw = obj.html_content or ''
-        if 'SAFE CITY' in raw and 'Traffic Police Electronic-Challan' in raw and len(raw) > 2000:
-            obj.preview_html = "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#333;border:1.5px solid #000;background:#fff;padding:0;max-width:100%\">\n  <div style=\"display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:2px solid #000\">\n    <div><div style=\"font-size:16px;font-weight:900;letter-spacing:1px\">SAFE CITY</div>\n    <div style=\"font-size:10px;font-weight:700\">Traffic Police Electronic-Challan</div></div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1.5px solid #000\">\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">TICKET NO.</div><b>CH-2026-0001</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">REG. NO.</div><b>LES-1234</b></div>\n    <div style=\"padding:6px;border-right:1px solid #000\"><div style=\"font-size:8px;color:#444\">ISSUE DATE</div><b>15-Aug-2026</b></div>\n    <div style=\"padding:6px\"><div style=\"font-size:8px;color:#444\">STATUS</div><b style=\"color:#cc0000\">UNPAID</b></div>\n  </div>\n  <div style=\"padding:8px;background:#f9f9f9;border-bottom:1.5px solid #000\">\n    <div style=\"font-size:8px\">PAYMENT WITHIN DUE DATE</div>\n    <div style=\"font-size:18px;font-weight:900\">PKR 2,000/-</div>\n    <div style=\"font-size:10px\">Due: 25-Aug-2026 \u00b7 Head C0263A</div>\n  </div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">OFFENDER INFORMATION</div>\n  <div style=\"padding:8px\"><b>Ahmed Khan</b> \u00b7 Wrong Way \u00b7 PKR 2,000<br>Location: Main Boulevard</div>\n  <div style=\"background:#e0e0e0;text-align:center;font-weight:900;font-size:9px;padding:4px;border-bottom:1.5px solid #000\">EVIDENCE</div>\n  <div style=\"padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px\">\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">WIDE ANGLE</div>\n    <div style=\"height:48px;background:#efefef;border:1px solid #666;font-size:9px;display:flex;align-items:center;justify-content:center\">PLATE CROP</div>\n  </div>\n</div>"
-        else:
-            obj.preview_html = raw
+        obj.preview_html = (obj.html_content or '')[:4000]
     any_custom_active = any(getattr(t, 'is_active', False) for t in templates)
 
     active_key = sys_settings.pdf_template or 'modern_a4'
@@ -1217,10 +1349,13 @@ def challan_templates_manage(request):
             file_templates.append({
                 'key': key,
                 'name': {
-                    'modern_a4': 'Modern A4 — Official Safe City E-Challan',
-                    'classic_a4': 'Classic A4 — Government E-Challan with Post Office Copy',
-                    'legal_notice_99a': 'Legal Notice 99-A — Motor Vehicles Ordinance 1965',
-                    'digital_slip': 'Digital Slip — Modern Compact E-Challan',
+                    'modern_a4': 'Modern A4 | Official Safe City E-Challan',
+                    'classic_a4': 'Classic A4 | Government-Style Form',
+                    'legal_notice_99a': 'Legal Notice 99-A | Motor Vehicles Ordinance 1965',
+                    'digital_slip': 'Digital Slip | Modern Compact E-Challan',
+                    'compact_receipt': 'Compact Receipt | Minimal Print Layout',
+                    'enforcement_notice': 'Enforcement Notice | Bold Red Notice',
+                    'urdu_a4': 'Urdu A4 | Urdu-Primary Layout',
                 }.get(key, key.replace('_', ' ').title()),
                 'blurb': 'Built-in layout file',
                 'is_active': (key == active_key),
@@ -1379,8 +1514,13 @@ def bulk_detections(request):
                     d.review_notes = notes
                     d.save()
                     if action == 'confirm':
-                        from admin.officer_portal.views import _create_challan_from_detection
-                        _create_challan_from_detection(d, request.user)
+                        from detections.pipeline import issue_challan
+                        if d.evidence_summary['all_passed'] and d.ai_detected_violation:
+                            issue_challan(d, d.camera, user=request.user)
+                        else:
+                            raise ValueError(
+                                f"Detection {d.pk} failed evidence verification; challan blocked"
+                            )
                     count += 1
                 except Detection.DoesNotExist:
                     continue
@@ -1457,7 +1597,7 @@ def appeal_override(request, appeal_id):
         from admin.dig_portal.models import Notification as _Notif
         c = appeal.challan
         detail_msg = (
-            f"APPEAL {action.upper()} — Stage: {stage.upper()}\n"
+            f"APPEAL {action.upper()} | Stage: {stage.upper()}\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"Appeal ID: APL-{appeal.id:06d}\n"
             f"Challan No: {c.ticket_no}\n"
@@ -1475,7 +1615,7 @@ def appeal_override(request, appeal_id):
                            challan=c.ticket_no, comment=comment[:100])
             for ssp in _User.objects.filter(role=_User.SSP, is_active=True):
                 _Notif.objects.create(recipient=ssp,
-                    title=f"Appeal routed to SSP — {c.ticket_no}",
+                    title=f"Appeal routed to SSP | {c.ticket_no}",
                     message=detail_msg + "\n\nOfficer has routed this appeal to SSP for higher review.",
                     category='appeal_pending',
                     target_url=reverse('dig:appeal_override', args=[appeal.id]))
@@ -1486,7 +1626,7 @@ def appeal_override(request, appeal_id):
                            challan=c.ticket_no, comment=comment[:100])
             for dig in _User.objects.filter(role=_User.DIG, is_active=True):
                 _Notif.objects.create(recipient=dig,
-                    title=f"Appeal escalated to DIG — {c.ticket_no}",
+                    title=f"Appeal escalated to DIG | {c.ticket_no}",
                     message=detail_msg + "\n\nSSP has escalated this appeal to DIG for final decision.",
                     category='appeal_escalated',
                     target_url=reverse('dig:appeal_override', args=[appeal.id]))
@@ -1513,7 +1653,7 @@ def appeal_override(request, appeal_id):
             AuditLog.write(request, f'appeal.{stage}_{action}', 'ChallanAppeal', appeal.id,
                            challan=c.ticket_no, comment=comment[:100])
             _Notif.objects.create(recipient=appeal.submitted_by,
-                title=f"Appeal {action}d — {c.ticket_no}",
+                title=f"Appeal {action}d | {c.ticket_no}",
                 message=detail_msg + f"\n\nDecision: {action.upper()}\nStage: {stage.upper()}",
                 category=f'appeal_{action}d',
                 target_url="/portal/")
@@ -1710,8 +1850,8 @@ def blacklist_list(request):
             'type': 'plate',
             'reason': e.reason,
             'is_active': e.is_active,
-            'actor': (e.created_by.display_name if e.created_by else '—'),
-            'when': e.created_at.strftime('%d %b %Y %H:%M') if e.created_at else '—',
+            'actor': (e.created_by.display_name if e.created_by else '-'),
+            'when': e.created_at.strftime('%d %b %Y %H:%M') if e.created_at else '-',
             'created_at': e.created_at,
             'created_by': e.created_by,
         })
@@ -1719,15 +1859,15 @@ def blacklist_list(request):
         entries = AuditLog.objects.filter(action='blacklist.add').order_by('-timestamp')[:200]
         for e in entries:
             details = e.details if isinstance(e.details, dict) else {}
-            plate_val = details.get('plate') or '—'
+            plate_val = details.get('plate') or '-'
             rows.append({
                 'plate': plate_val,
                 'value': plate_val,
                 'type': details.get('type') or 'plate',
                 'reason': details.get('reason') or e.action,
                 'is_active': True,
-                'actor': (e.actor.display_name if e.actor else '—'),
-                'when': e.timestamp.strftime('%d %b %Y %H:%M') if e.timestamp else '—',
+                'actor': (e.actor.display_name if e.actor else '-'),
+                'when': e.timestamp.strftime('%d %b %Y %H:%M') if e.timestamp else '-',
                 'created_at': e.timestamp,
                 'created_by': e.actor,
             })
@@ -2143,7 +2283,7 @@ def generate_report(request):
             "h1{font-size:18px}table{border-collapse:collapse;width:100%}"
             "th,td{border:1px solid #ccc;padding:6px;text-align:left}"
             "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
-            "<h1>SafeCity FYP — Challan Report</h1>"
+            "<h1>SafeCity FYP | Challan Report</h1>"
             f"<p>Generated: {timezone.now().strftime('%Y-%m-%d %H:%M')} · Rows: {len(rows)}</p>"
             "<table><thead><tr><th>Ticket</th><th>Plate</th><th>Violation</th>"
             "<th>Amount</th><th>Issued</th><th>Status</th></tr></thead><tbody>"
@@ -2337,15 +2477,23 @@ def regional_command(request):
 
 @staff_required
 def camera_health(request):
-    cameras = Camera.objects.all().order_by('-installed_date')
-    total = cameras.count()
-    online = cameras.filter(health_status='online').count()
-    offline = cameras.filter(health_status='offline').count()
-    unknown = cameras.filter(health_status='unknown').count()
-    degraded = 0
+    """Camera health dashboard with KPI counters and server-side search (?q=)."""
+    q = (request.GET.get('q') or '').strip()
+    base = Camera.objects.all().order_by('-installed_date')
+    total = base.count()
+    online = base.filter(health_status='online').count()
+    offline = base.filter(health_status='offline').count()
+    unknown = base.filter(health_status='unknown').count()
+    degraded = base.filter(health_status='degraded').count()
+
+    cameras = base
+    if q:
+        cameras = base.filter(Q(camera_id__icontains=q) | Q(location__icontains=q))
+
     return render(request, 'dashboard/dig/camera_health.html', {
-        'cameras': cameras, 'total': total, 'online': online,
+        'cameras': list(cameras), 'total': total, 'online': online,
         'offline': offline, 'unknown': unknown, 'degraded': degraded,
+        'q': q,
     })
 
 
@@ -2656,7 +2804,7 @@ def camera_snapshot_json(request):
 @dig_required
 
 def dashboard_v2(request):
-    """Deprecated command-centre view — redirect to primary DIG dashboard."""
+    """Deprecated command-centre view - redirect to primary DIG dashboard."""
     from django.shortcuts import redirect
     return redirect('dig:dashboard')
 
@@ -2715,7 +2863,6 @@ def regional_heatmap(request):
         'samanabad': (31.5300, 74.3000),
         'shadman': (31.5400, 74.3300),
         'anarkali': (31.5700, 74.3100),
-        'lahore': (31.5204, 74.3587),
     }
 
     def _guess_coords(location_text):
@@ -2838,13 +2985,22 @@ def alerts_hub_add_alert(request):
             expires_at = None
     if is_active:
         Alert.objects.filter(is_active=True).update(is_active=False)
-    Alert.objects.create(
+    alert = Alert.objects.create(
         title=title, message=message, severity=severity,
         audience=audience, is_active=is_active,
         expires_at=expires_at,
         created_by=request.user,
     )
     AuditLog.write(request, 'alert.create', 'Alert', 0, title=title[:80])
+    # Realtime push notification to the targeted portal rooms (Socket.IO).
+    try:
+        from realtime.realtime_events import emit_portal_notification
+        emit_portal_notification(
+            title=title, message=message, severity=severity,
+            audiences=[audience] if audience else ['all'],
+        )
+    except Exception:
+        pass
     messages.success(request, f"Alert '{title}' created. Previous active alerts have been deactivated (max 1 active ticker policy).")
     return redirect(_alerts_hub_url('alerts', request))
 
@@ -3427,7 +3583,7 @@ def camera_stream_url(request, camera_id):
 
 @it_required
 def challan_template_designer(request):
-    """Visual A4 block designer — outputs Django HTML template for PDF."""
+    """Visual A4 block designer - outputs Django HTML template for PDF."""
     from admin.dig_portal.models import ChallanTemplate
     from admin.dig_portal.models import SystemSettings
     if request.method == 'POST':
@@ -3471,11 +3627,11 @@ def challan_template_designer(request):
     })
 
 
-@permission_required('live_tracking')  # H11 FIX: was @role_required('IT','OFFICER') — use permission matrix instead
+@permission_required('live_tracking')  # H11 FIX: was @role_required('IT','OFFICER') - use permission matrix instead
 def live_tracking(request):
     """Shared Live Tracking page for staff portals.
 
-    permission.json grants `live_tracking` to OFFICER + IT Support only —
+    permission.json grants `live_tracking` to OFFICER + IT Support only -
     DIG/SSP/Supervisor/Audit are intentionally excluded.
     """
     from admin.shared import LiveTrackingService
@@ -3562,7 +3718,7 @@ def camera_test(request, camera_id):
                                      'error': 'Endpoint reachable but the response is not a decodable image. Use a snapshot JPEG URL.'})
             return JsonResponse(_with_snapshot({
                 'ok': True, 'kind': 'http', 'latency_ms': latency,
-                'message': f'Snapshot OK — {frame.shape[1]}x{frame.shape[0]}',
+                'message': f'Snapshot OK - {frame.shape[1]}x{frame.shape[0]}',
             }, frame))
         except Exception as e:
             return JsonResponse({'ok': False, 'kind': 'http', 'error': f'Request failed: {e}'})
@@ -3583,7 +3739,7 @@ def camera_test(request, camera_id):
         if frame is not None:
             return JsonResponse(_with_snapshot({
                 'ok': True, 'kind': 'rtsp', 'latency_ms': latency,
-                'message': f'RTSP stream OK — {frame.shape[1]}x{frame.shape[0]}',
+                'message': f'RTSP stream OK - {frame.shape[1]}x{frame.shape[0]}',
             }, frame))
         return JsonResponse({
             'ok': False, 'kind': 'rtsp', 'latency_ms': latency,
@@ -3726,8 +3882,8 @@ def api_table_recent_detections(request):
     qs = qs[start:start + length]
     data = [{
         'id':         d.id,
-        'camera':     d.camera.camera_id if d.camera else (f'#{d.camera_id}' if d.camera_id else '—'),
-        'plate':      d.effective_plate or '—',
+        'camera':     d.camera.camera_id if d.camera else (f'#{d.camera_id}' if d.camera_id else '-'),
+        'plate':      d.effective_plate or '-',
         'confidence': round(float(d.ai_confidence or 0) * 100, 1),
         'status':     d.get_status_display(),
         'created_at': d.created_at.strftime('%Y-%m-%d %H:%M'),
@@ -3774,7 +3930,7 @@ def _client_ip(request):
 
 @dig_required
 def admin_reset_request_list(request):
-    """List all pending admin password reset requests — DIG only."""
+    """List all pending admin password reset requests - DIG only."""
     from accounts.models import AdminPasswordResetRequest
 
     pending = (
@@ -3874,4 +4030,66 @@ def admin_reset_password(request, token):
         'page_title': 'Reset Admin Password',
         'req': req,
         'target': target,
+    })
+
+
+@role_required('DIG')
+def audit_templates_select(request):
+    """DIG portal: select-only page for the active audit report PDF template.
+
+    DIG may activate any built-in or database template but cannot create,
+    edit or delete templates (that is IT Support's job).
+    """
+    from admin.audit_portal.audit_pdf import (BUILTIN_TEMPLATES,
+                                              generate_audit_pdf,
+                                              get_active_template_key,
+                                              get_audit_templates,
+                                              get_template_preview_html)
+    from .models import AuditPDFTemplate
+
+    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
+    sample_key = (request.GET.get('sample') or '').strip()
+    if sample_key:
+        if sample_key not in {t['key'] for t in get_audit_templates()}:
+            return HttpResponse('Unknown template key.', status=404)
+        pdf_bytes = generate_audit_pdf('dashboard', {}, sample_key)
+        if not pdf_bytes:
+            return HttpResponse('PDF engine unavailable.', status=503)
+        resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+        resp['Content-Disposition'] = (
+            f'inline; filename="audit_sample_{sample_key.replace(":", "_")}.pdf"')
+        return resp
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+        key = (request.POST.get('template_key') or '').strip()
+        valid_keys = {t['key'] for t in get_audit_templates()}
+        if action != 'activate':
+            messages.error(
+                request,
+                "DIG access is select-only. Template creation, editing and deletion "
+                "are performed by IT Support.")
+        elif key not in valid_keys:
+            messages.error(request, "Unknown template selection.")
+        else:
+            sys_settings = SystemSettings.get()
+            sys_settings.audit_pdf_template = key
+            sys_settings.save(update_fields=['audit_pdf_template'])
+            if key.startswith('db:'):
+                AuditPDFTemplate.objects.filter(pk=key[3:]).update(is_active=True)
+            AuditLog.write(request, 'audit_template.select', 'SystemSettings', None,
+                           template=key)
+            messages.success(request, f"Active audit PDF template set to '{key}'.")
+        return redirect('dig:audit_templates_select')
+
+    templates = []
+    for t in get_audit_templates():
+        item = dict(t)
+        item['preview_html'] = get_template_preview_html(t['key'])
+        templates.append(item)
+    return render(request, 'dashboard/dig/audit_templates_select.html', {
+        'templates': templates,
+        'active_template_key': get_active_template_key(),
+        'builtin_count': len(BUILTIN_TEMPLATES),
+        'db_count': sum(1 for t in templates if not t['is_builtin']),
     })

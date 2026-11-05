@@ -1,0 +1,82 @@
+/* ==========================================================================
+   DIG PORTAL - Audit PDF Templates (dig-audit-templates)
+   Select-only page: preview cards + activate action
+   ========================================================================== */
+
+.dig-aud-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: var(--sc-radius, 14px);
+  background: #FFFFFF;
+  box-shadow: var(--sc-shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dig-aud-card:hover { border-color: #B9C9E8; box-shadow: 0 8px 20px rgba(15, 37, 87, 0.10); }
+
+.dig-aud-card-active {
+  border-color: #0F766E;
+  box-shadow: 0 6px 18px rgba(15, 118, 110, 0.16);
+  background: linear-gradient(180deg, rgba(15, 118, 110, 0.05), #FFFFFF 42%);
+}
+
+.dig-aud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dig-aud-key {
+  font-size: 0.68rem;
+  color: var(--sc-text-muted, #5B6B85);
+  background: #F1F4F9;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.dig-aud-name {
+  margin: 0 0 4px 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--sc-navy-deep, #0F2557);
+  line-height: 1.3;
+}
+
+.dig-aud-blurb {
+  margin: 0 0 10px 0;
+  font-size: 0.74rem;
+  color: var(--sc-text-muted, #5B6B85);
+}
+
+/* Sandboxed A4 preview frame (browser chrome strip above the iframe) */
+.dig-aud-frame {
+  display: block;
+  width: 100%;
+  height: 300px;
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: 10px;
+  background: #FFFFFF;
+  box-shadow: inset 0 18px 0 -17px #F1F4F9;
+}
+
+/* Card action rows */
+.dig-aud-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.dig-aud-actions form { margin: 0; }
+
+@media (max-width: 576px) {
+  .dig-aud-frame { height: 240px; }
+  .dig-aud-actions .sc-btn { flex: 1 1 auto; justify-content: center; }
+}

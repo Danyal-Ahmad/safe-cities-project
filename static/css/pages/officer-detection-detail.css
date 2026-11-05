@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Detection Detail (officer-detection-detail)
+   Officer | Detection Detail (officer-detection-detail)
    Evidence images, 5-check security panel, notes and officer actions.
    ========================================================================== */
 
@@ -359,3 +359,8 @@
   .sc-evidence-grid { grid-template-columns: 1fr; }
   .sc-evidence-meta { grid-template-columns: 1fr; }
 }
+
+/* --- 3-frame sequential evidence viewer --- */
+@keyframes scRecBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
+.seq-frame-btn { transition: border-color .15s ease; }
+.seq-frame-btn:hover img { opacity: 1 !important; }

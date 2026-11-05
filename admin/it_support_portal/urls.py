@@ -31,6 +31,7 @@ urlpatterns = [
     path('pdf-settings/', views.pdf_settings, name='pdf_settings'),
     path('challan-templates/', dig_views.challan_templates_manage, name='challan_templates'),
     path('challan-templates/designer/', dig_views.challan_template_designer, name='challan_template_designer'),
+    path('audit-templates/', views.audit_templates_manage, name='audit_templates'),
     path('backups/', dig_views.backup_list, name='backup_list'),
     path('backups/download/<str:filename>/', dig_views.backup_download, name='backup_download'),
     path('alerts/', dig_views.alerts_hub, name='alerts_hub'),

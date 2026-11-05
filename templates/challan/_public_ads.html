@@ -1,4 +1,10 @@
-{% load static %}
+{% comment %}
+  Public ads partial (included only by challan/home.html).
+  Static strip: placement='ad' banners (homepage_banners) - small subtle chips.
+  Popup: placement='popup' banners (popup_banners) - modal on the home page only.
+  JS contract (static/js/pages/public-ads.js): #scfPopupOverlay, .scf-popup-close,
+  sessionStorage key 'scf_popup_dismissed'. Keep these IDs/classes intact.
+{% endcomment %}
 {% if homepage_banners %}
   <div class="scf-public-ads-banner">
     {% for ad in homepage_banners %}
@@ -22,7 +28,7 @@
   {% with ad=popup_banners.0 %}
   <div class="scf-popup-overlay" id="scfPopupOverlay" data-ad-id="{{ ad.id }}">
     <div class="scf-popup-modal">
-      <button class="scf-popup-close" data-dismiss-popup aria-label="Close">×</button>
+      <button class="scf-popup-close" data-dismiss-popup aria-label="Close">&times;</button>
       {% if ad.html_content %}
         <div class="scf-popup-body">{{ ad.html_content|safe }}</div>
       {% elif ad.image %}
@@ -35,5 +41,5 @@
       {% endif %}
     </div>
   </div>
-    {% endwith %}
+  {% endwith %}
 {% endif %}

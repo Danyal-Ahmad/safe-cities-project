@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="44" viewBox="0 0 120 44">
+  <rect x="1" y="1" width="118" height="42" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <circle cx="24" cy="22" r="13" fill="#16a34a"/>
+  <path d="M17 21 L21 25 L31 18" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="42" y="19" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#16a34a">Easy</text>
+  <text x="42" y="34" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#1f2937">Paisa</text>
+</svg>

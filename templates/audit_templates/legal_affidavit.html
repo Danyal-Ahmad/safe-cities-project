@@ -1,0 +1,177 @@
+{# Legal attestation affidavit - serif, numbered clauses, sworn statement, seal #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 12mm 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; font-size: 8.4px; color: #17140e;
+         margin: 0; padding: 0; line-height: 1.45; background: #fff; }
+
+  .la-header { text-align: center; border-bottom: 2px double #17140e; padding-bottom: 6px; }
+  .la-header h1 { font-size: 16px; margin: 0; font-weight: 900; letter-spacing: 2.2px;
+                  text-transform: uppercase; }
+  .la-header h2 { font-size: 8px; margin: 3px 0 0 0; font-weight: 700; letter-spacing: 1.6px;
+                  text-transform: uppercase; color: #40392b; }
+  .la-logos { display: flex; align-items: center; justify-content: center; margin-top: 7px; }
+  .la-logos img { height: 38px; width: auto; object-fit: contain; }
+  .la-logo-sep { font-size: 24px; color: #17140e; margin: 0 10px; }
+
+  .la-title { text-align: center; margin-top: 8px; }
+  .la-title .la-doc { font-size: 11.5px; font-weight: 900; letter-spacing: 1.6px;
+                      text-transform: uppercase; }
+  .la-title .la-kind { font-size: 8.6px; font-style: italic; color: #40392b; margin-top: 2px; }
+
+  .la-meta { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #17140e;
+             margin-top: 7px; }
+  .la-meta div { padding: 3px 6px; border-right: 1px solid #17140e; font-size: 7px;
+                 font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; }
+  .la-meta div:last-child { border-right: none; }
+  .la-meta span { display: block; font-weight: 400; font-size: 6.8px; color: #40392b;
+                  letter-spacing: 0.2px; }
+
+  .la-clauses { margin-top: 8px; }
+  .la-clause { margin-bottom: 6px; text-align: justify; }
+  .la-clause b.la-no { font-variant: small-caps; font-size: 8.6px; letter-spacing: 0.5px; }
+
+  .la-sworn { border: 2px solid #17140e; padding: 6px 9px; margin-top: 7px;
+              background: #fbfaf7; }
+  .la-sworn h3 { margin: 0 0 3px 0; text-align: center; font-size: 8.6px; font-weight: 900;
+                 letter-spacing: 2px; text-transform: uppercase; }
+  .la-sworn p { margin: 0 0 4px 0; font-size: 8px; text-align: justify; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .la-annex th { background: #efece4; border: 1px solid #17140e; font-size: 6.9px;
+                 padding: 3px 5px; text-transform: uppercase; letter-spacing: 0.9px;
+                 text-align: left; font-weight: 900; }
+  .la-annex td { border: 1px solid #6b6353; padding: 2.8px 5px; font-size: 7.3px; }
+  .la-annex tr:nth-child(even) td { background: #faf8f3; }
+  .la-more { font-size: 6.7px; color: #40392b; font-style: italic; margin-top: 2px; }
+
+  .la-attest { display: flex; justify-content: space-between; margin-top: 14px; }
+  .la-sign { width: 47%; text-align: center; }
+  .la-seal { width: 74px; height: 74px; border: 2px solid #17140e; border-radius: 50%;
+             margin: 0 auto 4px auto; text-align: center; padding-top: 24px;
+             font-size: 6.2px; letter-spacing: 1.2px; text-transform: uppercase;
+             color: #17140e; font-weight: 700; line-height: 1.3; }
+  .la-sign .la-line { border-top: 1px solid #17140e; margin-top: 22px; padding-top: 2px;
+                      font-size: 7.6px; font-weight: 900; }
+  .la-sign .la-sub { font-size: 6.9px; color: #40392b; font-style: italic; }
+  .la-sign .la-date { font-size: 6.9px; color: #40392b; margin-top: 1px; }
+
+  .la-witness { margin-top: 12px; border-top: 1px solid #17140e; padding-top: 6px; }
+  .la-witness .la-wline { display: flex; justify-content: space-between; margin-top: 12px; }
+  .la-witness .la-wcol { width: 46%; }
+  .la-witness .la-wname { border-bottom: 1px dotted #40392b; height: 14px; }
+  .la-witness .la-wlabel { font-size: 6.6px; color: #40392b; letter-spacing: 0.5px;
+                           text-transform: uppercase; margin-top: 2px; }
+
+  .la-footer { margin-top: 12px; border-top: 2px double #17140e; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.6px;
+               font-weight: 700; letter-spacing: 0.4px; }
+</style>
+</head>
+<body>
+
+<div class="la-header">
+  <h1>Safe Cities Project</h1>
+  <h2>Attestation and Statutory Declarations Section (Internal)</h2>
+  <div class="la-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="la-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+<div class="la-title">
+  <div class="la-doc">Affidavit of Audit Attestation</div>
+  <div class="la-kind">Re: {{ kind_label }} | Period: {{ period_label }}</div>
+</div>
+
+<div class="la-meta">
+  <div>Instrument No.<span>{{ doc_ref }}</span></div>
+  <div>Executed On<span>{{ generated_at_str }}</span></div>
+  <div>Page<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="la-clauses">
+  <div class="la-clause"><b class="la-no">I.</b> That the deponent is the duly appointed
+    auditor of the Safe Cities Project and is competent to attest the records produced
+    herein by virtue of office held within the Internal Audit function.</div>
+  <div class="la-clause"><b class="la-no">II.</b> That the figures and tables annexed to
+    this affidavit (Annexure A) were extracted from the operational records of the Safe
+    Cities Project on {{ generated_at_str }} and are true and correct to the best of the
+    deponent's knowledge and belief.</div>
+  <div class="la-clause"><b class="la-no">III.</b> That the audit trail referenced herein
+    is maintained in an append-only ledger and no post-facto alteration of the underlying
+    entries has been observed during the period under attestation.</div>
+  <div class="la-clause"><b class="la-no">IV.</b> That any anomaly, exception or
+    qualification identified during the audit has been faithfully recorded in this report
+    and communicated to the oversight authority without concealment.</div>
+</div>
+
+<div class="la-sworn">
+  <h3>Sworn Statement</h3>
+  <p>I, the undersigned, do solemnly affirm and declare that the contents of this
+     affidavit and its annexures are true and correct, that nothing material has been
+     concealed therefrom, and that I make this declaration conscientiously believing the
+     same to be true.</p>
+</div>
+
+<div class="la-clause" style="margin-top:7px;"><b class="la-no">V.</b> <b>Annexure A</b> -
+  Material figures attested: {% for k in kpis %}{{ k.label }}: {{ k.value }}{% if not forloop.last %}; {% endif %}{% endfor %}.
+  Detailed extract of {{ table.shown }} of {{ table.total }} record(s) follows.</div>
+
+<table class="la-annex">
+  <thead>
+    <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% empty %}
+    <tr><td colspan="{{ table.columns|length }}">Annexure empty - no records in scope of attestation.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if more_rows > 0 %}<div class="la-more">+{{ more_rows }} more rows in system (annexure truncated for a single-page instrument).</div>{% endif %}
+
+<div class="la-attest">
+  <div class="la-sign">
+    <div class="la-seal">Seal of<br>Office</div>
+    <div class="la-line">Deponent (Senior Auditor)</div>
+    <div class="la-sub">Name and designation of attesting auditor</div>
+    <div class="la-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="la-sign">
+    <div class="la-seal">Attest<br>Seal</div>
+    <div class="la-line">Commissioner for Oaths / Attesting Officer</div>
+    <div class="la-sub">Name and designation of attesting officer</div>
+    <div class="la-date">Date: ____ / ____ / ________</div>
+  </div>
+</div>
+
+<div class="la-witness">
+  <div class="la-wline">
+    <div class="la-wcol">
+      <div class="la-wname"></div>
+      <div class="la-wlabel">Witness 1 | Signature, name and address</div>
+    </div>
+    <div class="la-wcol">
+      <div class="la-wname"></div>
+      <div class="la-wlabel">Witness 2 | Signature, name and address</div>
+    </div>
+  </div>
+</div>
+
+<div class="la-footer">
+  <span>Instrument Ref: {{ doc_ref }}</span>
+  <span>Computer generated audit document</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

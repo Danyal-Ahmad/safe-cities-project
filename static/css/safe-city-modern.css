@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAFE CITY — Modern Components  (v3.0 · reference-matched)
+   SAFE CITY | Modern Components  (v3.0 · reference-matched)
    Hero banner · KPI cards · balance card · quick actions · md-table · live
    ========================================================================== */
 
@@ -30,7 +30,7 @@
 }
 
 /* ==========================================================================
-   HERO BANNER — blue gradient with illustration (reference design)
+   HERO BANNER | blue gradient with illustration (reference design)
    ========================================================================== */
 
 .md-hero {
@@ -534,7 +534,7 @@
 .md-4 { grid-column: span 4; }
 
 /* ==========================================================================
-   BOOTSTRAP HARMONIZATION — keep raw .card/.table pages on-brand
+   BOOTSTRAP HARMONIZATION - keep raw .card/.table pages on-brand
    ========================================================================== */
 
 .card { background: #FFFFFF; border: 1px solid var(--sc-border, #E4E8EF); border-radius: var(--md-radius-lg); box-shadow: var(--md-shadow); color: var(--sc-text, #33415C); }

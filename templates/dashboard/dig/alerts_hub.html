@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Alert Hub — Safe City{% endblock %}
+{% block title %}Alert Hub | Safe City{% endblock %}
 {% block page_title %}Alert Hub{% endblock %}
 
 {% block extra_head %}
@@ -11,7 +11,7 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-bell-fill"></i> Alert Hub</h1>
-    <p class="sc-lead">Live alerts, public banners and staff broadcasts — all announcements in one place.</p>
+    <p class="sc-lead">Live alerts, public banners and staff broadcasts - all announcements in one place.</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <button type="button" class="sc-btn sc-btn-primary" data-bs-toggle="modal" data-bs-target="#newAlertModal"><i class="bi bi-plus-circle"></i> New Alert</button>
@@ -115,7 +115,7 @@
       </div>
     </div>
     {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-bell-slash"></i><p>No alerts yet — create one to notify staff or citizens.</p></div></div>
+    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-bell-slash"></i><p>No alerts yet - create one to notify staff or citizens.</p></div></div>
     {% endfor %}
   </div>
 
@@ -199,7 +199,7 @@
       </div>
     </div>
     {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-badge-ad"></i><p>No banners — create one so it can appear on the public home page.</p></div></div>
+    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-badge-ad"></i><p>No banners - create one so it can appear on the public home page.</p></div></div>
     {% endfor %}
   </div>
 
@@ -271,7 +271,7 @@
       </div>
     </div>
     {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-broadcast-pin"></i><p>No broadcasts sent yet — use "New Broadcast" above to push a notification to every recipient's bell icon.</p></div></div>
+    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-broadcast-pin"></i><p>No broadcasts sent yet - use "New Broadcast" above to push a notification to every recipient's bell icon.</p></div></div>
     {% endfor %}
   </div>
 
@@ -350,7 +350,7 @@
             <div class="sc-form-group"><label>Audience</label>
               <select name="audience">
                 <option value="all">Everyone (public + staff)</option>
-                <option value="citizens">Public service — Citizens only</option>
+                <option value="citizens">Public service | Citizens only</option>
                 <option value="staff">All Staff</option>
                 <option value="dig">DIG only</option>
                 <option value="ssp">SSP only</option>
@@ -382,7 +382,7 @@
         {% csrf_token %}
         <div class="modal-header"><h5 class="modal-title"><i class="bi bi-megaphone me-2"></i>New Broadcast</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
-          <p class="sc-text-sm sc-text-muted" style="margin-bottom:14px;">Sends a real notification straight to the bell icon of every recipient in the selected audience — not just a log entry.</p>
+          <p class="sc-text-sm sc-text-muted" style="margin-bottom:14px;">Sends a real notification straight to the bell icon of every recipient in the selected audience - not just a log entry.</p>
           <div class="sc-form-group"><label>Title *</label><input name="title" required></div>
           <div class="sc-form-group"><label>Message *</label><textarea name="body" rows="3" required></textarea></div>
           <div class="sc-form-group"><label>Audience</label>
@@ -452,7 +452,7 @@
             <div class="sc-form-group"><label>Placement</label>
               <select name="placement" id="editBannerPlacement">
                 <option value="popup">Popup</option><option value="top">Top bar</option>
-                <option value="bottom">Bottom of page</option><option value="ad">Banner — Public Service Announcement Space</option>
+                <option value="bottom">Bottom of page</option><option value="ad">Banner | Public Service Announcement Space</option>
               </select>
             </div>
             <div class="sc-form-group"><label>Audience</label>

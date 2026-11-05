@@ -12,7 +12,7 @@ ROLE_PROFILES = {
     },
     User.SSP: {
         'designation': 'Senior Superintendent of Police',
-        'department':  'Traffic Police',
+        'department':  'Traffic Enforcement',
         'region':      'City Region',
         'staff_id_prefix': 'PSC-SSP',
         'rank':        'BPS-19',
@@ -54,7 +54,7 @@ ROLE_PROFILES = {
 
 
 PROVINCE_CHOICES = [
-    ('punjab',     'Punjab'),
+    ('federal',    'Federal'),
     ('sindh',      'Sindh'),
     ('kp',         'Khyber Pakhtunkhwa'),
     ('balochistan','Balochistan'),
@@ -64,7 +64,7 @@ PROVINCE_CHOICES = [
 ]
 
 DISTRICT_CHOICES = [
-    ('lahore',      'Lahore'),
+    ('central',     'Central'),
     ('rawalpindi',  'Rawalpindi'),
     ('faisalabad',  'Faisalabad'),
     ('multan',      'Multan'),
@@ -76,9 +76,9 @@ DISTRICT_CHOICES = [
 ]
 
 CITY_CHOICES = [
-    ('lahore-cantt',    'Lahore Cantt'),
-    ('lahore-city',     'Lahore City'),
-    ('lahore-sadar',    'Lahore Sadar'),
+    ('cantt',           'Cantt'),
+    ('city',            'City'),
+    ('sadar',           'Sadar'),
     ('rawalpindi-city', 'Rawalpindi City'),
     ('islamabad-i8',    'Islamabad I-8'),
     ('islamabad-g9',    'Islamabad G-9'),
@@ -88,17 +88,17 @@ CITY_CHOICES = [
 OFFICE_CHOICES = [
     ('cpo',           'Central Police Office'),
     ('ccpo',          'Capital City Police Office'),
-    ('tpo-town-A',    'Town Police Office — Town A'),
-    ('tpo-town-B',    'Town Police Office — Town B'),
-    ('sector-1',      'Sector Office — Sector 1'),
-    ('sector-2',      'Sector Office — Sector 2'),
+    ('tpo-town-A',    'Town Police Office | Town A'),
+    ('tpo-town-B',    'Town Police Office | Town B'),
+    ('sector-1',      'Sector Office | Sector 1'),
+    ('sector-2',      'Sector Office | Sector 2'),
     ('audit-wing',    'Audit Wing, CPO'),
     ('it-wing',       'IT Wing, CPO'),
 ]
 
 DEPARTMENT_CHOICES = [
     ('safecity',     'Safe City Authority'),
-    ('traffic',       'Traffic Police'),
+    ('traffic',       'Traffic Enforcement'),
     ('enforcement',  'Traffic Enforcement Wing'),
     ('field-unit',   'Field Enforcement Unit'),
     ('audit',        'Internal Audit & Compliance'),

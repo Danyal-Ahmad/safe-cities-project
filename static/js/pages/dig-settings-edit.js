@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DIG — System Settings  (dashboard/dig/settings_edit.html)
+   DIG | System Settings  (dashboard/dig/settings_edit.html)
    Secret visibility toggles · integration-mode warning · change tracking
    ========================================================================== */
 (function () {

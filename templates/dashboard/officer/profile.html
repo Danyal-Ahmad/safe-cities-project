@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}My Profile — Officer Portal{% endblock %}
+{% block title %}My Profile | Officer Portal{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/officer-profile.css' %}">
 {% endblock %}
@@ -33,15 +33,15 @@
       <dl class="sc-meta-list sc-mt-3">
         <div class="sc-meta-row">
           <dt>Email</dt>
-          <dd class="sc-text-sm">{{ profile_user.email|default:"—" }}</dd>
+          <dd class="sc-text-sm">{{ profile_user.email|default:"-" }}</dd>
         </div>
         <div class="sc-meta-row">
           <dt>Phone</dt>
-          <dd class="sc-text-sm">{{ profile_user.phone|default:"—" }}</dd>
+          <dd class="sc-text-sm">{{ profile_user.phone|default:"-" }}</dd>
         </div>
         <div class="sc-meta-row">
           <dt>Department</dt>
-          <dd class="sc-text-sm">{{ profile_user.department|default:"—" }}</dd>
+          <dd class="sc-text-sm">{{ profile_user.department|default:"-" }}</dd>
         </div>
         {% if profile_user.staff_id %}
         <div class="sc-meta-row">
@@ -59,7 +59,7 @@
         </div>
         <div class="sc-meta-row">
           <dt>Last Login</dt>
-          <dd class="sc-text-sm">{{ profile_user.last_login|date:"d M Y, H:i"|default:"—" }}</dd>
+          <dd class="sc-text-sm">{{ profile_user.last_login|date:"d M Y, H:i"|default:"-" }}</dd>
         </div>
       </dl>
     </div>
@@ -84,8 +84,8 @@
           <div class="col-md-6">
             <label class="sc-form-label" for="departmentInput">Department</label>
             <input type="text" id="departmentInput" name="department" value="{{ profile_user.department|default:'' }}"
-                   class="sc-form-control" placeholder="Traffic Police" autocomplete="organization">
-            <div class="sc-hint">e.g. Traffic Police, Highway Patrol, City Enforcement.</div>
+                   class="sc-form-control" placeholder="Traffic Enforcement" autocomplete="organization">
+            <div class="sc-hint">e.g. Traffic Enforcement, Highway Patrol, City Enforcement.</div>
           </div>
         </div>
         <div class="sc-flex sc-items-center sc-justify-between sc-mt-3 sc-flex-wrap sc-gap-2">
@@ -107,25 +107,25 @@
       <dl class="sc-meta-list">
         <div class="sc-meta-row">
           <dt>Badge Number</dt>
-          <dd class="sc-mono">{{ op.badge_number|default:"—" }}</dd>
+          <dd class="sc-mono">{{ op.badge_number|default:"-" }}</dd>
         </div>
         <div class="sc-meta-row">
           <dt>Rank</dt>
-          <dd>{{ op.rank|default:"—" }}</dd>
+          <dd>{{ op.rank|default:"-" }}</dd>
         </div>
         <div class="sc-meta-row">
           <dt>Unit</dt>
-          <dd>{{ op.unit|default:"—" }}</dd>
+          <dd>{{ op.unit|default:"-" }}</dd>
         </div>
         <div class="sc-meta-row">
           <dt>Station</dt>
-          <dd>{{ op.station|default:"—" }}</dd>
+          <dd>{{ op.station|default:"-" }}</dd>
         </div>
         <div class="sc-meta-row">
           <dt>Shift Preference</dt>
           <dd>
             <span class="sc-badge {% if op.shift_preference == 'DAY' %}sc-badge-amber{% elif op.shift_preference == 'NIGHT' %}sc-badge-blue{% else %}sc-badge-teal{% endif %}">
-              <i class="bi bi-clock"></i> {{ op.get_shift_preference_display|default:"—" }}
+              <i class="bi bi-clock"></i> {{ op.get_shift_preference_display|default:"-" }}
             </span>
           </dd>
         </div>

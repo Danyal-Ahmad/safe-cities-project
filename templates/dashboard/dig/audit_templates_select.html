@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Audit PDF Templates - DIG Portal{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Audit PDF Templates</b>{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-audit-templates.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-file-earmark-pdf me-2" style="color:#0F766E;"></i>Audit Report PDF Templates</h1>
+    <p class="sc-lead">Select the print layout used when exporting audit reports from the audit portal. DIG access is select-only; template design and management is handled by IT Support.</p>
+  </div>
+  <div class="sc-flex sc-gap-2 sc-flex-wrap">
+    <span class="sc-badge sc-badge-purple"><i class="bi bi-shield-lock me-1"></i>Select only</span>
+    <a href="{% url 'audit_portal:dashboard' %}" class="sc-btn"><i class="bi bi-grid-1x2 me-1"></i>Audit Portal</a>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-collection"></i> Available layouts</div>
+    <div class="sc-kpi-value">{{ templates|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">built-in + database templates</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-file-earmark-ruled"></i> Built-in designs</div>
+    <div class="sc-kpi-value">{{ builtin_count|default:8 }}</div>
+    <div class="sc-kpi-foot">standard audit document styles</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-database"></i> Database templates</div>
+    <div class="sc-kpi-value">{{ db_count|default:0 }}</div>
+    <div class="sc-kpi-foot">created by IT Support</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-label"><i class="bi bi-check2-square"></i> Active layout</div>
+    <div class="sc-kpi-value" style="font-size:1.0rem;"><span class="sc-mono">{{ active_template_key|default:"government_classic" }}</span></div>
+    <div class="sc-kpi-foot">used by every audit PDF export</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-palette"></i>
+    <span>Audit Template Library</span>
+    <span class="ms-auto sc-text-sm sc-text-muted">
+      <i class="bi bi-info-circle me-1"></i>Previews show placeholder sample data.
+    </span>
+  </div>
+  <div class="sc-card-body">
+    <div class="row g-3">
+      {% for t in templates %}
+      <div class="col-md-6 col-xl-4">
+        <div class="dig-aud-card{% if t.key == active_template_key %} dig-aud-card-active{% endif %}">
+          <div class="dig-aud-head">
+            <span class="dig-aud-key sc-mono">{{ t.key }}</span>
+            {% if t.key == active_template_key %}
+            <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle me-1"></i>Active</span>
+            {% elif t.is_builtin %}
+            <span class="sc-badge sc-badge-gray">Built-in</span>
+            {% else %}
+            <span class="sc-badge sc-badge-purple">Database</span>
+            {% endif %}
+          </div>
+          <h3 class="dig-aud-name">{{ t.name }}</h3>
+          <p class="dig-aud-blurb">{{ t.blurb }}</p>
+          <iframe class="dig-aud-frame" srcdoc="{{ t.preview_html }}" title="Preview of {{ t.name }}" sandbox="" loading="lazy"></iframe>
+          <form method="post" action="{% url 'dig:audit_templates_select' %}" class="dig-aud-actions">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="activate">
+            <input type="hidden" name="template_key" value="{{ t.key }}">
+            {% if t.key == active_template_key %}
+            <button type="submit" class="sc-btn sc-btn-sm" disabled><i class="bi bi-check2-circle me-1"></i>Current Layout</button>
+            {% else %}
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
+            {% endif %}
+            <a href="?sample={{ t.key }}" class="sc-btn sc-btn-sm" target="_blank" rel="noopener">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Sample PDF
+            </a>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="sc-empty p-5 text-center">
+          <i class="bi bi-file-earmark-x fs-1 opacity-25 d-block mb-3"></i>
+          No audit templates are available. Ask IT Support to publish one.
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header"><i class="bi bi-shield-check"></i> Access Rules</div>
+  <div class="sc-card-body">
+    <ul class="mb-0">
+      <li>DIG may <b>activate</b> any built-in or database template for all audit PDF exports.</li>
+      <li>DIG may download a <b>sample PDF</b> for any layout before activating it.</li>
+      <li>Creating, editing and deleting templates is restricted to <b>IT Support</b> (<span class="sc-mono">/portal/it/audit-templates/</span>).</li>
+      <li>The active template applies to every audit page's "Export PDF" button across the audit portal.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

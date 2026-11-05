@@ -1,0 +1,58 @@
+/* ============================================================================
+   SAFE CITIES PROJECT | Public guest payment page
+   Loaded after public-home.css (shared dark glass system).
+   ============================================================================ */
+
+.scpub-guest-pay .scpub-inner {
+  max-width: 560px;
+  justify-content: center;
+}
+
+.pgp-card { padding: 30px 34px; }
+
+.pgp-brand { justify-content: flex-start; margin-bottom: 22px; }
+.pgp-brand .scpub-logos img { width: 46px; height: 46px; }
+.pgp-brand .scpub-logos img + img { width: 40px; height: 40px; }
+.pgp-brand-title { font-size: 16px; letter-spacing: 1.4px; }
+
+.pgp-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #F0F4F8;
+}
+.pgp-sub {
+  font-size: 12.5px;
+  color: rgba(232, 240, 255, 0.65);
+  margin: 6px 0 18px;
+}
+.pgp-sub .scpub-mono { color: #93c5fd; }
+
+.pgp-summary {
+  margin-bottom: 14px;
+  border: 1px solid rgba(96, 165, 250, 0.10);
+  border-radius: 10px;
+  padding: 4px 14px;
+  background: rgba(8, 18, 46, 0.4);
+}
+
+.pgp-bank { margin-top: 16px; }
+.pgp-bank-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: rgba(232, 240, 255, 0.6);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.pgp-bank-title i { color: #60a5fa; }
+
+.pgp-back { margin-top: 10px; width: 100%; }
+
+@media (max-width: 600px) {
+  .pgp-card { padding: 22px 18px; }
+  .pgp-brand { justify-content: center; }
+  .scpub-brand-text { text-align: center; }
+}

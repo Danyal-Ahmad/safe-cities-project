@@ -24,6 +24,12 @@ class SystemSettings(models.Model):
                    "templates/challan/challan_templates/ without .html. "
                    "DB template = 'db:<ChallanTemplate id>'."
     )
+    audit_pdf_template = models.CharField(
+        max_length=100, default='government_classic', blank=True,
+        help_text="Active audit report PDF template key. Built-in = filename under "
+                   "templates/audit_templates/ without .html. "
+                   "DB template = 'db:<AuditPDFTemplate id>'."
+    )
     excise_api_url = models.CharField(max_length=255, null=True, blank=True)
     excise_api_key = models.CharField(max_length=255, null=True, blank=True)
     nadra_api_url = models.CharField(max_length=255, null=True, blank=True,
@@ -48,7 +54,7 @@ class SystemSettings(models.Model):
         'over_speed': 800, 'other': 500,
     }
     DEFAULT_TEMPLATE_CONFIG = {
-        'header_text': 'SAFE CITY — TRAFFIC ENFORCEMENT',
+        'header_text': 'SAFE CITY | TRAFFIC ENFORCEMENT',
         'logo_path': '',
         'account_number': 'SAFECITY-CHALLAN-00123456789',
         'footer_text': 'Pay at any National Bank of Pakistan branch or Post Office before the due date.',
@@ -93,7 +99,7 @@ class SystemSettings(models.Model):
         'reject_person': False,
     }
     DEFAULT_EMAIL_TEMPLATE = {
-        'subject': 'New E-Challan Issued — {ticket_no}',
+        'subject': 'New E-Challan Issued | {ticket_no}',
         'body': 'A new e-challan has been issued for vehicle {plate_number}. View: {view_link}',
     }
 
@@ -155,7 +161,7 @@ class AuditLog(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.timestamp:%Y-%m-%d %H:%M} — {self.actor} — {self.action}"
+        return f"{self.timestamp:%Y-%m-%d %H:%M} | {self.actor} - {self.action}"
 
     @classmethod
     def write(cls, request, action, target_model='', target_id=None, **details):
@@ -259,7 +265,7 @@ class Banner(models.Model):
     PLACEMENT_CHOICES = [
         (PLACEMENT_TOP, 'Top of page'),
         (PLACEMENT_BOTTOM, 'Bottom of page'),
-        (PLACEMENT_AD, 'Banner — Public Service Announcement Space'),
+        (PLACEMENT_AD, 'Banner | Public Service Announcement Space'),
         (PLACEMENT_POPUP, 'POPUP banner'),
     ]
     AUDIENCE_ALL = 'all'
@@ -319,6 +325,14 @@ class Banner(models.Model):
         default=True,
         help_text="V7.1: Auto-hide the banner once the visitor submits a challan search."
     )
+
+    def save(self, *args, **kwargs):
+        # Stored-XSS guard: banner HTML is rendered |safe on public pages, so
+        # every write path sanitizes executable constructs at the model layer.
+        from admin.dig_portal.sanitize import sanitize_banner_html
+        if self.html_content:
+            self.html_content = sanitize_banner_html(self.html_content)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'sc_banners'
@@ -508,6 +522,29 @@ class ChallanTemplate(models.Model):
         super().save(*args, **kwargs)
 
 
+class AuditPDFTemplate(models.Model):
+    """Custom HTML layout for audit report PDF exports (Canva-lite library)."""
+    name = models.CharField(max_length=120)
+    description = models.CharField(max_length=255, blank=True, default="")
+    html_content = models.TextField(blank=True, default="")
+    is_active = models.BooleanField(default=False)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                     on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'sc_audit_pdf_templates'
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            AuditPDFTemplate.objects.exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
+
+
 class BlacklistEntry(models.Model):
     """Flagged vehicle plates blocked from normal processing."""
     plate_number = models.CharField(max_length=20, unique=True, db_index=True)
@@ -526,4 +563,4 @@ class BlacklistEntry(models.Model):
         verbose_name_plural = 'Blacklist entries'
 
     def __str__(self):
-        return f"{self.plate_number} — {self.reason[:40]}"
+        return f"{self.plate_number} | {self.reason[:40]}"

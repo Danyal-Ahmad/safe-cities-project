@@ -1,4 +1,4 @@
-/* Public popup ad dismiss — extracted from templates/challan/_public_ads.html */
+/* Public popup ad dismiss - extracted from templates/challan/_public_ads.html */
 (function () {
   'use strict';
 

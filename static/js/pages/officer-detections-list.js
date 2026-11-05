@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Detections List (officer-detections-list.js)
+   Officer | Detections List (officer-detections-list.js)
    Clickable rows: navigate to the detection detail page.
    ========================================================================== */
 (function () {

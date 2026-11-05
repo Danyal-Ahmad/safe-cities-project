@@ -1,0 +1,165 @@
+{# Classic government audit memorandum - black and white, double ruled #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #111;
+         margin: 0; padding: 0; line-height: 1.3; background: #fff; }
+
+  /* Double-ruled memorandum header */
+  .gc-header { border: 3px double #000; padding: 6px 8px;
+               display: flex; justify-content: space-between; align-items: center; }
+  .gc-office { text-align: left; }
+  .gc-office h1 { font-size: 15px; margin: 0; font-weight: 900; letter-spacing: 1.6px;
+                  text-transform: uppercase; color: #000; }
+  .gc-office h2 { font-size: 8px; margin: 2px 0 0 0; font-weight: 700; letter-spacing: 0.8px;
+                  text-transform: uppercase; color: #000; }
+  .gc-office .gc-kind { font-size: 8.5px; margin-top: 3px; font-weight: 700; color: #000;
+                        text-transform: uppercase; letter-spacing: 0.4px; }
+  .gc-logos { display: flex; align-items: center; }
+  .gc-logos img { height: 40px; width: auto; object-fit: contain; display: block; }
+  .gc-logo-sep { font-size: 26px; font-weight: 400; color: #000; margin: 0 7px; }
+
+  /* Reference number strip */
+  .gc-refstrip { display: grid; grid-template-columns: 2fr 1.4fr 1fr 1.2fr;
+                 border: 1px solid #000; border-top: none; }
+  .gc-refstrip div { padding: 3px 6px; border-right: 1px solid #000; font-size: 7px;
+                     color: #000; font-weight: 700; text-transform: uppercase;
+                     letter-spacing: 0.4px; }
+  .gc-refstrip div:last-child { border-right: none; }
+  .gc-refstrip span { display: block; font-weight: 400; font-size: 6.5px; color: #333;
+                      letter-spacing: 0.2px; }
+
+  .gc-sect { border: 1px solid #000; border-top: none; background: #f2f2f2;
+             padding: 2px 6px; font-size: 7px; font-weight: 900; letter-spacing: 1.4px;
+             text-transform: uppercase; color: #000; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .gc-data { border: 1px solid #000; border-top: none; }
+  .gc-data th { background: #e4e4e4; color: #000; font-size: 6.8px; text-transform: uppercase;
+                letter-spacing: 0.5px; border: 1px solid #000; padding: 2.5px 4px; text-align: left; }
+  .gc-data td { border: 1px solid #000; padding: 2.5px 4px; font-size: 7px; color: #111;
+                vertical-align: top; }
+  .gc-data tr:nth-child(even) td { background: #fafafa; }
+  .gc-more { border: 1px solid #000; border-top: none; background: #fff; padding: 2px 6px;
+             font-size: 6.5px; font-style: italic; color: #333; }
+
+  .gc-kpis { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #000;
+             border-top: none; }
+  .gc-kpi { padding: 4px 6px; border-right: 1px solid #000; }
+  .gc-kpi:last-child { border-right: none; }
+  .gc-kpi b { display: block; font-size: 6.3px; color: #444; text-transform: uppercase;
+              letter-spacing: 0.4px; font-weight: 700; }
+  .gc-kpi span { display: block; font-size: 10.5px; font-weight: 900; color: #000; }
+  .gc-kpi i { display: block; font-size: 6px; color: #555; font-style: italic; }
+
+  .gc-sigs { display: flex; justify-content: space-between; margin-top: 12px; }
+  .gc-sig { width: 46%; border: 1px solid #000; padding: 5px 7px; }
+  .gc-sig .gc-stampbox { float: right; width: 46px; height: 40px; border: 1px dashed #555;
+                         font-size: 5.5px; color: #555; text-align: center; padding-top: 10px;
+                         text-transform: uppercase; letter-spacing: 0.6px; }
+  .gc-sig .gc-role { font-size: 7px; font-weight: 900; text-transform: uppercase;
+                     letter-spacing: 0.8px; margin-bottom: 12px; }
+  .gc-sig .gc-line { border-top: 1px solid #000; padding-top: 2px; font-size: 6.8px;
+                     color: #000; font-weight: 700; }
+  .gc-sig .gc-sub { font-size: 6.3px; color: #333; }
+  .gc-sig .gc-date { border-top: 1px dotted #666; margin-top: 6px; padding-top: 2px;
+                     font-size: 6.3px; color: #333; }
+
+  .gc-footer { margin-top: 10px; border-top: 2px solid #000; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.3px;
+               color: #000; font-weight: 700; letter-spacing: 0.3px; }
+  .gc-footer .gc-computer { text-align: center; font-style: italic; font-weight: 400; }
+</style>
+</head>
+<body>
+
+<div class="gc-header">
+  <div class="gc-office">
+    <h1>Safe Cities Project</h1>
+    <h2>Office of the Auditor General (Internal)</h2>
+    <div class="gc-kind">{{ kind_label }}</div>
+  </div>
+  <div class="gc-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="gc-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+<div class="gc-refstrip">
+  <div>Reference No.<span>{{ doc_ref }}</span></div>
+  <div>Date of Issue<span>{{ generated_at_str }}</span></div>
+  <div>Pages<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="gc-sect">Executive Summary Figures</div>
+<div class="gc-kpis">
+  {% for k in kpis %}
+  <div class="gc-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+  {% empty %}
+  <div class="gc-kpi"><b>Report Status</b><span>Compiled</span><i>no KPI data in scope</i></div>
+  {% endfor %}
+</div>
+
+<div class="gc-sect">Schedule A - Record of Entries ({{ table.shown }} of {{ table.total }})</div>
+<table class="gc-data">
+  <thead>
+    <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% empty %}
+    <tr><td colspan="{{ table.columns|length }}">No records in scope for this audit report.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if more_rows > 0 %}<div class="gc-more">+{{ more_rows }} more rows in system (schedule truncated for single-page memorandum).</div>{% endif %}
+
+{% if distribution_grid %}
+<div class="gc-sect" style="margin-top:8px;">Schedule B - Distribution Statement</div>
+<table class="gc-data">
+  <thead>
+    <tr><th style="width:22%;">Category / Violation</th><th>Count</th>
+        <th style="width:14%;">Status</th><th>Count</th>
+        <th style="width:22%;">Location</th><th>Count</th></tr>
+  </thead>
+  <tbody>
+    {% for g in distribution_grid %}
+    <tr><td>{{ g.0 }}</td><td>{{ g.1 }}</td><td>{{ g.2 }}</td><td>{{ g.3 }}</td><td>{{ g.4 }}</td><td>{{ g.5 }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<div class="gc-sigs">
+  <div class="gc-sig">
+    <div class="gc-stampbox">Stamp<br>Here</div>
+    <div class="gc-role">Senior Auditor</div>
+    <div class="gc-line">Name: ______________________________</div>
+    <div class="gc-sub">Designation: Senior Auditor, Internal Audit</div>
+    <div class="gc-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="gc-sig">
+    <div class="gc-stampbox">Stamp<br>Here</div>
+    <div class="gc-role">Director Audit</div>
+    <div class="gc-line">Name: ______________________________</div>
+    <div class="gc-sub">Designation: Director, Office of the Auditor General (Internal)</div>
+    <div class="gc-date">Date: ____ / ____ / ________</div>
+  </div>
+</div>
+
+<div class="gc-footer">
+  <span>Ref: {{ doc_ref }}</span>
+  <span class="gc-computer">Computer generated audit document</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

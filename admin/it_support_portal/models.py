@@ -64,7 +64,7 @@ class PaymentMethod(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.provider}) — {self.status}"
+        return f"{self.name} ({self.provider}) | {self.status}"
 
     @property
     def is_active(self):

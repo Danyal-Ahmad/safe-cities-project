@@ -1,4 +1,4 @@
-/* DIG admin password reset — extracted from templates/dashboard/dig/admin_reset_password.html */
+/* DIG admin password reset - extracted from templates/dashboard/dig/admin_reset_password.html */
 (function () {
   'use strict';
 

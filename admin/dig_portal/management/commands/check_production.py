@@ -29,21 +29,21 @@ class Command(BaseCommand):
         self.stdout.write(self.style.MIGRATE_HEADING('\nSafeCity production readiness\n'))
 
         if settings.DEBUG:
-            fail('DEBUG is True — set DEBUG=False in production .env')
+            fail('DEBUG is True - set DEBUG=False in production .env')
         else:
             ok('DEBUG=False')
 
         sk = settings.SECRET_KEY or ''
         if sk.startswith('safe-city-fyp-demo') or sk == 'test-secret-key-not-for-production-phase9':
-            fail('SECRET_KEY is still the demo/test default — set a strong unique key')
+            fail('SECRET_KEY is still the demo/test default - set a strong unique key')
         elif len(sk) < 40:
-            warn('SECRET_KEY looks short (< 40 chars) — prefer 50+ random chars')
+            warn('SECRET_KEY looks short (< 40 chars) - prefer 50+ random chars')
         else:
             ok('SECRET_KEY is set and not the demo default')
 
         hosts = list(settings.ALLOWED_HOSTS or [])
         if hosts == ['*'] or not hosts:
-            fail('ALLOWED_HOSTS is * or empty — set explicit hostnames')
+            fail('ALLOWED_HOSTS is * or empty - set explicit hostnames')
         else:
             ok(f'ALLOWED_HOSTS = {hosts}')
 

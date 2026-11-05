@@ -1,4 +1,4 @@
-/* Supervisor Operations dashboard — extracted from templates/dashboard/supervisor/dashboard.html */
+/* Supervisor Operations dashboard - extracted from templates/dashboard/supervisor/dashboard.html */
 (function () {
   'use strict';
 

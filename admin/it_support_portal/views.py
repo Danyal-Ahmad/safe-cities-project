@@ -1,5 +1,6 @@
 import platform
 
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
@@ -37,8 +38,8 @@ def dashboard(request):
     detections_total = Detection.objects.count()
     detections_24h = Detection.objects.filter(created_at__gte=last_24h).count()
     detections_7d = Detection.objects.filter(created_at__gte=last_7d).count()
-    detections_confirmed = Detection.objects.filter(status__in=['confirmed', 'auto_confirmed']).count()
-    detections_pending = Detection.objects.filter(status='pending').count()
+    detections_confirmed = Detection.objects.filter(status=Detection.CONFIRMED).count()
+    detections_pending = Detection.objects.filter(status=Detection.PENDING).count()
 
     challans_total = Challan.objects.count()
     challans_paid = Challan.objects.filter(payment_status='PAID').count()
@@ -115,7 +116,7 @@ def dashboard(request):
 
 @it_required
 def pdf_settings(request):
-    """Legacy URL — PDF settings live under System Settings tab."""
+    """Legacy URL - PDF settings live under System Settings tab."""
     from django.shortcuts import redirect
     return redirect('/portal/it/settings/?tab=pdf-settings')
 
@@ -370,6 +371,119 @@ def live_tracking_timeline(request):
         'items': items,
         'count': len(items),
         'camera_not_found': svc.camera_not_found,
+    })
+
+
+@it_required
+def audit_templates_manage(request):
+    """IT Support: full control over audit report PDF templates (Canva-lite)."""
+    from admin.audit_portal.audit_pdf import (BUILTIN_TEMPLATES,
+                                              generate_audit_pdf,
+                                              get_active_template_key,
+                                              get_audit_templates,
+                                              get_template_preview_html)
+    from admin.dig_portal.models import (AuditPDFTemplate, AuditLog,
+                                         SystemSettings)
+
+    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
+    sample_key = (request.GET.get('sample') or '').strip()
+    if sample_key:
+        if sample_key not in {t['key'] for t in get_audit_templates()}:
+            return HttpResponse('Unknown template key.', status=404)
+        pdf_bytes = generate_audit_pdf('dashboard', {}, sample_key)
+        if not pdf_bytes:
+            return HttpResponse('PDF engine unavailable.', status=503)
+        resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+        resp['Content-Disposition'] = (
+            f'inline; filename="audit_sample_{sample_key.replace(":", "_")}.pdf"')
+        return resp
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+        sys_settings = SystemSettings.get()
+
+        if action == 'create_audit_template':
+            name = (request.POST.get('template_name') or '').strip()
+            description = (request.POST.get('template_description') or '').strip()
+            html = (request.POST.get('html_content') or '').strip()
+            if not name or not html:
+                messages.error(request, "Template name and HTML content are required.")
+                return redirect('it_support_portal:audit_templates')
+            obj = AuditPDFTemplate.objects.create(
+                name=name, description=description, html_content=html,
+                is_active=False, uploaded_by=request.user)
+            AuditLog.write(request, 'audit_template.create', 'AuditPDFTemplate', obj.id,
+                           name=obj.name)
+            messages.success(request, f"Audit template '{obj.name}' created.")
+            return redirect('it_support_portal:audit_templates')
+
+        if action == 'update_audit_template':
+            tid = request.POST.get('template_id') or ''
+            obj = AuditPDFTemplate.objects.filter(pk=tid).first()
+            if not obj:
+                messages.error(request, "Template not found.")
+                return redirect('it_support_portal:audit_templates')
+            obj.name = (request.POST.get('template_name') or '').strip() or obj.name
+            obj.description = (request.POST.get('template_description') or '').strip()
+            obj.html_content = (request.POST.get('html_content') or '').strip() or obj.html_content
+            obj.save()
+            AuditLog.write(request, 'audit_template.update', 'AuditPDFTemplate', obj.id,
+                           name=obj.name)
+            messages.success(request, f"Template '{obj.name}' updated.")
+            return redirect('it_support_portal:audit_templates')
+
+        if action == 'delete_audit_template':
+            tid = request.POST.get('template_id') or ''
+            obj = AuditPDFTemplate.objects.filter(pk=tid).first()
+            if not obj:
+                messages.error(request, "Template not found.")
+                return redirect('it_support_portal:audit_templates')
+            name = obj.name
+            was_active = (sys_settings.audit_pdf_template == f'db:{obj.pk}')
+            obj.delete()
+            if was_active:
+                sys_settings.audit_pdf_template = 'government_classic'
+                sys_settings.save(update_fields=['audit_pdf_template'])
+            AuditLog.write(request, 'audit_template.delete', 'AuditPDFTemplate', None,
+                           name=name)
+            msg = f"Template '{name}' deleted."
+            if was_active:
+                msg += " Active layout reverted to 'government_classic'."
+            messages.success(request, msg)
+            return redirect('it_support_portal:audit_templates')
+
+        if action == 'activate_audit_template':
+            key = (request.POST.get('template_key') or '').strip()
+            valid_keys = {t['key'] for t in get_audit_templates()}
+            if key not in valid_keys:
+                messages.error(request, "Unknown template key.")
+                return redirect('it_support_portal:audit_templates')
+            sys_settings.audit_pdf_template = key
+            sys_settings.save(update_fields=['audit_pdf_template'])
+            if key.startswith('db:'):
+                AuditPDFTemplate.objects.filter(pk=key[3:]).update(is_active=True)
+            AuditLog.write(request, 'audit_template.activate', 'SystemSettings', None,
+                           template=key)
+            messages.success(request, f"Active audit PDF template set to '{key}'.")
+            return redirect('it_support_portal:audit_templates')
+
+        messages.error(request, "Unrecognised audit template action.")
+        return redirect('it_support_portal:audit_templates')
+
+    templates = []
+    for t in get_audit_templates():
+        item = dict(t)
+        item['preview_html'] = get_template_preview_html(t['key'])
+        templates.append(item)
+    db_templates = list(AuditPDFTemplate.objects.all())
+    for ct in db_templates:
+        ct.preview_html = get_template_preview_html(f'db:{ct.pk}')
+    return render(request, 'dashboard/it_support/audit_templates.html', {
+        'templates': templates,
+        'db_templates': db_templates,
+        'active_template_key': get_active_template_key(),
+        'builtin_count': len(BUILTIN_TEMPLATES),
+        'db_count': len(db_templates),
     })
 
 

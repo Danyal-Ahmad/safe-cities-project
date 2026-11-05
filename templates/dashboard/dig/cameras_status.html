@@ -1,110 +1,193 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Camera Status — Safe City{% endblock %}
-
+{% load perm_tags %}
+{% block title %}Cameras Status | SAFE CITIES PROJECT{% endblock %}
 {% block body_class %}page-dig{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dig-cameras-status.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="cams-dark">
 
-<div class="sc-page-hero">
- <div>
- <h1><i class="bi bi-camera-video me-2"></i>Camera Status</h1>
- <p class=" opacity-75">Real-time health monitoring</p>
- </div>
- <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
-</div>
+  <!-- ======== Hero ======== -->
+  <div class="cd-hero">
+    <div>
+      <h1 class="cd-title"><i class="bi bi-broadcast"></i> Camera Status</h1>
+      <p class="cd-sub">Real-time health monitoring across the enforcement camera network.</p>
+    </div>
+    <div class="cd-actions">
+      {% if request.user|has_perm:"view_live_monitor" %}
+      <a class="cd-btn cd-btn-primary" href="{% url portal_ns|add:':live_monitor' %}">
+        <i class="bi bi-camera-video"></i> Live CCTV Wall
+      </a>
+      {% endif %}
+      <a class="cd-btn" href="{% url portal_ns|add:':camera_health' %}">
+        <i class="bi bi-heart-pulse"></i> Health Dashboard
+      </a>
+      {% if request.resolver_match.namespace == 'dig' or request.resolver_match.namespace == 'it_support_portal' or request.resolver_match.namespace == 'it' %}
+      <a class="cd-btn" href="{% url portal_ns|add:':camera_list' %}">
+        <i class="bi bi-camera-video"></i> Registry
+      </a>
+      {% endif %}
+    </div>
+  </div>
 
-<div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Total</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ cameras|length }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Online</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ online_count|default:cameras|length }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Degraded</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ degraded_count|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Last Check</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ now|date:"H:i"|default:"—" }}</div>
- </div>
- </div>
-</div>
+  <!-- ======== KPI chips ======== -->
+  <div class="cd-kpis">
+    <div class="cd-kpi">
+      <span class="cd-kpi-label"><i class="bi bi-camera-video"></i> Total Cameras</span>
+      <span class="cd-kpi-value">{{ total_count|default:0 }}</span>
+    </div>
+    <div class="cd-kpi cd-kpi-online">
+      <span class="cd-kpi-label"><span class="cd-kpi-dot"></span> Online</span>
+      <span class="cd-kpi-value">{{ online_count|default:0 }}</span>
+    </div>
+    <div class="cd-kpi cd-kpi-degraded">
+      <span class="cd-kpi-label"><i class="bi bi-exclamation-triangle"></i> Degraded</span>
+      <span class="cd-kpi-value">{{ degraded_count|default:0 }}</span>
+    </div>
+    <div class="cd-kpi cd-kpi-offline">
+      <span class="cd-kpi-label"><i class="bi bi-camera-video-off"></i> Offline</span>
+      <span class="cd-kpi-value">{{ offline_count|default:0 }}</span>
+    </div>
+    <div class="cd-kpi cd-kpi-unknown">
+      <span class="cd-kpi-label"><i class="bi bi-question-circle"></i> Unknown</span>
+      <span class="cd-kpi-value">{{ unknown_count|default:0 }}</span>
+    </div>
+    <div class="cd-kpi cd-kpi-time">
+      <span class="cd-kpi-label"><i class="bi bi-clock"></i> Last Check</span>
+      <span class="cd-kpi-value cd-kpi-value-time">{{ now|date:"d M, H:i"|default:"-" }}</span>
+    </div>
+  </div>
 
-<div>
- <div class="card-header ">
- <span><i class="bi bi-circle me-2"></i>All Cameras</span>
- <span class="badge bg-secondary">{{ cameras|length }}</span>
- </div>
- <div class="p-0">
- <div class="table-responsive">
- {% if cameras %}
- <table class="table table-hover table-sm align-middle">
- <thead>
- <tr>
- <th>Camera ID</th>
- <th>Location</th>
- <th>Health</th>
- <th>Active</th>
- <th>Last Check</th>
- <th></th>
- </tr>
- </thead>
- <tbody>
- {% for c in cameras %}
- <tr>
- <td class="form-control font-monospace">{{ c.camera_id|default:c.id }}</td>
- <td>{{ c.location|default:"—" }}</td>
- <td>
- {% if c.health_status == 'online' %}
- <span class="badge ">Online</span>
- {% elif c.health_status == 'degraded' %}
- <span class="badge ">Degraded</span>
- {% else %}
- <span class="badge ">{{ c.health_status|default:"offline" }}</span>
- {% endif %}
- </td>
- <td>
- {% if c.is_active %}<span class="badge ">Yes</span>
- {% else %}<span class="badge ">No</span>{% endif %}
- </td>
- <td class="small ">{{ c.last_health_check|date:"d M Y H:i"|default:"—" }}</td>
- <td>
- {% if request.resolver_match.namespace == 'it_support_portal' or request.resolver_match.namespace == 'it' %}
- <a href="{% url portal_ns|add:':camera_edit' c.id %}" class="sc-btn sc-btn-primary" title="Edit"><i class="bi bi-circle"></i>
- {% else %}
- <span class=" small">—</span>
- {% endif %}
- </td>
- </tr>
- {% endfor %}
- </tbody>
- </table>
- {% else %}
- <div class="empty-state"><i class=" cameras registered.</div>
- {% endif %}
- </div>
- </div>
+  <!-- ======== Search + filters ======== -->
+  <form method="get" class="cd-filter-bar" data-camera-filters
+        data-server-filtered="{% if q %}1{% else %}0{% endif %}">
+    <div class="cd-filter-search">
+      <i class="bi bi-search"></i>
+      <input type="search" name="q" value="{{ q }}" autocomplete="off"
+             placeholder="Search camera by area, ID or name" aria-label="Search camera by area, ID or name"
+             data-camera-search>
+    </div>
+    <select class="cd-filter-select" aria-label="Health status" data-camera-health-filter>
+      <option value="">All health states</option>
+      <option value="online">Online</option>
+      <option value="degraded">Degraded</option>
+      <option value="offline">Offline</option>
+      <option value="unknown">Unknown</option>
+    </select>
+    <select class="cd-filter-select" aria-label="Active state" data-camera-active-filter>
+      <option value="">Active &amp; inactive</option>
+      <option value="active">Active only</option>
+      <option value="inactive">Inactive only</option>
+    </select>
+    <button type="submit" class="cd-btn cd-btn-sm cd-btn-primary">
+      <i class="bi bi-search"></i> Search
+    </button>
+    <button type="button" class="cd-btn cd-btn-sm" data-camera-filter-reset>
+      <i class="bi bi-arrow-counterclockwise"></i> Reset
+    </button>
+  </form>
+
+  {% if q %}
+  <div class="cd-server-note">
+    <i class="bi bi-funnel-fill"></i>
+    Server-filtered by <strong>&quot;{{ q }}&quot;</strong>
+    <span class="cd-note-count">{{ cameras|length }} match{{ cameras|length|pluralize:"es" }}</span>
+    <a href="{{ request.path }}">Clear</a>
+  </div>
+  {% endif %}
+
+  <!-- ======== Status table ======== -->
+  {% if cameras %}
+  <div class="cd-table-wrap">
+    <table class="cd-table">
+      <thead>
+        <tr>
+          <th>Camera</th>
+          <th>Area / Location</th>
+          <th>Direction</th>
+          <th>Enforcement Side</th>
+          <th>Health</th>
+          <th>Active</th>
+          <th>Streaming</th>
+          <th>Last Check</th>
+          <th>Last Frame</th>
+          {% if request.resolver_match.namespace == 'it_support_portal' or request.resolver_match.namespace == 'it' %}
+          <th class="text-end">Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cameras %}
+        <tr data-camera-row
+            data-camera-id="{{ c.camera_id|lower }}"
+            data-location="{{ c.location|lower }}"
+            data-dir="{{ c.legal_direction|lower }}"
+            data-side="{{ c.violation_side|lower }}"
+            data-health="{{ c.health_status|default:'unknown' }}"
+            data-active="{% if c.is_active %}active{% else %}inactive{% endif %}">
+          <td>
+            <span class="cd-cam-id"><i class="bi bi-camera-video"></i>{{ c.camera_id|default:c.id }}</span>
+          </td>
+          <td>{{ c.location|default:"-" }}</td>
+          <td><span class="cd-chip cd-chip-dir">{{ c.get_legal_direction_display }}</span></td>
+          <td><span class="cd-chip cd-chip-side-{{ c.violation_side|default:'back' }}">{{ c.violation_side|default:"back"|upper }}</span></td>
+          <td>
+            <span class="cd-chip cd-chip-{{ c.health_status|default:'unknown' }}">
+              <span class="cd-chip-dot"></span>{{ c.health_status|default:"unknown"|capfirst }}
+            </span>
+          </td>
+          <td>
+            {% if c.is_active %}<span class="cd-chip cd-chip-on"><i class="bi bi-power"></i> Active</span>
+            {% else %}<span class="cd-chip cd-chip-off"><i class="bi bi-power"></i> Disabled</span>{% endif %}
+          </td>
+          <td>
+            {% if c.is_streaming %}<span class="cd-chip cd-chip-stream"><i class="bi bi-play-circle"></i> Live</span>
+            {% else %}<span class="cd-chip cd-chip-muted"><i class="bi bi-pause-circle"></i> Paused</span>{% endif %}
+          </td>
+          <td class="cd-time">{{ c.last_health_check|date:"d M Y, H:i"|default:"Never" }}</td>
+          <td class="cd-time">{{ c.last_frame_at|date:"d M Y, H:i"|default:"No frames yet" }}</td>
+          {% if request.resolver_match.namespace == 'it_support_portal' or request.resolver_match.namespace == 'it' %}
+          <td class="text-end">
+            <a href="{% url portal_ns|add:':camera_edit' c.id %}" class="cd-btn cd-btn-sm" title="Edit camera">
+              <i class="bi bi-pencil-square"></i> Edit
+            </a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cd-empty" data-camera-empty hidden>
+    <i class="bi bi-funnel"></i>
+    No cameras match the current filters.
+  </div>
+  {% else %}
+  <div class="cd-empty">
+    <i class="bi bi-camera-video-off"></i>
+    {% if q %}
+    No cameras match <strong>&quot;{{ q }}&quot;</strong>.
+    <p><a class="cd-empty-link" href="{{ request.path }}">Clear search</a></p>
+    {% else %}
+    No cameras registered yet.
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <p class="cd-foot-note">
+    <i class="bi bi-info-circle"></i>
+    Health is refreshed from the latest worker heartbeats. Degraded means frames stopped arriving
+    within the last check window. Configuration changes are made by IT Support.
+  </p>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-camera-list.js' %}" defer></script>
 {% endblock %}

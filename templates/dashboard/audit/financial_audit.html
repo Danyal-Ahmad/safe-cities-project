@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Financial Audit — SAFE CITY FYP{% endblock %}
+{% block title %}Financial Audit | SAFE CITY FYP{% endblock %}
 {% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Financial audit</b>{% endblock %}
 
 {% block content %}
@@ -10,7 +10,10 @@
     <h1><i class="bi bi-cash-coin"></i> Financial Audit</h1>
     <p class="sc-lead">Payment trail + challan revenue verification</p>
   </div>
-  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
+  <div class="sc-flex sc-gap-2 sc-items-center">
+    <span class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</span>
+    <a href="{% url 'audit_portal:export_pdf' 'financial' %}" class="sc-btn sc-btn-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Export PDF</a>
+  </div>
 </div>
 
 <div class="sc-kpi-grid">
@@ -38,9 +41,9 @@
       <tbody>
         {% for p in payments %}
         <tr>
-          <td class="sc-text-sm">{{ p.paid_at|date:"d M Y H:i"|default:"—" }}</td>
-          <td class="sc-mono">{% if p.id %}<a href="{% url 'challans:challan_detail' p.id %}">{{ p.ticket_no }}</a>{% else %}{{ p.ticket_no|default:"—" }}{% endif %}</td>
-          <td class="sc-mono sc-text-sm">{{ p.plate_number|default:"—" }}</td>
+          <td class="sc-text-sm">{{ p.paid_at|date:"d M Y H:i"|default:"-" }}</td>
+          <td class="sc-mono">{% if p.id %}<a href="{% url 'challans:challan_detail' p.id %}">{{ p.ticket_no }}</a>{% else %}{{ p.ticket_no|default:"-" }}{% endif %}</td>
+          <td class="sc-mono sc-text-sm">{{ p.plate_number|default:"-" }}</td>
           <td><b>PKR {{ p.fine_amount|floatformat:0|intcomma|default:0 }}</b></td>
           <td><span class="sc-badge sc-badge-green">Paid</span></td>
         </tr>

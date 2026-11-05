@@ -1,4 +1,4 @@
-/* AI Review Queue hotkeys — extracted from templates/dashboard/officer/review_queue.html */
+/* AI Review Queue hotkeys - extracted from templates/dashboard/officer/review_queue.html */
 (function () {
   'use strict';
 
@@ -69,5 +69,39 @@
     const fade = function () { img.style.opacity = '0.15'; };
     img.addEventListener('error', fade);
     if (img.complete && img.naturalWidth === 0) fade();
+  });
+})();
+
+// --- 3-frame sequential evidence viewer (shared triage partial) ---
+(function () {
+  var main = document.getElementById('detailTargetImage');
+  var strip = document.getElementById('seqFrameStrip');
+  var tag = document.getElementById('seqFrameTag');
+  if (!main || !strip) return;
+
+  function sources() {
+    return Array.prototype.slice.call(document.querySelectorAll('.seq-frame-src'));
+  }
+
+  function selectSlot(slot) {
+    var srcs = sources();
+    var chosen = srcs.filter(function (s) { return s.dataset.frameSlot === String(slot); })[0];
+    if (chosen) {
+      main.src = chosen.src;
+      if (tag) {
+        tag.textContent = chosen.dataset.frameLabel + ' / ' + (srcs.length < 10 ? '0' : '') + srcs.length;
+      }
+    }
+    Array.prototype.forEach.call(strip.querySelectorAll('.seq-frame-btn'), function (b) {
+      var active = b.dataset.frameSlot === String(slot);
+      b.style.borderColor = active ? '#38bdf8' : '#334155';
+      var im = b.querySelector('img');
+      if (im) im.style.opacity = active ? '1' : '0.65';
+    });
+  }
+
+  strip.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.seq-frame-btn') : null;
+    if (btn) selectSlot(btn.dataset.frameSlot);
   });
 })();

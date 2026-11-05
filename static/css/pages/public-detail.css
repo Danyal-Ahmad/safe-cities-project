@@ -1,0 +1,177 @@
+/* ============================================================================
+   SAFE CITIES PROJECT | Public challan detail page
+   Loaded after public-home.css (shared dark glass system).
+   ============================================================================ */
+
+.scpub-detail .scpub-inner { max-width: 1040px; }
+
+/* Back link */
+.pd-back { display: flex; margin-bottom: 14px; }
+
+/* Compact hero */
+.pd-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.pd-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #F0F4F8;
+  letter-spacing: 0.01em;
+}
+.pd-title .scpub-mono { color: #93c5fd; }
+.pd-meta {
+  margin: 6px 0 10px;
+  font-size: 13px;
+  color: rgba(232, 240, 255, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pd-meta-sep { color: rgba(96, 165, 250, 0.4); }
+.pd-meta-amount { font-weight: 800; color: #fbbf24; }
+.pd-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pd-hero-actions .scpub-btn,
+.pd-hero-actions .scpub-btn-ghost { width: auto; }
+
+/* Two column layout */
+.pd-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.pd-col-main,
+.pd-col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+/* Evidence */
+.pd-evidence {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  gap: 14px;
+}
+.pd-evidence-fig { margin: 0; min-width: 0; }
+.pd-evidence-fig img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid rgba(96, 165, 250, 0.14);
+  background: #060d24;
+  min-height: 120px;
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+.pd-evidence-fig img.is-broken { opacity: 0.15; }
+.pd-evidence-fig figcaption {
+  margin-top: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(232, 240, 255, 0.4);
+}
+
+/* Appeal */
+.pd-hint {
+  font-size: 11px;
+  color: rgba(232, 240, 255, 0.4);
+  margin-top: 5px;
+}
+.scpub-file {
+  width: 100%;
+  font-size: 13px;
+  color: rgba(232, 240, 255, 0.75);
+  background: rgba(8, 18, 46, 0.7);
+  border: 1px solid rgba(96, 165, 250, 0.15);
+  border-radius: 12px;
+  padding: 10px 14px;
+  outline: none;
+}
+.scpub-file::file-selector-button {
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 9px;
+  background: rgba(96, 165, 250, 0.08);
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+.pd-appeals { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(96, 165, 250, 0.10); }
+.pd-appeals-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(232, 240, 255, 0.45);
+  margin-bottom: 8px;
+}
+.pd-appeal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: rgba(232, 240, 255, 0.8);
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(96, 165, 250, 0.10);
+}
+.pd-appeal-row:last-child { border-bottom: none; }
+.pd-appeal-date { font-size: 12px; color: rgba(232, 240, 255, 0.5); }
+
+/* Actions column */
+.pd-actions { display: flex; flex-direction: column; gap: 10px; }
+.pd-actions .scpub-btn-ghost { width: 100%; }
+
+/* Officer signature */
+.pd-officer { margin-bottom: 12px; }
+.pd-officer-name { font-size: 15px; font-weight: 700; color: #F0F4F8; }
+.pd-officer-role { font-size: 12.5px; color: rgba(232, 240, 255, 0.55); }
+.pd-sign-box {
+  position: relative;
+  min-height: 88px;
+  background: #ffffff;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.pd-sign-box img { max-height: 64px; max-width: 100%; object-fit: contain; }
+.pd-sign-stamp {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  height: 50px;
+  width: 50px;
+  opacity: 0.7;
+  object-fit: contain;
+}
+.pd-sign-empty {
+  font-size: 12px;
+  color: #8A94B0;
+  padding: 24px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .pd-grid { grid-template-columns: 1fr; }
+  .pd-evidence { grid-template-columns: 1fr; }
+  .pd-hero { flex-direction: column; align-items: flex-start; }
+  .pd-hero-actions { width: 100%; }
+  .pd-hero-actions .scpub-btn { flex: 1; }
+}

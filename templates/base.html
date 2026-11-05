@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Safe City{% endblock %} &mdash; Safe City</title>
+  <title>{% block title %}Safe City{% endblock %} &middot; SAFE CITIES PROJECT</title>
   <meta name="theme-color" content="#1E4E9C">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
 
@@ -14,6 +14,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+  <!-- Tailwind CSS (Play CDN) layered alongside Bootstrap. preflight stays
+       disabled so Bootstrap's base styling is never reset. The inline config
+       below is required by the Play CDN and is the only inline script in this
+       template - it is opted in per request via the CSP nonce issued by
+       SecurityHeadersMiddleware (request.csp_nonce), so it keeps working when
+       script-src 'unsafe-inline' is eventually dropped. Utilities generated at
+       runtime land after the Bootstrap stylesheet, so Tailwind wins where both
+       apply at equal specificity. See static/css/tailwind-bridge.css for the
+       bridge notes. CSP note: production CSP_SCRIPT_SRC
+       (wrongway_system/settings.py - single source of truth) must allow
+       https://cdn.tailwindcss.com for this to load with DEBUG=False. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script nonce="{{ request.csp_nonce }}">
+    tailwind.config = {
+      darkMode: 'class',
+      corePlugins: { preflight: false },
+      theme: {
+        extend: {
+          colors: {
+            safenavy: '#0F2557',
+            safeblue: '#2563EB',
+            safeink: '#16294E',
+            safepage: '#E8EEF7'
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
@@ -22,10 +53,17 @@
     <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-public.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-modern.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tailwind-bridge.css' %}">
 
   {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}sc-app{% endblock %}">
+<!-- data-env drives static/js/console-guard.js: console output is silenced
+     only in production. This requires django.template.context_processors.debug
+     to be registered to ever render "development"; without it the safe
+     default is production. data-user-role feeds static/js/realtime-socket.js. -->
+<body class="{% block body_class %}sc-app{% endblock %}"
+      data-env="{% if debug %}development{% else %}production{% endif %}"
+      data-user-role="{{ user.role|lower }}">
 
 <div class="sc-app">
 
@@ -72,7 +110,7 @@
         </form>
       </div>
       <div class="sc-topbar-right">
-        <div class="sc-clock" id="scClock">&mdash;&mdash;:&mdash;&mdash;:&mdash;&mdash;</div>
+        <div class="sc-clock" id="scClock">--:--:--</div>
         <div class="sc-user-menu">
           <button type="button" class="sc-user-btn" id="scUserBtn" aria-haspopup="true" aria-expanded="false">
             <div class="sc-user-info">
@@ -118,6 +156,10 @@
     </header>
     {% endif %}
 
+    {% if user.is_authenticated and user.role != 'USER' %}
+    {% include '_partials/portal_ticker.html' %}
+    {% endif %}
+
     {% if messages %}
     <div class="sc-messages">
       {% for m in messages %}
@@ -136,8 +178,8 @@
 
     {% if user.is_authenticated %}
     <footer class="sc-footer">
-      <span>&copy; 2026 Safe City FYP &middot; All Rights Reserved</span>
-      <span>v1.0 &middot; SafeCity</span>
+      <span>&copy; 2026 SAFE CITIES PROJECT &middot; All Rights Reserved</span>
+      <span>v1.0 &middot; SAFE CITIES PROJECT</span>
     </footer>
     {% endif %}
   </div>
@@ -174,6 +216,24 @@
 <script src="{% static 'js/safe-city-live.js' %}" defer></script>
 <script src="{% static 'js/safe-city-print.js' %}" defer></script>
 <script src="{% static 'js/safe-city-charts-data.js' %}" defer></script>
+
+<!-- Console / DevTools inspection guard. Defense-in-depth only; real
+     enforcement is server-side (CSP headers, auth, validation). Loaded for
+     every page, public and portal. -->
+<script src="{% static 'js/console-guard.js' %}" defer></script>
+
+{% if user.is_authenticated %}
+<!-- Realtime layer: Socket.IO client plus the project socket wrapper. The
+     wrapper reads document.body.dataset.userRole set above. -->
+<script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.5/dist/socket.io.min.js"></script>
+<script src="{% static 'js/realtime-socket.js' %}" defer></script>
+{% endif %}
+
+{% if user.is_authenticated and user.role != 'USER' %}
+<!-- Portal announcement ticker behavior (pairs with the ticker bar include
+     under the topbar). -->
+<script src="{% static 'js/pages/portal-ticker.js' %}" defer></script>
+{% endif %}
 
 {% block extra_js %}{% endblock %}
 </body>

@@ -1,8 +1,8 @@
 /* ==========================================================================
-   DIG — Camera Network  (dashboard/dig/camera_list.html)
+   DIG - Camera Network  (dashboard/dig/camera_list.html)
    ========================================================================== */
 
-/* ---------- Filter bar ---------- */
+/* ---------- Filter bar (also a GET form for server-side search) ---------- */
 
 .cam-filter-bar {
   display: flex;
@@ -15,6 +15,36 @@
   border-radius: var(--sc-radius, 14px);
   background: var(--sc-bg-soft, #F1F4F9);
 }
+
+/* ---------- Server-side search notice ---------- */
+
+.cam-server-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 14px;
+  margin-bottom: 14px;
+  border-left: 3px solid var(--sc-primary, #2563EB);
+  border-radius: 8px;
+  background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08));
+  color: var(--sc-text, #33415C);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cam-server-note i { color: var(--sc-primary, #2563EB); }
+.cam-server-note strong { color: var(--sc-heading, #0F2557); }
+
+.cam-server-note a {
+  margin-left: auto;
+  color: var(--sc-primary, #2563EB);
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+}
+
+.cam-server-note a:hover { text-decoration: underline; }
 
 .cam-filter-search {
   flex: 1 1 240px;

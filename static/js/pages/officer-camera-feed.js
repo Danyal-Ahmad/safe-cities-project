@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Camera Feed (officer-camera-feed.js)
+   Officer | Camera Feed (officer-camera-feed.js)
    Broken-frame fallbacks on the monitoring wall.
    ========================================================================== */
 (function () {

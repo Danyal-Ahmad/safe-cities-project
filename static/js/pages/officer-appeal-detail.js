@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Appeal Detail (officer-appeal-detail.js)
+   Officer | Appeal Detail (officer-appeal-detail.js)
    Read-only page: broken image / evidence link guards are handled globally.
    Here we only smooth-scroll to the decision trail from the hero badge.
    ========================================================================== */

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="44" viewBox="0 0 120 44">
+  <rect x="1" y="1" width="118" height="42" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <path d="M12 28 L24 17 L36 28" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 26 L15 32 L33 32 L33 26" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="24" cy="30" r="1.6" fill="#0f766e"/>
+  <text x="44" y="20" font-family="Arial, Helvetica, sans-serif" font-size="11.5" font-weight="bold" fill="#1f2937">Bank</text>
+  <text x="44" y="34" font-family="Arial, Helvetica, sans-serif" font-size="11.5" font-weight="bold" fill="#0f766e">Transfer</text>
+</svg>

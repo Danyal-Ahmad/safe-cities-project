@@ -21,6 +21,8 @@ urlpatterns = [
     path('banner-changes/',     views.banner_changes,      name='banner_changes'),
     path('alert-changes/',      views.alert_changes,       name='alert_changes'),
     path('export/',              views.audit_export,         name='audit_export'),
+    path('export/pdf/<str:kind>/', views.export_pdf,         name='export_pdf'),
+    path('templates/',           views.templates_select,     name='templates_select'),
 
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
 

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Analytics — Safe City{% endblock %}
+{% block title %}Analytics | Safe City{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
@@ -87,12 +87,12 @@
           {% for loc in top_locations %}
           <tr>
             <td>{{ forloop.counter }}</td>
-            <td>{{ loc.location|default:"—" }}</td>
+            <td>{{ loc.location|default:"-" }}</td>
             <td>{{ loc.c|intcomma }}</td>
             <td>
               {% if total_violations %}
               {% widthratio loc.c total_violations 100 %}%
-              {% else %}—{% endif %}
+              {% else %}-{% endif %}
             </td>
           </tr>
           {% endfor %}

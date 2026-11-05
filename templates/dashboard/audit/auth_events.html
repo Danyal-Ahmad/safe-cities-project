@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Authentication Events — Audit Portal{% endblock %}
+{% block title %}Authentication Events | Audit Portal{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-auth-events.css' %}">
@@ -12,7 +12,10 @@
     <h1><i class="bi bi-shield-lock me-2"></i>Authentication Events</h1>
     <p class="sc-lead">Login, logout, password and account-lock events drawn from the immutable audit log.</p>
   </div>
-  <div class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</div>
+  <div class="sc-flex sc-gap-2 sc-items-center">
+    <span class="sc-text-sm sc-text-muted">{% now "D, d M Y · H:i" %}</span>
+    <a href="{% url 'audit_portal:export_pdf' 'auth_events' %}" class="sc-btn sc-btn-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Export PDF</a>
+  </div>
 </div>
 
 {% regroup logs|dictsort:"action" by action as action_groups %}
@@ -36,7 +39,7 @@
     <div class="sc-kpi-foot">{{ latest.timestamp|date:"H:i" }} &middot; most recent entry</div>
     {% endwith %}
     {% else %}
-    <div class="sc-kpi-value">&mdash;</div>
+    <div class="sc-kpi-value">-</div>
     <div class="sc-kpi-foot">no entries yet</div>
     {% endif %}
   </div>
@@ -81,9 +84,9 @@
             </span>
           </td>
           <td class="sc-mono sc-text-sm">{{ l.target_model }}{% if l.target_id %} #{{ l.target_id }}{% endif %}</td>
-          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"—" }}</td>
+          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"-" }}</td>
           <td class="sc-text-sm sc-text-muted audit-details-cell">
-            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}&mdash;{% endif %}
+            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}-{% endif %}
           </td>
         </tr>
         {% endfor %}

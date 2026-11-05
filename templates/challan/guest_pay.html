@@ -1,41 +1,84 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Pay E-Challan{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Pay Challan</b>{% endblock %}
+{% block title %}Pay E-Challan {{ challan.ticket_no }} | Safe Cities Project{% endblock %}
+{% block body_class %}{% if user.is_authenticated %}sc-app scpub-embed{% else %}public-home{% endif %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/public-guest-pay.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="sc-public-main">
-<div class="sc-public-card" style="max-width:520px;">
-<div class="sc-public-head">
-<img src="{% static 'img/project_logo.png' %}" alt="SAFE CITY FYP">
-<h1>Pay E-Challan</h1>
-<p class="sc-lead">{{ challan.ticket_no }} · {{ challan.plate_number }} · PKR {{ challan.fine_amount|floatformat:0|intcomma }}</p>
-</div>
-{% if has_active %}<div class="sc-banner sc-banner-warn"><i class="bi bi-exclamation-triangle"></i> You have an active appeal. Payment is still required.</div>{% endif %}
-<div class="sc-psid-box">
-<div class="sc-psid-info">
-<div class="sc-psid-label">Payment System ID (PSID)</div>
-<div class="sc-psid-code">{{ challan.psid }}</div>
-</div>
-</div>
-<form method="post" class="sc-search-form">
-{% csrf_token %}
-<div class="sc-form-group">
-<label>Payment method *</label>
-<select name="payment_method" required class="w-full">
-<option value="">-- Select payment method --</option>
-{% for pm in payment_methods %}
-<option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
-{% endfor %}
-</select>
-</div>
-<div class="sc-form-group">
-<label>Transaction reference (optional)</label>
-<input type="text" name="txn_ref" placeholder="Transaction ID from your payment receipt">
-</div>
-<button type="submit" name="action" value="initiate" class="sc-btn sc-btn-primary sc-btn-block">Pay via gateway</button>
-<a href="{% url 'challans:challan_detail' challan.id %}" class="sc-btn sc-btn-block">Back to challan</a>
-</form>
-</div>
+<div class="scpub scpub-guest-pay">
+  <div class="scpub-bg" aria-hidden="true"></div>
+
+  <div class="scpub-inner">
+
+    <div class="pgp-card scpub-card">
+      <!-- Logos header: dual logos one side, "|" separator, text other side -->
+      <div class="scpub-brand pgp-brand">
+        <div class="scpub-logos">
+          <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
+          <span class="scpub-logos-sep" aria-hidden="true">|</span>
+          <img src="{% static 'img/university_logo.png' %}" alt="University">
+        </div>
+        <div class="scpub-brand-text">
+          <div class="scpub-brand-title pgp-brand-title">SAFE CITIES PROJECT</div>
+          <p class="scpub-brand-sub">E-CHALLAN PAYMENT</p>
+        </div>
+      </div>
+
+      <h1 class="pgp-title">Pay E-Challan</h1>
+      <p class="pgp-sub">Challan <span class="scpub-mono">{{ challan.ticket_no }}</span> | Plate <span class="scpub-mono">{{ challan.plate_number }}</span></p>
+
+      {% if has_active %}
+      <div class="scpub-note scpub-note-warn"><i class="bi bi-exclamation-triangle-fill"></i> You have an active appeal on this challan. Payment is still required while the appeal is under review.</div>
+      {% endif %}
+
+      <div class="pgp-summary">
+        <div class="scpub-dl-row"><span class="scpub-dl-k">Amount Payable</span><span class="scpub-dl-v scpub-amount">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</span></div>
+        <div class="scpub-dl-row"><span class="scpub-dl-k">Due Date</span><span class="scpub-dl-v">{{ challan.due_date|date:'d M Y' }}</span></div>
+      </div>
+      <div class="scpub-psid">
+        <span class="scpub-psid-label">Payment System ID (PSID)</span>
+        <span class="scpub-psid-code">{{ challan.psid }}</span>
+      </div>
+
+      {% if bank_instructions %}
+      <div class="pgp-bank">
+        <div class="pgp-bank-title"><i class="bi bi-bank"></i> Bank Transfer Details</div>
+        <div class="scpub-dl">
+          {% if bank_instructions.bank_name %}<div class="scpub-dl-row"><span class="scpub-dl-k">Bank</span><span class="scpub-dl-v">{{ bank_instructions.bank_name }}</span></div>{% endif %}
+          {% if bank_instructions.account_title %}<div class="scpub-dl-row"><span class="scpub-dl-k">Account Title</span><span class="scpub-dl-v">{{ bank_instructions.account_title }}</span></div>{% endif %}
+          {% if bank_instructions.account_number %}<div class="scpub-dl-row"><span class="scpub-dl-k">Account Number</span><span class="scpub-dl-v scpub-mono">{{ bank_instructions.account_number }}</span></div>{% endif %}
+          {% if bank_instructions.iban %}<div class="scpub-dl-row"><span class="scpub-dl-k">IBAN</span><span class="scpub-dl-v scpub-mono">{{ bank_instructions.iban }}</span></div>{% endif %}
+          {% if bank_instructions.branch %}<div class="scpub-dl-row"><span class="scpub-dl-k">Branch</span><span class="scpub-dl-v">{{ bank_instructions.branch }}</span></div>{% endif %}
+          {% if bank_instructions.reference %}<div class="scpub-dl-row"><span class="scpub-dl-k">Reference</span><span class="scpub-dl-v scpub-mono">{{ bank_instructions.reference }}</span></div>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="post" class="scpub-form">
+        {% csrf_token %}
+        <div class="scpub-field">
+          <label for="pgpMethod">Payment Method <span class="req">*</span></label>
+          <select class="scpub-select" name="payment_method" id="pgpMethod" required>
+            <option value="">Select a payment method</option>
+            {% for pm in payment_methods %}
+            <option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="scpub-field">
+          <label for="pgpTxn">Transaction Reference (optional)</label>
+          <input class="scpub-input" type="text" name="txn_ref" id="pgpTxn" placeholder="Transaction ID from your payment receipt">
+        </div>
+        <button type="submit" name="action" value="initiate" class="scpub-btn"><i class="bi bi-credit-card"></i> Pay via Gateway</button>
+        <a href="{% url 'challans:challan_detail' challan.id %}" class="scpub-btn-ghost pgp-back"><i class="bi bi-arrow-left"></i> Back to Challan</a>
+      </form>
+    </div>
+
+  </div>
 </div>
 {% endblock %}

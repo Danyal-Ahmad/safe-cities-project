@@ -1,0 +1,208 @@
+{# Security incident report - dark band, severity banner, event timeline #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #e5e7eb;
+         margin: 0; padding: 0; line-height: 1.32; background: #14181f; }
+
+  .ir-header { display: flex; justify-content: space-between; align-items: center;
+               background: #0b0e13; border-bottom: 3px solid #ef4444; padding: 8px 10px; }
+  .ir-office h1 { font-size: 14px; margin: 0; font-weight: 900; letter-spacing: 1.4px;
+                  text-transform: uppercase; color: #fff; }
+  .ir-office h2 { font-size: 7px; margin: 2px 0 0 0; font-weight: 700; color: #9ca3af;
+                  letter-spacing: 1.6px; text-transform: uppercase; }
+  .ir-office .ir-kind { font-size: 8px; margin-top: 3px; font-weight: 700; color: #fca5a5; }
+  .ir-logos { display: flex; align-items: center; }
+  .ir-logos img { height: 36px; width: auto; object-fit: contain; background: #fff;
+                  padding: 2px; }
+  .ir-logo-sep { font-size: 22px; color: #ef4444; margin: 0 6px; }
+
+  .ir-sevband { padding: 4px 10px; font-size: 7.4px; font-weight: 900; letter-spacing: 1.4px;
+                text-transform: uppercase; text-align: center; }
+  .ir-sev-high { background: #7f1d1d; color: #fee2e2; }
+  .ir-sev-medium { background: #78350f; color: #fef3c7; }
+  .ir-sev-clear { background: #14532d; color: #dcfce7; }
+
+  .ir-meta { display: grid; grid-template-columns: 1.5fr 1.3fr 1fr 1.4fr;
+             background: #1f2530; border-bottom: 1px solid #374151; }
+  .ir-meta div { padding: 3px 6px; border-right: 1px solid #374151; font-size: 6.5px;
+                 font-weight: 800; text-transform: uppercase; color: #9ca3af;
+                 letter-spacing: 0.6px; }
+  .ir-meta div:last-child { border-right: none; }
+  .ir-meta span { display: block; font-weight: 400; font-size: 6.6px; color: #e5e7eb;
+                  font-family: 'Courier New', monospace; }
+
+  .ir-body { padding: 8px 10px; }
+  .ir-h { color: #fca5a5; font-size: 7.6px; font-weight: 900; letter-spacing: 1.6px;
+          text-transform: uppercase; margin: 8px 0 3px 0; border-left: 3px solid #ef4444;
+          padding-left: 6px; }
+  .ir-h:first-child { margin-top: 0; }
+
+  .ir-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .ir-kpi { background: #1f2530; border: 1px solid #374151; border-top: 2px solid #ef4444;
+            padding: 4px 6px; }
+  .ir-kpi b { display: block; font-size: 6px; color: #9ca3af; text-transform: uppercase;
+              letter-spacing: 0.6px; }
+  .ir-kpi span { display: block; font-size: 10.5px; font-weight: 900; color: #fff; }
+  .ir-kpi i { display: block; font-size: 5.8px; color: #6b7280; font-style: italic; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .ir-timeline th { background: #0b0e13; color: #fca5a5; font-size: 6.4px; padding: 3px 5px;
+                    text-transform: uppercase; letter-spacing: 0.8px; text-align: left;
+                    border: 1px solid #374151; }
+  .ir-timeline td { border: 1px solid #374151; padding: 2.8px 5px; font-size: 6.9px;
+                    color: #d1d5db; background: #1a2029; }
+  .ir-timeline td.ir-time { color: #fbbf24; font-family: 'Courier New', monospace;
+                            white-space: nowrap; }
+  .ir-more { font-size: 6.4px; color: #9ca3af; font-style: italic; margin-top: 2px; }
+
+  .ir-impact { border: 1px solid #ef4444; background: #1f2530; padding: 6px 8px; }
+  .ir-impact h3 { margin: 0 0 3px 0; font-size: 7.4px; color: #fca5a5; text-transform: uppercase;
+                  letter-spacing: 1.2px; }
+  .ir-impact p { margin: 0; font-size: 7.1px; color: #d1d5db; }
+  .ir-impact ul { margin: 3px 0 0 0; padding-left: 14px; }
+  .ir-impact li { font-size: 7px; color: #d1d5db; margin-bottom: 1.5px; }
+
+  .ir-remed { border: 1px solid #374151; background: #1f2530; padding: 6px 8px; }
+  .ir-remed h3 { margin: 0 0 3px 0; font-size: 7.4px; color: #fbbf24; text-transform: uppercase;
+                 letter-spacing: 1.2px; }
+  .ir-remed ol { margin: 0; padding-left: 15px; }
+  .ir-remed li { font-size: 7px; color: #d1d5db; margin-bottom: 1.5px; }
+
+  .ir-two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 2px; }
+
+  .ir-sigs { display: flex; justify-content: space-between; margin-top: 12px; }
+  .ir-sig { width: 46%; border: 1px solid #374151; background: #1f2530; padding: 5px 7px; }
+  .ir-sig .ir-stampbox { float: right; width: 44px; height: 38px; border: 1px dashed #6b7280;
+                         font-size: 5.3px; color: #9ca3af; text-align: center; padding-top: 10px;
+                         text-transform: uppercase; letter-spacing: 0.5px; }
+  .ir-sig .ir-role { font-size: 7px; font-weight: 900; text-transform: uppercase; color: #fca5a5;
+                     letter-spacing: 0.8px; margin-bottom: 12px; }
+  .ir-sig .ir-line { border-top: 1px solid #9ca3af; padding-top: 2px; font-size: 6.8px;
+                     font-weight: 700; color: #e5e7eb; }
+  .ir-sig .ir-sub { font-size: 6.3px; color: #9ca3af; }
+  .ir-sig .ir-date { border-top: 1px dotted #6b7280; margin-top: 6px; padding-top: 2px;
+                     font-size: 6.3px; color: #9ca3af; }
+
+  .ir-footer { margin-top: 10px; border-top: 2px solid #ef4444; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.3px;
+               color: #9ca3af; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="ir-header">
+  <div class="ir-office">
+    <h1>Safe Cities Project</h1>
+    <h2>Security Incident and Audit Response Unit</h2>
+    <div class="ir-kind">{{ kind_label }}</div>
+  </div>
+  <div class="ir-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="ir-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+{% if anomalies %}
+  {% if anomalies.0.severity == 'HIGH' %}
+  <div class="ir-sevband ir-sev-high">Severity Classification: HIGH | Immediate Escalation Required</div>
+  {% elif anomalies.0.severity == 'MEDIUM' %}
+  <div class="ir-sevband ir-sev-medium">Severity Classification: MEDIUM | Monitor and Contain</div>
+  {% else %}
+  <div class="ir-sevband ir-sev-clear">Severity Classification: LOW | Informational Tracking</div>
+  {% endif %}
+{% else %}
+<div class="ir-sevband ir-sev-clear">Severity Classification: CLEAR | No Open Anomalies Detected</div>
+{% endif %}
+
+<div class="ir-meta">
+  <div>Incident Ref<span>{{ doc_ref }}</span></div>
+  <div>Reported On<span>{{ generated_at_str }}</span></div>
+  <div>Sheet<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="ir-body">
+  <div class="ir-kpis">
+    {% for k in kpis %}
+    <div class="ir-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+    {% endfor %}
+  </div>
+
+  <div class="ir-h">Event Timeline ({{ table.shown }} of {{ table.total }})</div>
+  <table class="ir-timeline">
+    <thead>
+      <tr><th style="width:6%;">#</th>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for row in table.rows %}
+      <tr>
+        <td class="ir-time">{{ forloop.counter }}</td>
+        {% for cell in row %}<td{% if forloop.first %} class="ir-time"{% endif %}>{{ cell }}</td>{% endfor %}
+      </tr>
+      {% empty %}
+      <tr><td class="ir-time">0</td><td colspan="{{ table.columns|length }}">No events recorded in this scope.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if more_rows > 0 %}<div class="ir-more">+{{ more_rows }} more rows in system</div>{% endif %}
+
+  <div class="ir-two">
+    <div class="ir-impact">
+      <h3>Impact Assessment</h3>
+      {% if anomalies %}
+      <p>{{ anomalies|length }} anomaly/anomalies open at generation time. Assessed exposure
+         covers settlement integrity, enforcement fairness and account hygiene.</p>
+      <ul>
+        {% for a in anomalies %}
+        <li>{{ a.type }} ({{ a.severity }}): {{ a.description }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No open anomalies at generation time. Residual risk assessed as LOW across
+         challan settlement, enforcement and account integrity domains.</p>
+      {% endif %}
+    </div>
+    <div class="ir-remed">
+      <h3>Remediation Actions</h3>
+      <ol>
+        <li>Reconcile flagged records against the immutable audit ledger.</li>
+        <li>Notify responsible officers for corrective action within 7 days.</li>
+        <li>Re-run anomaly detection after remediation and attach results.</li>
+        <li>Escalate unresolved HIGH items to the DIG oversight desk.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="ir-sigs">
+    <div class="ir-sig">
+      <div class="ir-stampbox">Stamp</div>
+      <div class="ir-role">Incident Audit Officer</div>
+      <div class="ir-line">Name: ______________________________</div>
+      <div class="ir-sub">Designation: Incident Audit Officer</div>
+      <div class="ir-date">Date: ____ / ____ / ________</div>
+    </div>
+    <div class="ir-sig">
+      <div class="ir-stampbox">Stamp</div>
+      <div class="ir-role">Security Audit Supervisor</div>
+      <div class="ir-line">Name: ______________________________</div>
+      <div class="ir-sub">Designation: Security Audit Supervisor</div>
+      <div class="ir-date">Date: ____ / ____ / ________</div>
+    </div>
+  </div>
+</div>
+
+<div class="ir-footer">
+  <span>Ref: {{ doc_ref }}</span>
+  <span>Computer generated incident report</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

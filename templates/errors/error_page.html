@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#1E4E9C">
-  <title>{{ code|default:"Error" }} — {{ err_title_override|default:title|default:"Error" }} · Safe City</title>
+  <title>{{ code|default:"Error" }} | {{ err_title_override|default:title|default:"Error" }} · Safe City</title>
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +44,7 @@
       {% endif %}
     </div>
 
-    <div class="ep-code">{{ code|default:"——" }}</div>
+    <div class="ep-code">{{ code|default:"||" }}</div>
     <h1 class="ep-title">{{ err_title_override|default:title|default:"Something Went Wrong" }}</h1>
     <p class="ep-message">{{ err_msg_override|default:message|default:"An error occurred while processing your request. Please go back and try again." }}</p>
 

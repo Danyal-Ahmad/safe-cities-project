@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Vehicle Tracking (officer-vehicle-tracking.js)
+   Officer | Vehicle Tracking (officer-vehicle-tracking.js)
    Timeline thumb fallbacks + clickable timeline items.
    ========================================================================== */
 (function () {

@@ -38,6 +38,7 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('audit/',                        views.audit_log,               name='audit_log'),
     path('audit/export/',                 views.audit_export,            name='audit_export'),
+    path('audit-templates/',              views.audit_templates_select,  name='audit_templates_select'),
     path('operational-audit/',            views.operational_audit,       name='operational_audit'),
     path('financial-audit/',              views.financial_audit,         name='financial_audit'),
 

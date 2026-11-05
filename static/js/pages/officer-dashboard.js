@@ -1,4 +1,4 @@
-/* Officer Command Center dashboard — extracted from templates/dashboard/officer/dashboard.html */
+/* Officer Command Center dashboard - extracted from templates/dashboard/officer/dashboard.html */
 (function () {
   'use strict';
 

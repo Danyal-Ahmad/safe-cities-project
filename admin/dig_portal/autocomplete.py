@@ -253,10 +253,10 @@ def autocomplete(request):
             overall_status = 'invalid'
 
     hints = {
-        'existing':  'Existing record found in database — fields auto-filled.',
-        'new':       'New information — will be added as a new record.',
-        'duplicate': 'Possible duplicate detected — review before saving.',
-        'invalid':   'Invalid format — please verify the value.',
+        'existing':  'Existing record found in database - fields auto-filled.',
+        'new':       'New information - will be added as a new record.',
+        'duplicate': 'Possible duplicate detected - review before saving.',
+        'invalid':   'Invalid format - please verify the value.',
     }
 
     return JsonResponse({

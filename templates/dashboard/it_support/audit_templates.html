@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Audit PDF Templates - IT Support{% endblock %}
+{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Audit PDF Templates</b>{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-audit-templates.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-file-earmark-pdf me-2" style="color:#0F766E;"></i>Audit Report PDF Templates</h1>
+    <p class="sc-lead">Full control over the audit report layouts: activate any of the 8 built-in designs, compose new database templates in the HTML editor, and preview every layout live before publishing.</p>
+  </div>
+  <div class="sc-flex sc-gap-2 sc-flex-wrap">
+    <span class="sc-badge sc-badge-purple"><i class="bi bi-wrench-adjustable me-1"></i>Full control</span>
+    <a href="{% url 'audit_portal:dashboard' %}" class="sc-btn"><i class="bi bi-grid-1x2 me-1"></i>Audit Portal</a>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-collection"></i> Available layouts</div>
+    <div class="sc-kpi-value">{{ templates|length|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">built-in + database templates</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-label"><i class="bi bi-file-earmark-ruled"></i> Built-in designs</div>
+    <div class="sc-kpi-value">{{ builtin_count|default:8 }}</div>
+    <div class="sc-kpi-foot">standard audit document styles</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-label"><i class="bi bi-database"></i> Database templates</div>
+    <div class="sc-kpi-value">{{ db_count|default:0 }}</div>
+    <div class="sc-kpi-foot">created in the editor below</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-label"><i class="bi bi-check2-square"></i> Active layout</div>
+    <div class="sc-kpi-value" style="font-size:1.0rem;"><span class="sc-mono">{{ active_template_key|default:"government_classic" }}</span></div>
+    <div class="sc-kpi-foot">used by every audit PDF export</div>
+  </div>
+</div>
+
+<!-- Template editor (Canva-lite) -->
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-brush"></i>
+    <span>HTML Template Editor</span>
+    <span class="ms-auto sc-text-sm sc-text-muted">
+      Django template syntax | variables like <span class="sc-mono">&#123;&#123; kind_label &#125;&#125;</span>, <span class="sc-mono">&#123;&#123; table.rows &#125;&#125;</span>, <span class="sc-mono">&#123;&#123; kpis &#125;&#125;</span>
+    </span>
+  </div>
+  <div class="sc-card-body">
+    <form method="post" action="{% url 'it_support_portal:audit_templates' %}" class="it-aud-editor">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_audit_template">
+      <div class="row g-2 mb-2">
+        <div class="col-md-5">
+          <label class="sc-text-xs sc-text-muted d-block mb-1">Template name</label>
+          <input type="text" name="template_name" class="form-control form-control-sm" placeholder="e.g. Customs Audit Sheet" required>
+        </div>
+        <div class="col-md-7">
+          <label class="sc-text-xs sc-text-muted d-block mb-1">Short description</label>
+          <input type="text" name="template_description" class="form-control form-control-sm" placeholder="One-line blurb shown on the selection cards">
+        </div>
+      </div>
+      <div class="it-aud-editor-grid">
+        <div>
+          <label class="sc-text-xs sc-text-muted d-block mb-1">HTML content (standalone A4 page, inline styles, WeasyPrint compatible)</label>
+          <textarea id="it-aud-html" name="html_content" rows="18" class="form-control sc-mono it-aud-code" spellcheck="false" placeholder="Paste or compose your template HTML here..."></textarea>
+          <div class="sc-flex sc-gap-2 sc-mt-2 flex-wrap">
+            <button type="button" id="it-aud-starter" class="sc-btn sc-btn-sm"><i class="bi bi-magic me-1"></i>Load starter layout</button>
+            <button type="button" id="it-aud-preview" class="sc-btn sc-btn-sm"><i class="bi bi-eye me-1"></i>Live preview</button>
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-cloud-arrow-up me-1"></i>Save template</button>
+          </div>
+        </div>
+        <div>
+          <label class="sc-text-xs sc-text-muted d-block mb-1">Live preview (placeholder data)</label>
+          <iframe id="it-aud-frame" class="it-aud-frame" sandbox="" title="Live preview"></iframe>
+          <p class="sc-hint sc-mt-1 mb-0"><i class="bi bi-info-circle me-1"></i>Tip: keep everything on one A4 page. Exports auto-fall back to the compact classic layout if a template overflows.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Built-in layouts -->
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-file-earmark-break"></i>
+    <span>Built-in Layouts ({{ builtin_count|default:8 }})</span>
+    <span class="ms-auto sc-text-sm sc-text-muted"><i class="bi bi-lock me-1"></i>Built-ins can be activated only - clone into the editor to customise.</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="row g-3">
+      {% for t in templates %}
+      {% if t.is_builtin %}
+      <div class="col-md-6 col-xl-4">
+        <div class="it-aud-card{% if t.key == active_template_key %} it-aud-card-active{% endif %}">
+          <div class="it-aud-head">
+            <span class="it-aud-key sc-mono">{{ t.key }}</span>
+            {% if t.key == active_template_key %}
+            <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle me-1"></i>Active</span>
+            {% else %}
+            <span class="sc-badge sc-badge-gray">Built-in</span>
+            {% endif %}
+          </div>
+          <h3 class="it-aud-name">{{ t.name }}</h3>
+          <p class="it-aud-blurb">{{ t.blurb }}</p>
+          <iframe class="it-aud-frame" srcdoc="{{ t.preview_html }}" title="Preview of {{ t.name }}" sandbox="" loading="lazy"></iframe>
+          <form method="post" action="{% url 'it_support_portal:audit_templates' %}" class="it-aud-actions">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="activate_audit_template">
+            <input type="hidden" name="template_key" value="{{ t.key }}">
+            {% if t.key == active_template_key %}
+            <button type="submit" class="sc-btn sc-btn-sm" disabled><i class="bi bi-check2-circle me-1"></i>Current Layout</button>
+            {% else %}
+            <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
+            {% endif %}
+            <a href="?sample={{ t.key }}" class="sc-btn sc-btn-sm" target="_blank" rel="noopener">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Sample PDF
+            </a>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Database templates -->
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-database"></i>
+    <span>Database Templates ({{ db_count|default:0 }})</span>
+    <span class="ms-auto sc-text-sm sc-text-muted"><i class="bi bi-unlock me-1"></i>Activate, edit or delete.</span>
+  </div>
+  <div class="sc-card-body">
+    {% if db_templates %}
+    <div class="row g-3">
+      {% for ct in db_templates %}
+      {% with db_key="db:"|add:ct.id %}
+      <div class="col-md-6 col-xl-4">
+        <div class="it-aud-card{% if active_template_key == db_key %} it-aud-card-active{% endif %}">
+          <div class="it-aud-head">
+            <span class="it-aud-key sc-mono">{{ db_key }}</span>
+            {% if active_template_key == db_key %}
+            <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle me-1"></i>Active</span>
+            {% elif ct.is_active %}
+            <span class="sc-badge sc-badge-amber"><i class="bi bi-star-half me-1"></i>Marked Active</span>
+            {% else %}
+            <span class="sc-badge sc-badge-gray">Inactive</span>
+            {% endif %}
+          </div>
+          <h3 class="it-aud-name">{{ ct.name }}</h3>
+          <p class="it-aud-blurb">
+            {{ ct.description|default:"Custom database template" }} &middot;
+            added {{ ct.created_at|date:"d M Y" }}{% if ct.uploaded_by %} by {{ ct.uploaded_by.username }}{% endif %}
+          </p>
+          <iframe class="it-aud-frame" srcdoc="{{ ct.preview_html }}" title="Preview of {{ ct.name }}" sandbox="" loading="lazy"></iframe>
+          <div class="it-aud-actions">
+            <form method="post" action="{% url 'it_support_portal:audit_templates' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="activate_audit_template">
+              <input type="hidden" name="template_key" value="{{ db_key }}">
+              {% if active_template_key == db_key %}
+              <button type="submit" class="sc-btn sc-btn-sm" disabled><i class="bi bi-check2-circle me-1"></i>Current Layout</button>
+              {% else %}
+              <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
+              {% endif %}
+            </form>
+            <form method="post" action="{% url 'it_support_portal:audit_templates' %}" data-it-confirm="Delete audit template '{{ ct.name }}'? This cannot be undone.">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_audit_template">
+              <input type="hidden" name="template_id" value="{{ ct.id }}">
+              <button type="submit" class="sc-btn sc-btn-sm sc-btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+            </form>
+            <a href="?sample={{ db_key }}" class="sc-btn sc-btn-sm" target="_blank" rel="noopener">
+              <i class="bi bi-file-earmark-pdf"></i>
+            </a>
+          </div>
+          <details class="it-aud-edit">
+            <summary><i class="bi bi-code-square me-1"></i>Edit HTML content</summary>
+            <form method="post" action="{% url 'it_support_portal:audit_templates' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update_audit_template">
+              <input type="hidden" name="template_id" value="{{ ct.id }}">
+              <div class="sc-form-group">
+                <label class="sc-text-xs sc-text-muted d-block mb-1">Template name</label>
+                <input type="text" name="template_name" value="{{ ct.name }}" class="form-control form-control-sm" required>
+              </div>
+              <div class="sc-form-group">
+                <label class="sc-text-xs sc-text-muted d-block mb-1">Short description</label>
+                <input type="text" name="template_description" value="{{ ct.description }}" class="form-control form-control-sm">
+              </div>
+              <div class="sc-form-group">
+                <label class="sc-text-xs sc-text-muted d-block mb-1">HTML content (Django template with the audit context)</label>
+                <textarea name="html_content" rows="12" class="form-control sc-mono it-aud-code" spellcheck="false">{{ ct.html_content }}</textarea>
+              </div>
+              <div class="sc-flex sc-gap-2">
+                <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-save me-1"></i>Save Changes</button>
+                <button type="reset" class="sc-btn sc-btn-sm">Reset</button>
+              </div>
+            </form>
+          </details>
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-database-x"></i>
+      <p class="mb-1">No database audit templates yet.</p>
+      <p class="sc-hint mb-0">Compose one in the HTML editor above - load a starter layout and customise it.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+  var starter = [
+    '<!DOCTYPE html>',
+    '<html lang="en"><head><meta charset="UTF-8">',
+    '<title>{{ kind_label }}</title>',
+    '<style>',
+    '  @page { size: A4 portrait; margin: 10mm; }',
+    '  * { box-sizing: border-box; }',
+    '  body { font-family: Helvetica, Arial, sans-serif; font-size: 8px; color: #111; margin: 0; }',
+    '  .hdr { display: flex; justify-content: space-between; align-items: center;',
+    '         border-bottom: 2px solid #0f766e; padding-bottom: 4px; }',
+    '  .hdr h1 { font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }',
+    '  .logos img { height: 34px; }',
+    '  .logos span { font-size: 20px; margin: 0 6px; color: #0f766e; }',
+    '  table { border-collapse: collapse; width: 100%; margin-top: 6px; }',
+    '  th { background: #0f766e; color: #fff; font-size: 6.5px; padding: 3px 5px; text-align: left; }',
+    '  td { border: 1px solid #cbd5e1; font-size: 7px; padding: 2.5px 5px; }',
+    '  .foot { margin-top: 8px; border-top: 1px solid #0f766e; padding-top: 3px;',
+    '          font-size: 6.5px; display: flex; justify-content: space-between; }',
+    '</style></head><body>',
+    '<div class="hdr">',
+    '  <div>',
+    '    <h1>Safe Cities Project</h1>',
+    '    <div>{{ kind_label }}</div>',
+    '  </div>',
+    '  <div class="logos">',
+    '    <img src="{{ logo_left_src }}" alt=""><span>|</span>',
+    '    <img src="{{ logo_right_src }}" alt="">',
+    '  </div>',
+    '</div>',
+    '<table>',
+    '  <thead><tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>',
+    '  <tbody>',
+    '  {% for row in table.rows %}',
+    '  <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>',
+    '  {% endfor %}',
+    '  </tbody>',
+    '</table>',
+    '{% if more_rows > 0 %}<p style="font-size:6.5px;font-style:italic;">+{{ more_rows }} more rows in system</p>{% endif %}',
+    '<div class="foot">',
+    '  <span>Ref: {{ doc_ref }}</span>',
+    '  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>',
+    '</div>',
+    '</body></html>'
+  ].join('\n');
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') { fn(); }
+    else { document.addEventListener('DOMContentLoaded', fn); }
+  }
+
+  ready(function () {
+    var area = document.getElementById('it-aud-html');
+    var frame = document.getElementById('it-aud-frame');
+    var starterBtn = document.getElementById('it-aud-starter');
+    var previewBtn = document.getElementById('it-aud-preview');
+
+    function render() {
+      if (frame && area) { frame.srcdoc = area.value; }
+    }
+
+    if (starterBtn) {
+      starterBtn.addEventListener('click', function () {
+        if (area && (!area.value || window.confirm('Replace the editor contents with the starter layout?'))) {
+          area.value = starter;
+          render();
+        }
+      });
+    }
+    if (previewBtn) { previewBtn.addEventListener('click', render); }
+    if (frame) { frame.srcdoc = starter; }
+  });
+})();
+</script>
+{% endblock %}

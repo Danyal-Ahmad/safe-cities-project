@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}My Profile — SAFE CITY FYP{% endblock %}
+{% block title %}My Profile | SAFE CITY FYP{% endblock %}
 {% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>My profile</b>{% endblock %}
 {% block content %}
 <div class="sc-page-hero">
@@ -65,7 +65,7 @@
         <div class="sc-form-group"><label>Designation</label><input type="text" name="designation" value="{{ profile_user.designation|default:'' }}" class="w-full" placeholder="Traffic Officer"></div>
       </div>
       <div class="sc-grid sc-grid-2">
-        <div class="sc-form-group"><label>Department</label><input type="text" name="department" value="{{ profile_user.department|default:'' }}" class="w-full" placeholder="Traffic Police"></div>
+        <div class="sc-form-group"><label>Department</label><input type="text" name="department" value="{{ profile_user.department|default:'' }}" class="w-full" placeholder="Traffic Enforcement"></div>
         <div class="sc-form-group"><label>Region</label><input type="text" name="region" value="{{ profile_user.region|default:'' }}" class="w-full" placeholder="Central Region"></div>
       </div>
       <button type="submit" class="sc-btn sc-btn-primary">Save details</button>

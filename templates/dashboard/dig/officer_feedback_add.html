@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Add Officer Feedback — Safe City{% endblock %}
+{% block title %}Add Officer Feedback | Safe City{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -23,7 +23,7 @@
  <div>
  <label>Officer *</label>
  <select name="officer_id" required>
- <option value="">— select officer —</option>
+ <option value="">- select officer -</option>
  {% for o in officers %}
  <option value="{{ o.id }}">{{ o.display_name }} ({{ o.email }})</option>
  {% endfor %}
@@ -32,11 +32,11 @@
  <div>
  <label>Rating <span class=" small">(1 = Poor · 5 = Excellent)</span></label>
  <select name="rating">
- <option value="5">5 — Excellent</option>
- <option value="4">4 — Good</option>
- <option value="3" selected>3 — Average</option>
- <option value="2">2 — Below average</option>
- <option value="1">1 — Poor</option>
+ <option value="5">5 | Excellent</option>
+ <option value="4">4 | Good</option>
+ <option value="3" selected>3 | Average</option>
+ <option value="2">2 | Below average</option>
+ <option value="1">1 | Poor</option>
  </select>
  </div>
  <div>

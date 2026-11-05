@@ -1,5 +1,5 @@
 """
-Unified Live Tracking Service — single source of truth for detection trail data.
+Unified Live Tracking Service - single source of truth for detection trail data.
 
 IT Support (unrestricted) and Officer (assignment-scoped) portals use this service. DIG does not.
 """
@@ -154,7 +154,7 @@ class LiveTrackingService:
 
             items.append({
                 'id': d.id,
-                'plate': d.effective_plate or '—',
+                'plate': d.effective_plate or '-',
                 'side': d.ai_side_classification or '',
                 'confidence': conf,
                 'confidence_pct': round(conf * 100, 1),
@@ -164,10 +164,10 @@ class LiveTrackingService:
                 'camera_id': cam.id if cam else None,
                 'camera_location': cam.location if cam else None,
                 'legal_direction': getattr(cam, 'legal_direction', None) if cam else None,
-                'legal_direction_label': {'N':'North','S':'South','E':'East','W':'West'}.get(getattr(cam, 'legal_direction', None), getattr(cam, 'legal_direction', None) or '—') if cam else '—',
+                'legal_direction_label': {'N':'North','S':'South','E':'East','W':'West'}.get(getattr(cam, 'legal_direction', None), getattr(cam, 'legal_direction', None) or '-') if cam else '-',
                 'violation_side': getattr(cam, 'violation_side', None) if cam else None,
                 'travel_hint': ('Towards camera' if (d.ai_side_classification or '').lower() in ('front','f') else ('Away from camera' if (d.ai_side_classification or '').lower() in ('back','rear','b') else 'Unknown')),
-                'side_label': (d.get_ai_side_classification_display() if hasattr(d, 'get_ai_side_classification_display') else (d.ai_side_classification or '—')),
+                'side_label': (d.get_ai_side_classification_display() if hasattr(d, 'get_ai_side_classification_display') else (d.ai_side_classification or '-')),
 
                 'raw_image': d.raw_image.url if d.raw_image else None,
                 'plate_crop': d.plate_crop_image.url if d.plate_crop_image else None,

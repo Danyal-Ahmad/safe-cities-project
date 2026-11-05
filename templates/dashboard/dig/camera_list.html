@@ -2,7 +2,7 @@
 {% load static %}
 {% load perm_tags %}
 {% load humanize %}
-{% block title %}Camera Network — Safe City{% endblock %}
+{% block title %}Camera Network | SAFE CITIES PROJECT{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 
 {% block extra_head %}
@@ -15,7 +15,7 @@
   <div>
     <h1><i class="bi bi-camera-video me-2"></i>Camera Network</h1>
     <p class="sc-lead">
-      Registry of enforcement cameras across the city — mounting direction, enforcement side,
+      Registry of enforcement cameras across the city - mounting direction, enforcement side,
       live health and enrollment state.
     </p>
   </div>
@@ -36,7 +36,7 @@
   <div class="sc-kpi">
     <div class="sc-kpi-icon"><i class="bi bi-camera-video"></i></div>
     <div class="sc-kpi-label">Registered Cameras</div>
-    <div class="sc-kpi-value">{{ cameras|length|intcomma }}</div>
+    <div class="sc-kpi-value">{{ total_registry|default:cameras|length|intcomma }}</div>
     <div class="sc-kpi-foot">all time</div>
   </div>
   <div class="sc-kpi sc-kpi-ok">
@@ -65,34 +65,57 @@
     <span class="d-flex align-items-center gap-2">
       <i class="bi bi-list-ul"></i> Camera Registry
     </span>
-    <span class="sc-badge sc-badge-blue" data-count-badge>{{ cameras|length }} camera{{ cameras|length|pluralize }}</span>
+    <span class="d-flex align-items-center gap-2">
+      {% if q or health_filter or active_filter %}
+      <span class="sc-badge sc-badge-amber">Showing {{ cameras|length }} of {{ total_registry|default:cameras|length }}</span>
+      {% endif %}
+      <span class="sc-badge sc-badge-blue" data-count-badge>{{ cameras|length }} camera{{ cameras|length|pluralize }}</span>
+    </span>
   </div>
 
   <div class="sc-card-body">
 
-    <!-- Client-side quick filters (registry is rendered in full) -->
-    <div class="cam-filter-bar" data-camera-filters>
+    <!-- Server-side search + client-side quick filters.
+         The form submits a GET (?q=&health=&active=) so filtered views are
+         shareable URLs; typing still filters the rendered rows instantly. -->
+    <form method="get" class="cam-filter-bar" data-camera-filters
+          data-server-filtered="{% if q or health_filter or active_filter %}1{% else %}0{% endif %}">
       <div class="cam-filter-search">
         <i class="bi bi-search"></i>
-        <input type="search" id="camSearch" placeholder="Filter by camera ID or location…"
-               aria-label="Filter cameras" autocomplete="off" data-camera-search>
+        <input type="search" id="camSearch" name="q" value="{{ q }}"
+               placeholder="Search camera by area, ID or name" aria-label="Search camera by area, ID or name"
+               autocomplete="off" data-camera-search>
       </div>
-      <select class="cam-filter-select" aria-label="Health status" data-camera-health-filter>
+      <select class="cam-filter-select" name="health" aria-label="Health status" data-camera-health-filter>
         <option value="">All health states</option>
-        <option value="online">Online</option>
-        <option value="degraded">Degraded</option>
-        <option value="offline">Offline</option>
-        <option value="unknown">Unknown</option>
+        <option value="online" {% if health_filter == 'online' %}selected{% endif %}>Online</option>
+        <option value="degraded" {% if health_filter == 'degraded' %}selected{% endif %}>Degraded</option>
+        <option value="offline" {% if health_filter == 'offline' %}selected{% endif %}>Offline</option>
+        <option value="unknown" {% if health_filter == 'unknown' %}selected{% endif %}>Unknown</option>
       </select>
-      <select class="cam-filter-select" aria-label="Active state" data-camera-active-filter>
+      <select class="cam-filter-select" name="active" aria-label="Active state" data-camera-active-filter>
         <option value="">Active &amp; inactive</option>
-        <option value="active">Active only</option>
-        <option value="inactive">Inactive only</option>
+        <option value="active" {% if active_filter == 'active' %}selected{% endif %}>Active only</option>
+        <option value="inactive" {% if active_filter == 'inactive' %}selected{% endif %}>Inactive only</option>
       </select>
+      <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary" title="Apply server-side search">
+        <i class="bi bi-search me-1"></i>Search
+      </button>
       <button type="button" class="sc-btn sc-btn-sm" data-camera-filter-reset>
         <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
       </button>
+    </form>
+
+    {% if q or health_filter or active_filter %}
+    <div class="cam-server-note">
+      <i class="bi bi-funnel-fill"></i>
+      Server-filtered results
+      {% if q %}for <strong>&quot;{{ q }}&quot;</strong>{% endif %}
+      {% if health_filter %} <span class="sc-badge sc-badge-blue">{{ health_filter|capfirst }}</span>{% endif %}
+      {% if active_filter %} <span class="sc-badge sc-badge-teal">{{ active_filter|capfirst }}</span>{% endif %}
+      <a href="{{ request.path }}">Clear</a>
     </div>
+    {% endif %}
 
     {% if cameras %}
     <div class="sc-table-wrap">
@@ -116,6 +139,8 @@
           <tr data-camera-row
               data-camera-id="{{ c.camera_id|lower }}"
               data-location="{{ c.location|lower }}"
+              data-dir="{{ c.legal_direction|lower }}"
+              data-side="{{ c.violation_side|lower }}"
               data-health="{{ c.health_status }}"
               data-active="{% if c.is_active %}active{% else %}inactive{% endif %}">
             <td>
@@ -124,13 +149,13 @@
                 <span class="sc-mono fw-bold">{{ c.camera_id }}</span>
               </div>
             </td>
-            <td class="cam-location">{{ c.location|default:"—" }}</td>
+            <td class="cam-location">{{ c.location|default:"-" }}</td>
             <td>
               {% if c.legal_direction %}
               <span class="sc-badge sc-badge-blue cam-dir-badge">
                 <i class="bi bi-signpost-split"></i>{{ c.get_legal_direction_display }}
               </span>
-              {% else %}<span class="sc-text-muted">—</span>{% endif %}
+              {% else %}<span class="sc-text-muted">N/A</span>{% endif %}
             </td>
             <td>
               <span class="sc-badge {% if c.violation_side == 'front' %}sc-badge-purple{% else %}sc-badge-teal{% endif %}">
@@ -211,7 +236,7 @@
       <i class="bi bi-info-circle me-1"></i>
       Direction shows the physical mounting (N/S/E/W); enforcement side is the vehicle side the AI
       classifier treats as a wrong-way violation at that camera.
-      {% if not can_manage %}Camera configuration is restricted to IT Support — this view is read-only for command staff.{% endif %}
+      {% if not can_manage %}Camera configuration is restricted to IT Support - this view is read-only for command staff.{% endif %}
     </p>
     {% else %}
     <div class="sc-empty">

@@ -69,8 +69,8 @@ def dashboard(request):
     days_data = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)
-        day_start = datetime.datetime.combine(day, datetime.time.min).replace(tzinfo=datetime.timezone.utc)
-        day_end = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time.min).replace(tzinfo=datetime.timezone.utc)
+        day_start = datetime.datetime.combine(day, datetime.time.min).replace(tzinfo=timezone.get_current_timezone())
+        day_end = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time.min).replace(tzinfo=timezone.get_current_timezone())
         cnt = AuditLog.objects.filter(timestamp__gte=day_start, timestamp__lt=day_end).count()
         days_data.append({'label': day.strftime('%a'), 'count': cnt})
 
@@ -122,14 +122,14 @@ def _detect_anomalies():
         anomalies.append({
             'type': 'ORPHAN_PAYMENT', 'severity': 'HIGH',
             'description': f"{orphan_payments} challans marked PAID without paid_at timestamp",
-            'target': '—',
+            'target': '-',
         })
     zero_challans = Challan.objects.filter(fine_amount=0).count()
     if zero_challans > 0:
         anomalies.append({
             'type': 'ZERO_AMOUNT_CHALLAN', 'severity': 'LOW',
             'description': f"{zero_challans} challans with zero fine amount",
-            'target': '—',
+            'target': '-',
         })
     return anomalies
 
@@ -341,7 +341,7 @@ def audit_export(request):
 
     body_rows = []
     for e in rows[:2000]:
-        actor = e.actor.username if e.actor else '—'
+        actor = e.actor.username if e.actor else '-'
         body_rows.append(
             f"<tr><td>{e.timestamp}</td><td>{actor}</td><td>{e.action}</td>"
             f"<td>{e.target_model or ''} #{e.target_id or ''}</td></tr>"
@@ -351,7 +351,7 @@ def audit_export(request):
         "<style>body{font-family:Arial,sans-serif;font-size:11px;margin:24px}"
         "table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px;text-align:left}"
         "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
-        f"<h1>SafeCity Audit — {kind}</h1><p>Generated {tz.now().strftime('%Y-%m-%d %H:%M')} · {len(body_rows)} rows</p>"
+        f"<h1>SafeCity Audit | {kind}</h1><p>Generated {tz.now().strftime('%Y-%m-%d %H:%M')} · {len(body_rows)} rows</p>"
         "<table><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th></tr></thead><tbody>"
         + ''.join(body_rows) +
         "</tbody></table><script>window.onload=function(){window.print();}</script></body></html>"
@@ -359,4 +359,124 @@ def audit_export(request):
     resp = HttpResponse(html, content_type='text/html; charset=utf-8')
     resp['Content-Disposition'] = f'inline; filename="safecity_audit_{kind}.pdf.html"'
     return resp
+
+
+# ---------------------------------------------------------------------------
+# Audit report PDF export (single A4 page, template-driven)
+# ---------------------------------------------------------------------------
+
+PDF_EXPORT_MAX_REQUESTS = 10
+PDF_EXPORT_WINDOW = 60  # seconds
+
+
+def _check_pdf_export_rate(request) -> bool:
+    """Simple per-user cache counter (same pattern as challan search rate limit)."""
+    from django.core.cache import cache
+    if request.user.is_authenticated:
+        ident = f"u{request.user.pk}"
+    else:
+        ident = (
+            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            or request.META.get('REMOTE_ADDR', '127.0.0.1')
+        )
+    cache_key = f"audit_pdf_rl:{ident}"
+    count = cache.get(cache_key, 0)
+    if count >= PDF_EXPORT_MAX_REQUESTS:
+        return False
+    cache.set(cache_key, count + 1, PDF_EXPORT_WINDOW)
+    return True
+
+
+@role_required(*AUDIT_ROLES)
+def export_pdf(request, kind):
+    """GET /portal/audit/export/pdf/<kind>/ -> downloadable audit report PDF."""
+    from django.http import HttpResponse
+
+    from .audit_pdf import KIND_LABELS, generate_audit_pdf, normalize_kind
+
+    canonical = normalize_kind(kind)
+    if canonical is None:
+        return HttpResponse(
+            f"Unknown audit export kind '{kind}'. "
+            f"Supported: {', '.join(sorted(KIND_LABELS))}.", status=404)
+
+    if not _check_pdf_export_rate(request):
+        return HttpResponse(
+            "PDF export rate limit reached (10 per minute). Please try again shortly.",
+            status=429)
+
+    template_key = (request.GET.get('template') or '').strip() or None
+    pdf_bytes = generate_audit_pdf(canonical, {}, template_key)
+    if not pdf_bytes:
+        return HttpResponse(
+            "The PDF engine could not generate this report. "
+            "Please contact IT Support.", status=503)
+
+    AuditLog.write(request, 'audit_export.pdf', 'AuditPDF', None,
+                   kind=canonical, template=template_key or 'active')
+    filename = f"audit_{canonical}_{timezone.now():%Y%m%d}.pdf"
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+    resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return resp
+
+
+@role_required('DIG')
+def templates_select(request):
+    """DIG-only, select-only page for choosing the active audit PDF template."""
+    from django.contrib import messages
+    from django.shortcuts import redirect, render
+
+    from .audit_pdf import (BUILTIN_TEMPLATES, generate_audit_pdf,
+                            get_active_template_key, get_audit_templates,
+                            get_template_preview_html)
+
+    # GET ?sample=<template_key> -> inline sample PDF (middleware-safe preview)
+    sample_key = (request.GET.get('sample') or '').strip()
+    if sample_key:
+        from django.http import HttpResponse
+        if sample_key not in {t['key'] for t in get_audit_templates()}:
+            return HttpResponse('Unknown template key.', status=404)
+        pdf_bytes = generate_audit_pdf('dashboard', {}, sample_key)
+        if not pdf_bytes:
+            return HttpResponse('PDF engine unavailable.', status=503)
+        resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+        resp['Content-Disposition'] = (
+            f'inline; filename="audit_sample_{sample_key.replace(":", "_")}.pdf"')
+        return resp
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+        key = (request.POST.get('template_key') or '').strip()
+        valid_keys = {t['key'] for t in get_audit_templates()}
+        if action != 'activate':
+            messages.error(
+                request,
+                "DIG access is select-only. Template creation, editing and deletion "
+                "are performed by IT Support.")
+        elif key not in valid_keys:
+            messages.error(request, "Unknown template selection.")
+        else:
+            from admin.dig_portal.models import SystemSettings
+            sys_settings = SystemSettings.get()
+            sys_settings.audit_pdf_template = key
+            sys_settings.save(update_fields=['audit_pdf_template'])
+            if key.startswith('db:'):
+                from admin.dig_portal.models import AuditPDFTemplate
+                AuditPDFTemplate.objects.filter(pk=key[3:]).update(is_active=True)
+            AuditLog.write(request, 'audit_template.select', 'SystemSettings', None,
+                           template=key)
+            messages.success(request, f"Active audit PDF template set to '{key}'.")
+        return redirect('audit_portal:templates_select')
+
+    templates = []
+    for t in get_audit_templates():
+        item = dict(t)
+        item['preview_html'] = get_template_preview_html(t['key'])
+        templates.append(item)
+    return render(request, 'dashboard/dig/audit_templates_select.html', {
+        'templates': templates,
+        'active_template_key': get_active_template_key(),
+        'builtin_count': len(BUILTIN_TEMPLATES),
+        'db_count': sum(1 for t in templates if not t['is_builtin']),
+    })
 

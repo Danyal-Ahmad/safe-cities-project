@@ -18,7 +18,7 @@ DEMO_ACCOUNTS = [
 class Command(BaseCommand):
     help = (
         "Seed one demo account per role for development/demo runs. "
-        "DEMO ONLY — never run in production."
+        "DEMO ONLY - never run in production."
     )
 
     def add_arguments(self, parser):
@@ -28,7 +28,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not options.get('yes'):
             self.stdout.write(self.style.WARNING(
-                "Refusing to run without --yes. Demo accounts use fixed passwords — "
+                "Refusing to run without --yes. Demo accounts use fixed passwords - "
                 "development/demo only."))
             return
         created = []
@@ -48,6 +48,6 @@ class Command(BaseCommand):
             for line in created:
                 self.stdout.write(self.style.SUCCESS(line))
             self.stdout.write(self.style.WARNING(
-                "Demo accounts with fixed passwords — development use only."))
+                "Demo accounts with fixed passwords - development use only."))
         else:
             self.stdout.write("All demo accounts already exist.")

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{{ title|default:"Changes Log" }} — Audit Portal{% endblock %}
+{% block title %}{{ title|default:"Changes Log" }} | Audit Portal{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/audit-changes-log.css' %}">
@@ -10,11 +10,12 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="fa-solid {{ icon|default:'fa-clipboard-list' }} me-2"></i>{{ title|default:"Changes Log" }}</h1>
-    <p class="sc-lead">Filtered, immutable audit trail for the selected change actions — read only.</p>
+    <p class="sc-lead">Filtered, immutable audit trail for the selected change actions - read only.</p>
   </div>
   <div class="audit-hero-meta">
     <span class="audit-readonly"><i class="bi bi-lock"></i> Read-only</span>
     <span class="sc-badge sc-badge-purple">{{ count|default:0 }} entries</span>
+    <a href="{% url 'audit_portal:export_pdf' 'changes_log' %}" class="sc-btn sc-btn-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Export PDF</a>
     <a href="{% url 'audit_portal:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-grid-1x2 me-1"></i>Dashboard</a>
   </div>
 </div>
@@ -38,7 +39,7 @@
     <div class="sc-kpi-foot">{{ latest.timestamp|date:"H:i" }} &middot; most recent entry</div>
     {% endwith %}
     {% else %}
-    <div class="sc-kpi-value">&mdash;</div>
+    <div class="sc-kpi-value">-</div>
     <div class="sc-kpi-foot">no entries yet</div>
     {% endif %}
   </div>
@@ -64,7 +65,7 @@
   <div class="sc-card-header d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center gap-2">
       <i class="bi bi-clipboard-data"></i>
-      <span>{{ title|default:"Changes" }} — log entries</span>
+      <span>{{ title|default:"Changes" }} | log entries</span>
     </div>
     <span class="sc-badge sc-badge-gray">{{ logs|length|default:0 }} entries</span>
   </div>
@@ -99,9 +100,9 @@
             </span>
           </td>
           <td class="sc-mono sc-text-sm">{{ l.target_model }}{% if l.target_id %} #{{ l.target_id }}{% endif %}</td>
-          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"—" }}</td>
+          <td class="sc-mono sc-text-sm sc-text-muted audit-ip">{{ l.ip_address|default:"-" }}</td>
           <td class="sc-text-sm sc-text-muted audit-details-cell">
-            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}&mdash;{% endif %}
+            {% if l.details %}{% for k, v in l.details.items %}{{ k }}={{ v }}{% if not forloop.last %} &middot; {% endif %}{% endfor %}{% else %}-{% endif %}
           </td>
         </tr>
         {% endfor %}

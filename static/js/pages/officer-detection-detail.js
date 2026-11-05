@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Detection Detail (officer-detection-detail.js)
+   Officer | Detection Detail (officer-detection-detail.js)
    Image fallbacks, notes counters + validation, confirm dialogs, copy hash.
    ========================================================================== */
 (function () {
@@ -119,5 +119,54 @@
       });
     });
 
+  });
+})();
+
+// --- 3-frame sequential evidence viewer (90FPS burst) ---
+(function () {
+  var main = document.getElementById('detailTargetImage');
+  var strip = document.getElementById('seqFrameStrip');
+  var tag = document.getElementById('seqFrameTag');
+  if (!main || !strip) return;
+
+  function sources() {
+    return Array.prototype.slice.call(document.querySelectorAll('.seq-frame-src'));
+  }
+
+  function selectSlot(slot) {
+    var srcs = sources();
+    var chosen = srcs.filter(function (s) { return s.dataset.frameSlot === String(slot); })[0];
+    if (chosen) {
+      main.src = chosen.src;
+      if (tag) {
+        tag.textContent = chosen.dataset.frameLabel + ' / 0' + Math.max(srcs.length, 1) + '3'.slice(-2);
+        tag.textContent = chosen.dataset.frameLabel + ' / ' + (srcs.length < 10 ? '0' : '') + srcs.length;
+      }
+    }
+    Array.prototype.forEach.call(strip.querySelectorAll('.seq-frame-btn'), function (b) {
+      var active = b.dataset.frameSlot === String(slot);
+      b.style.borderColor = active ? '#38bdf8' : '#334155';
+      var im = b.querySelector('img');
+      if (im) im.style.opacity = active ? '1' : '0.65';
+    });
+  }
+
+  strip.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.seq-frame-btn') : null;
+    if (btn) selectSlot(btn.dataset.frameSlot);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    var srcs = sources();
+    if (!srcs.length) return;
+    var current = srcs.findIndex(function (s) { return s.src === main.src; });
+    if (e.key === 'ArrowRight' || e.key === '2') {
+      selectSlot(Math.min(current + 2, srcs.length));
+    } else if (e.key === 'ArrowLeft' || e.key === '1') {
+      selectSlot(Math.max(current, 1));
+    } else if (e.key === '3') {
+      selectSlot(3);
+    }
   });
 })();

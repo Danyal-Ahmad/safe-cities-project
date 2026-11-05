@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}System Backups — Safe City{% endblock %}
+{% block title %}System Backups | Safe City{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-backup-list.css' %}">
 {% endblock %}
@@ -10,7 +10,7 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-hdd-network me-2"></i>System Backups</h1>
-    <p class="sc-lead">Create, import and download JSON snapshots of the Safe City database &mdash; users, cameras, challans and detections.</p>
+    <p class="sc-lead">Create, import and download JSON snapshots of the Safe City database - users, cameras, challans and detections.</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <a href="{% url 'it_support_portal:system_health' %}" class="sc-btn"><i class="bi bi-heart-pulse me-1"></i>System Health</a>
@@ -27,7 +27,7 @@
   <div class="sc-kpi sc-kpi-amber">
     <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
     <div class="sc-kpi-label">Newest Snapshot</div>
-    <div class="sc-kpi-value" style="font-size:1.15rem;">{% if backups %}{{ backups.0.mtime|date:"d M Y" }}{% else %}&mdash;{% endif %}</div>
+    <div class="sc-kpi-value" style="font-size:1.15rem;">{% if backups %}{{ backups.0.mtime|date:"d M Y" }}{% else %}-{% endif %}</div>
     <div class="sc-kpi-foot">{% if backups %}{{ backups.0.mtime|date:"H:i" }} &middot; {{ backups.0.name|truncatechars:34 }}{% else %}no backups yet{% endif %}</div>
   </div>
   <div class="sc-kpi sc-kpi-ok">
@@ -137,8 +137,8 @@
             <td class="sc-text-sm sc-text-muted">{{ log.timestamp|date:"d M Y H:i" }}</td>
             <td class="sc-text-sm">{{ log.actor.username|default:"system" }}</td>
             <td><span class="sc-badge sc-badge-blue sc-mono">{{ log.action }}</span></td>
-            <td class="sc-text-sm">{{ log.details.file|default:"&mdash;" }}</td>
-            <td class="sc-text-sm sc-text-muted">{{ log.ip_address|default:"&mdash;" }}</td>
+            <td class="sc-text-sm">{{ log.details.file|default:"-" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ log.ip_address|default:"-" }}</td>
           </tr>
           {% endfor %}
         </tbody>

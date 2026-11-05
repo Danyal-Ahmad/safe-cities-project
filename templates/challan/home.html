@@ -1,133 +1,136 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load humanize %}
-{% block title %}Safe City — Public E-Challan Search{% endblock %}
-{% block body_class %}public-home{% endblock %}
+{% block title %}Safe Cities Project | E-Challan Citizen Portal{% endblock %}
+{% block body_class %}{% if user.is_authenticated %}sc-app scpub-embed{% else %}public-home{% endif %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="pub-shell">
+<div class="scpub scpub-home">
+  <div class="scpub-bg" aria-hidden="true"></div>
 
-  <!-- HEADER -->
-  <div class="pub-header">
-    <div class="pub-brand">
-      <img src="{% static 'img/project_logo.png' %}" alt="Safe City">
-      <div class="pub-brand-text">
-        <span class="pub-brand-title">SAFE CITY</span>
-        <span class="pub-brand-sub">E-Challan Portal</span>
-      </div>
-    </div>
-    {% if user.is_authenticated %}
-      {% if user.role == 'USER' %}
-      <a href="{% url 'citizen_portal:home' %}" class="pub-signin"><i class="bi bi-speedometer2"></i> My Dashboard</a>
+  <div class="scpub-inner">
+
+    <!-- Single secondary action -->
+    <div class="ph-top">
+      {% if user.is_authenticated %}
+        {% if user.role == 'USER' %}
+        <a href="{% url 'citizen_portal:home' %}" class="scpub-btn-ghost"><i class="bi bi-speedometer2"></i> My Dashboard</a>
+        {% else %}
+        <a href="{% url 'auth_portal:role_redirect' %}" class="scpub-btn-ghost"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        {% endif %}
       {% else %}
-      <a href="{% url 'auth_portal:role_redirect' %}" class="pub-signin"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="{% url 'auth_portal:citizen_login' %}" class="scpub-btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Citizen Sign In</a>
       {% endif %}
-    {% else %}
-    <a href="{% url 'auth_portal:citizen_login' %}" class="pub-signin"><i class="bi bi-box-arrow-in-right"></i> Sign in</a>
-    {% endif %}
-  </div>
+    </div>
 
-  {% if not searched or not challans %}
-  <!-- SEARCH HERO -->
-  <div class="pub-hero">
-    <div class="pub-hero-form">
-      <h1><i class="bi bi-shield-fill-check"></i> Search E-Challan</h1>
-      <p class="pub-hero-sub">Enter your vehicle plate number or CNIC to look up traffic violation tickets issued against you.</p>
+    <!-- Hero: dual logos one side, "|" separator, title + subtitle other side -->
+    <section class="ph-hero">
+      <div class="scpub-brand">
+        <div class="scpub-logos">
+          <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
+          <span class="scpub-logos-sep" aria-hidden="true">|</span>
+          <img src="{% static 'img/university_logo.png' %}" alt="University">
+        </div>
+        <div class="scpub-brand-text">
+          <h1 class="scpub-brand-title ph-brand-title">SAFE CITIES PROJECT</h1>
+          <p class="scpub-brand-sub">E-CHALLAN CITIZEN PORTAL</p>
+        </div>
+      </div>
+    </section>
 
-      <form method="get" action="{% url 'challans:home' %}">
-        <div class="pub-fields">
-          <div class="pub-field">
-            <label>Plate Number <span class="req">*</span></label>
-            <input type="text" name="plate" placeholder="ABC 000 / ABC-00-0000" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
+    <!-- Search card: two inputs + one button -->
+    <section class="ph-search-card scpub-card">
+      <form method="get" action="{% url 'challans:home' %}" class="scpub-form" role="search">
+        <div class="ph-fields">
+          <div class="scpub-field">
+            <label for="phPlate">Number Plate</label>
+            <input class="scpub-input" id="phPlate" type="text" name="plate" placeholder="Number Plate (e.g. LEA-1234)" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
           </div>
-          <div class="pub-field">
-            <label>CNIC <span class="req">*</span></label>
-            <input type="text" name="cnic" placeholder="13 digits · 1234567890123" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
+          <div class="scpub-field">
+            <label for="phCnic">CNIC</label>
+            <input class="scpub-input" id="phCnic" type="text" inputmode="numeric" name="cnic" placeholder="CNIC (13 digits)" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
           </div>
         </div>
-        <button type="submit" class="pub-search-btn"><i class="bi bi-search"></i> Search Challan</button>
+        <button type="submit" class="scpub-btn"><i class="bi bi-search"></i> Search Challan</button>
+        <p class="ph-urdu-hint" lang="ur" dir="rtl">اپنا چالان یہاں تلاش کریں</p>
       </form>
 
       {% if searched and not challans %}
-      <div class="pub-no-record"><i class="bi bi-exclamation-circle-fill"></i> No record found. Please check your plate number or CNIC and try again.</div>
+      <div class="scpub-note scpub-note-danger ph-no-record"><i class="bi bi-exclamation-circle-fill"></i> No record found. Please check your plate number or CNIC and try again.</div>
       {% endif %}
-    </div>
-    <div class="pub-hero-art">
-      <img src="{% static 'img/hero_illustration.jpg' %}" alt="Safe City traffic enforcement">
-    </div>
-  </div>
-  {% endif %}
+    </section>
 
-  <!-- RESULTS -->
-  {% if searched and challans %}
-  <div class="pub-results">
-    <div class="pub-results-head">
-      <h2><i class="bi bi-card-checklist"></i> E-Challan Details ({{ challans|length }})</h2>
-      <a href="{% url 'challans:home' %}" class="pub-back"><i class="bi bi-arrow-left"></i> Back to Search</a>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="pub-table">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Challan No</th>
-            <th>Plate No</th>
-            <th>Penalty (PKR)</th>
-            <th>Due Date</th>
-            <th>Offense Time</th>
-            <th>Violation Type</th>
-            <th>Place Of Violation</th>
-            <th>Owner</th>
-            <th>Make</th>
-            <th>Year</th>
-            <th>Paid</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for c in challans %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td><span class="challan-badge">{{ c.ticket_no }}</span></td>
-            <td>{{ c.plate_number }}</td>
-            <td style="font-weight:700;color:#0F2557;">{{ c.fine_amount|floatformat:0|intcomma }}</td>
-            <td>{{ c.due_date|date:"d M Y" }}</td>
-            <td>{{ c.issue_date|date:"d M Y" }}</td>
-            <td>{{ c.get_violation_type_display }}</td>
-            <td>{{ c.location|default:"—" }}</td>
-            <td>{{ c.owner_name|default:"—" }}</td>
-            <td>{{ c.vehicle_make|default:"—" }}</td>
-            <td>{{ c.vehicle_year|default:"—" }}</td>
-            <td>{% if c.payment_status == 'PAID' %}<span class="paid-yes">Yes</span>{% else %}<span class="paid-no">No</span>{% endif %}</td>
-            <td>
-              <a href="{% url 'challans:challan_pdf' c.id %}?token={{ c.signed_token }}" class="row-btn dl-btn" target="_blank"><i class="bi bi-download"></i> Download</a>
-              <a href="{% url 'challans:challan_detail' c.id %}" class="row-btn rv-btn"><i class="bi bi-eye"></i> Review</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
+    <!-- Results below the search card (server rendered) -->
+    {% if searched and challans %}
+    <section class="ph-results">
+      <div class="ph-results-head">
+        <h2><i class="bi bi-card-checklist"></i> Challans Found ({{ challans|length }})</h2>
+        <a href="{% url 'challans:home' %}" class="scpub-btn-ghost"><i class="bi bi-arrow-left"></i> New Search</a>
+      </div>
+      <div class="scpub-card">
+        <div class="ph-table-wrap">
+          <table class="ph-table">
+            <thead>
+              <tr>
+                <th>Challan No</th>
+                <th>Plate</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in challans %}
+              <tr>
+                <td data-label="Challan No"><span class="ph-ticket">{{ c.ticket_no }}</span></td>
+                <td data-label="Plate"><span class="scpub-mono">{{ c.plate_number }}</span></td>
+                <td data-label="Owner">{% if c.owner_name %}{{ c.display_owner }}{% else %}-{% endif %}</td>
+                <td data-label="Status">
+                  {% if c.payment_status == 'PAID' %}<span class="scpub-badge scpub-badge-green">Paid</span>
+                  {% elif c.payment_status == 'VOIDED' %}<span class="scpub-badge scpub-badge-gray">Voided</span>
+                  {% elif c.is_overdue %}<span class="scpub-badge scpub-badge-red">Overdue</span>
+                  {% else %}<span class="scpub-badge scpub-badge-amber">Unpaid</span>{% endif %}
+                </td>
+                <td data-label="Due Date">{{ c.due_date|date:"d M Y" }}</td>
+                <td data-label="Action">
+                  {% if c.signed_token %}
+                  <a href="{% url 'challans:challan_detail_signed' c.signed_token %}" class="ph-view-btn"><i class="bi bi-receipt"></i> View Challan</a>
+                  {% else %}
+                  <a href="{% url 'challans:challan_detail' c.id %}" class="ph-view-btn"><i class="bi bi-receipt"></i> View Challan</a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    {% endif %}
 
-  <!-- AD BANNERS -->
-  {% if not searched or not challans %}
-  {% if homepage_banners %}
-  <div class="pub-ads">
-    <div class="pub-ads-title">Public Announcements</div>
-    {% include 'challan/_public_ads.html' %}
-  </div>
-  {% endif %}
-  {% endif %}
+    <!-- Hidden static ad strip (placement='ad') + popup banner (home only) -->
+    {% if homepage_banners or popup_banners %}
+    <section class="ph-ads" aria-label="Public service announcements">
+      {% include 'challan/_public_ads.html' %}
+    </section>
+    {% endif %}
 
-  <footer class="pub-footer">&copy; 2026 SAFE CITY &middot; E-Challan Enforcement Platform &middot; All Rights Reserved</footer>
+    <!-- Thin minimal footer -->
+    <footer class="scpub-footer">
+      <span class="scpub-footer-brand">SAFE CITIES PROJECT</span>
+      <nav class="scpub-footer-links" aria-label="Footer">
+        <a href="{% url 'challans:home' %}">Search Challan</a>
+        <a href="{% url 'auth_portal:citizen_login' %}">Citizen Login</a>
+      </nav>
+      <span>&copy; {% now "Y" %} Safe Cities Project. All rights reserved.</span>
+    </footer>
+
+  </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}

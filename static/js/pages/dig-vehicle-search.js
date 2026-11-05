@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DIG — Vehicle Search  (dashboard/dig/vehicle_search.html)
+   DIG | Vehicle Search  (dashboard/dig/vehicle_search.html)
    Example chips · uppercase input · confidence bar widths
    ========================================================================== */
 (function () {

@@ -1,0 +1,184 @@
+{# Modern executive summary - navy sidebar + KPI boxes + severity table #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #1e293b;
+         margin: 0; padding: 0; line-height: 1.35; background: #fff; }
+
+  .ex-wrap { display: flex; min-height: 297mm; }
+  .ex-side { width: 58mm; background: #0f2a52; color: #fff; padding: 10mm 6mm; }
+  .ex-main { flex: 1; padding: 10mm 9mm 8mm 9mm; }
+
+  .ex-side .ex-brand { font-size: 12.5px; font-weight: 900; letter-spacing: 1.2px;
+                       text-transform: uppercase; line-height: 1.2; }
+  .ex-side .ex-office { font-size: 6.8px; color: #9fb6da; letter-spacing: 0.8px;
+                        text-transform: uppercase; margin-top: 2px; }
+  .ex-side .ex-logos { display: flex; align-items: center; margin: 7px 0 10px 0; }
+  .ex-side .ex-logos img { height: 26px; width: auto; object-fit: contain; }
+  .ex-side .ex-logo-sep { color: #9fb6da; font-size: 18px; margin: 0 6px; }
+  .ex-side h4 { font-size: 7px; letter-spacing: 1.4px; text-transform: uppercase;
+                color: #9fb6da; margin: 10px 0 3px 0; border-bottom: 1px solid #27497b;
+                padding-bottom: 2px; }
+  .ex-side p { font-size: 7.5px; margin: 0 0 3px 0; color: #e7eefb; }
+  .ex-side .ex-scope li { font-size: 7.2px; margin-bottom: 2.5px; color: #dbe6f7; }
+  .ex-side .ex-class { display: inline-block; background: #b91c1c; color: #fff;
+                       font-size: 7px; font-weight: 900; letter-spacing: 1px;
+                       padding: 2px 6px; margin-top: 2px; }
+
+  .ex-head { border-bottom: 3px solid #0f2a52; padding-bottom: 6px; margin-bottom: 8px; }
+  .ex-head .ex-kind { font-size: 16px; font-weight: 900; color: #0f2a52; letter-spacing: 0.4px; }
+  .ex-head .ex-meta { font-size: 7px; color: #64748b; margin-top: 2px; }
+
+  .ex-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
+  .ex-kpi { border: 1px solid #dbe3ef; border-top: 3px solid #0f2a52; padding: 5px 6px; }
+  .ex-kpi b { display: block; font-size: 6.2px; color: #64748b; text-transform: uppercase;
+              letter-spacing: 0.7px; }
+  .ex-kpi span { display: block; font-size: 12px; font-weight: 900; color: #0f2a52; margin-top: 1px; }
+  .ex-kpi i { display: block; font-size: 6px; color: #94a3b8; font-style: italic; }
+
+  .ex-h { font-size: 8px; font-weight: 900; color: #0f2a52; text-transform: uppercase;
+          letter-spacing: 1px; margin: 8px 0 3px 0; }
+  table { border-collapse: collapse; width: 100%; }
+  .ex-table th { background: #eef2f9; color: #0f2a52; font-size: 6.6px; text-transform: uppercase;
+                 letter-spacing: 0.6px; border: 1px solid #dbe3ef; padding: 3px 4px; text-align: left; }
+  .ex-table td { border: 1px solid #e2e8f0; padding: 2.8px 4px; font-size: 7px; }
+  .ex-table tr:nth-child(even) td { background: #f8fafc; }
+  .ex-more { font-size: 6.4px; color: #64748b; font-style: italic; margin-top: 2px; }
+
+  .ex-sev td { font-size: 7px; }
+  .chip { display: inline-block; font-size: 6.2px; font-weight: 900; letter-spacing: 0.8px;
+          padding: 1px 5px; color: #fff; }
+  .chip-high { background: #b91c1c; }
+  .chip-medium { background: #b45309; }
+  .chip-low { background: #15803d; }
+  .chip-none { background: #0f2a52; }
+
+  .ex-strip { display: flex; justify-content: space-between; margin-top: 10px;
+              border-top: 2px solid #0f2a52; padding-top: 6px; }
+  .ex-sign { width: 44%; }
+  .ex-sign .ex-stamp { float: right; width: 42px; height: 36px; border: 1px dashed #94a3b8;
+                       font-size: 5.2px; color: #94a3b8; text-align: center; padding-top: 9px;
+                       text-transform: uppercase; letter-spacing: 0.5px; }
+  .ex-sign .ex-name { border-top: 1px solid #1e293b; font-size: 7.2px; font-weight: 800;
+                      padding-top: 2px; }
+  .ex-sign .ex-desc { font-size: 6.4px; color: #64748b; }
+  .ex-sign .ex-date { font-size: 6.4px; color: #64748b; }
+
+  .ex-foot { margin-top: 8px; display: flex; justify-content: space-between;
+             font-size: 6.2px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 3px; }
+</style>
+</head>
+<body>
+<div class="ex-wrap">
+
+  <div class="ex-side">
+    <div class="ex-brand">Safe Cities Project</div>
+    <div class="ex-office">Internal Audit Executive Brief</div>
+    <div class="ex-logos">
+      {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+      <span class="ex-logo-sep">|</span>
+      {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+    </div>
+
+    <h4>Document Reference</h4>
+    <p>{{ doc_ref }}</p>
+    <p>Generated {{ generated_at_str }}</p>
+
+    <h4>Report</h4>
+    <p>{{ kind_label }}</p>
+
+    <h4>Audit Period</h4>
+    <p>{{ period_label }}</p>
+
+    <h4>Audit Scope</h4>
+    <ul class="ex-scope" style="margin:0; padding-left: 12px;">
+      <li>Traffic e-challan issuance records</li>
+      <li>Payment settlement and reconciliation</li>
+      <li>Administrative change trail (immutable log)</li>
+      <li>Authentication and account events</li>
+    </ul>
+
+    <h4>Classification</h4>
+    <span class="ex-class">INTERNAL - AUDIT</span>
+
+    <h4>Prepared By</h4>
+    <p>{{ prepared_by }}</p>
+  </div>
+
+  <div class="ex-main">
+    <div class="ex-head">
+      <div class="ex-kind">{{ kind_label }}</div>
+      <div class="ex-meta">Reference {{ doc_ref }} | Period: {{ period_label }} | Page 1 of 1</div>
+    </div>
+
+    <div class="ex-kpis">
+      {% for k in kpis %}
+      <div class="ex-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+      {% endfor %}
+    </div>
+
+    <div class="ex-h">Severity Register</div>
+    <table class="ex-table ex-sev">
+      <thead>
+        <tr><th style="width:20%;">Severity</th><th>Type</th><th>Description</th><th style="width:16%;">Target</th></tr>
+      </thead>
+      <tbody>
+        {% for a in anomalies %}
+        <tr>
+          <td><span class="chip {% if a.severity == 'HIGH' %}chip-high{% elif a.severity == 'MEDIUM' %}chip-medium{% else %}chip-low{% endif %}">{{ a.severity }}</span></td>
+          <td>{{ a.type }}</td><td>{{ a.description }}</td><td>{{ a.target }}</td>
+        </tr>
+        {% empty %}
+        <tr><td><span class="chip chip-none">CLEAR</span></td>
+            <td>NO ANOMALIES</td>
+            <td>No anomalies were open at generation time.</td><td>-</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="ex-h">Detail Extract ({{ table.shown }} of {{ table.total }} rows)</div>
+    <table class="ex-table">
+      <thead>
+        <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in table.rows %}
+        <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+        {% empty %}
+        <tr><td colspan="{{ table.columns|length }}">No records in scope.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if more_rows > 0 %}<div class="ex-more">+{{ more_rows }} more rows in system</div>{% endif %}
+
+    <div class="ex-strip">
+      <div class="ex-sign">
+        <div class="ex-stamp">Stamp</div>
+        <div class="ex-name">Senior Auditor</div>
+        <div class="ex-desc">Designation: Senior Auditor, Internal Audit</div>
+        <div class="ex-date">Date: ____ / ____ / ________</div>
+      </div>
+      <div class="ex-sign">
+        <div class="ex-stamp">Stamp</div>
+        <div class="ex-name">Director Audit</div>
+        <div class="ex-desc">Designation: Director, Internal Audit</div>
+        <div class="ex-date">Date: ____ / ____ / ________</div>
+      </div>
+    </div>
+
+    <div class="ex-foot">
+      <span>{{ doc_ref }}</span>
+      <span>{{ generated_at_str }}</span>
+      <span>Page 1 of 1</span>
+      <span>INTERNAL - AUDIT</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

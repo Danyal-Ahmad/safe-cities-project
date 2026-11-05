@@ -1,4 +1,4 @@
-/* Citizen Portal home — extracted from templates/dashboard/citizen/home.html */
+/* Citizen Portal home - extracted from templates/dashboard/citizen/home.html */
 (function () {
   'use strict';
 

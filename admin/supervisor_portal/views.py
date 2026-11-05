@@ -45,8 +45,8 @@ def dashboard(request):
     days_data = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)
-        day_start = datetime.datetime.combine(day, datetime.time.min).replace(tzinfo=datetime.timezone.utc)
-        day_end = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time.min).replace(tzinfo=datetime.timezone.utc)
+        day_start = datetime.datetime.combine(day, datetime.time.min).replace(tzinfo=timezone.get_current_timezone())
+        day_end = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time.min).replace(tzinfo=timezone.get_current_timezone())
         reviewed = Detection.objects.filter(reviewed_at__gte=day_start, reviewed_at__lt=day_end).count()
         days_data.append({'label': day.strftime('%a'), 'count': reviewed})
 

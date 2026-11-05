@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Template Designer — Safe City{% endblock %}
+{% block title %}Template Designer | Safe City{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-challan-designer.css' %}">
 {% endblock %}
@@ -55,7 +55,7 @@
           <div class="it-ds-empty" data-ds-empty>
             <i class="bi bi-arrows-move"></i>
             <p class="mb-1">Drop blocks here to build the layout</p>
-            <p class="sc-hint mb-0">The canvas is a single A4 sheet &mdash; blocks stack top to bottom.</p>
+            <p class="sc-hint mb-0">The canvas is a single A4 sheet - blocks stack top to bottom.</p>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@
           </div>
         </div>
         <div class="sc-form-group">
-          <label class="form-label sc-text-sm">Generated template HTML <span class="sc-text-muted">(Django template &mdash; challan.* fields are filled at print time)</span></label>
+          <label class="form-label sc-text-sm">Generated template HTML <span class="sc-text-muted">(Django template - challan.* fields are filled at print time)</span></label>
           <textarea name="html_content" rows="12" class="form-control sc-mono it-ds-code" spellcheck="false" data-ds-html placeholder="Click Generate HTML, or paste an existing template here."></textarea>
           <div class="sc-flex sc-justify-between sc-mt-2">
             <span class="sc-hint" data-ds-counter>0 characters &middot; at least 50 required</span>

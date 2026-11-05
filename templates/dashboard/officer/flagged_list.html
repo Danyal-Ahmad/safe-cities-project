@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Flagged Detections — Officer Portal{% endblock %}
+{% block title %}Flagged Detections | Officer Portal{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/officer-flagged-list.css' %}">
 {% endblock %}
@@ -25,7 +25,7 @@
   <i class="bi bi-arrow-up-right-circle"></i>
   <div>
     These detections are <strong>awaiting a DIG decision</strong>. Officers cannot confirm,
-    reject or un-flag them &mdash; use the detail page to review the five-step evidence and
+    reject or un-flag them - use the detail page to review the five-step evidence and
     any escalation notes left by the flagging officer.
   </div>
 </div>
@@ -60,14 +60,14 @@
             <td class="sc-text-sm">
               {% if d.camera %}
                 {{ d.camera.camera_id }}{% if d.camera.location %} <span class="sc-text-faint">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}
-              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+              {% else %}<span class="sc-text-faint">-</span>{% endif %}
             </td>
             <td>
               {% if d.ai_confidence %}
                 <span class="sc-badge {% if d.ai_confidence >= 0.85 %}sc-badge-ok{% elif d.ai_confidence >= 0.6 %}sc-badge-amber{% else %}sc-badge-red{% endif %} sc-mono">
                   {% widthratio d.ai_confidence 1 100 %}%
                 </span>
-              {% else %}<span class="sc-text-faint">—</span>{% endif %}
+              {% else %}<span class="sc-text-faint">-</span>{% endif %}
             </td>
             <td>
               {% with ev=d.evidence_summary %}
@@ -77,18 +77,18 @@
                       <i class="bi bi-shield-fill-check"></i> {{ ev.passed }}/{{ ev.total }}
                     </span>
                   {% else %}
-                    <span class="sc-badge sc-badge-amber" data-bs-toggle="tooltip" title="{{ ev.passed }} of {{ ev.total }} hard security checks passed — open for details">
+                    <span class="sc-badge sc-badge-amber" data-bs-toggle="tooltip" title="{{ ev.passed }} of {{ ev.total }} hard security checks passed - open for details">
                       <i class="bi bi-shield-fill-exclamation"></i> {{ ev.passed }}/{{ ev.total }}
                     </span>
                   {% endif %}
                 {% else %}
-                  <span class="sc-badge sc-badge-muted" data-bs-toggle="tooltip" title="No evidence checks recorded">—</span>
+                  <span class="sc-badge sc-badge-muted" data-bs-toggle="tooltip" title="No evidence checks recorded">-</span>
                 {% endif %}
               {% endwith %}
             </td>
-            <td class="sc-text-sm">{{ d.reviewed_by.display_name|default:d.reviewed_by|default:"—" }}</td>
-            <td class="sc-text-sm sc-text-muted">{{ d.reviewed_at|date:"d M Y, H:i"|default:"—" }}</td>
-            <td class="sc-text-sm sc-notes-cell">{{ d.review_notes|truncatechars:70|default:"—" }}</td>
+            <td class="sc-text-sm">{{ d.reviewed_by.display_name|default:d.reviewed_by|default:"-" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ d.reviewed_at|date:"d M Y, H:i"|default:"-" }}</td>
+            <td class="sc-text-sm sc-notes-cell">{{ d.review_notes|truncatechars:70|default:"-" }}</td>
             <td>
               <a href="{% url 'officer_portal:detection_detail' d.id %}" class="sc-btn sc-btn-sm sc-btn-outline">
                 <i class="bi bi-eye"></i> View

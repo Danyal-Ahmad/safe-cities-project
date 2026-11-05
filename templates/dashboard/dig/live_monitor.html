@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Live CCTV Monitor — Safe City{% endblock %}
+{% block title %}Live CCTV Wall | SAFE CITIES PROJECT{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block extra_head %}
@@ -8,88 +8,127 @@
 {% endblock %}
 
 {% block content %}
-<div class="cctv-hero">
-  <div>
-    <h1 class="fs-4 m-0 d-flex align-items-center gap-2">
-      <i class="bi bi-camera-video text-danger"></i>
-      <span>LIVE CCTV Monitor</span>
-    </h1>
-    <div class="sc-text-xs sc-text-muted">{{ cameras|length }} camera{{ cameras|length|pluralize }} registered · Command Grid</div>
-  </div>
-  <div class="d-flex align-items-center gap-2">
-    <input type="text" id="cctvSearch" class="form-control form-control-sm" style="width: 200px;" placeholder="Filter cameras...">
-    <span class="sc-badge sc-badge-ok">{{ online_count|default:0 }} Online</span>
-    <span class="sc-badge sc-badge-danger">{{ offline_count|default:0 }} Offline</span>
-  </div>
-</div>
+<div id="cctvWall" class="cctv-wall" data-feed-url="{{ feed_url }}">
 
-{% if recent_detections %}
-<div class="sc-card p-2 mb-3 bg-light">
-  <div class="d-flex align-items-center gap-2 sc-text-xs">
-    <strong class="text-primary"><i class="bi bi-broadcast me-1"></i>Live Stream Activity:</strong>
-    <div class="d-flex gap-3 overflow-auto">
-      {% for d in recent_detections|slice:":5" %}
-      <span class="badge bg-white text-dark border">
-        {{ d.camera.camera_id|default:"Camera" }} — <strong>{{ d.effective_plate|default:"UNKNOWN" }}</strong>
-        <span class="text-muted ms-1">{{ d.created_at|date:"H:i:s" }}</span>
+  <!-- ======== Wall toolbar: identity, counters, clock, server search ======== -->
+  <div class="cctv-toolbar">
+    <div class="cctv-toolbar-id">
+      <div class="cctv-title-row">
+        <span class="cctv-title"><i class="bi bi-camera-video"></i> LIVE CCTV WALL</span>
+        <span class="cctv-brand">SAFE CITIES PROJECT | SURVEILLANCE COMMAND GRID</span>
+      </div>
+      <div class="cctv-counters">
+        <span class="cctv-counter"><span class="cctv-counter-num" id="cctvTotalCount">{{ total_cameras|default:0 }}</span>TOTAL</span>
+        <span class="cctv-counter cctv-counter-live"><span class="cctv-counter-num" id="cctvOnlineCount">{{ online_count|default:0 }}</span>ONLINE</span>
+        <span class="cctv-counter cctv-counter-off"><span class="cctv-counter-num" id="cctvOfflineCount">{{ offline_count|default:0 }}</span>OFFLINE</span>
+        <span class="cctv-counter cctv-counter-nofeed"><span class="cctv-counter-num">{{ no_feed_count|default:0 }}</span>NO FEED</span>
+      </div>
+    </div>
+    <div class="cctv-toolbar-right">
+      <div class="cctv-wallclock" id="cctvWallClock" title="Wall clock">--:--:--</div>
+      <form method="get" class="cctv-search" role="search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" id="cctvSearch" name="q" value="{{ q }}" autocomplete="off"
+               placeholder="Search camera by area, ID or name" aria-label="Search camera by area, ID or name">
+        <button type="submit" class="cctv-search-btn">SEARCH</button>
+        {% if q %}<a href="{{ request.path }}" class="cctv-search-clear" title="Clear server search">CLEAR</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  {% if q %}
+  <div class="cctv-filter-note">
+    <i class="bi bi-funnel" aria-hidden="true"></i>
+    Showing {{ cameras|length }} camera{{ cameras|length|pluralize }} matching
+    <strong>&quot;{{ q }}&quot;</strong>
+    <a href="{{ request.path }}">Reset search</a>
+  </div>
+  {% endif %}
+
+  {% if recent_detections %}
+  <div class="cctv-ticker" aria-label="Recent detections">
+    <span class="cctv-ticker-label"><i class="bi bi-broadcast" aria-hidden="true"></i> ACTIVITY</span>
+    <div class="cctv-ticker-track" id="cctvTicker">
+      {% for d in recent_detections|slice:":8" %}
+      <span class="cctv-ticker-item">
+        <span class="cctv-ticker-cam">{{ d.camera.camera_id|default:"CAM" }}</span>
+        <span class="cctv-ticker-plate">{{ d.effective_plate|default:"UNKNOWN" }}</span>
+        <span class="cctv-ticker-time">{{ d.created_at|date:"H:i:s" }}</span>
       </span>
       {% endfor %}
     </div>
   </div>
-</div>
-{% endif %}
+  {% endif %}
 
-<div id="cctvGrid" class="cctv-grid cctv-grid-cols-4">
-  {% for c in cameras %}
-  <div class="cctv-col" data-search="{{ c.camera_id|lower }} {{ c.location|lower }}">
-    <div class="cctv-tile" data-pk="{{ c.id }}" data-camera-id="{{ c.camera_id }}" data-location="{{ c.location|default:'' }}"
-         data-stream="{{ c.playable_stream|default:'' }}" data-snapshot="{% url portal_ns|add:':camera_snapshot' c.id %}"
-         tabindex="0" role="button" aria-label="Enlarge {{ c.camera_id }} feed"
-         title="Double-click to enlarge" style="cursor: zoom-in;">
-      <div class="cctv-header">
-        <span class="cctv-name" title="{{ c.camera_id }}{% if c.location %} · {{ c.location }}{% endif %}">{{ c.camera_id }}{% if c.location %} · {{ c.location }}{% endif %}</span>
-        <div>
-          {% if c.health_status == 'online' and c.playable_stream %}
-          <span class="badge bg-success">LIVE</span>
-          {% elif c.health_status == 'online' %}
-          <span class="badge bg-warning text-dark">NO FEED</span>
+  <!-- ======== Borderless surveillance wall grid ======== -->
+  <div id="cctvGrid" class="cctv-grid">
+    {% for c in cameras %}
+    <div class="cctv-col" data-search="{{ c.camera_id|lower }} {{ c.location|lower }} {{ c.camera_type_label|lower }} {{ c.legal_direction_label|lower }} {{ c.violation_side|lower }}">
+      <div class="cctv-tile" tabindex="0" role="button"
+           data-pk="{{ c.id }}"
+           data-camera-id="{{ c.camera_id }}"
+           data-location="{{ c.location|default:'' }}"
+           data-kind="{{ c.feed_kind }}"
+           data-stream="{{ c.playable_stream|default:'' }}"
+           data-snapshot="{{ c.snapshot_url|default:'' }}"
+           data-status="{{ c.status_key }}"
+           data-meta="{{ c.meta_line }}"
+           aria-label="Open {{ c.camera_id }} video review console"
+           title="Double-click to open the video review console">
+        <div class="cctv-head">
+          <span class="cctv-chip">{{ c.channel_label }}</span>
+          <span class="cctv-area" title="{{ c.location }}">{{ c.location|default:"Unknown area" }}</span>
+          {% if c.status_key == 'live' %}
+          <span class="cctv-led cctv-led-live"><span class="cctv-led-dot"></span>LIVE</span>
+          {% elif c.status_key == 'nofeed' %}
+          <span class="cctv-led cctv-led-nofeed"><span class="cctv-led-dot"></span>NO FEED</span>
           {% else %}
-          <span class="badge bg-secondary">OFFLINE</span>
+          <span class="cctv-led cctv-led-off"><span class="cctv-led-dot"></span>OFFLINE</span>
+          {% endif %}
+          <span class="cctv-clock" data-cctv-clock>--:--:--</span>
+        </div>
+        <div class="cctv-feed">
+          {% if c.feed_kind == 'video' %}
+          <video muted autoplay loop playsinline preload="metadata" data-cctv-video
+                 {% if c.snapshot_url %}poster="{{ c.snapshot_url }}"{% endif %} src="{{ c.playable_stream }}"></video>
+          <div class="cctv-skeleton" data-cctv-skeleton aria-hidden="true"></div>
+          {% elif c.feed_kind == 'snapshot' and c.snapshot_url %}
+          <img src="{{ c.snapshot_url }}?t=1" alt="{{ c.camera_id }} live snapshot"
+               loading="lazy" data-cctv-snapshot>
+          <div class="cctv-skeleton" data-cctv-skeleton aria-hidden="true"></div>
+          <div class="cctv-nosignal" data-cctv-nosignal hidden><i class="bi bi-wifi-off"></i> NO SIGNAL</div>
+          {% elif c.feed_kind == 'snapshot' %}
+          <div class="cctv-nosignal"><i class="bi bi-slash-circle"></i> SNAPSHOT PREVIEW UNAVAILABLE</div>
+          {% else %}
+          <div class="cctv-nosignal"><i class="bi bi-camera-video-off"></i> NO FEED SOURCE</div>
           {% endif %}
         </div>
-      </div>
-      <div class="cctv-feed">
-        {% with stream=c.playable_stream|default:c.rtsp_url|default:c.http_snapshot_url %}
-        {% if stream %}
-          {% if '.mp4' in stream or '.webm' in stream or '.mov' in stream or '/media/' in stream %}
-          <video muted autoplay loop playsinline poster="{% url portal_ns|add:':camera_snapshot' c.id %}">
-            <source src="{{ stream }}" type="video/mp4">
-          </video>
-          {% else %}
-          <img src="{% url portal_ns|add:':camera_snapshot' c.id %}?t=1"
-               alt="{{ c.camera_id }}"
-               loading="lazy">
-          <div class="no-signal" style="display:none;"><i class="bi bi-wifi-off"></i> No Signal</div>
-          {% endif %}
-        {% else %}
-          <div class="no-signal"><i class="bi bi-camera-video-off"></i> No Signal</div>
-        {% endif %}
-        {% endwith %}
-      </div>
-      <div class="cctv-footer">
-        <span><i class="bi bi-geo-alt me-1"></i>{{ c.location|default:"—" }}</span>
-        <span>FPS: 30</span>
+        <div class="cctv-meta" title="{{ c.meta_line }}">{{ c.meta_line }}</div>
       </div>
     </div>
+    {% empty %}
+    <div class="cctv-empty">
+      {% if q %}
+      <i class="bi bi-search"></i>
+      <p>No cameras match <strong>&quot;{{ q }}&quot;</strong>.</p>
+      <a class="cctv-empty-link" href="{{ request.path }}">Clear search</a>
+      {% else %}
+      <i class="bi bi-camera-video-off"></i>
+      <p>No cameras registered yet. Enroll cameras from Camera Management to build the wall.</p>
+      {% if registry_url %}
+      <a class="cctv-empty-link" href="{{ registry_url }}">Open camera registry</a>
+      {% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
   </div>
-  {% empty %}
-  <div class="col-12 sc-empty p-5 text-center">
-    <i class="bi bi-camera-video-off fs-1 opacity-25 d-block mb-3"></i>
-    No cameras registered yet — add one from Camera Management.
-  </div>
-  {% endfor %}
-</div>
 
+  <div class="cctv-grid-empty" id="cctvNoMatch" hidden>
+    <i class="bi bi-search"></i>
+    No cameras match the current filter.
+  </div>
+
+</div>
 {% endblock %}
 
 {% block extra_js %}

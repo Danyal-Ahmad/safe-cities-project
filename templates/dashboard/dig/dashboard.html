@@ -3,7 +3,7 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}DIG Command Center — SafeCity Directorate{% endblock %}
+{% block title %}DIG Command Center | SafeCity Directorate{% endblock %}
 
 {% block crumb %}
 <a href="/">Home</a>
@@ -324,7 +324,7 @@
                   {{ o.display_name|default:o.username }}
                 </a>
               </td>
-              <td style="color: var(--md-text-muted); font-size: 0.8rem;">{{ o.region|default:'—' }}</td>
+              <td style="color: var(--md-text-muted); font-size: 0.8rem;">{{ o.region|default:'-' }}</td>
               <td>
                 {% if o.is_active %}
                   <span class="md-badge md-badge-success"><i class="bi bi-dot"></i> Active</span>
@@ -398,7 +398,7 @@
     </div>
     <div style="overflow-x: auto;">
       <table class="md-table" id="recent-detections-table"
-             data-recent-detections='[{% for d in recent_detections %}{"id":{{ d.id }},"camera":"{{ d.camera.name|default:d.camera_id|escapejs }}","plate":"{{ d.vehicle_plate|default:'—'|escapejs }}","confidence":{{ d.confidence|default:0|stringformat:'f' }},"status":"{{ d.get_status_display|escapejs }}","created_at":"{{ d.created_at|date:'Y-m-d H:i'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+             data-recent-detections='[{% for d in recent_detections %}{"id":{{ d.id }},"camera":"{{ d.camera.name|default:d.camera_id|escapejs }}","plate":"{{ d.vehicle_plate|default:'-'|escapejs }}","confidence":{{ d.confidence|default:0|stringformat:'f' }},"status":"{{ d.get_status_display|escapejs }}","created_at":"{{ d.created_at|date:'Y-m-d H:i'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
         <thead>
           <tr>
             <th>ID</th>

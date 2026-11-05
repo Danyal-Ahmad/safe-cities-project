@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Challan Register — Officer Portal{% endblock %}
+{% block title %}Challan Register | Officer Portal{% endblock %}
 {% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Challan Register</b>{% endblock %}
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
@@ -95,8 +95,8 @@
           {% for ch in challans %}
           <tr>
             <td><code>{{ ch.ticket_no }}</code></td>
-            <td><strong>{{ ch.plate_number|default:"—" }}</strong></td>
-            <td class="sc-text-sm">{{ ch.get_violation_type_display|default:ch.violation_type|default:"—" }}</td>
+            <td><strong>{{ ch.plate_number|default:"-" }}</strong></td>
+            <td class="sc-text-sm">{{ ch.get_violation_type_display|default:ch.violation_type|default:"-" }}</td>
             <td>PKR {{ ch.fine_amount|intcomma }}</td>
             <td>
               {% if ch.payment_status == 'paid' %}

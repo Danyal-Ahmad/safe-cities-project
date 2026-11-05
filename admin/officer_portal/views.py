@@ -64,8 +64,8 @@ def home(request):
     days_data = []
     for i in range(6, -1, -1):
         day = today - datetime.timedelta(days=i)
-        day_start = datetime.datetime.combine(day, datetime.time.min).replace(tzinfo=datetime.timezone.utc)
-        day_end = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time.min).replace(tzinfo=datetime.timezone.utc)
+        day_start = datetime.datetime.combine(day, datetime.time.min).replace(tzinfo=timezone.get_current_timezone())
+        day_end = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time.min).replace(tzinfo=timezone.get_current_timezone())
         reviewed = Detection.objects.filter(
             reviewed_by=request.user,
             reviewed_at__gte=day_start,
@@ -132,6 +132,10 @@ def dashboard(request):
 def review_queue(request):
     qs = scope_detections(request.user, Detection.objects.filter(status=Detection.PENDING)).order_by('created_at')
     selected_id = request.GET.get('detection_id') or request.GET.get('id')
+    try:
+        selected_id = int(selected_id) if selected_id else None
+    except (TypeError, ValueError):
+        selected_id = None
     selected = qs.filter(pk=selected_id).first() if selected_id else None
     if not selected and qs.exists():
         selected = qs.first()
@@ -150,6 +154,12 @@ def review_queue(request):
 @officer_or_dig_required
 def detection_detail(request, detection_id):
     detection = get_object_or_404(Detection, pk=detection_id)
+    # Officer IDOR guard: officers may only open detections from their
+    # assigned cameras (senior staff see everything).
+    if request.user.role == 'OFFICER':
+        allowed = officer_camera_ids(request.user)
+        if detection.camera_id is not None and detection.camera_id not in allowed:
+            raise Http404('Detection not found for your assigned cameras.')
     notes = detection.review_notes_list.all() if hasattr(detection, 'review_notes_list') else []
     ctx = {'detection': detection, 'notes': notes}
     if request.headers.get('HX-Request') or request.GET.get('partial'):
@@ -336,7 +346,7 @@ def lookup_owner_by_plate(plate_number):
         if is_real() and not has_excise:
             return {
                 'integration_status': 'need_integration',
-                'integration_message': 'Need NADRA / Excise system integration — configure API URL and key in IT → System Settings → Integrations, then set mode to Real.',
+                'integration_message': 'Need NADRA / Excise system integration - configure API URL and key in IT → System Settings → Integrations, then set mode to Real.',
             }
         if is_real() and has_excise:
             return {
@@ -345,13 +355,13 @@ def lookup_owner_by_plate(plate_number):
             }
         return {
             'integration_status': 'need_integration',
-            'integration_message': 'Need NADRA / Excise system integration — real person/plate identity requires live registry APIs (currently in Demo mode).',
+            'integration_message': 'Need NADRA / Excise system integration - real person/plate identity requires live registry APIs (currently in Demo mode).',
         }
     except Exception as e:
         logger.warning('Excise integration failed: %s', e)
         return {
             'integration_status': 'need_integration',
-            'integration_message': 'Need NADRA / Excise system integration — lookup failed.',
+            'integration_message': 'Need NADRA / Excise system integration - lookup failed.',
         }
 
 
@@ -403,7 +413,7 @@ def performance(request):
 
 @role_required('OFFICER')
 def live_tracking(request):
-    """Officer Live Tracking — camera-scoped to this officer's active
+    """Officer Live Tracking - camera-scoped to this officer's active
     CameraAssignment rows only. Uses LiveTrackingService for consistent data."""
     from admin.shared import LiveTrackingService
 
@@ -479,7 +489,7 @@ def vehicle_tracking(request):
 
 @role_required('OFFICER', 'IT')
 def frame_timeline(request):
-    """JSON feed for officer Live Tracking trail — camera-assignment scoped."""
+    """JSON feed for officer Live Tracking trail - camera-assignment scoped."""
     from admin.shared import LiveTrackingService
 
     service = LiveTrackingService(

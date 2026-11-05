@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DIG — E-Challan Register  (dashboard/dig/challan_list.html)
+   DIG | E-Challan Register  (dashboard/dig/challan_list.html)
    Uppercase plate input + status summary computed from rendered rows
    ========================================================================== */
 (function () {

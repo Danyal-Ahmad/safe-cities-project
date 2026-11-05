@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Appeal #{{ appeal.id }} — Officer Portal{% endblock %}
+{% block title %}Appeal #{{ appeal.id }} | Officer Portal{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/officer-appeal-detail.css' %}">
 {% endblock %}
@@ -9,7 +9,7 @@
 {% block content %}
 <div class="sc-page-hero">
   <div>
-    <h1><i class="bi bi-shield-exclamation"></i> Appeal #{{ appeal.id }} &mdash; {{ appeal.challan.ticket_no }}</h1>
+    <h1><i class="bi bi-shield-exclamation"></i> Appeal #{{ appeal.id }} | {{ appeal.challan.ticket_no }}</h1>
     <p class="sc-lead">
       Filed {{ appeal.created_at|date:"d M Y, H:i" }}
       {% if appeal.submitted_by %}by {{ appeal.submitted_by.display_name|default:appeal.submitted_by }}{% elif appeal.guest_name %}by guest appellant {{ appeal.guest_name }}{% else %}by an anonymous guest appellant{% endif %}
@@ -35,7 +35,7 @@
 <div class="sc-banner sc-banner-warn">
   <i class="bi bi-eye-fill"></i>
   <div>
-    <strong>Read-only view.</strong> Officers cannot approve or reject appeals &mdash;
+    <strong>Read-only view.</strong> Officers cannot approve or reject appeals -
     only the <strong>SSP</strong> decides appeals at the SSP Review stage, with the DIG as the
     final escalation authority.
   </div>

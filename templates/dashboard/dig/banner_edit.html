@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Edit Banner — SafeCity{% endblock %}
+{% block title %}Edit Banner | SafeCity{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
@@ -43,7 +43,7 @@
  <option value="popup" {% if banner.placement == 'popup' %}selected{% endif %}>Popup</option>
  <option value="top" {% if banner.placement == 'top' %}selected{% endif %}>Top bar</option>
  <option value="bottom" {% if banner.placement == 'bottom' %}selected{% endif %}>Bottom of page</option>
- <option value="ad" {% if banner.placement == 'ad' %}selected{% endif %}>Banner — Public Service Announcement Space</option>
+ <option value="ad" {% if banner.placement == 'ad' %}selected{% endif %}>Banner | Public Service Announcement Space</option>
  </select>
  </div>
  <div>

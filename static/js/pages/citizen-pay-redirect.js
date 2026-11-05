@@ -1,4 +1,4 @@
-/* Citizen payment gateway auto-submit — extracted from templates/dashboard/citizen/pay_redirect.html */
+/* Citizen payment gateway auto-submit - extracted from templates/dashboard/citizen/pay_redirect.html */
 (function () {
   'use strict';
 

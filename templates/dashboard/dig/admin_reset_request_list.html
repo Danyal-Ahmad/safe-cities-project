@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Admin Password Resets — DIG{% endblock %}
+{% block title %}Admin Password Resets | DIG{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/dig-admin-resets.css' %}">
 {% endblock %}
@@ -34,7 +34,7 @@
             <td><strong>{{ req.target_user.display_name }}</strong></td>
             <td>{{ req.target_user.email }}</td>
             <td><span class="badge badge-blue">{{ req.target_user.role_label }}</span></td>
-            <td><code>{{ req.ip_address|default:"—" }}</code></td>
+            <td><code>{{ req.ip_address|default:"-" }}</code></td>
             <td class="small">{{ req.created_at|date:"d M Y H:i" }}</td>
             <td><span class="reset-token">{{ req.token|slice:":12" }}…</span></td>
             <td>
@@ -84,9 +84,9 @@
                 <span class="badge-cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>
               {% endif %}
             </td>
-            <td>{{ req.resolved_by.display_name|default:"—" }}</td>
-            <td class="small">{{ req.resolved_at|date:"d M Y H:i"|default:"—" }}</td>
-            <td><code>{{ req.ip_address|default:"—" }}</code></td>
+            <td>{{ req.resolved_by.display_name|default:"-" }}</td>
+            <td class="small">{{ req.resolved_at|date:"d M Y H:i"|default:"-" }}</td>
+            <td><code>{{ req.ip_address|default:"-" }}</code></td>
           </tr>
         {% endfor %}
         </tbody>

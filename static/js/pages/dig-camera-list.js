@@ -1,10 +1,14 @@
 /* ==========================================================================
-   DIG — Camera Network  (dashboard/dig/camera_list.html)
-   Client-side registry filtering (search + health + active state)
+   DIG - Camera Network  (dashboard/dig/camera_list.html)
+   Client-side registry filtering (search + health + active state).
+   The filter bar is also a GET form (?q=&health=&active=) so the server can
+   pre-filter the registry; this script keeps the instant in-page filtering
+   on top of whatever the server returned.
    ========================================================================== */
 (function () {
   'use strict';
 
+  var filterBar = document.querySelector('[data-camera-filters]');
   var searchInput = document.querySelector('[data-camera-search]');
   var healthSelect = document.querySelector('[data-camera-health-filter]');
   var activeSelect = document.querySelector('[data-camera-active-filter]');
@@ -13,9 +17,16 @@
   var emptyBox = document.querySelector('[data-camera-empty]');
   var countBadge = document.querySelector('[data-count-badge]');
 
-  if (!rows.length) return;
+  if (!rows.length) { return; }
 
   var totalLabel = countBadge ? countBadge.textContent : '';
+
+  function haystackFor(row) {
+    return (row.getAttribute('data-camera-id') || '') + ' ' +
+           (row.getAttribute('data-location') || '') + ' ' +
+           (row.getAttribute('data-dir') || '') + ' ' +
+           (row.getAttribute('data-side') || '');
+  }
 
   function applyFilters() {
     var term = (searchInput && searchInput.value ? searchInput.value : '').trim().toLowerCase();
@@ -24,18 +35,16 @@
     var visible = 0;
 
     rows.forEach(function (row) {
-      var haystack = (row.getAttribute('data-camera-id') || '') + ' ' +
-                     (row.getAttribute('data-location') || '');
-      var matchesTerm = !term || haystack.indexOf(term) !== -1;
+      var matchesTerm = !term || haystackFor(row).indexOf(term) !== -1;
       var matchesHealth = !health || row.getAttribute('data-health') === health;
       var matchesActive = !active || row.getAttribute('data-active') === active;
       var show = matchesTerm && matchesHealth && matchesActive;
 
       row.hidden = !show;
-      if (show) visible++;
+      if (show) { visible++; }
     });
 
-    if (emptyBox) emptyBox.hidden = visible !== 0;
+    if (emptyBox) { emptyBox.hidden = visible !== 0; }
 
     if (countBadge) {
       countBadge.textContent = visible === rows.length
@@ -44,16 +53,24 @@
     }
   }
 
-  if (searchInput) searchInput.addEventListener('input', applyFilters);
-  if (healthSelect) healthSelect.addEventListener('change', applyFilters);
-  if (activeSelect) activeSelect.addEventListener('change', applyFilters);
+  if (searchInput) { searchInput.addEventListener('input', applyFilters); }
+  if (healthSelect) { healthSelect.addEventListener('change', applyFilters); }
+  if (activeSelect) { activeSelect.addEventListener('change', applyFilters); }
 
   if (resetBtn) {
     resetBtn.addEventListener('click', function () {
-      if (searchInput) searchInput.value = '';
-      if (healthSelect) healthSelect.value = '';
-      if (activeSelect) activeSelect.value = '';
+      // When the server already filtered the registry (?q= etc.) the only way
+      // to truly reset is to drop the query string and reload.
+      if (filterBar && filterBar.getAttribute('data-server-filtered') === '1') {
+        window.location.href = window.location.pathname;
+        return;
+      }
+      if (searchInput) { searchInput.value = ''; }
+      if (healthSelect) { healthSelect.value = ''; }
+      if (activeSelect) { activeSelect.value = ''; }
       applyFilters();
     });
   }
+
+  applyFilters();
 })();

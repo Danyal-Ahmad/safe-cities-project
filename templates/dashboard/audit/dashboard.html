@@ -3,7 +3,7 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}Compliance & Audit Reports — SafeCity Oversight{% endblock %}
+{% block title %}Compliance & Audit Reports | SafeCity Oversight{% endblock %}
 
 {% block crumb %}
 <a href="/">Home</a>
@@ -37,6 +37,9 @@
         <i class="bi bi-download"></i> Export Audit Logs
       </a>
     {% endif %}
+    <a href="{% url 'audit_portal:export_pdf' 'dashboard' %}" class="md-btn md-btn-secondary md-btn-sm">
+      <i class="bi bi-file-earmark-pdf"></i> Export PDF
+    </a>
   </div>
 </div>
 
@@ -225,7 +228,7 @@
                   {% if l.actor %}{{ l.actor.display_name|default:l.actor.username }}{% else %}SYSTEM{% endif %}
                 </td>
                 <td><span class="md-badge md-badge-dark" style="font-family: monospace;">{{ l.action }}</span></td>
-                <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ l.target_model }} #{{ l.target_id|default:"—" }}</td>
+                <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ l.target_model }} #{{ l.target_id|default:"-" }}</td>
                 <td style="font-family: monospace; font-size: 0.8rem; color: var(--md-text-muted);">{{ l.ip_address|default:"127.0.0.1" }}</td>
               </tr>
             {% endfor %}

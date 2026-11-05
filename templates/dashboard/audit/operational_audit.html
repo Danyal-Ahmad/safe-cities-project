@@ -1,13 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Operational Audit — Audit Portal{% endblock %}
+{% block title %}Operational Audit | Audit Portal{% endblock %}
 {% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Operational Audit</b>{% endblock %}
 {% block content %}
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-shield-check me-2" style="color:#0F766E;"></i>Operational Audit</h1>
     <p class="sc-lead">Immutable system audit trail tracking all administrative actions and security events.</p>
+  </div>
+  <div class="sc-flex sc-gap-2 sc-items-center">
+    <a href="{% url 'audit_portal:export_pdf' 'operational' %}" class="sc-btn sc-btn-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Export PDF</a>
   </div>
 </div>
 
@@ -44,8 +47,8 @@
               </span>
             </td>
             <td class="sc-mono sc-text-sm">{{ l.target_model }}{% if l.target_id %} #{{ l.target_id }}{% endif %}</td>
-            <td class="sc-mono sc-text-sm sc-text-muted">{{ l.ip_address|default:"—" }}</td>
-            <td class="sc-text-sm">{{ l.details|default:"—" }}</td>
+            <td class="sc-mono sc-text-sm sc-text-muted">{{ l.ip_address|default:"-" }}</td>
+            <td class="sc-text-sm">{{ l.details|default:"-" }}</td>
           </tr>
           {% endfor %}
         </tbody>

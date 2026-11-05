@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Camera {{ camera.camera_id }} — SafeCity{% endblock %}
+{% block title %}Camera {{ camera.camera_id }} | SafeCity{% endblock %}
 
 {% block body_class %}page-it{% endblock %}
 {% block content %}
@@ -44,7 +44,7 @@
  {% else %}
  <div class=" -50 h-100">
  <i></i>
- <p>No stream URL set — add HTTP snapshot or RTSP below.</p>
+ <p>No stream URL set - add HTTP snapshot or RTSP below.</p>
  </div>
  {% endif %}
  </div>

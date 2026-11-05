@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Officer — Flagged List (officer-flagged-list.js)
+   Officer | Flagged List (officer-flagged-list.js)
    Clickable rows: navigate to the detection detail page.
    ========================================================================== */
 (function () {

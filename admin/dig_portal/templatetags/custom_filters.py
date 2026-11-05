@@ -36,7 +36,7 @@ def currency(value):
 @register.filter
 def hours_ago(dt):
     from django.utils import timezone
-    if not dt: return '—'
+    if not dt: return '-'
     delta = timezone.now() - dt
     mins = int(delta.total_seconds() / 60)
     if mins < 1: return 'just now'

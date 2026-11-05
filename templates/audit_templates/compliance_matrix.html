@@ -1,0 +1,191 @@
+{# Compliance checklist matrix - PASS/FAIL/N-A chips + sign-off grid #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #21252b;
+         margin: 0; padding: 0; line-height: 1.3; background: #fff; }
+
+  .cm-header { display: flex; justify-content: space-between; align-items: center;
+               background: #26323f; color: #fff; padding: 6px 8px; }
+  .cm-office h1 { font-size: 14px; margin: 0; font-weight: 900; letter-spacing: 1.2px;
+                  text-transform: uppercase; }
+  .cm-office h2 { font-size: 7.2px; margin: 2px 0 0 0; font-weight: 700; color: #b8c6d4;
+                  letter-spacing: 1px; text-transform: uppercase; }
+  .cm-office .cm-kind { font-size: 8px; margin-top: 2px; font-weight: 700; color: #fff; }
+  .cm-logos { display: flex; align-items: center; }
+  .cm-logos img { height: 36px; width: auto; object-fit: contain; background: #fff;
+                  padding: 2px; }
+  .cm-logo-sep { font-size: 22px; color: #fff; margin: 0 6px; }
+
+  .cm-refbar { display: grid; grid-template-columns: 1.6fr 1.3fr 1fr 1.3fr;
+               border: 1px solid #26323f; border-top: none; }
+  .cm-refbar div { padding: 3px 6px; border-right: 1px solid #cfd8e0; font-size: 6.6px;
+                   font-weight: 800; text-transform: uppercase; color: #26323f;
+                   letter-spacing: 0.5px; }
+  .cm-refbar div:last-child { border-right: none; }
+  .cm-refbar span { display: block; font-weight: 400; font-size: 6.5px; color: #4b5563; }
+
+  .cm-kpis { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #26323f;
+             border-top: none; }
+  .cm-kpi { padding: 4px 6px; border-right: 1px solid #cfd8e0; }
+  .cm-kpi:last-child { border-right: none; }
+  .cm-kpi b { display: block; font-size: 6.1px; color: #6b7280; text-transform: uppercase;
+              letter-spacing: 0.5px; }
+  .cm-kpi span { display: block; font-size: 10.5px; font-weight: 900; color: #26323f; }
+  .cm-kpi i { display: block; font-size: 5.9px; color: #9ca3af; font-style: italic; }
+
+  .cm-h { background: #e8edf2; border-left: 4px solid #26323f; color: #26323f;
+          padding: 2.5px 7px; font-size: 7.4px; font-weight: 900; letter-spacing: 1.3px;
+          text-transform: uppercase; margin-top: 8px; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .cm-matrix th { background: #26323f; color: #fff; font-size: 6.6px; padding: 3px 5px;
+                  text-transform: uppercase; letter-spacing: 0.6px; text-align: left;
+                  border: 1px solid #26323f; }
+  .cm-matrix td { border: 1px solid #cfd8e0; padding: 3px 5px; font-size: 7px;
+                  vertical-align: top; }
+  .cm-matrix tr:nth-child(even) td { background: #f6f8fa; }
+  .cm-matrix .cm-ref { font-weight: 700; color: #26323f; font-size: 6.8px;
+                       font-family: 'Courier New', monospace; }
+  .cm-pass { display: inline-block; background: #16a34a; color: #fff; font-size: 6.2px;
+             font-weight: 900; padding: 1px 6px; letter-spacing: 1px; }
+  .cm-fail { display: inline-block; background: #dc2626; color: #fff; font-size: 6.2px;
+             font-weight: 900; padding: 1px 6px; letter-spacing: 1px; }
+  .cm-na { display: inline-block; background: #9ca3af; color: #fff; font-size: 6.2px;
+           font-weight: 900; padding: 1px 6px; letter-spacing: 1px; }
+
+  .cm-evidence th { background: #e8edf2; color: #26323f; border: 1px solid #cfd8e0;
+                    font-size: 6.4px; padding: 2.5px 4px; text-transform: uppercase;
+                    text-align: left; }
+  .cm-evidence td { border: 1px solid #dde3e9; padding: 2.5px 4px; font-size: 6.8px; }
+  .cm-more { font-size: 6.4px; color: #6b7280; font-style: italic; margin-top: 2px; }
+
+  .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .cm-sign { border: 1px solid #26323f; padding: 5px 7px; position: relative; }
+  .cm-sign .cm-stampbox { position: absolute; right: 6px; top: 5px; width: 42px; height: 36px;
+                          border: 1px dashed #9ca3af; font-size: 5.2px; color: #9ca3af;
+                          text-align: center; padding-top: 9px; text-transform: uppercase;
+                          letter-spacing: 0.5px; }
+  .cm-sign .cm-role { font-size: 6.8px; font-weight: 900; text-transform: uppercase;
+                      color: #26323f; letter-spacing: 0.7px; }
+  .cm-sign .cm-name { border-top: 1px solid #21252b; margin-top: 13px; padding-top: 2px;
+                      font-size: 6.8px; font-weight: 700; }
+  .cm-sign .cm-desc { font-size: 6.2px; color: #6b7280; }
+  .cm-sign .cm-date { font-size: 6.2px; color: #6b7280; margin-top: 2px; }
+
+  .cm-footer { margin-top: 10px; border-top: 2px solid #26323f; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.3px;
+               color: #26323f; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="cm-header">
+  <div class="cm-office">
+    <h1>Safe Cities Project</h1>
+    <h2>Compliance and Control Assurance Matrix</h2>
+    <div class="cm-kind">{{ kind_label }}</div>
+  </div>
+  <div class="cm-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="cm-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+<div class="cm-refbar">
+  <div>Matrix Ref<span>{{ doc_ref }}</span></div>
+  <div>Assessed On<span>{{ generated_at_str }}</span></div>
+  <div>Sheet<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="cm-kpis">
+  {% for k in kpis %}
+  <div class="cm-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+  {% endfor %}
+</div>
+
+<div class="cm-h">Control Assessment Matrix</div>
+<table class="cm-matrix">
+  <thead>
+    <tr><th style="width:7%;">Ref</th><th>Control / Requirement</th>
+        <th style="width:11%;">Result</th><th style="width:34%;">Auditor Remarks</th></tr>
+  </thead>
+  <tbody>
+    {% for c in compliance_checks %}
+    <tr>
+      <td class="cm-ref">C-{{ forloop.counter }}</td>
+      <td>{{ c.control }}</td>
+      <td>{% if c.status == 'PASS' %}<span class="cm-pass">PASS</span>
+          {% elif c.status == 'FAIL' %}<span class="cm-fail">FAIL</span>
+          {% else %}<span class="cm-na">N-A</span>{% endif %}</td>
+      <td>{{ c.remark }}</td>
+    </tr>
+    {% empty %}
+    <tr><td class="cm-ref">C-1</td><td>No controls evaluated in this scope</td>
+        <td><span class="cm-na">N-A</span></td><td>-</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="cm-h">Supporting Evidence Extract ({{ table.shown }} of {{ table.total }})</div>
+<table class="cm-evidence">
+  <thead>
+    <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% empty %}
+    <tr><td colspan="{{ table.columns|length }}">No supporting records in scope.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if more_rows > 0 %}<div class="cm-more">+{{ more_rows }} more rows in system</div>{% endif %}
+
+<div class="cm-h">Sign-Off Grid</div>
+<div class="cm-grid">
+  <div class="cm-sign">
+    <div class="cm-stampbox">Stamp</div>
+    <div class="cm-role">Prepared By | Lead Auditor</div>
+    <div class="cm-name">Name: ____________________</div>
+    <div class="cm-desc">Designation: Lead Auditor, Internal Audit</div>
+    <div class="cm-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="cm-sign">
+    <div class="cm-stampbox">Stamp</div>
+    <div class="cm-role">Reviewed By | Audit Manager</div>
+    <div class="cm-name">Name: ____________________</div>
+    <div class="cm-desc">Designation: Audit Manager</div>
+    <div class="cm-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="cm-sign">
+    <div class="cm-stampbox">Stamp</div>
+    <div class="cm-role">Approved By | Director Audit</div>
+    <div class="cm-name">Name: ____________________</div>
+    <div class="cm-desc">Designation: Director, Internal Audit</div>
+    <div class="cm-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="cm-sign">
+    <div class="cm-stampbox">Stamp</div>
+    <div class="cm-role">Noted By | DIG Oversight</div>
+    <div class="cm-name">Name: ____________________</div>
+    <div class="cm-desc">Designation: Deputy Inspector General</div>
+    <div class="cm-date">Date: ____ / ____ / ________</div>
+  </div>
+</div>
+
+<div class="cm-footer">
+  <span>Ref: {{ doc_ref }}</span>
+  <span>Computer generated compliance matrix</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

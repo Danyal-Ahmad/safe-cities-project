@@ -1,0 +1,211 @@
+{# Field inspection sheet - checkbox matrix, site inventory, GPS grid #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #1c1917;
+         margin: 0; padding: 0; line-height: 1.3; background: #fff; }
+
+  .fi-header { display: flex; justify-content: space-between; align-items: center;
+               border: 2px solid #92400e; padding: 6px 8px; background: #fefaf3; }
+  .fi-office h1 { font-size: 14px; margin: 0; font-weight: 900; letter-spacing: 1.2px;
+                  text-transform: uppercase; color: #7c2d12; }
+  .fi-office h2 { font-size: 7.2px; margin: 2px 0 0 0; font-weight: 700; color: #92400e;
+                  letter-spacing: 1.1px; text-transform: uppercase; }
+  .fi-office .fi-kind { font-size: 8px; margin-top: 2px; font-weight: 700; color: #1c1917; }
+  .fi-logos { display: flex; align-items: center; }
+  .fi-logos img { height: 36px; width: auto; object-fit: contain; }
+  .fi-logo-sep { font-size: 22px; color: #92400e; margin: 0 6px; }
+
+  .fi-meta { display: grid; grid-template-columns: 1.6fr 1.3fr 1fr 1.4fr;
+             border: 1px solid #92400e; border-top: none; }
+  .fi-meta div { padding: 3px 6px; border-right: 1px solid #d6b98c; font-size: 6.6px;
+                 font-weight: 800; text-transform: uppercase; color: #7c2d12;
+                 letter-spacing: 0.5px; }
+  .fi-meta div:last-child { border-right: none; }
+  .fi-meta span { display: block; font-weight: 400; font-size: 6.5px; color: #57534e; }
+
+  .fi-kpis { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #92400e;
+             border-top: none; }
+  .fi-kpi { padding: 4px 6px; border-right: 1px solid #d6b98c; }
+  .fi-kpi:last-child { border-right: none; }
+  .fi-kpi b { display: block; font-size: 6.1px; color: #92400e; text-transform: uppercase;
+              letter-spacing: 0.5px; }
+  .fi-kpi span { display: block; font-size: 10.5px; font-weight: 900; color: #7c2d12; }
+  .fi-kpi i { display: block; font-size: 5.9px; color: #a8a29e; font-style: italic; }
+
+  .fi-h { background: #92400e; color: #ffedd5; padding: 2.5px 7px; font-size: 7.4px;
+          font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 8px; }
+
+  /* checkbox matrix */
+  .fi-checks { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #92400e;
+               border-top: none; }
+  .fi-check { padding: 3.5px 7px; border-right: 1px solid #d6b98c;
+              border-bottom: 1px solid #e7ddc9; font-size: 7px; color: #292524; }
+  .fi-check:nth-child(2n) { border-right: none; }
+  .fi-check:nth-last-child(-n+2) { border-bottom: none; }
+  .cbx { display: inline-block; width: 10px; height: 10px; border: 1.4px solid #7c2d12;
+         margin-right: 5px; text-align: center; font-size: 8px; font-weight: 900;
+         line-height: 9px; color: #7c2d12; vertical-align: -1px; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .fi-table th { background: #f5e6cf; color: #7c2d12; border: 1px solid #92400e;
+                 font-size: 6.6px; padding: 2.8px 5px; text-transform: uppercase;
+                 letter-spacing: 0.6px; text-align: left; font-weight: 900; }
+  .fi-table td { border: 1px solid #d6b98c; padding: 2.7px 5px; font-size: 7px; }
+  .fi-table tr:nth-child(even) td { background: #fdf9f2; }
+  .fi-more { font-size: 6.4px; color: #92400e; font-style: italic; margin-top: 2px; }
+
+  .fi-gps { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #92400e;
+            border-top: none; }
+  .fi-gpscell { padding: 4px 6px; border-right: 1px solid #d6b98c;
+                border-bottom: 1px solid #e7ddc9; }
+  .fi-gpscell:nth-child(4n) { border-right: none; }
+  .fi-gpscell b { display: block; font-size: 5.8px; color: #92400e; text-transform: uppercase;
+                  letter-spacing: 0.6px; }
+  .fi-gpscell span { display: block; font-size: 7px; color: #292524;
+                     font-family: 'Courier New', monospace; }
+
+  .fi-remarks { border: 1px solid #92400e; border-top: none; padding: 6px 8px; }
+  .fi-rline { border-bottom: 1px dotted #a8a29e; height: 13px; }
+  .fi-remarks .fi-rlabel { font-size: 6.2px; color: #92400e; text-transform: uppercase;
+                           letter-spacing: 0.8px; margin-bottom: 2px; font-weight: 800; }
+
+  .fi-sigrow { display: flex; justify-content: space-between; margin-top: 12px; }
+  .fi-sig { width: 46%; border: 1.5px solid #92400e; padding: 5px 7px; background: #fdf9f2; }
+  .fi-sig .fi-stampbox { float: right; width: 48px; height: 42px; border: 2px double #92400e;
+                         font-size: 5.4px; color: #92400e; text-align: center; padding-top: 11px;
+                         text-transform: uppercase; letter-spacing: 0.6px; }
+  .fi-sig .fi-role { font-size: 7px; font-weight: 900; text-transform: uppercase;
+                     color: #7c2d12; letter-spacing: 0.8px; margin-bottom: 12px; }
+  .fi-sig .fi-line { border-top: 1px solid #1c1917; padding-top: 2px; font-size: 6.8px;
+                     font-weight: 700; }
+  .fi-sig .fi-sub { font-size: 6.3px; color: #57534e; }
+  .fi-sig .fi-date { border-top: 1px dotted #a8a29e; margin-top: 6px; padding-top: 2px;
+                     font-size: 6.3px; color: #57534e; }
+
+  .fi-footer { margin-top: 10px; border-top: 2px solid #92400e; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.3px;
+               color: #7c2d12; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="fi-header">
+  <div class="fi-office">
+    <h1>Safe Cities Project</h1>
+    <h2>Field Inspection and Verification Sheet</h2>
+    <div class="fi-kind">{{ kind_label }}</div>
+  </div>
+  <div class="fi-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="fi-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+<div class="fi-meta">
+  <div>Sheet Ref<span>{{ doc_ref }}</span></div>
+  <div>Inspected On<span>{{ generated_at_str }}</span></div>
+  <div>Sheet<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="fi-kpis">
+  {% for k in kpis %}
+  <div class="fi-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+  {% endfor %}
+</div>
+
+<div class="fi-h">Inspection Checklist</div>
+<div class="fi-checks">
+  {% for c in compliance_checks %}
+  <div class="fi-check">
+    <span class="cbx">{% if c.status == 'PASS' %}X{% elif c.status == 'FAIL' %}!{% else %}&nbsp;{% endif %}</span>{{ c.control }} <i style="color:#92400e;">({{ c.status }})</i>
+  </div>
+  {% empty %}
+  <div class="fi-check"><span class="cbx">&nbsp;</span>Audit ledger continuity verified</div>
+  <div class="fi-check"><span class="cbx">&nbsp;</span>Settlement timestamps sampled</div>
+  <div class="fi-check"><span class="cbx">&nbsp;</span>Enforcement fairness reviewed</div>
+  <div class="fi-check"><span class="cbx">&nbsp;</span>Account hygiene reviewed</div>
+  {% endfor %}
+</div>
+
+<div class="fi-h">Camera / Site Inventory (Enforcement Locations)</div>
+<table class="fi-table">
+  <thead>
+    <tr><th style="width:8%;">Sr.</th><th>Site / Location</th><th style="width:18%;">Challans On Record</th>
+        <th style="width:24%;">Operational Status</th></tr>
+  </thead>
+  <tbody>
+    {% for l in by_location %}
+    <tr>
+      <td>{{ forloop.counter }}</td><td>{{ l.0 }}</td><td>{{ l.1 }}</td>
+      <td>{% if forloop.counter <= 8 %}Verified during inspection{% else %}Desk verification{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td>1</td><td>No site inventory available in this scope</td><td>-</td><td>-</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="fi-h">Record Sample ({{ table.shown }} of {{ table.total }})</div>
+<table class="fi-table">
+  <thead>
+    <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% empty %}
+    <tr><td colspan="{{ table.columns|length }}">No records sampled.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if more_rows > 0 %}<div class="fi-more">+{{ more_rows }} more rows in system (sheet truncated for single-page inspection record).</div>{% endif %}
+
+<div class="fi-h">GPS / Coordinates Grid (Inspection Points)</div>
+<div class="fi-gps">
+  <div class="fi-gpscell"><b>Point A | Base Station</b><span>31.0000 N, 74.0000 E</span></div>
+  <div class="fi-gpscell"><b>Point B | Ring Road</b><span>31.0500 N, 74.0500 E</span></div>
+  <div class="fi-gpscell"><b>Point C | Canal Bridge</b><span>31.1000 N, 74.1000 E</span></div>
+  <div class="fi-gpscell"><b>Point D | Data Center</b><span>31.1500 N, 74.1500 E</span></div>
+</div>
+
+<div class="fi-h">Inspector Remarks</div>
+<div class="fi-remarks">
+  <div class="fi-rlabel">To be completed in ink by the inspecting officer</div>
+  <div class="fi-rline"></div>
+  <div class="fi-rline"></div>
+  <div class="fi-rline"></div>
+</div>
+
+<div class="fi-sigrow">
+  <div class="fi-sig">
+    <div class="fi-stampbox">Office<br>Stamp</div>
+    <div class="fi-role">Inspecting Officer</div>
+    <div class="fi-line">Name: ______________________________</div>
+    <div class="fi-sub">Designation: Field Inspection Officer (Audit)</div>
+    <div class="fi-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="fi-sig">
+    <div class="fi-stampbox">Office<br>Stamp</div>
+    <div class="fi-role">Countersigning Officer</div>
+    <div class="fi-line">Name: ______________________________</div>
+    <div class="fi-sub">Designation: Director, Internal Audit</div>
+    <div class="fi-date">Date: ____ / ____ / ________</div>
+  </div>
+</div>
+
+<div class="fi-footer">
+  <span>Ref: {{ doc_ref }}</span>
+  <span>Computer generated inspection sheet</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

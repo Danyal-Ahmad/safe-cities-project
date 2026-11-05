@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Payment Methods — Safe City{% endblock %}
+{% block title %}Payment Methods | Safe City{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-payment-method-list.css' %}">
 {% endblock %}
@@ -10,7 +10,7 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-credit-card me-2"></i>Payment Methods</h1>
-    <p class="sc-lead">Gateway integrations citizens can use to pay e-challans online &mdash; mobile wallets, cards and payment gateways.</p>
+    <p class="sc-lead">Gateway integrations citizens can use to pay e-challans online - mobile wallets, cards and payment gateways.</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <a href="{% url 'it_support_portal:payment_method_add' %}" class="sc-btn sc-btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Method</a>
@@ -62,7 +62,7 @@
           <tr>
             <td>
               <div class="it-pm-name"><i class="bi bi-wallet2 me-1"></i><strong>{{ m.name }}</strong></div>
-              <div class="sc-text-xs sc-text-muted">{{ m.provider|default:"&mdash;" }}{% if m.created_by %} &middot; added by {{ m.created_by.username }}{% endif %}</div>
+              <div class="sc-text-xs sc-text-muted">{{ m.provider|default:"-" }}{% if m.created_by %} &middot; added by {{ m.created_by.username }}{% endif %}</div>
             </td>
             <td><span class="sc-badge it-pm-type-{{ m.type }}"><i class="bi bi-tag"></i>{{ m.get_type_display|default:m.type }}</span></td>
             <td>
@@ -78,7 +78,7 @@
               <span class="sc-badge {% if m.environment == 'live' %}sc-badge-red{% else %}sc-badge-blue{% endif %} sc-mono">{{ m.environment|default:"sandbox" }}</span>
             </td>
             <td class="sc-text-xs sc-text-muted it-pm-config">
-              {% if m.type == 'wallet' %}{{ m.config.merchant_id|yesno:"merchant on file,no merchant" }}{% elif m.type == 'card' %}{{ m.config.publishable_key|yesno:"keys on file,no keys" }}{% elif m.type == 'gateway' %}{{ m.config.api_key|yesno:"API key on file,no API key" }}{% else %}&mdash;{% endif %}
+              {% if m.type == 'wallet' %}{{ m.config.merchant_id|yesno:"merchant on file,no merchant" }}{% elif m.type == 'card' %}{{ m.config.publishable_key|yesno:"keys on file,no keys" }}{% elif m.type == 'gateway' %}{{ m.config.api_key|yesno:"API key on file,no API key" }}{% else %}-{% endif %}
             </td>
             <td class="text-end">
               <div class="it-pm-actions">

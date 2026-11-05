@@ -1,0 +1,197 @@
+{# Financial ledger statement - green headers, monospace amounts, debit/credit #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ kind_label }}</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #14301c;
+         margin: 0; padding: 0; line-height: 1.3; background: #fff; }
+
+  .fl-header { display: flex; justify-content: space-between; align-items: center;
+               border: 1.5px solid #14532d; background: #f0f7f1; padding: 6px 8px; }
+  .fl-office h1 { font-size: 14px; margin: 0; font-weight: 900; letter-spacing: 1.2px;
+                  text-transform: uppercase; color: #14532d; }
+  .fl-office h2 { font-size: 7.5px; margin: 2px 0 0 0; font-weight: 700; color: #166534;
+                  letter-spacing: 0.8px; text-transform: uppercase; }
+  .fl-office .fl-kind { font-size: 8px; margin-top: 2px; font-weight: 700; color: #14301c; }
+  .fl-logos { display: flex; align-items: center; }
+  .fl-logos img { height: 38px; width: auto; object-fit: contain; }
+  .fl-logo-sep { font-size: 24px; color: #14532d; margin: 0 6px; }
+
+  .fl-meta { display: grid; grid-template-columns: 1.6fr 1.3fr 1fr 1.1fr;
+             border: 1px solid #14532d; border-top: none; }
+  .fl-meta div { padding: 3px 6px; border-right: 1px solid #bbd4c2; font-size: 6.8px;
+                 font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+                 color: #14532d; }
+  .fl-meta div:last-child { border-right: none; }
+  .fl-meta span { display: block; font-weight: 400; font-size: 6.6px; color: #2f5738;
+                  font-family: 'Courier New', monospace; }
+
+  .fl-kpis { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #14532d;
+             border-top: none; }
+  .fl-kpi { padding: 4px 6px; border-right: 1px solid #bbd4c2; background: #fbfefb; }
+  .fl-kpi:last-child { border-right: none; }
+  .fl-kpi b { display: block; font-size: 6.2px; color: #4d7c5c; text-transform: uppercase;
+              letter-spacing: 0.5px; }
+  .fl-kpi span { display: block; font-size: 10px; font-weight: 900; color: #14532d;
+                 font-family: 'Courier New', monospace; }
+  .fl-kpi i { display: block; font-size: 5.9px; color: #6b9179; font-style: italic; }
+
+  .fl-title { background: #14532d; color: #fff; padding: 3px 7px; font-size: 7.4px;
+              font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase;
+              margin-top: 8px; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .fl-ledger th { background: #dcefdf; color: #14532d; border: 1px solid #14532d;
+                  font-size: 6.8px; padding: 3px 5px; text-transform: uppercase;
+                  letter-spacing: 0.6px; text-align: left; }
+  .fl-ledger td { border: 1px solid #a9c9b1; padding: 2.8px 5px; font-size: 7.2px;
+                  font-family: 'Courier New', monospace; color: #173b23; }
+  .fl-ledger td.fl-desc { font-family: 'Helvetica', 'Arial', sans-serif; }
+  .fl-num { text-align: right; }
+  .fl-ledger tr:nth-child(even) td { background: #f4faf5; }
+  .fl-totals td { border-top: 2px solid #14532d; border-bottom: 4px double #14532d;
+                  font-weight: 900; font-size: 7.6px; background: #e7f4e9; color: #14532d;
+                  padding: 4px 5px; }
+  .fl-more { font-size: 6.5px; color: #4d7c5c; font-style: italic; margin-top: 2px;
+             font-family: 'Helvetica', 'Arial', sans-serif; }
+
+  .fl-body-wrap { position: relative; margin-top: 8px; }
+  .fl-stamp { position: absolute; right: 6px; top: -2px; width: 118px; height: 52px;
+              border: 2.5px solid #14532d; color: #14532d; text-align: center;
+              padding-top: 8px; font-size: 9px; font-weight: 900; letter-spacing: 2px;
+              text-transform: uppercase; opacity: 0.85; }
+  .fl-stamp small { display: block; font-size: 5.6px; letter-spacing: 0.8px;
+                    font-weight: 700; margin-top: 3px; }
+
+  .fl-sigrow { display: flex; justify-content: space-between; margin-top: 12px; }
+  .fl-sig { width: 46%; border: 1px solid #14532d; padding: 5px 7px; background: #fbfefb; }
+  .fl-sig .fl-stampbox { float: right; width: 46px; height: 40px; border: 1.5px dashed #4d7c5c;
+                         font-size: 5.4px; color: #4d7c5c; text-align: center; padding-top: 10px;
+                         text-transform: uppercase; letter-spacing: 0.6px; }
+  .fl-sig .fl-role { font-size: 7px; font-weight: 900; text-transform: uppercase;
+                     color: #14532d; letter-spacing: 0.8px; margin-bottom: 12px; }
+  .fl-sig .fl-line { border-top: 1px solid #14301c; padding-top: 2px; font-size: 6.8px;
+                     font-weight: 700; color: #14301c; }
+  .fl-sig .fl-sub { font-size: 6.3px; color: #4d7c5c; }
+  .fl-sig .fl-date { border-top: 1px dotted #6b9179; margin-top: 6px; padding-top: 2px;
+                     font-size: 6.3px; color: #4d7c5c; }
+
+  .fl-footer { margin-top: 10px; border-top: 2px solid #14532d; padding-top: 3px;
+               display: flex; justify-content: space-between; font-size: 6.3px;
+               color: #14532d; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="fl-header">
+  <div class="fl-office">
+    <h1>Safe Cities Project</h1>
+    <h2>Financial Audit Ledger Section</h2>
+    <div class="fl-kind">{{ kind_label }}</div>
+  </div>
+  <div class="fl-logos">
+    {% if logo_left_src %}<img src="{{ logo_left_src }}" alt="Logo">{% endif %}
+    <span class="fl-logo-sep">|</span>
+    {% if logo_right_src %}<img src="{{ logo_right_src }}" alt="Logo">{% endif %}
+  </div>
+</div>
+
+<div class="fl-meta">
+  <div>Ledger Ref<span>{{ doc_ref }}</span></div>
+  <div>Posted On<span>{{ generated_at_str }}</span></div>
+  <div>Folio<span>1 of 1</span></div>
+  <div>Classification<span>INTERNAL - AUDIT</span></div>
+</div>
+
+<div class="fl-kpis">
+  {% for k in kpis %}
+  <div class="fl-kpi"><b>{{ k.label }}</b><span>{{ k.value }}</span><i>{{ k.hint }}</i></div>
+  {% endfor %}
+</div>
+
+<div class="fl-title">Ledger Entries{% if total_collected %} | Collections Verified: {{ total_collected }}{% endif %}</div>
+{% if ledger_rows %}
+<div class="fl-body-wrap">
+  <div class="fl-stamp">Audit<br>Verified<small>{{ doc_ref }}</small></div>
+  <table class="fl-ledger">
+    <thead>
+      <tr><th style="width:14%;">Date</th><th style="width:16%;">Reference</th>
+          <th>Description</th><th style="width:13%;" class="fl-num">Debit (PKR)</th>
+          <th style="width:13%;" class="fl-num">Credit (PKR)</th></tr>
+    </thead>
+    <tbody>
+      {% for r in ledger_rows %}
+      <tr>
+        <td>{{ r.date }}</td><td>{{ r.ref }}</td>
+        <td class="fl-desc">{{ r.description }}</td>
+        <td class="fl-num">{{ r.debit }}</td><td class="fl-num">{{ r.credit }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="fl-totals">
+        <td colspan="3">TOTALS</td>
+        <td class="fl-num">{{ ledger_totals.debit }}</td>
+        <td class="fl-num">{{ ledger_totals.credit }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% if more_rows > 0 %}<div class="fl-more">+{{ more_rows }} more rows in system (ledger extract).</div>{% endif %}
+{% else %}
+<table class="fl-ledger">
+  <thead>
+    <tr>{% for c in table.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% empty %}
+    <tr><td colspan="{{ table.columns|length }}">No ledger entries in scope for this report.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if more_rows > 0 %}<div class="fl-more">+{{ more_rows }} more rows in system</div>{% endif %}
+{% endif %}
+
+{% if percentiles %}
+<div class="fl-title">Amount Distribution (Percentile Bands)</div>
+<table class="fl-ledger">
+  <thead>
+    <tr><th>Band</th><th class="fl-num">Fine Amount (PKR)</th></tr>
+  </thead>
+  <tbody>
+    {% for p in percentiles %}
+    <tr><td>{{ p.label }}</td><td class="fl-num">{{ p.value }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<div class="fl-sigrow">
+  <div class="fl-sig">
+    <div class="fl-stampbox">Stamp<br>Here</div>
+    <div class="fl-role">Accounts Audit Officer</div>
+    <div class="fl-line">Name: ______________________________</div>
+    <div class="fl-sub">Designation: Accounts Audit Officer</div>
+    <div class="fl-date">Date: ____ / ____ / ________</div>
+  </div>
+  <div class="fl-sig">
+    <div class="fl-stampbox">Stamp<br>Here</div>
+    <div class="fl-role">Chief Accounts Auditor</div>
+    <div class="fl-line">Name: ______________________________</div>
+    <div class="fl-sub">Designation: Chief Accounts Auditor</div>
+    <div class="fl-date">Date: ____ / ____ / ________</div>
+  </div>
+</div>
+
+<div class="fl-footer">
+  <span>Ref: {{ doc_ref }}</span>
+  <span>Computer generated ledger statement</span>
+  <span>{{ generated_at_str }} | Page 1 of 1 | INTERNAL - AUDIT</span>
+</div>
+
+</body>
+</html>

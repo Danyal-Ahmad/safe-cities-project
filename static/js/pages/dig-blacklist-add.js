@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DIG — Add to Blacklist  (dashboard/dig/blacklist_add.html)
+   DIG | Add to Blacklist  (dashboard/dig/blacklist_add.html)
    Uppercase transform · placeholder switching · reason char counter
    ========================================================================== */
 (function () {

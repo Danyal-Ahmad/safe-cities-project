@@ -1,4 +1,4 @@
-/* DIG Analytics page — extracted from templates/dashboard/dig/analytics.html
+/* DIG Analytics page - extracted from templates/dashboard/dig/analytics.html
  * NOTE: loaded WITHOUT `defer` on purpose. The original inline <script> executed
  * during HTML parsing, BEFORE the deferred Chart.js CDN script loaded, so its
  * chart initialization threw (Chart undefined) and the canvases stayed untouched.

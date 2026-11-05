@@ -1,4 +1,4 @@
-/* SSP District Command dashboard — extracted from templates/dashboard/ssp/dashboard.html */
+/* SSP District Command dashboard - extracted from templates/dashboard/ssp/dashboard.html */
 (function () {
   'use strict';
 

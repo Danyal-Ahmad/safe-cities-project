@@ -1,98 +1,199 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}E-Challan {{ challan.ticket_no }}{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Challan {{ challan.ticket_no }}</b>{% endblock %}
+{% block title %}E-Challan {{ challan.ticket_no }} | Safe Cities Project{% endblock %}
+{% block body_class %}{% if user.is_authenticated %}sc-app scpub-embed{% else %}public-home{% endif %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/public-detail.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="sc-page-hero">
-<div>
-<h1>E-Challan {{ challan.ticket_no }}</h1>
-<p class="sc-lead">{{ challan.plate_number }} · {{ challan.get_violation_type_display }} · PKR {{ challan.fine_amount|floatformat:0|intcomma }}</p>
-</div>
-<div class="sc-flex sc-gap-2">
-<a href="{% url 'challans:challan_pdf' challan.id %}" class="sc-btn sc-btn-primary"><i class="bi bi-download"></i> Download PDF</a>
-{% if challan.payment_status != 'PAID' %}
-<a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="sc-btn sc-btn-success"><i class="bi bi-credit-card"></i> Pay Now</a>
-{% endif %}
-</div>
-</div>
+<div class="scpub scpub-detail">
+  <div class="scpub-bg" aria-hidden="true"></div>
 
-<div class="sc-tabs">
-<a href="?tab=base" class="sc-active">Base</a>
-</div>
+  <div class="scpub-inner">
 
-<div class="sc-grid sc-grid-2">
-<div>
-<div class="sc-card">
-<div class="sc-card-head">Challan summary</div>
-<div class="sc-dl">
-<div class="sc-dl-row"><span class="sc-print-k">Ticket</span><span class="sc-print-v sc-mono">{{ challan.ticket_no }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Plate</span><span class="sc-print-v sc-mono">{{ challan.plate_number }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Owner</span><span class="sc-print-v">{{ challan.owner_name|default:'—' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">CNIC</span><span class="sc-print-v sc-mono">{{ challan.cnic|default:'—' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Phone</span><span class="sc-print-v">{{ challan.phone|default:'—' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Address</span><span class="sc-print-v">{{ challan.address|default:'—' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Violation</span><span class="sc-print-v">{{ challan.get_violation_type_display }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Location</span><span class="sc-print-v">{{ challan.location|default:'—' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Camera</span><span class="sc-print-v">{{ challan.camera.camera_id|default:'—' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Issue date</span><span class="sc-print-v">{{ challan.issue_date|date:'d M Y' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Due date</span><span class="sc-print-v">{{ challan.due_date|date:'d M Y' }}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Status</span><span class="sc-print-v">{% if challan.payment_status == 'PAID' %}<span class="sc-badge sc-badge-green">Paid</span>{% elif challan.is_overdue %}<span class="sc-badge sc-badge-red">Overdue</span>{% else %}<span class="sc-badge sc-badge-amber">Unpaid</span>{% endif %}</span></div>
-<div class="sc-dl-row"><span class="sc-print-k">Fine</span><span class="sc-print-v" style="font-size:18px;color:var(--sc-danger);">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</span></div>
-</div>
-</div>
-<div class="sc-psid-box">
-<div class="sc-psid-info">
-<div class="sc-psid-label">Payment System ID (PSID)</div>
-<div class="sc-psid-code">{{ challan.psid }}</div>
-</div>
-</div>
-</div>
-<div>
-<div class="sc-card">
-<div class="sc-card-head">Actions</div>
-<div class="sc-flex sc-gap-2" style="flex-direction:column;">
-<a href="{% url 'challans:challan_pdf' challan.id %}" class="sc-btn sc-btn-block sc-btn-primary"><i class="bi bi-download"></i> Download PDF</a>
-{% if challan.payment_status != 'PAID' %}
-<a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="sc-btn sc-btn-block sc-btn-success"><i class="bi bi-credit-card"></i> Pay Now</a>
-{% endif %}
-{% if can_appeal %}<a href="{% url 'challans:challan_detail' challan.id %}?tab=appeal" class="sc-btn sc-btn-block"><i class="bi bi-shield"></i> Submit Appeal</a>{% endif %}
-</div>
-</div>
-</div>
-</div>
+    <div class="pd-back">
+      <a href="{% url 'challans:home' %}" class="scpub-btn-ghost"><i class="bi bi-arrow-left"></i> Back to Search</a>
+    </div>
 
-{% if challan.detection and challan.detection.raw_image %}
-<div class="sc-card">
-<div class="sc-card-head">Detection evidence</div>
-<div class="sc-grid sc-grid-2">
-<div><img src="{% if challan.detection.raw_image %}{{ challan.detection.raw_image.url }}{% endif %}" alt="Detection" style="width:100%;border-radius:4px;background:#0A0E14;min-height:120px;" onerror="this.style.opacity='0.15';"></div>
-{% if challan.detection.plate_crop_image %}<div><img src="{{ challan.detection.plate_crop_image.url }}" alt="Plate" style="width:100%;border-radius:4px;"></div>{% endif %}
-</div>
-</div>
-{% endif %}
+    <!-- Compact glass hero -->
+    <section class="pd-hero scpub-card">
+      <div class="pd-hero-main">
+        <h1 class="pd-title">E-Challan <span class="scpub-mono">{{ challan.ticket_no }}</span></h1>
+        <p class="pd-meta">
+          <span class="scpub-mono">{{ challan.plate_number }}</span>
+          <span class="pd-meta-sep">|</span>
+          {{ challan.get_violation_type_display }}
+          <span class="pd-meta-sep">|</span>
+          <span class="pd-meta-amount">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</span>
+        </p>
+        <div class="pd-status">
+          {% if challan.payment_status == 'PAID' %}<span class="scpub-badge scpub-badge-green"><i class="bi bi-check-circle-fill"></i> Paid</span>
+          {% elif challan.payment_status == 'VOIDED' %}<span class="scpub-badge scpub-badge-gray"><i class="bi bi-slash-circle"></i> Voided</span>
+          {% elif challan.is_overdue %}<span class="scpub-badge scpub-badge-red"><i class="bi bi-exclamation-circle-fill"></i> Overdue</span>
+          {% else %}<span class="scpub-badge scpub-badge-amber"><i class="bi bi-hourglass-split"></i> Unpaid</span>{% endif %}
+        </div>
+      </div>
+      <div class="pd-hero-actions">
+        <a href="{% url 'challans:challan_pdf' challan.id %}" class="scpub-btn-ghost"><i class="bi bi-download"></i> Download PDF</a>
+        {% if challan.payment_status != 'PAID' and challan.payment_status != 'VOIDED' %}
+        <a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="scpub-btn"><i class="bi bi-credit-card"></i> Pay Now</a>
+        {% endif %}
+      </div>
+    </section>
 
-{% if issuing_officer or officer_signature_name %}
-<div class="sc-card">
-<div class="sc-card-head"><i class="bi bi-vector-pen"></i> Issuing officer</div>
-<div class="sc-grid sc-grid-2" style="align-items:center;">
-  <div>
-    <div class="sc-text-sm sc-text-muted">Issued by</div>
-    <div style="font-weight:700;font-size:15px;">{{ officer_signature_name|default:'—' }}</div>
-    <div class="sc-text-sm sc-text-muted">{{ officer_signature_designation|default:'' }}</div>
-    <div class="sc-text-xs sc-text-muted">ID: {{ officer_staff_id|default:'—' }} {% if officer_region and officer_region != '—' %}· {{ officer_region }}{% endif %}</div>
+    <div class="pd-grid">
+
+      <div class="pd-col-main">
+
+        <!-- Challan summary -->
+        <section class="scpub-card">
+          <div class="scpub-card-title"><i class="bi bi-receipt"></i> Challan Summary</div>
+          <div class="scpub-dl">
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Ticket</span><span class="scpub-dl-v scpub-mono">{{ challan.ticket_no }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Plate</span><span class="scpub-dl-v scpub-mono">{{ challan.plate_number }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Owner</span><span class="scpub-dl-v">{{ challan.owner_name|default:'-' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">CNIC</span><span class="scpub-dl-v scpub-mono">{{ challan.cnic|default:'-' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Phone</span><span class="scpub-dl-v scpub-mono">{{ challan.phone|default:'-' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Address</span><span class="scpub-dl-v">{{ challan.address|default:'-' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Violation</span><span class="scpub-dl-v">{{ challan.get_violation_type_display }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Location</span><span class="scpub-dl-v">{{ challan.location|default:'-' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Camera</span><span class="scpub-dl-v scpub-mono">{{ challan.camera.camera_id|default:'-' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Issue Date</span><span class="scpub-dl-v">{{ challan.issue_date|date:'d M Y' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Due Date</span><span class="scpub-dl-v">{{ challan.due_date|date:'d M Y' }}</span></div>
+            <div class="scpub-dl-row"><span class="scpub-dl-k">Fine</span><span class="scpub-dl-v scpub-amount">PKR {{ challan.fine_amount|floatformat:0|intcomma }}</span></div>
+          </div>
+          <div class="scpub-psid">
+            <span class="scpub-psid-label">Payment System ID (PSID)</span>
+            <span class="scpub-psid-code">{{ challan.psid }}</span>
+          </div>
+        </section>
+
+        <!-- Detection evidence -->
+        {% if challan.detection and challan.detection.raw_image %}
+        <section class="scpub-card">
+          <div class="scpub-card-title"><i class="bi bi-camera-video"></i> Detection Evidence</div>
+          <div class="pd-evidence">
+            <figure class="pd-evidence-fig">
+              <img src="{{ challan.detection.raw_image.url }}" alt="Violation snapshot">
+              <figcaption>Violation snapshot</figcaption>
+            </figure>
+            {% if challan.detection.plate_crop_image %}
+            <figure class="pd-evidence-fig pd-evidence-plate">
+              <img src="{{ challan.detection.plate_crop_image.url }}" alt="Number plate crop">
+              <figcaption>Plate crop</figcaption>
+            </figure>
+            {% endif %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Appeal (guest CNIC appeal supported) -->
+        <section class="scpub-card" id="appeal">
+          <div class="scpub-card-title"><i class="bi bi-shield-check"></i> Appeal</div>
+
+          {% if has_active_appeal %}
+          <div class="scpub-note scpub-note-warn"><i class="bi bi-exclamation-triangle-fill"></i> An appeal is already under review for this challan. Please wait for the decision before submitting another.</div>
+          {% endif %}
+
+          {% if can_appeal %}
+          <form method="post" enctype="multipart/form-data" class="scpub-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="submit_appeal">
+            {% if is_guest %}
+            <div class="scpub-field">
+              <label for="apCnic">CNIC Linked to This Challan <span class="req">*</span></label>
+              <input class="scpub-input" type="text" inputmode="numeric" id="apCnic" name="guest_cnic" placeholder="XXXXXXXXXXXXX (13 digits)" maxlength="15" required>
+            </div>
+            <div class="scpub-field">
+              <label for="apName">Your Name</label>
+              <input class="scpub-input" type="text" id="apName" name="guest_name" placeholder="Full name" maxlength="120">
+            </div>
+            {% endif %}
+            <div class="scpub-field">
+              <label for="apReason">Reason for Appeal <span class="req">*</span></label>
+              <textarea class="scpub-textarea" id="apReason" name="reason" rows="4" required placeholder="Explain why you are appealing this challan (at least 20 characters)..."></textarea>
+            </div>
+            <div class="scpub-field">
+              <label for="apEvidence">Evidence (optional)</label>
+              <input class="scpub-file" type="file" id="apEvidence" name="evidence_file" accept="image/*,.pdf">
+              <p class="pd-hint">Image or PDF, max 10 MB</p>
+            </div>
+            <button type="submit" class="scpub-btn"><i class="bi bi-send"></i> Submit Appeal</button>
+          </form>
+          {% elif not has_active_appeal %}
+          <p class="pd-hint">This challan cannot be appealed (already paid, voided, or under review).</p>
+          {% endif %}
+
+          {% if existing_appeals %}
+          <div class="pd-appeals">
+            <div class="pd-appeals-title">Recent appeals</div>
+            {% for a in existing_appeals %}
+            <div class="pd-appeal-row">
+              <span class="scpub-mono pd-appeal-date">{{ a.created_at|date:'d M Y' }}</span>
+              <span>{{ a.get_current_stage_display }}</span>
+              {% if a.status == 'approved' %}<span class="scpub-badge scpub-badge-green">{{ a.get_status_display }}</span>
+              {% elif a.status == 'rejected' %}<span class="scpub-badge scpub-badge-red">{{ a.get_status_display }}</span>
+              {% elif a.status == 'escalated' %}<span class="scpub-badge scpub-badge-blue">{{ a.get_status_display }}</span>
+              {% else %}<span class="scpub-badge scpub-badge-amber">{{ a.get_status_display }}</span>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </section>
+
+      </div>
+
+      <div class="pd-col-side">
+
+        <!-- Actions -->
+        <section class="scpub-card">
+          <div class="scpub-card-title"><i class="bi bi-lightning-charge"></i> Actions</div>
+          <div class="pd-actions">
+            <a href="{% url 'challans:challan_pdf' challan.id %}" class="scpub-btn"><i class="bi bi-download"></i> Download PDF</a>
+            {% if challan.payment_status != 'PAID' and challan.payment_status != 'VOIDED' %}
+            <a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="scpub-btn scpub-btn-danger"><i class="bi bi-credit-card"></i> Pay Now</a>
+            {% endif %}
+            <a href="{% url 'challans:home' %}" class="scpub-btn-ghost"><i class="bi bi-search"></i> Search Another Challan</a>
+          </div>
+          <div class="scpub-psid">
+            <span class="scpub-psid-label">PSID</span>
+            <span class="scpub-psid-code">{{ challan.psid }}</span>
+          </div>
+        </section>
+
+        <!-- Issuing officer signature -->
+        {% if issuing_officer or officer_signature_name %}
+        <section class="scpub-card">
+          <div class="scpub-card-title"><i class="bi bi-vector-pen"></i> Issuing Officer</div>
+          <div class="pd-officer">
+            <div class="pd-officer-name">{{ officer_signature_name|default:'-' }}</div>
+            <div class="pd-officer-role">{{ officer_signature_designation|default:'' }}</div>
+            <div class="pd-hint">ID: {{ officer_staff_id|default:'-' }}{% if officer_region and officer_region != '-' %} | {{ officer_region }}{% endif %}</div>
+          </div>
+          <div class="pd-sign-box">
+            {% if officer_signature_url %}
+            <img src="{{ officer_signature_url }}" alt="Officer signature">
+            {% if officer_signature_stamp_url %}
+            <img src="{{ officer_signature_stamp_url }}" alt="Official stamp" class="pd-sign-stamp">
+            {% endif %}
+            {% else %}
+            <span class="pd-sign-empty">Signature not available</span>
+            {% endif %}
+          </div>
+        </section>
+        {% endif %}
+
+      </div>
+    </div>
+
   </div>
-  <div style="text-align:center;min-height:80px;position:relative;background:#fff;padding:6px;border:1px solid var(--sc-border-soft);border-radius:4px;">
-    {% if officer_signature_url %}
-      <img src="{{ officer_signature_url }}" alt="signature" style="max-height:60px;max-width:200px;">
-      {% if officer_signature_stamp_url %}
-      <img src="{{ officer_signature_stamp_url }}" alt="stamp" style="position:absolute;right:8px;top:8px;height:50px;width:50px;opacity:.7;">
-      {% endif %}
-    {% else %}
-      <div class="sc-text-sm sc-text-muted" style="padding:24px;">Officer has not uploaded a signature yet.</div>
-    {% endif %}
-  </div>
 </div>
-</div>
-{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/public-detail.js' %}" defer></script>
 {% endblock %}

@@ -1,4 +1,4 @@
-/* Alert Hub — extracted from templates/dashboard/dig/alerts_hub.html */
+/* Alert Hub - extracted from templates/dashboard/dig/alerts_hub.html */
 (function () {
   'use strict';
 
@@ -42,7 +42,7 @@
   bindFilter('bannerSearch', null, 'bannerStatusFilter', ['bannerGrid', 'bannerTableWrap']);
   bindFilter('broadcastSearch', null, null, ['broadcastGrid', 'broadcastTableWrap']);
 
-  // Edit alert modal — prefill
+  // Edit alert modal - prefill
   var editAlertModal = document.getElementById('editAlertModal');
   if (editAlertModal) editAlertModal.addEventListener('show.bs.modal', function(e){
     var btn = e.relatedTarget;
@@ -54,7 +54,7 @@
     document.getElementById('editAlertActive').checked = btn.getAttribute('data-active') === '1';
   });
 
-  // Edit banner modal — prefill
+  // Edit banner modal - prefill
   var editBannerModal = document.getElementById('editBannerModal');
   if (editBannerModal) editBannerModal.addEventListener('show.bs.modal', function(e){
     var btn = e.relatedTarget;

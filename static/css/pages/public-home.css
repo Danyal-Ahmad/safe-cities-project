@@ -276,25 +276,25 @@ body.public-home .sc-msg-close { color: #94A0B8; }
 .ph-hero {
   position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 0;
   margin-bottom: 22px;
   border-radius: 20px;
   overflow: hidden;
   background: linear-gradient(115deg, #EAF2FF 0%, #F4F8FF 45%, #EDF4FF 100%);
   border: 1px solid #DBE8FE;
-  min-height: 260px;
+  min-height: 300px;
 }
 
 .ph-hero-copy {
   position: relative;
   z-index: 2;
-  flex: 1 1 460px;
-  min-width: 300px;
+  flex: 0 0 42%;
+  max-width: 46%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 40px 44px;
+  padding: 30px 12px 30px 40px;
 }
 
 .ph-hero-kicker {
@@ -313,19 +313,19 @@ body.public-home .sc-msg-close { color: #94A0B8; }
 }
 
 .ph-hero-title {
-  margin-top: 16px;
-  font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+  margin-top: 14px;
+  font-size: clamp(1.45rem, 2.6vw, 2rem);
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.15;
+  line-height: 1.18;
   color: #0F1F3D;
 }
 
 .ph-hero-sub {
-  margin-top: 12px;
-  max-width: 480px;
-  font-size: 0.95rem;
-  line-height: 1.65;
+  margin-top: 10px;
+  max-width: 420px;
+  font-size: 0.88rem;
+  line-height: 1.6;
   color: #5B6B85;
 }
 
@@ -334,14 +334,14 @@ body.public-home .sc-msg-close { color: #94A0B8; }
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .ph-hero-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 22px;
+  padding: 11px 20px;
   border-radius: 13px;
   font-size: 0.9rem;
   font-weight: 700;
@@ -364,10 +364,14 @@ body.public-home .sc-msg-close { color: #94A0B8; }
 .ph-hero-btn--ghost:hover { background: #F7FAFF; color: #1D4ED8; border-color: #93B8FD; box-shadow: 0 6px 18px rgba(37, 99, 235, 0.14); }
 
 .ph-hero-art {
-  position: relative;
-  flex: 0 0 46%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 60%;
   min-width: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .ph-hero-art img {
@@ -376,9 +380,9 @@ body.public-home .sc-msg-close { color: #94A0B8; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 82% center;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.55) 26%, #000 58%, rgba(0, 0, 0, 0.9) 92%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.55) 26%, #000 58%, rgba(0, 0, 0, 0.9) 92%, transparent 100%);
+  object-position: 100% center;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.5) 9%, #000 22%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.5) 9%, #000 22%);
 }
 
 .ph-hero-art::after {

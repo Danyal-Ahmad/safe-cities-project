@@ -40,7 +40,7 @@
       {% endif %}
       <span class="cctv-cap-hud">CAPTURE {{ d.created_at|date:"d-m-Y H:i:s" }}</span>
       <span class="cctv-cap-plate sc-mono">{{ d.effective_plate|default:"UNREAD" }}</span>
-      {% if d.ai_detected_violation %}<span class="cctv-cap-violation"><i class="bi bi-exclamation-triangle"></i> WRONG WAY</span>{% endif %}
+      {% if d.ai_detected_violation %}<span class="cctv-cap-violation"><i class="bi bi-exclamation-triangle"></i> {{ d.violation_label_en|upper }}</span>{% endif %}
     </div>
     <div class="cctv-cap-seq">
       {% with frames=d.evidence_frames %}

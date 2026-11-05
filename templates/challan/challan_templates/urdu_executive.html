@@ -1,0 +1,209 @@
+{# Urdu Executive | Urdu-primary RTL layout | ONE page | ONE annotated evidence #}
+{# SAFE CITIES PROJECT | خلاف ورزی کی قسم تجزیے کے نتیجے میں طے ہوتی ہے #}
+{# Language policy: Urdu primary; limited English micro-captions only #}
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ای چالان {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 8mm 9mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Alvi Nastaleeq', 'Noto Naskh Arabic', 'Amiri', serif; color: #1f2937; font-size: 11.5px; background: #fff; line-height: 1.85; }
+  .ltr { direction: ltr; unicode-bidi: embed; font-family: 'Segoe UI', Arial, sans-serif; }
+  .mono { font-family: 'Courier New', monospace; }
+
+  .sheet { width: 192mm; margin: 0 auto; }
+
+  /* Masthead: logo group one side, titles the other, emerald rule */
+  .masthead { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #065f46; padding-bottom: 5px; }
+  .logogroup { display: flex; align-items: center; gap: 8px; }
+  .logogroup img { width: 50px; height: 50px; object-fit: contain; border: 1px solid #d1d5db; padding: 2px; }
+  .logo-sep { font-size: 22px; color: #9ca3af; }
+  .mast-titles { text-align: left; }
+  .mast-titles h1 { font-size: 19px; color: #065f46; line-height: 1.6; }
+  .mast-titles .sub { font-size: 10px; color: #6b7280; line-height: 1.6; }
+  .mast-titles .sub .ltr { font-size: 9px; letter-spacing: .18em; color: #9ca3af; }
+
+  /* Identity band: analyzed offence + status + dates */
+  .idband { display: flex; align-items: center; gap: 8px; background: #f0fdf7; border: 1px solid #a7f3d0; border-right: 4px solid #065f46; padding: 6px 10px; margin-top: 8px; }
+  .idband .offence { font-size: 14px; font-weight: 700; color: #065f46; line-height: 1.8; }
+  .idband .offence .en { display: block; font-size: 8.5px; color: #9ca3af; letter-spacing: .14em; }
+  .pill { padding: 3px 12px; font-size: 10px; font-weight: 700; font-family: Arial, sans-serif; letter-spacing: .08em; border: 1.5px solid; }
+  .pill.paid { color: #15803d; border-color: #15803d; background: #f0fdf4; }
+  .pill.unpaid { color: #b45309; border-color: #b45309; background: #fffbeb; }
+  .pill.overdue { color: #b91c1c; border-color: #b91c1c; background: #fef2f2; }
+  .pill.voided { color: #475569; border-color: #94a3b8; background: #f8fafc; }
+  .idband .dates { margin-right: auto; text-align: left; font-size: 10px; color: #6b7280; line-height: 1.9; }
+  .idband .dates b { color: #1f2937; }
+
+  /* Hero: plate + fine + due, emerald frame */
+  .hero { display: flex; align-items: center; margin-top: 8px; border: 1px solid #a7f3d0; background: #fff; }
+  .hero .cell { padding: 5px 12px; border-left: 1px solid #d1fae5; }
+  .hero .cell:first-child { border-left: none; }
+  .hero .k { font-size: 10px; color: #6b7280; line-height: 1.8; }
+  .hero .v { font-size: 15px; font-weight: 700; color: #1f2937; line-height: 1.7; }
+  .hero .v.big { font-size: 24px; color: #065f46; }
+  .hero .plate { font-size: 24px; font-weight: 800; letter-spacing: .05em; }
+  .hero .push { margin-right: auto; }
+
+  /* Urdu register */
+  .sec-title { font-size: 13.5px; color: #065f46; border-bottom: 1.5px solid #065f46; padding-bottom: 1px; margin: 10px 0 2px; line-height: 1.9; }
+  .sec-title .en { font-size: 8.5px; color: #9ca3af; letter-spacing: .16em; }
+  .reg { display: flex; gap: 14px; }
+  .regcol { flex: 1; }
+  .kv { display: flex; justify-content: space-between; align-items: baseline; padding: 2.5px 0; border-bottom: 1px dotted #d1d5db; font-size: 11.5px; }
+  .kv .k { color: #6b7280; }
+  .kv .v { font-weight: 700; }
+  .kv .v.ltr { text-align: left; }
+
+  /* Evidence anchor: undistorted photo at natural aspect + Urdu verification rail */
+  .evidence { margin-top: 7px; display: flex; gap: 10px; }
+  .ev-photo { width: 106mm; border: 1.5px solid #065f46; padding: 4px; }
+  .ev-photo img { width: 100%; display: block; }
+  .ev-photo .cap { display: flex; justify-content: space-between; background: #065f46; color: #ecfdf5; font-size: 9.5px; padding: 4px 10px; margin-top: 4px; line-height: 1.8; }
+  .ev-rail { flex: 1; border: 1px solid #d1d5db; background: #f9fafb; padding: 8px 10px; }
+  .ev-rail .rail-title { font-size: 12.5px; color: #065f46; border-bottom: 1.5px solid #065f46; padding-bottom: 2px; margin-bottom: 4px; line-height: 1.9; }
+  .ev-rail .rail-title .en { font-size: 8px; color: #9ca3af; letter-spacing: .14em; font-family: 'Segoe UI', Arial, sans-serif; }
+
+  /* Payment panel */
+  .paypanel { display: flex; align-items: center; margin-top: 7px; border: 1px solid #d1d5db; background: #f9fafb; padding: 6px 12px; }
+  .paypanel .psid .k { font-size: 10px; color: #6b7280; line-height: 1.8; }
+  .paypanel .psid .v { font-size: 16px; font-weight: 800; color: #065f46; letter-spacing: .04em; }
+  .paypanel .banks { display: flex; gap: 6px; align-items: center; margin-right: auto; margin-left: 14px; }
+  .paypanel .banks img { height: 24px; }
+  .paypanel .banks .cap { font-size: 9.5px; color: #6b7280; margin-left: 6px; }
+
+  .notice { margin-top: 6px; background: #fffbeb; border-right: 3px solid #b45309; padding: 5px 10px; font-size: 11px; line-height: 1.85; }
+  .notice .en { font-size: 9px; color: #9ca3af; }
+
+  /* Signature zone */
+  .sigrow { display: flex; justify-content: space-between; margin-top: 8px; }
+  .sig { text-align: center; width: 62mm; }
+  .sig .line { border-top: 1px solid #1f2937; margin-top: 16px; padding-top: 3px; font-size: 10px; color: #6b7280; line-height: 1.8; }
+
+  .footer { border-top: 1px solid #d1d5db; margin-top: 6px; padding-top: 4px; display: flex; justify-content: space-between; font-size: 9px; color: #6b7280; }
+  .footer .ltr { letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="masthead">
+    <div class="logogroup">
+      {% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Logo">{% endif %}
+      <span class="logo-sep">|</span>
+      {% if logo_right_path %}<img src="{{ logo_right_path }}" alt="Partner">{% endif %}
+    </div>
+    <div class="mast-titles">
+      <h1>محفوظ شہر منصوبہ</h1>
+      <div class="sub">الیکٹرانک ٹریفک چالان <span class="ltr">| SAFE CITIES PROJECT | ELECTRONIC CHALLAN</span></div>
+    </div>
+  </div>
+
+  <div class="idband">
+    <div class="offence">{{ challan.violation_type_display_urdu }}<span class="en ltr">{{ challan.get_violation_type_display|upper }} | ANALYZED OFFENCE</span></div>
+    <span class="pill ltr {% if challan.payment_status == 'PAID' %}paid{% elif challan.payment_status == 'VOIDED' %}voided{% elif challan.is_overdue %}overdue{% else %}unpaid{% endif %}">
+      {% if challan.payment_status == 'PAID' %}PAID{% elif challan.payment_status == 'VOIDED' %}VOIDED{% elif challan.is_overdue %}OVERDUE{% else %}UNPAID{% endif %}
+    </span>
+    <div class="dates">
+      جاری: <b class="ltr">{{ challan.issue_date|date:"d M Y" }}</b><br>
+      آخری تاریخ: <b class="ltr">{{ challan.due_date|date:"d M Y" }}</b>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="cell">
+      <div class="k">گاڑی نمبر <span class="ltr" style="font-size:8px;color:#9ca3af;">PLATE</span></div>
+      <div class="v ltr plate">{{ challan.plate_number }}</div>
+    </div>
+    <div class="cell">
+      <div class="k">جرمانہ <span class="ltr" style="font-size:8px;color:#9ca3af;">FINE</span></div>
+      <div class="v ltr big">PKR {{ challan.fine_amount|floatformat:0 }}</div>
+    </div>
+    <div class="cell push">
+      <div class="k">ادائیگی کی آخری تاریخ</div>
+      <div class="v ltr">{{ challan.due_date|date:"d M Y" }}</div>
+    </div>
+  </div>
+
+  <div class="sec-title">رجسٹرڈ مالک <span class="en ltr">| REGISTERED OWNER</span></div>
+  <div class="reg">
+    <div class="regcol">
+      <div class="kv"><span class="k">نام</span><span class="v">{{ challan.owner_name|default:'رجسٹری کی تصدیق باقی ہے' }}</span></div>
+      <div class="kv"><span class="k">شناختی کارڈ</span><span class="v ltr">{{ challan.cnic|default:'-' }}</span></div>
+    </div>
+    <div class="regcol">
+      <div class="kv"><span class="k">فون</span><span class="v ltr">{{ challan.phone|default:'-' }}</span></div>
+      <div class="kv"><span class="k">پتہ</span><span class="v">{{ challan.address|default:'-' }}</span></div>
+    </div>
+  </div>
+
+  <div class="sec-title">گاڑی اور پتا لگاؤ <span class="en ltr">| VEHICLE AND DETECTION</span></div>
+  <div class="reg">
+    <div class="regcol">
+      <div class="kv"><span class="k">قسم</span><span class="v">{{ challan.vehicle_type|default:'کار' }}</span></div>
+      <div class="kv"><span class="k">رنگ</span><span class="v">{{ challan.color|default:'-' }}</span></div>
+    </div>
+    <div class="regcol">
+      <div class="kv"><span class="k">صوبہ</span><span class="v">{{ challan.province|default:'-' }}</span></div>
+      <div class="kv"><span class="k">کیمرہ</span><span class="v ltr">{{ challan.camera.camera_id|default:'AI Detection' }}</span></div>
+    </div>
+    <div class="regcol">
+      <div class="kv"><span class="k">مقام</span><span class="v">{{ challan.location|default:'-' }}</span></div>
+      <div class="kv"><span class="k">اے آئی اعتماد</span><span class="v ltr">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
+    </div>
+  </div>
+
+  <div class="sec-title">ثبوت تصویر <span class="en ltr">| EVIDENCE</span></div>
+  <div class="evidence">
+    <div class="ev-photo">
+      {% if evidence_image_path %}<img src="{{ evidence_image_path }}" alt="Evidence">{% endif %}
+      <div class="cap">
+        <span>{{ challan.violation_type_display_urdu }} | ثبوت فریم</span>
+        <span class="ltr" style="font-family:'Segoe UI',Arial,sans-serif;">CAM {{ challan.camera.camera_id|default:'-' }}</span>
+      </div>
+    </div>
+    <div class="ev-rail">
+      <div class="rail-title">سیکیورٹی جانچ <span class="en ltr">| SECURITY CHECKS</span></div>
+      {% if evidence_summary %}
+      {% for c in evidence_summary.checks %}
+      <div class="kv"><span class="k">{{ c.check|title }}</span><span class="v ltr" style="{% if c.passed %}color:#047857;{% else %}color:#b91c1c;{% endif %}">{% if c.passed %}PASS{% else %}FAIL{% endif %}</span></div>
+      {% endfor %}
+      <div class="kv"><span class="k">فریمز</span><span class="v ltr">{{ evidence_summary.track_frames|default:1 }}</span></div>
+      <div class="kv"><span class="k">اے آئی اعتماد</span><span class="v ltr">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
+      {% else %}
+      <div class="kv"><span class="k">سیکیورٹی جانچ</span><span class="v ltr">Automated pipeline</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if evidence_summary %}
+  <div class="kv" style="margin-top:6px;"><span class="k">چین ڈائجسٹ</span><span class="v ltr" style="font-size:9px;">{{ evidence_summary.hash|slice:":18" }}</span></div>
+  {% endif %}
+
+  <div class="paypanel">
+    <div class="psid">
+      <div class="k">ادائیگی کا شناختی نمبر <span class="ltr" style="font-size:8px;color:#9ca3af;">PSID</span></div>
+      <div class="v ltr">{{ challan.psid }}</div>
+    </div>
+    <div class="banks">
+      <span class="cap">ہر ادائیگی کے ذریعے سے ادا کریں</span>
+      {% for p in payment_icons %}<img src="{{ p.path }}" title="{{ p.label }}">{% endfor %}
+    </div>
+  </div>
+
+  <div class="notice">براہ کرم {{ challan.due_date|date:"d-m-Y" }} تک جرمانہ ادا کریں۔ ادائیگی کے لیے اوپر دیا گیا PSID نمبر استعمال کریں۔ <span class="en ltr">| Pay the fine before the due date using the PSID above.</span></div>
+
+  <div class="sigrow">
+    <div class="sig"><div class="line">{% if officer_signature_name %}{{ officer_signature_name }}<br>{% endif %}{{ officer_signature_designation|default:'نفاذی افسر' }} | ID {{ officer_staff_id|default:'-' }}</div></div>
+    <div class="sig"><div class="line">جاری کنندہ<br>محفوظ شہر منصوبہ</div></div>
+  </div>
+
+  <div class="footer">
+    <span>محفوظ شہر منصوبہ | نفاذی ڈویژن</span>
+    <span class="ltr">SAFE CITIES PROJECT | Ref {{ challan.ticket_no }} | Issued {{ challan.issue_date|date:"d-m-Y" }}</span>
+  </div>
+</div>
+</body>
+</html>

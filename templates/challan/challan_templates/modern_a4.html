@@ -80,9 +80,9 @@
 
   <div class="kpi-row">
     <div class="kpi"><div class="lbl">Vehicle Plate</div><div class="val">{{ challan.plate_number }}</div></div>
-    <div class="kpi"><div class="lbl">Violation</div><div class="val small">WRONG WAY</div></div>
+    <div class="kpi"><div class="lbl">Violation</div><div class="val small">{{ challan.get_violation_type_display|upper }}</div></div>
     <div class="kpi"><div class="lbl">Fine Amount</div><div class="val">PKR {{ challan.fine_amount|floatformat:0 }}</div></div>
-    <div class="kpi"><div class="lbl">AI Confidence</div><div class="val">{{ challan.ai_confidence|floatformat:2 }}%</div></div>
+    <div class="kpi"><div class="lbl">AI Confidence</div><div class="val">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</div></div>
   </div>
 
   <div class="cols">
@@ -120,7 +120,7 @@
     <img src="{{ evidence_image_path }}" alt="Violation evidence frame">
     {% endif %}
     <div class="evidence-meta">
-      <span>EVIDENCE FRAME | <b>VIOLATION: WRONG WAY</b></span>
+      <span>EVIDENCE FRAME | <b>VIOLATION: {{ challan.get_violation_type_display|upper }}</b></span>
       <span>CAM {{ challan.camera.camera_id|default:'-' }} | {{ challan.location|default:'-' }}</span>
     </div>
   </div>
@@ -156,8 +156,8 @@
   </div>
 
   <div class="footer">
-    <span>SAFE CITIES PROJECT | Computer-generated challan | Ref {{ challan.ticket_no }}</span>
-    <span>Issued {{ challan.issue_date|date:"d-m-Y" }} | Page 1 of 1</span>
+    <span>SAFE CITIES PROJECT | Enforcement Division</span>
+    <span>Ref {{ challan.ticket_no }} | Issued {{ challan.issue_date|date:"d-m-Y" }}</span>
   </div>
 </div>
 </body>

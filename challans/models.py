@@ -48,7 +48,21 @@ class Challan(models.Model):
         (OTHER, 'Other'),
     ]
 
+    # Catalog of violation types. Multiple types exist; only the types listed
+    # in ENABLED_VIOLATIONS are live for enforcement. The violation type on a
+    # challan is always the conclusion of the detection analysis, never a
+    # default assigned at write time.
     ENABLED_VIOLATIONS = [WRONG_WAY]
+
+    # Limited targeted translation of the violation catalog for Urdu-primary
+    # documents. English remains the primary label via get_violation_type_display.
+    VIOLATION_LABELS_URDU = {
+        WRONG_WAY: 'غلط سمت میں گاڑی چلانا',
+        NO_HELMET: 'ہیلمٹ کے بغیر دو پہیہ والی گاڑی چلانا',
+        SIGNAL_BREAK: 'ٹریفک سگنل کی خلاف ورزی',
+        OVER_SPEED: 'حد سے زیادہ رفتار',
+        OTHER: 'دیگر ٹریفک خلاف ورزی',
+    }
     UNPAID = 'UNPAID'
     PAID = 'PAID'
     VOIDED = 'VOIDED'
@@ -71,7 +85,7 @@ class Challan(models.Model):
     color = models.CharField(max_length=20, null=True, blank=True)
     chassis_no = models.CharField(max_length=50, null=True, blank=True)
 
-    violation_type = models.CharField(max_length=20, choices=VIOLATION_CHOICES, default=WRONG_WAY)
+    violation_type = models.CharField(max_length=20, choices=VIOLATION_CHOICES)
     fine_amount = models.DecimalField(max_digits=10, decimal_places=2, default=500)
     location = models.CharField(max_length=255, null=True, blank=True)
     camera = models.ForeignKey(Camera, on_delete=models.SET_NULL, null=True, blank=True)
@@ -107,6 +121,19 @@ class Challan(models.Model):
 
     def __str__(self):
         return f"{self.ticket_no} | {self.plate_number} ({self.payment_status})"
+
+    @property
+    def violation_type_display_urdu(self):
+        """Limited targeted Urdu label for the analyzed violation type."""
+        return self.VIOLATION_LABELS_URDU.get(self.violation_type, self.violation_type or '-')
+
+    @property
+    def confidence_percent(self):
+        """ai_confidence normalized to a 0-100 percent scale for display."""
+        v = self.ai_confidence
+        if v is None:
+            return None
+        return round(v * 100, 2) if v <= 1.0 else round(v, 2)
 
     @property
     def is_overdue(self):

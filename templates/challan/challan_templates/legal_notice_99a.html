@@ -57,12 +57,12 @@
 
   <div class="notice-title">NOTICE OF TRAFFIC VIOLATION</div>
 
-  <div class="para">Take notice that a motor vehicle bearing registration number <b>{{ challan.plate_number }}</b> was recorded by automated enforcement camera <b>{{ challan.camera.camera_id|default:'-' }}</b> at <b>{{ challan.location|default:'-' }}</b> travelling against the lawful direction of traffic (wrong-way violation), contrary to the provisions cited above.</div>
+  <div class="para">Take notice that a motor vehicle bearing registration number <b>{{ challan.plate_number }}</b> was recorded by automated enforcement camera <b>{{ challan.camera.camera_id|default:'-' }}</b> at <b>{{ challan.location|default:'-' }}</b> committing the analyzed offence of <b>{{ challan.get_violation_type_display|lower }}</b>, contrary to the provisions cited above.</div>
 
   <table class="ln">
     <tr><th>Registered Owner</th><td>{{ challan.owner_name|default:'Registry verification pending' }}</td><th>CNIC</th><td>{{ challan.cnic|default:'-' }}</td></tr>
     <tr><th>Vehicle</th><td>{{ challan.vehicle_type|default:'Car' }}, {{ challan.color|default:'-' }}</td><th>Province</th><td>{{ challan.province|default:'-' }}</td></tr>
-    <tr><th>Offence</th><td>Wrong-way driving</td><th>AI Confidence</th><td>{{ challan.ai_confidence|floatformat:2 }}%</td></tr>
+    <tr><th>Offence</th><td>{{ challan.get_violation_type_display }}</td><th>AI Confidence</th><td>{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
     <tr><th>Legal Direction</th><td>{{ challan.legal_direction|default:'-'|title }}</td><th>Observed Direction</th><td>{{ challan.moving_direction|default:'-'|title }}</td></tr>
   </table>
 
@@ -99,7 +99,7 @@
   {% endif %}
 
   <div class="warn">Non-payment within the stipulated period may result in escalated recovery action, additional penalty, or suspension of vehicle registration under the applicable law.</div>
-  <div class="urdu-hint">نوٹس: مطلوبہ تاریخ سے پہلے جرمانہ ادا کریں ورنہ کارروائی ہوگی | Pay the fine before the due date</div>
+  <div class="urdu-hint">نوٹس: {{ challan.violation_type_display_urdu }} کے الزام پر جاری | Notice issued for the analyzed violation</div>
 
   <div class="signatures">
     <div class="sig"><div class="line">{% if officer_signature_name %}{{ officer_signature_name }},<br>{% endif %}{{ officer_signature_designation|default:'Enforcement Officer' }}<br>SAFE CITIES PROJECT</div></div>
@@ -107,8 +107,8 @@
   </div>
 
   <div class="footer">
-    <span>SAFE CITIES PROJECT | System-generated legal notice | Ref {{ challan.ticket_no }}</span>
-    <span>Page 1 of 1</span>
+    <span>SAFE CITIES PROJECT | Enforcement Directorate</span>
+    <span>Notice ref {{ challan.ticket_no }} | Issued {{ challan.issue_date|date:"d F Y" }}</span>
   </div>
 </div>
 </body>

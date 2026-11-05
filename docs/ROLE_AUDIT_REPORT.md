@@ -21,7 +21,7 @@
 - P3 | No formal risk register or CHANGELOG anywhere in the repo; risk state lives implicitly in `docs/SECURITY_AUDIT.md` §7. Fix: promote that section into `docs/RISK_REGISTER.md` with owners and due dates.
 - P3 | Deadline-critical single points of failure are people-knowledge, not documents: deployment topology exists only inside `docs/REALTIME.md` and `launcher.py`. Fix: a one-page `docs/RUNBOOK.md` covering start/stop/backup/restore.
 - P2 | Six admin portal view modules have no automated tests at all (see Role 7), which makes regression risk on the highest-traffic staff surfaces unmanaged.
-- P3 | Deliverable drift between README and product: README advertises "PDF (four layouts)" while `challans/pdf_service.py::TEMPLATE_MAP` ships seven layouts (modern_a4, classic_a4, legal_notice_99a, digital_slip, compact_receipt, enforcement_notice, urdu_a4) plus two aliases. Fix the README so the demo script matches what evaluators will see.
+- FIXED | README and `TEMPLATE_MAP` realigned: seven layouts (modern_a4, classic_a4, legal_notice_99a, digital_slip, command_brief, secure_instrument, urdu_executive) plus two aliases (compact_a4 overflow guard, safecityfyp_classic).
 
 **Score: 8/10**
 
@@ -83,7 +83,7 @@
 **Issues found**
 - P2 | `Challan.detection` is a non-unique FK (`challans/models.py` line 57) while the pipeline assumes one-challan-per-detection (`detections/pipeline.py::issue_challan` does a check-then-create). This is finding F26 in `docs/SECURITY_AUDIT.md`. Fix: `unique=True` on the FK plus `select_for_update` in the issuance transaction (audit doc P5 sketch).
 - P3 | `PaymentTransaction.ticket_no` is a free CharField with its own index while a proper `challan` FK also exists (nullable); two sources of truth for linkage. Fix: backfill the FK and deprecate the raw column.
-- P3 | `Challan` carries dead violation choices (`NO_HELMET`, `SIGNAL_BREAK`, `OVER_SPEED`, `OTHER`) while `ENABLED_VIOLATIONS = [WRONG_WAY]` only; choices invite future UI mistakes. Fix: prune choices or gate them behind `ENABLED_VIOLATIONS` in every form.
+- FIXED | `Challan` violation catalog: multiple types exist in `VIOLATION_CHOICES`; the pipeline now concludes the type from the detection analysis (`conclude_violation_type`) and gates it against `ENABLED_VIOLATIONS` (only wrong_way live). Non-live conclusions park in the Officer Portal review queue instead of auto-issuing. The DB default was removed (migration 0007) and legacy rows normalized (0008).
 - P3 | `Shift.auto_assign_officer` (`admin/dig_portal/models.py`) loads **all** shifts into memory (`Shift.objects.all().only(...)`) to compute overlap; at tens of thousands of shift rows this degrades. Fix: windowed query with `Q(start_time__lt=end, end_time__gt=start)`.
 - P3 | `SystemSettings.get()` runs `objects.first()` on every call with no caching; it is hit from AI config resolution per frame in `detections/ai.py`. Fix: cache for N seconds (locmem is fine single-process).
 
@@ -516,11 +516,11 @@ The grade is held below A by: five residual security items the project's own aud
 |---|---|---|
 | Branding: SAFE CITIES PROJECT only (no legacy agency names) | PARTIAL | Titles/headers correct everywhere (`templates/base.html` line 8, `legal_notice_99a.html`); but placeholder/default strings found in `admin/dig_portal/admin_profiles.py` (department default, region list entries), `templates/dashboard/dig/admin_add.html:56`, `officer/profile.html:87-88`, `dig/self_profile.html:68`, `it_support/staff_list.html:62`, and `static/js/pages/it-challan-designer.js:157` |
 | No manual annotation anywhere | PASS | `Annotation` model deleted (`detections/migrations/0011`), removal locked by `detections/tests.py::RemovedFeatureTests` and `accounts/tests.py::AnnotationRemovalTests`; pipeline docstring states exclusive issuance |
-| Wrong-way violations only | PASS | `Challan.ENABLED_VIOLATIONS = [WRONG_WAY]`; `issue_challan` hardcodes `violation_type=Challan.WRONG_WAY`; `effective_violation_type` maps only wrong_way |
+| Wrong-way violations only | PASS | `Challan.ENABLED_VIOLATIONS = [WRONG_WAY]`; `issue_challan` derives the type from the analysis conclusion (`conclude_violation_type`) and never defaults it; `effective_violation_type` maps the analyzed state |
 | 3-frame sequential evidence | PASS | `Detection.evidence_frame_2/3` + `evidence_frames_meta`; `cameras/video_processing.py::_capture_sequential_frames`; `SEQUENTIAL_EVIDENCE_MIN_FRAMES = 3` in `detections/pipeline.py`; `evidence_frames()` assembler |
 | One-A4-page challans | PASS | `challans/pdf_service.py` pypdf page-count verification with compact re-render and ReportLab single-page fallback; audit doc records the guarantee |
 | One evidence image on the PDF | PASS | `_evidence_image()` returns exactly one image: annotated frame first, raw frame fallback; module docstring guarantees "Exactly ONE large evidence image" |
-| English-or-Urdu policy | PASS | `CitizenProfile.preferred_language` choices en/ur; `templates/challan/challan_templates/urdu_a4.html` with Noto Nastaliq Urdu loaded in base.html |
+| English-or-Urdu policy | PASS | `CitizenProfile.preferred_language` choices en/ur; `templates/challan/challan_templates/urdu_executive.html` (Urdu-primary with limited English captions) with Noto Nastaliq Urdu loaded in base.html |
 | RBAC hierarchy | PASS | `accounts/permissions.py` (114 permissions, role levels, reports_to/manages/can_override) + `permission.json` + decorator suite; tested by `PermissionMatrixTests` |
 | Portal isolation | PASS | `PortalIsolationMiddleware` path-to-role map + per-view decorators + `PortalIsolationTests` cross-role redirect proof |
 
@@ -613,9 +613,13 @@ Challan templates (`templates/challan/challan_templates/`, mapped in `challans/p
 2. `classic_a4.html`
 3. `legal_notice_99a.html` (Section 99-A Motor Vehicles Ordinance 1965 notice)
 4. `digital_slip.html`
-5. `compact_receipt.html` (also the overflow re-render guard as `compact_a4`)
-6. `enforcement_notice.html`
-7. `urdu_a4.html` (Nastaliq Urdu layout for the English-or-Urdu policy)
+5. `command_brief.html` (executive layout with direction-analysis diagram; also the overflow re-render guard as `compact_a4`)
+6. `secure_instrument.html` (bank-grade print with guilloche band and tear-off payment counterfoil)
+7. `urdu_executive.html` (Urdu-primary Nastaliq layout for the English-or-Urdu policy)
+
+All templates render the violation type from the analyzed challan record, show the
+evidence photo at natural aspect in the three 2026-11 layouts, and carry no page-count
+chips, URLs or system-generated wording.
 
 Audit templates (`templates/audit_templates/`, exported via `admin/audit_portal/audit_pdf.py`, selectable in DIG via `audit_templates_select.html`):
 1. `executive_summary.html` 2. `financial_ledger.html` 3. `compliance_matrix.html` 4. `statistical_digest.html` 5. `incident_report.html` 6. `field_inspection.html` 7. `legal_affidavit.html` 8. `government_classic.html` (SystemSettings default `audit_pdf_template`)

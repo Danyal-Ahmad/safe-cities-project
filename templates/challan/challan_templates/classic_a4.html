@@ -73,8 +73,8 @@
 
   <div class="sec-head">Section B: Violation</div>
   <table class="form">
-    <tr><th>Offence</th><td>WRONG WAY (one-way violation)</td><th>Place</th><td>{{ challan.location|default:'-' }}</td></tr>
-    <tr><th>Camera ID</th><td>{{ challan.camera.camera_id|default:'AI Detection' }}</td><th>AI Confidence</th><td>{{ challan.ai_confidence|floatformat:2 }}%</td></tr>
+    <tr><th>Offence</th><td>{{ challan.get_violation_type_display }}</td><th>Place</th><td>{{ challan.location|default:'-' }}</td></tr>
+    <tr><th>Camera ID</th><td>{{ challan.camera.camera_id|default:'AI Detection' }}</td><th>AI Confidence</th><td>{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
     <tr><th>Legal Direction</th><td>{{ challan.legal_direction|default:'-'|title }}</td><th>Moving Direction</th><td>{{ challan.moving_direction|default:'-'|title }}</td></tr>
     <tr><th>Fine Amount</th><td><b>PKR {{ challan.fine_amount|floatformat:0 }}</b></td><th>Payable By</th><td><b>{{ challan.due_date|date:"d-m-Y" }}</b></td></tr>
   </table>
@@ -83,7 +83,7 @@
   <div class="evidence-wrap">
     <div class="evidence-main">
       {% if evidence_image_path %}<img src="{{ evidence_image_path }}" alt="Violation frame">{% endif %}
-      <div class="evidence-cap">Evidence frame | Violation: wrong way | CAM {{ challan.camera.camera_id|default:'-' }}</div>
+      <div class="evidence-cap">Evidence frame | {{ challan.get_violation_type_display }} | CAM {{ challan.camera.camera_id|default:'-' }}</div>
     </div>
     {% if evidence_summary %}
     <div style="width:34%;">
@@ -114,7 +114,7 @@
       </td>
     </tr>
   </table>
-  <div class="urdu-hint">سادہ الفاظ میں: غلط سمت میں گاڑی چلانے پر جرمانہ وصول کیا گیا ہے | Wrong-way driving fine</div>
+  <div class="urdu-hint">سادہ الفاظ میں: {{ challan.violation_type_display_urdu }} پر جرمانہ وصول کیا گیا ہے | Fine recorded for the analyzed violation</div>
 
   <div class="sig-row">
     <div class="sig-box">
@@ -131,8 +131,8 @@
   </div>
 
   <div class="footer">
-    <span>SAFE CITIES PROJECT | Computer-generated challan | Not valid without evidence chain verification</span>
-    <span>Ref {{ challan.ticket_no }} | Page 1 of 1</span>
+    <span>SAFE CITIES PROJECT | Enforcement Record</span>
+    <span>Ref {{ challan.ticket_no }} | Issued {{ challan.issue_date|date:"d-m-Y" }}</span>
   </div>
 </div>
 </body>

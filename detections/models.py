@@ -94,6 +94,32 @@ class Detection(models.Model):
         return 'wrong_way' if self.ai_detected_violation else None
 
     @property
+    def violation_label_en(self):
+        """English label of the ANALYZED violation type (never a fixed default)."""
+        analyzed = self.effective_violation_type
+        if not analyzed:
+            return None
+        from challans.models import Challan
+        return dict(Challan.VIOLATION_CHOICES).get(analyzed, analyzed)
+
+    @property
+    def violation_label_ur(self):
+        """Limited targeted Urdu label of the ANALYZED violation type."""
+        analyzed = self.effective_violation_type
+        if not analyzed:
+            return None
+        from challans.models import Challan
+        return Challan.VIOLATION_LABELS_URDU.get(analyzed, analyzed)
+
+    @property
+    def confidence_percent(self):
+        """ai_confidence normalized to a 0-100 percent scale for display."""
+        v = self.ai_confidence
+        if v is None:
+            return None
+        return round(v * 100, 2) if v <= 1.0 else round(v, 2)
+
+    @property
     def effective_plate_image(self):
         return self.plate_crop_image
 

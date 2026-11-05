@@ -1,0 +1,265 @@
+{# Command Brief | executive enforcement layout | ONE page | ONE annotated evidence #}
+{# SAFE CITIES PROJECT | violation type rendered from the analyzed challan record #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Enforcement Brief {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 8mm 9mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #16294e; font-size: 10.5px; background: #fff; }
+
+  /* Masthead: serif document line over the operational band */
+  .masthead { display: flex; align-items: stretch; border-bottom: 2.5px solid #0b1f3a; padding-bottom: 7px; }
+  .brandblock { display: flex; align-items: center; gap: 9px; }
+  .brandblock img { width: 50px; height: 50px; object-fit: contain; border: 1px solid #c7d2e3; padding: 2px; }
+  .brand-sep { font-size: 26px; color: #9db1cc; font-weight: 300; }
+  .masthead-text { margin-left: auto; text-align: right; display: flex; flex-direction: column; justify-content: center; }
+  .doc-line { font-family: Georgia, 'Times New Roman', serif; font-size: 20px; letter-spacing: .10em; color: #0b1f3a; }
+  .doc-sub { font-size: 9px; color: #5c7291; letter-spacing: .22em; text-transform: uppercase; margin-top: 3px; }
+  .doc-ref { font-size: 10px; color: #5c7291; margin-top: 3px; }
+  .doc-ref b { color: #0b1f3a; font-family: 'Courier New', monospace; font-size: 11px; }
+
+  /* Operational strip: status + analyzed violation code */
+  .opstrip { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  .code-chip { background: #0b1f3a; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .14em; padding: 5px 12px; }
+  .code-chip .light { color: #9db1cc; font-weight: 600; }
+  .status-tag { font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 5px 12px; border: 1.5px solid; }
+  .status-tag.paid { color: #15803d; border-color: #15803d; background: #f0fdf4; }
+  .status-tag.unpaid { color: #b45309; border-color: #b45309; background: #fffbeb; }
+  .status-tag.overdue { color: #b91c1c; border-color: #b91c1c; background: #fef2f2; }
+  .status-tag.voided { color: #475569; border-color: #94a3b8; background: #f8fafc; }
+  .opstrip .dates { margin-left: auto; font-size: 9px; color: #5c7291; text-align: right; line-height: 1.5; }
+  .opstrip .dates b { color: #16294e; }
+
+  /* Hero block: plate identity + fine in display numerals */
+  .hero { display: flex; align-items: center; margin-top: 9px; background: #f4f7fb; border-left: 4px solid #d97706; padding: 9px 12px; }
+  .hero-plate .lbl, .hero-fine .lbl, .hero-due .lbl { font-size: 8px; letter-spacing: .18em; text-transform: uppercase; color: #5c7291; }
+  .hero-plate .plate { font-family: 'Courier New', monospace; font-size: 25px; font-weight: 800; color: #0b1f3a; letter-spacing: .06em; }
+  .hero-plate .sub { font-size: 8.5px; color: #5c7291; margin-top: 1px; }
+  .hero-fine { margin-left: auto; text-align: right; }
+  .hero-fine .fine { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; color: #b45309; line-height: 1.05; }
+  .hero-fine .fine .cur { font-size: 13px; vertical-align: 4px; color: #8a6a3b; letter-spacing: .04em; }
+  .hero-due { margin-left: 26px; text-align: right; }
+  .hero-due .due { font-size: 14px; font-weight: 800; color: #16294e; margin-top: 1px; }
+
+  /* Direction analysis panel: the violation, visualized */
+  .dirpanel { margin-top: 9px; border: 1px solid #c7d2e3; }
+  .dirpanel .head { background: #0b1f3a; color: #fff; font-size: 8.5px; font-weight: 800; letter-spacing: .16em; padding: 4px 10px; display: flex; justify-content: space-between; }
+  .dirpanel .head .soft { color: #9db1cc; font-weight: 600; }
+  .lane { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #e3eaf3; }
+  .lane:last-child { border-bottom: none; }
+  .lane .tag { width: 118px; font-size: 8.5px; font-weight: 800; letter-spacing: .10em; }
+  .lane .tag.legal { color: #15803d; }
+  .lane .tag.observed { color: #b91c1c; }
+  .track { flex: 1; height: 3px; background: #cbd5e1; margin: 0 12px; position: relative; }
+  .track .fill { position: absolute; top: 0; bottom: 0; width: 64%; }
+  .track.legal .fill { background: #15803d; left: 0; }
+  .track.legal .fill::after { content: ''; position: absolute; right: -7px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid #15803d; }
+  .track.observed .fill { background: #b91c1c; right: 0; }
+  .track.observed .fill::after { content: ''; position: absolute; left: -7px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #b91c1c; }
+  .lane .val { font-size: 10px; font-weight: 800; width: 92px; text-align: right; }
+  .lane .val.legal { color: #15803d; }
+  .lane .val.observed { color: #b91c1c; }
+  .lane .note { font-size: 8px; color: #5c7291; margin-left: 10px; width: 150px; }
+
+  /* Data grid */
+  .grid { display: flex; gap: 14px; margin-top: 9px; }
+  .col { flex: 1; }
+  .col h3 { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #0b1f3a; border-bottom: 1.5px solid #0b1f3a; padding-bottom: 3px; margin-bottom: 4px; }
+  .row { display: flex; justify-content: space-between; padding: 2.8px 0; border-bottom: 1px dotted #d5dfeb; font-size: 10px; }
+  .row .k { color: #5c7291; }
+  .row .v { font-weight: 700; text-align: right; }
+  .row .v.mono { font-family: 'Courier New', monospace; }
+
+  /* Evidence anchor: undistorted 4:3 photo at natural aspect + verification rail */
+  .anchor { margin-top: 10px; display: flex; gap: 10px; }
+  .anchor-photo { width: 118mm; position: relative; border: 1px solid #0b1f3a; padding: 4px; }
+  .corner { position: absolute; width: 9px; height: 9px; border-color: #d97706; border-style: solid; }
+  .corner.tl { top: -1px; left: -1px; border-width: 2.5px 0 0 2.5px; }
+  .corner.tr { top: -1px; right: -1px; border-width: 2.5px 2.5px 0 0; }
+  .corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2.5px 2.5px; }
+  .corner.br { bottom: -1px; right: -1px; border-width: 0 2.5px 2.5px 0; }
+  .anchor-photo img { width: 100%; display: block; }
+  .anchor-photo .plate-cap { display: flex; justify-content: space-between; background: #0b1f3a; color: #e3eaf3; font-size: 8px; padding: 4px 8px; letter-spacing: .04em; margin-top: 4px; }
+  .anchor-photo .plate-cap b { color: #fff; }
+  .anchor-rail { flex: 1; border: 1px solid #c7d2e3; background: #f8fafc; padding: 8px 10px; display: flex; flex-direction: column; }
+  .anchor-rail .rail-title { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #0b1f3a; border-bottom: 1.5px solid #0b1f3a; padding-bottom: 3px; margin-bottom: 5px; font-weight: 800; }
+  .rail-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted #d5dfeb; font-size: 9.5px; }
+  .rail-row .rk { color: #5c7291; }
+  .rail-row .rv { font-weight: 700; }
+  .rail-row .rv.mono { font-family: 'Courier New', monospace; font-size: 9px; }
+  .rail-row .rv.pass { color: #15803d; }
+  .rail-row .rv.fail { color: #b91c1c; }
+  .rail-digest { margin-top: auto; font-family: 'Courier New', monospace; font-size: 9px; color: #16294e; letter-spacing: .02em; border-top: 1px solid #c7d2e3; padding-top: 5px; }
+  .rail-digest .cap { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 7.5px; color: #5c7291; letter-spacing: .14em; text-transform: uppercase; }
+
+  /* Payment panel */
+  .paypanel { display: flex; align-items: center; margin-top: 9px; border: 1px solid #c7d2e3; background: #f8fafc; }
+  .psid-block { padding: 8px 12px; border-right: 1px solid #c7d2e3; }
+  .psid-block .lbl { font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: #5c7291; }
+  .psid-block .num { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 800; color: #0b1f3a; letter-spacing: .05em; margin-top: 1px; }
+  .banks { display: flex; gap: 8px; align-items: center; padding: 0 12px; }
+  .banks img { height: 25px; }
+  .banks .pay-caption { font-size: 8px; color: #5c7291; letter-spacing: .10em; text-transform: uppercase; }
+  .paypanel .qr { margin-left: auto; padding: 6px 10px; display: flex; align-items: center; }
+  .paypanel .qr .qrbox { width: 62px; height: 62px; }
+  .paypanel .qr .qrlbl { font-size: 7.5px; color: #5c7291; margin-left: 6px; width: 64px; line-height: 1.5; letter-spacing: .04em; }
+
+  /* Signature zone */
+  .sigzone { display: flex; margin-top: 10px; gap: 14px; }
+  .sig { flex: 1; border-top: 1px solid #0b1f3a; padding-top: 4px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .sig .who { font-size: 9.5px; font-weight: 800; color: #0b1f3a; }
+  .sig .who .small { display: block; font-weight: 400; color: #5c7291; font-size: 8.5px; margin-top: 1px; }
+  .stampbox { width: 64px; text-align: center; font-size: 7.5px; color: #5c7291; letter-spacing: .08em; border: 1.5px solid #0b1f3a; padding: 6px 4px 4px; }
+  .stampbox b { display: block; font-size: 8.5px; color: #0b1f3a; letter-spacing: .12em; margin-bottom: 2px; }
+
+  .urdu-hint { text-align: right; font-size: 11px; color: #16294e; margin-top: 7px; }
+  .footer { margin-top: 8px; border-top: 1px solid #c7d2e3; padding-top: 5px; display: flex; justify-content: space-between; font-size: 8.5px; color: #5c7291; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="masthead">
+    <div class="brandblock">
+      {% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Logo">{% endif %}
+      <span class="brand-sep">|</span>
+      {% if logo_right_path %}<img src="{{ logo_right_path }}" alt="Partner">{% endif %}
+    </div>
+    <div class="masthead-text">
+      <div class="doc-line">SAFE CITIES PROJECT</div>
+      <div class="doc-sub">Enforcement Command Brief</div>
+      <div class="doc-ref">Brief ref <b>{{ challan.ticket_no }}</b> | Issued {{ challan.issue_date|date:"d M Y" }}</div>
+    </div>
+  </div>
+
+  <div class="opstrip">
+    <span class="code-chip">{{ challan.get_violation_type_display|upper }} <span class="light">| ANALYZED OFFENCE</span></span>
+    <span class="status-tag {% if challan.payment_status == 'PAID' %}paid{% elif challan.payment_status == 'VOIDED' %}voided{% elif challan.is_overdue %}overdue{% else %}unpaid{% endif %}">
+      {% if challan.payment_status == 'PAID' %}PAID{% elif challan.payment_status == 'VOIDED' %}VOIDED{% elif challan.is_overdue %}OVERDUE{% else %}UNPAID{% endif %}
+    </span>
+    <div class="dates">
+      Issued <b>{{ challan.issue_date|date:"d M Y" }}</b><br>
+      Pay by <b>{{ challan.due_date|date:"d M Y" }}</b>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-plate">
+      <div class="lbl">Vehicle Registration</div>
+      <div class="plate">{{ challan.plate_number }}</div>
+      <div class="sub">{{ challan.vehicle_type|default:'Car' }}{% if challan.color %} | {{ challan.color }}{% endif %}{% if challan.province %} | {{ challan.province }}{% endif %}</div>
+    </div>
+    <div class="hero-fine">
+      <div class="lbl">Fine Payable</div>
+      <div class="fine"><span class="cur">PKR</span> {{ challan.fine_amount|floatformat:0 }}</div>
+    </div>
+    <div class="hero-due">
+      <div class="lbl">Due Date</div>
+      <div class="due">{{ challan.due_date|date:"d M Y" }}</div>
+    </div>
+  </div>
+
+  {% if challan.legal_direction or challan.moving_direction %}
+  <div class="dirpanel">
+    <div class="head"><span>DIRECTION ANALYSIS</span><span class="soft">CAM {{ challan.camera.camera_id|default:'-' }} | {{ challan.location|default:'-' }}</span></div>
+    <div class="lane">
+      <span class="tag legal">LEGAL DIRECTION</span>
+      <div class="track legal"><div class="fill"></div></div>
+      <span class="val legal">{{ challan.legal_direction|default:'-'|title }}</span>
+      <span class="note">Traffic permitted this way on the monitored carriageway.</span>
+    </div>
+    <div class="lane">
+      <span class="tag observed">OBSERVED DIRECTION</span>
+      <div class="track observed"><div class="fill"></div></div>
+      <span class="val observed">{{ challan.moving_direction|default:'-'|title }}</span>
+      <span class="note">Vehicle tracked against the permitted direction at {% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:0 }}% confidence{% else %}high confidence{% endif %}.</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid">
+    <div class="col">
+      <h3>Registered Owner</h3>
+      <div class="row"><span class="k">Name</span><span class="v">{{ challan.owner_name|default:'Registry verification pending' }}</span></div>
+      <div class="row"><span class="k">CNIC</span><span class="v mono">{{ challan.cnic|default:'-' }}</span></div>
+      <div class="row"><span class="k">Phone</span><span class="v mono">{{ challan.phone|default:'-' }}</span></div>
+      <div class="row"><span class="k">Address</span><span class="v">{{ challan.address|default:'-' }}</span></div>
+    </div>
+    <div class="col">
+      <h3>Detection Record</h3>
+      <div class="row"><span class="k">Camera</span><span class="v">{{ challan.camera.camera_id|default:'AI Detection' }}</span></div>
+      <div class="row"><span class="k">Location</span><span class="v">{{ challan.location|default:'-' }}</span></div>
+      <div class="row"><span class="k">Offence</span><span class="v">{{ challan.get_violation_type_display }}</span></div>
+      <div class="row"><span class="k">AI Confidence</span><span class="v">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
+    </div>
+    <div class="col">
+      <h3>Evidence Chain</h3>
+      {% if evidence_summary %}
+      <div class="row"><span class="k">Security checks</span><span class="v">{{ evidence_summary.passed }} / {{ evidence_summary.total }} passed</span></div>
+      <div class="row"><span class="k">Track frames</span><span class="v">{{ evidence_summary.track_frames|default:1 }}</span></div>
+      <div class="row"><span class="k">Consistency</span><span class="v">{{ evidence_summary.track_consistency|floatformat:2 }}</span></div>
+      <div class="row"><span class="k">Chain digest</span><span class="v mono" style="font-size:8.5px;">{{ evidence_summary.hash|slice:":18" }}</span></div>
+      {% else %}
+      <div class="row"><span class="k">Security checks</span><span class="v">Automated pipeline</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="anchor">
+    <div class="anchor-photo">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      {% if evidence_image_path %}<img src="{{ evidence_image_path }}" alt="Annotated violation frame">{% endif %}
+      <div class="plate-cap">
+        <span>EVIDENCE | <b>{{ challan.get_violation_type_display|upper }}</b></span>
+        <span>CAM {{ challan.camera.camera_id|default:'-' }}</span>
+      </div>
+    </div>
+    <div class="anchor-rail">
+      <div class="rail-title">Evidence Chain Verification</div>
+      {% if evidence_summary %}
+      {% for c in evidence_summary.checks %}
+      <div class="rail-row"><span class="rk">{{ c.check|title }}</span><span class="rv {% if c.passed %}pass{% else %}fail{% endif %}">{% if c.passed %}PASS{% else %}FAIL{% endif %}</span></div>
+      {% endfor %}
+      <div class="rail-row"><span class="rk">Track frames</span><span class="rv">{{ evidence_summary.track_frames|default:1 }}</span></div>
+      <div class="rail-row"><span class="rk">Confidence</span><span class="rv">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</span></div>
+      <div class="rail-digest"><span class="cap">Chain digest</span>{{ evidence_summary.hash|slice:":26" }}</div>
+      {% else %}
+      <div class="rail-row"><span class="rk">Security checks</span><span class="rv">Automated pipeline</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="paypanel">
+    <div class="psid-block">
+      <div class="lbl">PSID | Payment ID</div>
+      <div class="num">{{ challan.psid }}</div>
+    </div>
+    <div class="banks">
+      <span class="pay-caption">Pay at any channel</span>
+      {% for p in payment_icons %}<img src="{{ p.path }}" title="{{ p.label }}">{% endfor %}
+    </div>
+    {% if qr_svg %}<div class="qr"><div class="qrbox">{{ qr_svg|safe }}</div><div class="qrlbl">Scan to verify and pay online</div></div>{% endif %}
+  </div>
+  <div class="urdu-hint">براہ کرم {{ challan.due_date|date:"d-m-Y" }} تک جرمانہ ادا کریں | Pay the fine before the due date</div>
+
+  <div class="sigzone">
+    <div class="sig">
+      <div>
+        <div class="who">{% if officer_signature_name %}{{ officer_signature_name }}{% else %}Enforcement Officer{% endif %}
+          <span class="small">{{ officer_signature_designation|default:'Enforcement Officer' }} | ID {{ officer_staff_id|default:'-' }}</span>
+        </div>
+      </div>
+      <div class="stampbox"><b>VERIFIED</b>Enforcement Division<br>SAFE CITIES PROJECT</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>SAFE CITIES PROJECT | Enforcement Command</span>
+    <span>Brief ref {{ challan.ticket_no }} | Issued {{ challan.issue_date|date:"d-m-Y" }}</span>
+  </div>
+</div>
+</body>
+</html>

@@ -123,7 +123,7 @@
           <dt>Detected Violation</dt>
           <dd>
             {% if detection.ai_detected_violation %}
-              <span class="sc-badge sc-badge-amber"><i class="bi bi-exclamation-triangle-fill"></i> Wrong Way</span>
+              <span class="sc-badge sc-badge-amber"><i class="bi bi-exclamation-triangle-fill"></i> {{ detection.violation_label_en }}</span>
             {% else %}
               <span class="sc-badge sc-badge-muted"><i class="bi bi-check-circle"></i> No violation</span>
             {% endif %}

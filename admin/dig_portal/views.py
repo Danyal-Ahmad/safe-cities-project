@@ -1358,9 +1358,9 @@ def challan_templates_manage(request):
                     'classic_a4': 'Classic A4 | Government-Style Form',
                     'legal_notice_99a': 'Legal Notice 99-A | Motor Vehicles Ordinance 1965',
                     'digital_slip': 'Digital Slip | Modern Compact E-Challan',
-                    'compact_receipt': 'Compact Receipt | Minimal Print Layout',
-                    'enforcement_notice': 'Enforcement Notice | Bold Red Notice',
-                    'urdu_a4': 'Urdu A4 | Urdu-Primary Layout',
+                    'command_brief': 'Command Brief | Executive Enforcement Layout',
+                    'secure_instrument': 'Secure Instrument | Bank-Grade Counterfoil',
+                    'urdu_executive': 'Urdu Executive | Nastaliq RTL Layout',
                 }.get(key, key.replace('_', ' ').title()),
                 'blurb': 'Built-in layout file',
                 'is_active': (key == active_key),
@@ -4014,9 +4014,9 @@ def challan_template_select(request):
         'classic_a4': ('Classic A4 | Government-Style Form', 'Bordered bureaucratic form with sections A to D'),
         'legal_notice_99a': ('Legal Notice 99-A', 'Serif legal notice under Section 99-A, Motor Vehicles Ordinance 1965'),
         'digital_slip': ('Digital Slip', 'Dark digital challan slip with barcode strip'),
-        'compact_receipt': ('Compact Receipt', 'Minimal monospace receipt layout (also the overflow guard)'),
-        'enforcement_notice': ('Enforcement Notice', 'Bold red-accent notice with violation callout'),
-        'urdu_a4': ('Urdu A4 | Urdu-Primary', 'Urdu right-to-left layout with English captions'),
+        'command_brief': ('Command Brief', 'Executive enforcement layout with direction analysis and hero fine block'),
+        'secure_instrument': ('Secure Instrument', 'Bank-grade secure print with tear-off payment counterfoil'),
+        'urdu_executive': ('Urdu Executive | Urdu-Primary', 'Nastaliq right-to-left executive layout with English captions'),
     }
     sample_ctx = Context(_sample_context())
     layouts = []

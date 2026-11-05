@@ -29,10 +29,10 @@ TEMPLATE_MAP = {
     'classic_a4': 'challan/challan_templates/classic_a4.html',
     'legal_notice_99a': 'challan/challan_templates/legal_notice_99a.html',
     'digital_slip': 'challan/challan_templates/digital_slip.html',
-    'compact_receipt': 'challan/challan_templates/compact_receipt.html',
-    'enforcement_notice': 'challan/challan_templates/enforcement_notice.html',
-    'urdu_a4': 'challan/challan_templates/urdu_a4.html',
-    'compact_a4': 'challan/challan_templates/compact_receipt.html',  # overflow guard
+    'command_brief': 'challan/challan_templates/command_brief.html',
+    'secure_instrument': 'challan/challan_templates/secure_instrument.html',
+    'urdu_executive': 'challan/challan_templates/urdu_executive.html',
+    'compact_a4': 'challan/challan_templates/command_brief.html',  # overflow guard
     'safecityfyp_classic': 'challan/challan_templates/modern_a4.html',
 }
 
@@ -158,7 +158,7 @@ def _fallback_reportlab_pdf(challan) -> bytes:
     rows = [
         ('Ticket No', getattr(challan, 'ticket_no', '')),
         ('Plate', getattr(challan, 'plate_number', '')),
-        ('Violation', 'Wrong Way'),
+        ('Violation', challan.get_violation_type_display() if hasattr(challan, 'get_violation_type_display') else str(getattr(challan, 'violation_type', '') or '-')),
         ('Fine (PKR)', str(getattr(challan, 'fine_amount', ''))),
         ('Issue Date', str(getattr(challan, 'issue_date', ''))),
         ('Due Date', str(getattr(challan, 'due_date', ''))),
@@ -200,7 +200,7 @@ def _fallback_reportlab_pdf(challan) -> bytes:
             pass
 
     c.setFont('Helvetica-Oblique', 9)
-    c.drawString(40, 40, 'Computer-generated e-challan | SAFE CITIES PROJECT')
+    c.drawString(40, 40, 'SAFE CITIES PROJECT')
     c.showPage()
     c.save()
     return buf.getvalue()

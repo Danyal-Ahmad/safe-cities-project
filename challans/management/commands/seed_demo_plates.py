@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 "payment_status": getattr(Challan, "UNPAID", "UNPAID"),
             }
             if "violation_type" in field_names:
-                defaults["violation_type"] = "WRONG_WAY"
+                defaults["violation_type"] = Challan.WRONG_WAY
             if "location" in field_names:
                 defaults["location"] = "Demo Zone"
             obj, was = Challan.objects.get_or_create(ticket_no=ticket, defaults=defaults)

@@ -71,7 +71,7 @@
 
   <div class="amount-band">
     <div>
-      <div class="lbl">TICKET {{ challan.ticket_no }} | WRONG WAY VIOLATION</div>
+      <div class="lbl">E-CHALLAN | {{ challan.get_violation_type_display|upper }}</div>
       <div class="amt">PKR {{ challan.fine_amount|floatformat:0 }}</div>
     </div>
     <div style="text-align:right;">
@@ -87,10 +87,10 @@
       <div class="lbl">CNIC</div><div class="val mono">{{ challan.cnic|default:'-' }}</div>
       <div class="lbl">Detected At</div><div class="val">{{ challan.location|default:'-' }} | CAM {{ challan.camera.camera_id|default:'-' }}</div>
       <div class="lbl">Direction</div><div class="val">Legal: {{ challan.legal_direction|default:'-'|title }} | Moving: {{ challan.moving_direction|default:'-'|title }}</div>
-      <div class="lbl">AI Confidence</div><div class="val">{{ challan.ai_confidence|floatformat:2 }}%</div>
+      <div class="lbl">AI Confidence</div><div class="val">{% if challan.confidence_percent %}{{ challan.confidence_percent|floatformat:2 }}%{% else %}-{% endif %}</div>
       <div class="evidence" style="margin-top:4px;">
         {% if evidence_image_path %}<img src="{{ evidence_image_path }}" alt="Evidence">{% endif %}
-        <div class="cap"><span>EVIDENCE | WRONG WAY</span><span>{{ challan.issue_date|date:"d-m-Y" }}</span></div>
+        <div class="cap"><span>EVIDENCE | {{ challan.get_violation_type_display|upper }}</span><span>{{ challan.issue_date|date:"d-m-Y" }}</span></div>
       </div>
     </div>
     <div class="col-b">
@@ -124,15 +124,14 @@
     </div>
   </div>
   <div class="urdu-hint">ادائیگی کی آخری تاریخ: {{ challan.due_date|date:"d-m-Y" }} | Payment due date</div>
-
   <div class="sig-row">
     <div class="sig"><div class="line">Authorized Signature | SAFE CITIES PROJECT</div></div>
     <div class="sig"><div class="line">Verification | Evidence chain sealed</div></div>
   </div>
 
   <div class="footer">
-    <span>SAFE CITIES PROJECT | Digital challan slip | Ref {{ challan.ticket_no }}</span>
-    <span>Page 1 of 1</span>
+    <span>SAFE CITIES PROJECT | Digital E-Challan</span>
+    <span>Ref {{ challan.ticket_no }} | Issued {{ challan.issue_date|date:"d-m-Y" }}</span>
   </div>
 </div>
 </body>

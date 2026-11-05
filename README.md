@@ -217,7 +217,7 @@ public challan PDFs, and server-side settlement of every payment.
 - **Duplicate-issuance guard**: `Challan.detection` is now a OneToOneField, enforced at the database level.
 
 ### Documents
-- **7 challan templates** (modern A4, classic form, legal notice 99-A, digital slip, compact receipt, enforcement notice, Urdu-primary A4) - each single-page, payment channels as ICONS, logos on one side with `|` separator, English-or-Urdu policy (Urdu template is Urdu-primary with English captions; every template carries one small Urdu accessibility hint).
+- **7 challan templates** (modern A4, classic form, legal notice 99-A, digital slip, command brief, secure instrument, Urdu executive) - each single-page, payment channels as ICONS, logos on one side with `|` separator, English-or-Urdu policy (Urdu template is Urdu-primary with English captions; every template carries one small Urdu accessibility hint). The violation type is always the analyzed conclusion from the detection record; the three 2026-11 layouts (command brief, secure instrument, Urdu executive) also show the evidence photo at its natural aspect and add a direction-analysis diagram, a bank-grade security band with tear-off counterfoil, and a Nastaliq executive layout.
 - **8 audit report templates** (government classic, executive summary, financial ledger, compliance matrix, incident report, statistical digest, legal affidavit, field inspection) with signature blocks and stamped footers; PDF export for every audit page.
 - **IT Support** has full template control (challan studio + audit template manager); **DIG** is select-only.
 

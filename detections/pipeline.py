@@ -319,6 +319,28 @@ def build_evidence(detection, track, camera) -> tuple[list, str]:
 
 
 
+def conclude_violation_type(detection):
+    """Conclude the violation type FROM THE ANALYSIS of this detection.
+
+    The catalog contains multiple violation types (see Challan.VIOLATION_CHOICES);
+    the analysis layer decides which one applies. The conclusion is then gated
+    against Challan.ENABLED_VIOLATIONS, the set of types that are live for
+    enforcement. Types that exist in the catalog but are not live never
+    auto-issue a challan; they park in the Officer Portal review queue.
+    """
+    from challans.models import Challan
+    analyzed = getattr(detection, 'effective_violation_type', None)
+    if not analyzed:
+        return None
+    if analyzed not in Challan.ENABLED_VIOLATIONS:
+        logger.info(
+            'Detection %s analysis concluded %r; type exists in the catalog but is not live for enforcement.',
+            detection.id, analyzed,
+        )
+        return None
+    return analyzed
+
+
 def issue_challan(detection, camera, user=None):
     from challans.models import Challan
     from admin.dig_portal.models import SystemSettings
@@ -327,10 +349,20 @@ def issue_challan(detection, camera, user=None):
     if existing:
         return existing
 
+    # The violation type is picked from the analysis conclusion. It is never
+    # defaulted: if the analysis does not conclude a live type, no challan is
+    # issued from the pipeline.
+    violation_type = conclude_violation_type(detection)
+    if not violation_type:
+        logger.info(
+            'Detection %s produced no live violation type from the analysis; no challan issued.',
+            detection.id,
+        )
+        return None
+
     sys_settings = SystemSettings.get()
     plate = detection.ai_plate_text or 'UNKNOWN'
     ticket_no = Challan.objects.generate_ticket_no(plate[:3].upper())
-    violation_type = Challan.WRONG_WAY
 
     owner_data = {}
     try:
@@ -480,21 +512,39 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
     all_passed = passed_count == len(checks) and len(checks) == 5
 
     if all_passed and is_violation:
-        detection.status = Detection.CONFIRMED
-        detection.reviewed_at = timezone.now()
+        challan = issue_challan(detection, camera or detection.camera, user=system_user)
+        if challan is not None:
+            detection.status = Detection.CONFIRMED
+            detection.reviewed_at = timezone.now()
+            detection.review_notes = (
+                f"Evidence verified - {passed_count}/5 security checks passed "
+                f"(track={track.get('mode')}, frames={track.get('frames')}/{EVIDENCE_FRAMES_REQUIRED}, "
+                f"consistency={track.get('consistency'):.2f}). "
+                f"Analyzed violation type: {challan.get_violation_type_display()}. "
+                f"Chain {evidence_hash[:16]}.."
+            )
+            detection.save()
+            logger.info(
+                'Detection %s CHALLAN ISSUED %s - 5/5 checks, track=%s frames=%s, analyzed type=%s',
+                detection.id, challan.ticket_no, track.get('mode'), track.get('frames'),
+                challan.violation_type,
+            )
+            return detection, challan, 'challan_issued'
+        # The analysis did not conclude a violation type that is live for
+        # enforcement. The event is parked for an officer decision instead of
+        # being auto-confirmed with an assumed type.
+        detection.status = Detection.PENDING
+        detection.reviewed_at = None
         detection.review_notes = (
-            f"Evidence verified - {passed_count}/5 security checks passed "
-            f"(track={track.get('mode')}, frames={track.get('frames')}/{EVIDENCE_FRAMES_REQUIRED}, "
-            f"consistency={track.get('consistency'):.2f}). "
-            f"Chain {evidence_hash[:16]}.."
+            f"Evidence verified ({passed_count}/5 checks) but the analyzed violation "
+            f"type is not live for enforcement. Parked in the Officer Portal review queue."
         )
         detection.save()
-        challan = issue_challan(detection, camera or detection.camera, user=system_user)
         logger.info(
-            'Detection %s CHALLAN ISSUED %s - 5/5 checks, track=%s frames=%s',
-            detection.id, getattr(challan, 'ticket_no', None), track.get('mode'), track.get('frames'),
+            'Detection %s QUEUED - analysis type not live for enforcement (track=%s frames=%s)',
+            detection.id, track.get('mode'), track.get('frames'),
         )
-        return detection, challan, 'challan_issued'
+        return detection, None, 'queued_review'
 
     detection.status = Detection.PENDING
     detection.review_notes = (

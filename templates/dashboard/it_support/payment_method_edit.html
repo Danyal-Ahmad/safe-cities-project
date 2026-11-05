@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{% if is_add %}Add Payment Method{% else %}Edit {{ pm.name }}{% endif %} | Safe City{% endblock %}
+{% block title %}{% if is_add %}Add Payment Method{% else %}Edit {{ pm.name }}{% endif %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-payment-method-edit.css' %}">
 {% endblock %}

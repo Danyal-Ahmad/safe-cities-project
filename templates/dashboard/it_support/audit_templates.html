@@ -2,8 +2,6 @@
 {% load static %}
 {% load humanize %}
 {% block title %}Audit PDF Templates - IT Support{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Audit PDF Templates</b>{% endblock %}
-
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pages/it-audit-templates.css' %}">
 {% endblock %}
@@ -223,7 +221,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   'use strict';
   var starter = [

@@ -32,7 +32,7 @@ class RateLimitMiddleware:
         method = request.method
 
         if method == 'POST' and any(path.startswith(p) for p in self.LOGIN_PREFIXES):
-            if is_rate_limited(request, 'login', limit=8, window=60):
+            if is_rate_limited(request, 'login', limit=30, window=300):
                 return rate_limit_response(request)
 
         if method == 'POST' and path.startswith('/portal/'):

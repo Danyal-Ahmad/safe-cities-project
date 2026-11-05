@@ -3,276 +3,169 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}Supervisor Operations Command | SafeCity Portal{% endblock %}
-
-{% block crumb %}
-<a href="/">Home</a>
-<span class="sc-crumb-sep">/</span>
-<b>Supervisor Operations</b>
-{% endblock %}
+{% block title %}Supervisor Operations Command{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
-<!-- Modern Hero Banner -->
-<div class="md-hero">
-  <div>
-    <div class="md-hero-title">
-      <i class="bi bi-people-fill" style="color: #38bdf8;"></i>
-      <span>Supervisor Operations Command</span>
-      <span class="md-badge md-badge-cyan">TEAM SUPERVISOR</span>
-    </div>
-    <p class="md-hero-subtitle">
-      Field Officer Management · Active Shift Rosters · Review Backlog & Accuracy Oversight
-    </p>
-  </div>
-  <div class="md-hero-actions">
-    <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.6); padding: 0.4rem 0.75rem; border-radius: var(--md-radius-md); border: 1px solid rgba(255,255,255,0.1);">
-      {% now "D, d M Y · H:i:s" %}
-    </div>
-    <a href="{% url 'supervisor_portal:shift_management' %}" class="md-btn md-btn-secondary md-btn-sm">
-      <i class="bi bi-calendar3"></i> Manage Shifts
-    </a>
-  </div>
-</div>
+<!-- ====================================================================
+     SUPERVISOR OPERATIONS COMMAND SCREEN · one cohesive surface
+     ==================================================================== -->
+<div class="scr">
 
-<!-- Team KPI Strip -->
-<div class="md-kpi-grid">
-  <!-- Total Officers -->
-  {% if request.user|has_perm:"view_team_performance" %}
-    <div class="md-kpi-card">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-person-badge-fill"></i>
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Field Supervision</div>
+        <div class="scr-rail-title">
+          Supervisor Operations Command
+          <span class="scr-rail-tag"><i class="bi bi-person-badge"></i> Team Supervisor</span>
+        </div>
+        <div class="scr-rail-sub">Field officer management, active shift rosters, review backlog and accuracy oversight.</div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Team Personnel</div>
-        <div class="md-kpi-value" id="kpi-total-officers" data-key="total_officers">{{ total_officers|default:0 }}</div>
-        <div class="md-kpi-foot">Under supervision</div>
+      <div class="scr-rail-actions">
+        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
+        {% if request.user|has_perm:"view_team_performance" %}
+        <a href="{% url 'supervisor_portal:team_performance' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-people"></i> Team Performance</a>
+        {% endif %}
+        {% if request.user|has_perm:"view_shifts" %}
+        <a href="{% url 'supervisor_portal:shift_management' %}" class="scr-rail-btn"><i class="bi bi-calendar3"></i> Manage Shifts</a>
+        {% endif %}
       </div>
     </div>
-  {% endif %}
 
-  <!-- On Duty Today -->
-  {% if request.user|has_perm:"view_shifts" %}
-    <div class="md-kpi-card kpi-success">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-person-check-fill"></i>
+    <!-- Fused stat strip -->
+    <div class="scr-stats">
+      {% if request.user|has_perm:"view_team_performance" %}
+      <div class="scr-stat">
+        <div class="scr-stat-label">Team Personnel</div>
+        <div class="scr-stat-value" id="kpi-total-officers" data-key="total_officers">{{ total_officers|default:0 }}</div>
+        <div class="scr-stat-foot">Under supervision</div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Active On Duty</div>
-        <div class="md-kpi-value" id="kpi-active-officers" data-key="active_officers" style="color: #10b981;">{{ active_officers|default:0 }}</div>
-        <div class="md-kpi-foot">{{ active_officers|default:0 }} of {{ total_officers|default:0 }} logged in</div>
+      {% endif %}
+      {% if request.user|has_perm:"view_shifts" %}
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Active On Duty</div>
+        <div class="scr-stat-value" id="kpi-active-officers" data-key="active_officers">{{ active_officers|default:0 }}</div>
+        <div class="scr-stat-foot">{{ active_officers|default:0 }} of {{ total_officers|default:0 }} logged in</div>
       </div>
+      {% endif %}
+      {% if request.user|has_perm:"review_detections" %}
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Pending Reviews</div>
+        <div class="scr-stat-value" id="kpi-pending-reviews" data-key="pending_reviews">{{ pending_reviews|default:0 }}</div>
+        <div class="scr-stat-foot">Backlog requiring action</div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"flag_detection" %}
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Flagged Cases</div>
+        <div class="scr-stat-value" id="kpi-flagged-count" data-key="flagged_count">{{ flagged_count|default:0 }}</div>
+        <div class="scr-stat-foot">Escalated to DIG</div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"view_challans" %}
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Team Challans</div>
+        <div class="scr-stat-value" id="kpi-challans-issued" data-key="challans_issued">{{ challans_issued|default:0 }}</div>
+        <div class="scr-stat-foot">{{ challans_paid|default:0 }} paid</div>
+      </div>
+      {% endif %}
     </div>
-  {% endif %}
+  </header>
 
-  <!-- Pending Reviews -->
-  {% if request.user|has_perm:"review_detections" %}
-    <div class="md-kpi-card kpi-warning">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-inbox-fill"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Pending Reviews</div>
-        <div class="md-kpi-value" id="kpi-pending-reviews" data-key="pending_reviews" style="color: #f59e0b;">{{ pending_reviews|default:0 }}</div>
-        <div class="md-kpi-foot">Backlog requiring action</div>
-      </div>
-    </div>
-  {% endif %}
+  <!-- Unified workspace -->
+  <div class="scr-grid">
 
-  <!-- Flagged for Officer Review -->
-  {% if request.user|has_perm:"flag_detection" %}
-    <div class="md-kpi-card kpi-danger">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-flag-fill"></i>
+    {% if request.user|has_perm:"view_analytics" %}
+    <section class="scr-panel scr-panel-7">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Team Review Activity (Last 7 Days)</div>
+        <span class="md-badge md-badge-secondary">Triage Throughput</span>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Flagged Cases</div>
-        <div class="md-kpi-value" id="kpi-flagged-count" data-key="flagged_count" style="color: #ef4444;">{{ flagged_count|default:0 }}</div>
-        <div class="md-kpi-foot">Escalated to DIG</div>
+      <div class="scr-panel-body scr-panel-chart">
+        <canvas id="teamActivityChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
       </div>
-    </div>
-  {% endif %}
+    </section>
+    {% endif %}
 
-  <!-- Challans Issued -->
-  {% if request.user|has_perm:"view_challans" %}
-    <div class="md-kpi-card">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-receipt"></i>
+    {% if request.user|has_perm:"view_shifts" %}
+    <section class="scr-panel scr-panel-5">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-clock-history"></i> Current Shift Distribution</div>
+        <a href="{% url 'supervisor_portal:shift_management' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-calendar3"></i> Manage</a>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Team Challans</div>
-        <div class="md-kpi-value" id="kpi-challans-issued" data-key="challans_issued">{{ challans_issued|default:0 }}</div>
-        <div class="md-kpi-foot">{{ challans_paid|default:0 }} paid</div>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- Team Review Activity Chart -->
-{% if request.user|has_perm:"view_analytics" %}
-  <div class="md-card">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-graph-up" style="color: var(--md-brand-cyan);"></i>
-        <h3>Team Review Activity (Last 7 Days)</h3>
-      </div>
-      <span class="md-badge md-badge-secondary">Triage Throughput</span>
-    </div>
-    <div class="md-card-body" style="height: 250px; position: relative;">
-      <canvas id="teamActivityChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
-    </div>
-  </div>
-{% endif %}
-
-<!-- Shift Coverage Strip -->
-{% if request.user|has_perm:"view_shifts" %}
-  <div class="md-card">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-clock-history" style="color: var(--md-purple);"></i>
-        <h3>Current Shift Distribution</h3>
-      </div>
-      <a href="{% url 'supervisor_portal:shift_management' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-calendar3"></i> Manage Shifts
-      </a>
-    </div>
-    {% if shift_summary %}
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; padding: 1.25rem;">
-        {% for shift in shift_summary %}
-          <div style="background: #f8fafc; border: 1px solid var(--md-border); border-radius: var(--md-radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
-            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--md-info-bg); color: var(--md-brand-cyan); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+      <div class="scr-panel-body scr-panel-scroll">
+        {% if shift_summary %}
+          {% for shift in shift_summary %}
+          <div style="background: #F8FAFC; border: 1px solid var(--md-border); border-radius: 12px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.55rem;">
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--md-info-bg); color: var(--md-brand-cyan); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex: 0 0 auto;">
               <i class="bi bi-clock"></i>
             </div>
             <div>
               <div style="font-weight: 700; font-size: 0.9rem; color: var(--md-text-title);">{{ shift.name|default:'Shift' }}</div>
-              <div style="font-size: 0.75rem; color: var(--md-text-muted);"><b style="color: #0b192c;">{{ shift.count|default:0 }}</b> Officers Scheduled</div>
+              <div style="font-size: 0.75rem; color: var(--md-text-muted);"><b style="color: #0b192c;">{{ shift.count|default:0 }}</b> officers scheduled</div>
             </div>
           </div>
-        {% endfor %}
+          {% endfor %}
+        {% else %}
+          <div style="padding: 2.2rem 1rem; text-align: center; color: var(--md-text-muted);">
+            <i class="bi bi-calendar-x" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+            No active shift rosters configured for today.
+          </div>
+        {% endif %}
       </div>
-    {% else %}
-      <div style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
-        <i class="bi bi-calendar-x" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
-        No active shift rosters configured for today.
-      </div>
+    </section>
     {% endif %}
-  </div>
-{% endif %}
 
-<!-- Officer Performance Scorecard -->
-{% if request.user|has_perm:"view_team_performance" %}
-  <div class="md-card">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-trophy-fill" style="color: var(--md-warning);"></i>
-        <h3>Officer Triage Performance & Accuracy</h3>
+    {% if request.user|has_perm:"view_team_performance" %}
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-trophy-fill"></i> Officer Triage Performance &amp; Accuracy</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'dig:officer_kpi' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-bar-chart"></i> Full KPI Matrix</a>
+        </div>
       </div>
-      <a href="{% url 'dig:officer_kpi' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-bar-chart"></i> Full KPI Matrix
-      </a>
-    </div>
-
-    {% if stats %}
-      <div style="overflow-x: auto;">
+      {% if stats %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
         <table class="md-table">
           <thead>
-            <tr>
-              <th>Officer Name</th>
-              <th>Username</th>
-              <th>Triaged</th>
-              <th>Confirmed</th>
-              <th>Rejected</th>
-              <th>Flagged</th>
-              <th>Appeals</th>
-              <th>Decision Accuracy</th>
-            </tr>
+            <tr><th>Officer Name</th><th>Username</th><th>Triaged</th><th>Confirmed</th><th>Rejected</th><th>Flagged</th><th>Appeals</th><th>Decision Accuracy</th></tr>
           </thead>
           <tbody>
             {% for s in stats %}
-              <tr>
-                <td><b>{{ s.officer.display_name|default:s.officer.username }}</b></td>
-                <td style="font-family: monospace; font-size: 0.8rem; color: var(--md-text-muted);">{{ s.officer.username }}</td>
-                <td style="font-family: monospace; font-weight: 700;">{{ s.reviewed }}</td>
-                <td style="color: #10b981; font-weight: 600;">{{ s.confirmed }}</td>
-                <td style="color: #ef4444;">{{ s.rejected }}</td>
-                <td style="color: #f59e0b;">{{ s.flagged }}</td>
-                <td>{{ s.appeals }}</td>
-                <td>
-                  {% if s.reviewed %}
-                    <span class="md-badge {% if s.accuracy >= 80 %}md-badge-success{% elif s.accuracy >= 50 %}md-badge-warning{% else %}md-badge-danger{% endif %}">
-                      {{ s.accuracy|floatformat:1 }}%
-                    </span>
-                  {% else %}
-                    <span style="color: var(--md-text-muted);">-</span>
-                  {% endif %}
-                </td>
-              </tr>
+            <tr>
+              <td><b>{{ s.officer.display_name|default:s.officer.username }}</b></td>
+              <td style="font-family: var(--sc-mono); font-size: 0.8rem; color: var(--md-text-muted);">{{ s.officer.username }}</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ s.reviewed }}</td>
+              <td style="color: #10b981; font-weight: 600;">{{ s.confirmed }}</td>
+              <td style="color: #ef4444;">{{ s.rejected }}</td>
+              <td style="color: #f59e0b;">{{ s.flagged }}</td>
+              <td>{{ s.appeals }}</td>
+              <td>
+                {% if s.reviewed %}
+                  <span class="md-badge {% if s.accuracy >= 80 %}md-badge-success{% elif s.accuracy >= 50 %}md-badge-warning{% else %}md-badge-danger{% endif %}">{{ s.accuracy|floatformat:1 }}%</span>
+                {% else %}<span style="color: var(--md-text-muted);">-</span>{% endif %}
+              </td>
+            </tr>
             {% empty %}
-              <tr><td colspan="8" style="text-align: center; color: var(--md-text-muted); padding: 1.5rem;">No officer performance data on record.</td></tr>
+            <tr><td colspan="8" style="text-align: center; color: var(--md-text-muted); padding: 1.5rem;">No officer performance data on record.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    {% else %}
-      <div style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
+      {% else %}
+      <div class="scr-panel-body" style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
         <i class="bi bi-people" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
         No team activity logged yet.
       </div>
-    {% endif %}
-  </div>
-{% endif %}
-
-<!-- Quick Command Actions -->
-<div class="md-card">
-  <div class="md-card-head">
-    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <i class="bi bi-lightning-fill" style="color: var(--md-warning);"></i>
-      <h3>Supervisor Quick Tools</h3>
-    </div>
-  </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1.25rem;">
-    {% if request.user|has_perm:"view_team_performance" %}
-      <a href="{% url 'supervisor_portal:team_performance' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);"><i class="bi bi-people"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Team Performance</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Detailed officer stats</div>
-        </div>
-      </a>
+      {% endif %}
+    </section>
     {% endif %}
 
-    {% if request.user|has_perm:"view_shifts" %}
-      <a href="{% url 'supervisor_portal:shift_management' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);"><i class="bi bi-calendar3"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Shift Rosters</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Assign & rebalance</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"view_challans" %}
-      <a href="{% url 'dig:challan_list' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);"><i class="bi bi-receipt"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Challans Oversight</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Review issued tickets</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"view_reports" %}
-      <a href="{% url 'dig:reports' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: #f1f5f9; color: #475569;"><i class="bi bi-file-earmark-bar-graph"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Reports Hub</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Download metrics</div>
-        </div>
-      </a>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Citizen Login | SAFE CITY FYP</title>
+  <title>Citizen Login | SAFE CITIES PROJECT</title>
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@
         <div class="sep"></div>
         <img src="{% static 'img/university_logo.png' %}" style="width:44px;height:44px;border-radius:10px" alt="">
       </div>
-      <div class="title"><h1>SAFE CITY FYP</h1><p>CITIZEN PORTAL</p></div>
+      <div class="title"><h1>SAFE CITIES PROJECT</h1><p>CITIZEN PORTAL</p></div>
     </div>
     <div class="right">
       <div class="form-title">Citizen Sign In</div>
@@ -104,7 +104,7 @@
             <button type="button" class="tp" onclick="var p=this.previousElementSibling; p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'\u{1F441}':'\u{1F576}'"><i class="fa-solid fa-eye"></i></button>
           </div>
         </div>
-        <button type="submit" class="sc-btn sc-btn-primary">Sign In</button>
+        <button type="submit" class="btn">Sign In</button>
         <a href="{% url 'auth_portal:citizen_signup' %}" class="btn-secondary">Create New Account</a>
         <div class="cd">
           <a href="{% url 'auth_portal:forgot_password' %}">Forgot Password?</a>
@@ -112,6 +112,6 @@
       </form>
     </div>
   </div>
-  <script>document.getElementById('loginForm').addEventListener('submit',function(e){document.getElementById('loader').classList.add('show')});</script>
+  <script nonce="{{ request.csp_nonce }}">document.getElementById('loginForm').addEventListener('submit',function(e){document.getElementById('loader').classList.add('show')});</script>
 </body>
 </html>

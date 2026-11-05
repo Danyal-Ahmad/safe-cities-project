@@ -29,7 +29,7 @@
   async function loadKPIs(){
     // The KPI card exposes the dashboard KPI API endpoint via data-api-url
     // (previously injected inline with {% url 'dig:api_dashboard_kpis' %}).
-    const card = document.querySelector('.md-kpi-value[data-api-url]');
+    const card = document.querySelector('.scr-stat-value[data-api-url]');
     if(!card) return;
     try {
       const apiBase = card.dataset.apiUrl;

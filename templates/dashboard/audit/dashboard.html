@@ -3,295 +3,172 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}Compliance & Audit Reports | SafeCity Oversight{% endblock %}
-
-{% block crumb %}
-<a href="/">Home</a>
-<span class="sc-crumb-sep">/</span>
-<b>Compliance & Audit Oversight</b>
-{% endblock %}
+{% block title %}Compliance & Audit Oversight{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
-<!-- Modern Hero Banner -->
-<div class="md-hero">
-  <div>
-    <div class="md-hero-title">
-      <i class="bi bi-shield-shaded" style="color: #c084fc;"></i>
-      <span>Compliance & Financial Audit Oversight</span>
-      <span class="md-badge md-badge-purple">READ-ONLY AUDIT</span>
-    </div>
-    <p class="md-hero-subtitle">
-      Immutable System Records · Financial Reconciliation · Anomaly Detection · Administrative Change Tracking
-    </p>
-  </div>
-  <div class="md-hero-actions">
-    <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.6); padding: 0.4rem 0.75rem; border-radius: var(--md-radius-md); border: 1px solid rgba(255,255,255,0.1);">
-      {% now "D, d M Y · H:i:s" %}
-    </div>
-    {% if request.user|has_perm:"export_audit_log" %}
-      <a href="{% url 'audit_portal:audit_export' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-download"></i> Export Audit Logs
-      </a>
-    {% endif %}
-    <a href="{% url 'audit_portal:export_pdf' 'dashboard' %}" class="md-btn md-btn-secondary md-btn-sm">
-      <i class="bi bi-file-earmark-pdf"></i> Export PDF
-    </a>
-  </div>
-</div>
+<!-- ====================================================================
+     AUDIT OVERSIGHT COMMAND SCREEN · one cohesive surface
+     ==================================================================== -->
+<div class="scr">
 
-<!-- Audit KPI Strip -->
-<div class="md-kpi-grid">
-  <!-- Total Challans -->
-  {% if request.user|has_perm:"view_challans" %}
-    <div class="md-kpi-card">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-receipt"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Total Challans</div>
-        <div class="md-kpi-value" id="kpi-total-challans" data-key="total_challans">{{ total_challans|default:0|intcomma }}</div>
-        <div class="md-kpi-foot">Historical register</div>
-      </div>
-    </div>
-  {% endif %}
-
-  <!-- Revenue Collected -->
-  {% if request.user|has_perm:"view_financial_audit" %}
-    <div class="md-kpi-card kpi-success">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-cash-stack"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Revenue Collected</div>
-        <div class="md-kpi-value" id="kpi-revenue-collected" data-key="revenue_collected" data-format="pkr" style="font-size: 1.45rem; color: #10b981;">
-          PKR {{ revenue_collected|floatformat:0|intcomma|default:0 }}
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-journal-check"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Independent Oversight</div>
+        <div class="scr-rail-title">
+          Compliance &amp; Financial Audit Oversight
+          <span class="scr-rail-tag scr-rail-tag--warning"><i class="bi bi-lock"></i> Read-Only Audit</span>
         </div>
-        <div class="md-kpi-foot">Reconciled funds</div>
+        <div class="scr-rail-sub">Immutable system records, financial reconciliation, anomaly detection and administrative change tracking.</div>
+      </div>
+      <div class="scr-rail-actions">
+        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
+        {% if request.user|has_perm:"export_audit_log" %}
+        <a href="{% url 'audit_portal:audit_export' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-download"></i> Export Logs</a>
+        {% endif %}
+        <a href="{% url 'audit_portal:export_pdf' 'dashboard' %}" class="scr-rail-btn"><i class="bi bi-file-earmark-pdf"></i> Export PDF</a>
       </div>
     </div>
 
-    <!-- Revenue Pending -->
-    <div class="md-kpi-card kpi-warning">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-clock-history"></i>
+    <!-- Fused stat strip -->
+    <div class="scr-stats">
+      {% if request.user|has_perm:"view_challans" %}
+      <div class="scr-stat">
+        <div class="scr-stat-label">Total Challans</div>
+        <div class="scr-stat-value" id="kpi-total-challans" data-key="total_challans">{{ total_challans|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">Historical register</div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Revenue Pending</div>
-        <div class="md-kpi-value" id="kpi-revenue-pending" data-key="revenue_pending" data-format="pkr" style="font-size: 1.45rem; color: #f59e0b;">
-          PKR {{ revenue_pending|floatformat:0|intcomma|default:0 }}
-        </div>
-        <div class="md-kpi-foot">Unsettled accounts</div>
+      {% endif %}
+      {% if request.user|has_perm:"view_financial_audit" %}
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Revenue Collected</div>
+        <div class="scr-stat-value" id="kpi-revenue-collected" data-key="revenue_collected" data-format="pkr">PKR {{ revenue_collected|floatformat:0|intcomma|default:0 }}</div>
+        <div class="scr-stat-foot">Reconciled funds</div>
       </div>
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Revenue Pending</div>
+        <div class="scr-stat-value" id="kpi-revenue-pending" data-key="revenue_pending" data-format="pkr">PKR {{ revenue_pending|floatformat:0|intcomma|default:0 }}</div>
+        <div class="scr-stat-foot">Unsettled accounts</div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"view_audit_log" %}
+      <div class="scr-stat scr-stat--purple">
+        <div class="scr-stat-label">Audit Entries</div>
+        <div class="scr-stat-value" id="kpi-audit-entries" data-key="audit_entries">{{ audit_entries|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">{{ audit_24h|default:0 }} past 24h · {{ audit_7d|default:0 }} past 7d</div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"view_anomaly_alerts" %}
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Anomalies Detected</div>
+        <div class="scr-stat-value" id="kpi-anomalies" data-key="anomalies">{{ anomalies|length|default:0 }}</div>
+        <div class="scr-stat-foot"><a href="{% url 'audit_portal:anomaly_alerts' %}">Review alerts</a></div>
+      </div>
+      {% endif %}
     </div>
-  {% endif %}
+  </header>
 
-  <!-- Audit Entries -->
-  {% if request.user|has_perm:"view_audit_log" %}
-    <div class="md-kpi-card kpi-purple">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-journal-text"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Audit Entries</div>
-        <div class="md-kpi-value" id="kpi-audit-entries" data-key="audit_entries">{{ audit_entries|default:0|intcomma }}</div>
-        <div class="md-kpi-foot">{{ audit_24h|default:0 }} past 24h · {{ audit_7d|default:0 }} past 7d</div>
-      </div>
-    </div>
-  {% endif %}
+  <!-- Unified workspace -->
+  <div class="scr-grid">
 
-  <!-- Anomalies Detected -->
-  {% if request.user|has_perm:"view_anomaly_alerts" %}
-    <div class="md-kpi-card kpi-danger">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Anomalies Detected</div>
-        <div class="md-kpi-value" id="kpi-anomalies" data-key="anomalies" style="color: #ef4444;">{{ anomalies|length|default:0 }}</div>
-        <div class="md-kpi-foot"><a href="{% url 'audit_portal:anomaly_alerts' %}" style="color: #ef4444;">Review alerts →</a></div>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- Visualizations (Audit Volume & Category Shares) -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
-  {% if request.user|has_perm:"view_audit_log" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-graph-up" style="color: var(--md-purple);"></i>
-          <h3>Audit Log Ingestion Volume (7 Days)</h3>
-        </div>
+    {% if request.user|has_perm:"view_audit_log" %}
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Audit Log Ingestion Volume (7 Days)</div>
         <span class="md-badge md-badge-secondary">Logged Events</span>
       </div>
-      <div class="md-card-body" style="height: 240px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="auditVolumeChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="bar"></canvas>
       </div>
-    </div>
-  {% endif %}
+    </section>
+    {% endif %}
 
-  {% if request.user|has_perm:"view_operational_audit" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-pie-chart-fill" style="color: var(--md-brand-cyan);"></i>
-          <h3>Audit Activity Distribution</h3>
-        </div>
+    {% if request.user|has_perm:"view_operational_audit" %}
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Audit Activity Distribution</div>
         <span class="md-badge md-badge-secondary">All Action Types</span>
       </div>
-      <div class="md-card-body" style="height: 240px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="auditCategoriesChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>
       </div>
-    </div>
-  {% endif %}
-</div>
+    </section>
+    {% endif %}
 
-<!-- Anomaly Detection Stream -->
-{% if request.user|has_perm:"view_anomaly_alerts" and anomalies %}
-  <div class="md-card">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-exclamation-triangle-fill" style="color: #ef4444;"></i>
-        <h3>Security & Operational Anomalies ({{ anomalies|length }})</h3>
+    {% if request.user|has_perm:"view_anomaly_alerts" and anomalies %}
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-exclamation-triangle-fill"></i> Security &amp; Operational Anomalies</div>
+        <div class="scr-panel-tools">
+          <span class="md-badge md-badge-danger">{{ anomalies|length }} Open</span>
+          <a href="{% url 'audit_portal:anomaly_alerts' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-arrow-right"></i> All Anomalies</a>
+        </div>
       </div>
-      <a href="{% url 'audit_portal:anomaly_alerts' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-arrow-right"></i> All Anomalies
-      </a>
-    </div>
-    <div style="overflow-x: auto;">
-      <table class="md-table">
-        <thead>
-          <tr>
-            <th>Anomaly Type</th>
-            <th>Severity</th>
-            <th>Description & Context</th>
-            <th>Target Resource</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in anomalies %}
-            <tr>
-              <td style="font-family: monospace; font-weight: 700;">{{ a.type }}</td>
-              <td>
-                {% if a.severity == 'HIGH' %}
-                  <span class="md-badge md-badge-danger">HIGH</span>
-                {% elif a.severity == 'MEDIUM' %}
-                  <span class="md-badge md-badge-warning">MEDIUM</span>
-                {% else %}
-                  <span class="md-badge md-badge-success">LOW</span>
-                {% endif %}
-              </td>
-              <td style="font-size: 0.85rem;">{{ a.description }}</td>
-              <td style="font-family: monospace; font-size: 0.8rem; color: var(--md-text-muted);">{{ a.target }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-{% endif %}
-
-<!-- Recent Audit Log Trail -->
-{% if request.user|has_perm:"view_audit_log" %}
-  <div class="md-card">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-list-ul" style="color: var(--md-brand-cyan);"></i>
-        <h3>Recent Audit Activity Log</h3>
-      </div>
-      <a href="{% url 'dig:audit_log' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-journal-text"></i> Full Immutable Ledger
-      </a>
-    </div>
-    {% if recent_logs %}
-      <div style="overflow-x: auto;">
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
         <table class="md-table">
           <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Actor</th>
-              <th>Action Code</th>
-              <th>Target Entity</th>
-              <th>Source IP</th>
-            </tr>
+            <tr><th>Anomaly Type</th><th>Severity</th><th>Description &amp; Context</th><th>Target Resource</th></tr>
           </thead>
           <tbody>
-            {% for l in recent_logs %}
-              <tr>
-                <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ l.timestamp|date:"d M Y · H:i:s" }}</td>
-                <td style="font-weight: 600;">
-                  {% if l.actor %}{{ l.actor.display_name|default:l.actor.username }}{% else %}SYSTEM{% endif %}
-                </td>
-                <td><span class="md-badge md-badge-dark" style="font-family: monospace;">{{ l.action }}</span></td>
-                <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ l.target_model }} #{{ l.target_id|default:"-" }}</td>
-                <td style="font-family: monospace; font-size: 0.8rem; color: var(--md-text-muted);">{{ l.ip_address|default:"127.0.0.1" }}</td>
-              </tr>
+            {% for a in anomalies %}
+            <tr>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ a.type }}</td>
+              <td>
+                {% if a.severity == 'HIGH' %}<span class="md-badge md-badge-danger">HIGH</span>
+                {% elif a.severity == 'MEDIUM' %}<span class="md-badge md-badge-warning">MEDIUM</span>
+                {% else %}<span class="md-badge md-badge-success">LOW</span>{% endif %}
+              </td>
+              <td style="font-size: 0.85rem;">{{ a.description }}</td>
+              <td style="font-family: var(--sc-mono); font-size: 0.8rem; color: var(--md-text-muted);">{{ a.target }}</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    {% else %}
-      <div style="padding: 3rem; text-align: center; color: var(--md-text-muted);">
+    </section>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_audit_log" %}
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-list-ul"></i> Recent Audit Activity Log</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'dig:audit_log' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-journal-text"></i> Full Immutable Ledger</a>
+        </div>
+      </div>
+      {% if recent_logs %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Timestamp</th><th>Actor</th><th>Action Code</th><th>Target Entity</th><th>Source IP</th></tr>
+          </thead>
+          <tbody>
+            {% for l in recent_logs %}
+            <tr>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ l.timestamp|date:"d M Y · H:i:s" }}</td>
+              <td style="font-weight: 600;">{% if l.actor %}{{ l.actor.display_name|default:l.actor.username }}{% else %}SYSTEM{% endif %}</td>
+              <td><span class="md-badge md-badge-dark" style="font-family: var(--sc-mono);">{{ l.action }}</span></td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ l.target_model }} #{{ l.target_id|default:"-" }}</td>
+              <td style="font-family: var(--sc-mono); font-size: 0.8rem; color: var(--md-text-muted);">{{ l.ip_address|default:"127.0.0.1" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 3rem; text-align: center; color: var(--md-text-muted);">
         <i class="bi bi-journal-x" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
         No recent audit log records generated.
       </div>
-    {% endif %}
-  </div>
-{% endif %}
-
-<!-- Specialized Audit Portals Grid -->
-<div class="md-card">
-  <div class="md-card-head">
-    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <i class="bi bi-lightning-fill" style="color: var(--md-warning);"></i>
-      <h3>Specialized Audit Inspection Desks</h3>
-    </div>
-  </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1.25rem;">
-    {% if request.user|has_perm:"view_anomaly_alerts" %}
-      <a href="{% url 'audit_portal:anomaly_alerts' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-danger-bg); color: var(--md-danger);"><i class="bi bi-exclamation-triangle"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Anomalies Desk</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Security violations</div>
-        </div>
-      </a>
+      {% endif %}
+    </section>
     {% endif %}
 
-    {% if request.user|has_perm:"view_compliance" %}
-      <a href="{% url 'audit_portal:compliance_reports' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);"><i class="bi bi-shield-check"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Compliance</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Legal standards</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"view_financial_audit" %}
-      <a href="{% url 'audit_portal:financial_audit' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);"><i class="bi bi-cash-coin"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Financial Audit</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Reconciliation</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"view_operational_audit" %}
-      <a href="{% url 'audit_portal:operational_audit' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);"><i class="bi bi-gear-wide"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Operational Audit</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">System events</div>
-        </div>
-      </a>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

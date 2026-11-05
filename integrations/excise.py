@@ -80,7 +80,7 @@ def lookup_by_plate(plate_number: str) -> Dict[str, Any]:
             url = f"{api_url}&plate={plate}" if '?' in api_url else f"{api_url.rstrip('/')}?plate={plate}"
             headers = {
                 'Accept': 'application/json',
-                'User-Agent': 'SafeCity-FYP/Phase10',
+                'User-Agent': 'SafeCities-Project/1.0',
             }
             if api_key:
                 headers['Authorization'] = f'Bearer {api_key}'

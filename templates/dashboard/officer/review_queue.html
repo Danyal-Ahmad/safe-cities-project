@@ -2,37 +2,25 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}AI Review Queue | SafeCity Officer Command{% endblock %}
-
-{% block crumb %}
-<a href="{% url 'officer_portal:dashboard' %}">Officer Portal</a>
-<span class="sc-crumb-sep">/</span>
-<b>AI Review Queue</b>
-{% endblock %}
+{% block title %}AI Review Queue{% endblock %}
 
 {% block content %}
-<div class="md-hero">
+<div class="sc-page-hero">
   <div>
-    <div class="md-hero-title">
-      <i class="bi bi-inbox-fill"></i>
-      <span>AI Violation Triage & Review Queue</span>
-      <span class="md-badge md-badge-amber" id="queueCountBadge">
-        {{ detections|length }} PENDING
-      </span>
-    </div>
-    <p class="md-hero-subtitle">
-      Rapid-Action Decision Hub · Verified AI Inferences · Hotkey-Enabled Verification
-    </p>
+    <h1><i class="bi bi-inbox-fill me-2"></i>AI Violation Triage &amp; Review Queue
+      <span class="md-badge md-badge-amber" id="queueCountBadge">{{ detections|length }} PENDING</span>
+    </h1>
+    <p class="sc-lead">Rapid-action decision hub · verified AI inferences · hotkey-enabled verification.</p>
   </div>
-  <div class="md-hero-actions">
-    <div class="sc-flex sc-items-center" style="gap: 0.4rem; background: rgba(15,23,42,0.35); padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.22); color: #C9DAF5;">
-      <span style="color: #94a3b8;">Hotkeys:</span>
+  <div class="sc-flex sc-gap-2 sc-items-center">
+    <div class="sc-flex sc-items-center" style="gap: 0.4rem; padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid var(--sc-border); background: var(--sc-bg-soft); color: var(--sc-text-muted);">
+      <span style="color: var(--sc-text-faint);">Hotkeys:</span>
       <span class="md-action-key" style="background:#0284c7;color:#fff;">C</span> Confirm
       <span class="md-action-key" style="background:#ef4444;color:#fff;">R</span> Reject
       <span class="md-action-key" style="background:#f59e0b;color:#fff;">F</span> Flag
     </div>
-    <a href="{% url 'officer_portal:live_tracking' %}" class="md-btn md-btn-secondary md-btn-sm">
-      <i class="bi bi-radar"></i> Live Radar
+    <a href="{% url 'officer_portal:live_tracking' %}" class="sc-btn">
+      <i class="bi bi-radar me-1"></i>Live Radar
     </a>
   </div>
 </div>

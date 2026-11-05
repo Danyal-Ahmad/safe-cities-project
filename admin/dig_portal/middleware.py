@@ -140,6 +140,11 @@ class SecurityHeadersMiddleware:
             # templates migrate off 'unsafe-inline' one file at a time.
             "script-src 'nonce-" + nonce + "' "
             + self._tokens(settings, 'CSP_SCRIPT_SRC') + "; "
+            # Inline EVENT handlers (onclick="toggle()") are governed by a
+            # dedicated fallback directive. Without it the nonce above would
+            # neutralise 'unsafe-inline' and silently break every inline
+            # handler in the templates (password toggles, radio switches).
+            "script-src-attr 'unsafe-inline'; "
             "style-src " + self._tokens(settings, 'CSP_STYLE_SRC') + "; "
             "font-src " + self._tokens(settings, 'CSP_FONT_SRC') + "; "
             "img-src " + self._tokens(settings, 'CSP_IMG_SRC') + "; "

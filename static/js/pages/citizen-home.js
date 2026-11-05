@@ -29,7 +29,7 @@
   // The KPI endpoint is exposed on the KPI grid via data-kpi-api-url
   // (previously injected inline with {% url 'citizen_portal:api_citizen_kpis' %}).
   async function loadKPIs(){
-    const grid = document.querySelector('.md-kpi-grid[data-kpi-api-url]');
+    const grid = document.querySelector('.scr-stats[data-kpi-api-url]');
     if (!grid) return;
     const apiBase = grid.dataset.kpiApiUrl;
     try {

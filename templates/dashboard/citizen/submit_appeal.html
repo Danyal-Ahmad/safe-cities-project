@@ -2,7 +2,6 @@
 {% load static %}
 {% load humanize %}
 {% block title %}Submit Appeal{% endblock %}
-{% block crumb %}<a href="/">Home</a> <span class="sc-crumb-sep">/</span> <b>Submit Appeal</b>{% endblock %}
 {% block content %}
 {% if challan.payment_status == 'PAID' %}<div class="sc-banner sc-banner-info">This challan is paid. You may still appeal for a refund.</div>{% endif %}
 {% if has_active %}<div class="sc-banner sc-banner-warn">You already have an active appeal. Wait for it to be decided before filing another.</div>{% else %}

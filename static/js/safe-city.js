@@ -110,47 +110,6 @@
     }
 
     // ============================================================
-    // Sidebar toggle
-    // ============================================================
-
-    function scInitSidebar() {
-        const toggles = document.querySelectorAll('.sc-sidebar-toggle');
-        const sidebar = document.querySelector('.sc-sidebar');
-        const main = document.querySelector('.sc-main');
-        const topbar = document.querySelector('.sc-topbar');
-        if (!sidebar || !main) return;
-
-        const stored = localStorage.getItem('sc_sidebar_collapsed') === '1';
-
-        function apply(collapsed) {
-            if (collapsed) {
-                sidebar.classList.add('sc-sidebar-collapsed');
-                main.classList.add('sc-margin-left');
-            } else {
-                sidebar.classList.remove('sc-sidebar-collapsed');
-                main.classList.remove('sc-margin-left');
-            }
-        }
-
-        if (stored) apply(true);
-
-        toggles.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                scToggleSidebar();
-            });
-        });
-    }
-
-    function scToggleSidebar() {
-        const sidebar = document.querySelector('.sc-sidebar');
-        const main = document.querySelector('.sc-main');
-        if (!sidebar || !main) return;
-        const collapsed = sidebar.classList.toggle('sc-sidebar-collapsed');
-        main.classList.toggle('sc-margin-left', collapsed);
-        localStorage.setItem('sc_sidebar_collapsed', collapsed ? '1' : '0');
-    }
-
-    // ============================================================
     // SweetAlert2 wrappers
     // ============================================================
 
@@ -323,7 +282,6 @@
     function init() {
         startClock();
         initUserMenu();
-        scInitSidebar();
         scInitTables();
         scInitTooltips();
         initMsgDismiss();
@@ -349,8 +307,6 @@
         startClock: startClock,
         toggleUserMenu: scToggleUserMenu,
         closeUserMenu: closeUserMenu,
-        initSidebar: scInitSidebar,
-        toggleSidebar: scToggleSidebar,
         alert: scAlert,
         confirm: scConfirm,
         toast: scToast,

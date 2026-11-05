@@ -3,416 +3,229 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}DIG Command Center | SafeCity Directorate{% endblock %}
-
-{% block crumb %}
-<a href="/">Home</a>
-<span class="sc-crumb-sep">/</span>
-<b>DIG Command Center</b>
-{% endblock %}
-
-{% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
-{% endblock %}
+{% block title %}DIG Command Center{% endblock %}
 
 {% block content %}
-<!-- Executive Hero Banner -->
-<div class="md-hero">
-  <div>
-    <div class="md-hero-title">
-      <i class="bi bi-shield-shaded" style="color: #38bdf8;"></i>
-      <span>DIG Supreme Command Center</span>
-      <span class="md-badge md-badge-cyan">LEVEL 100 SUPER-ADMIN</span>
-    </div>
-    <p class="md-hero-subtitle">
-      Directorate-Level Operational Overview · Real-time Revenue · Network Status · Dispute Escalations
-    </p>
-  </div>
-  <div class="md-hero-actions">
-    <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.35); padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); color: #C9DAF5;">
-      {% now "D, d M Y · H:i:s" %}
-    </div>
-    <a href="{% url 'dig:revenue_dashboard' %}" class="md-btn md-btn-cyan md-btn-sm">
-      <i class="bi bi-graph-up-arrow"></i> Revenue Analytics
-    </a>
-  </div>
-</div>
+<!-- ====================================================================
+     DIG COMMAND SCREEN · one cohesive surface
+     command rail + stat strip + unified workspace
+     ==================================================================== -->
+<div class="scr">
 
-<!-- Executive Command Launchpad -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  {% if request.user|has_perm:"view_revenue_dashboard" %}
-    <a href="{% url 'dig:revenue_dashboard' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);">
-        <i class="bi bi-cash-stack"></i>
-      </div>
-      <div>
-        <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Revenue Hub</div>
-        <div style="font-size: 0.72rem; color: var(--md-text-muted);">Collections & Reconciliation</div>
-      </div>
-    </a>
-  {% endif %}
-
-  {% if request.user|has_perm:"view_challans" %}
-    <a href="{% url 'dig:challan_list' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);">
-        <i class="bi bi-receipt"></i>
-      </div>
-      <div>
-        <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Challans Operations</div>
-        <div style="font-size: 0.72rem; color: var(--md-text-muted);">View & fine adjustments</div>
-      </div>
-    </a>
-  {% endif %}
-
-  {% if request.user|has_perm:"view_cameras" %}
-    <a href="{% url 'dig:camera_list' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);">
-        <i class="bi bi-camera-video-fill"></i>
-      </div>
-      <div>
-        <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Camera Network</div>
-        <div style="font-size: 0.72rem; color: var(--md-text-muted);">Surveillance health & RTSP</div>
-      </div>
-    </a>
-  {% endif %}
-
-  {% if request.user|has_perm:"view_appeals" %}
-    <a href="{% url 'dig:case_escalation' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background: var(--md-warning-bg); color: var(--md-warning);">
-        <i class="bi bi-shield-exclamation"></i>
-      </div>
-      <div>
-        <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Case Escalations</div>
-        <div style="font-size: 0.72rem; color: var(--md-text-muted);">Appeals awaiting decision</div>
-      </div>
-    </a>
-  {% endif %}
-
-  {% if request.user|has_perm:"manage_alerts" %}
-    <a href="{% url 'dig:alerts_hub' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background: var(--md-danger-bg); color: var(--md-danger);">
-        <i class="bi bi-megaphone-fill"></i>
-      </div>
-      <div>
-        <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Alerts Hub</div>
-        <div style="font-size: 0.72rem; color: var(--md-text-muted);">Emergency city broadcasts</div>
-      </div>
-    </a>
-  {% endif %}
-
-  {% if request.user|has_perm:"view_audit_log" %}
-    <a href="{% url 'dig:audit_log' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background: #f1f5f9; color: #475569;">
-        <i class="bi bi-journal-check"></i>
-      </div>
-      <div>
-        <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Audit & Compliance</div>
-        <div style="font-size: 0.72rem; color: var(--md-text-muted);">Tamper-evident logs</div>
-      </div>
-    </a>
-  {% endif %}
-</div>
-
-<!-- Dynamic KPI Grid (Real-time API Driven) -->
-<div class="md-kpi-grid">
-  <!-- Revenue Collected -->
-  <div class="md-kpi-card kpi-success">
-    <div class="md-kpi-icon-box">
-      <i class="bi bi-cash-coin"></i>
-    </div>
-    <div class="md-kpi-body">
-      <div class="md-kpi-label">Total Revenue Collected</div>
-      <div class="md-kpi-value" id="kpi-revenue-collected"
-           data-api-url="{% url 'dig:api_dashboard_kpis' %}"
-           data-key="revenue_collected"
-           data-format="pkr"
-           style="font-size: 1.45rem; color: #10b981;">PKR 0</div>
-      <div class="md-kpi-foot">+ <span id="kpi-revenue-today" data-key="revenue_today" data-format="pkr">PKR 0</span> today</div>
-    </div>
-  </div>
-
-  <!-- Challans Issued -->
-  {% if request.user|has_perm:"view_challans" %}
-    <div class="md-kpi-card">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-receipt-cutoff"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Challans Issued Today</div>
-        <div class="md-kpi-value" id="kpi-total-today" data-key="total_today">0</div>
-        <div class="md-kpi-foot"><span id="kpi-total-week" data-key="total_week">0</span> this week</div>
-      </div>
-    </div>
-
-    <!-- Paid Today -->
-    <div class="md-kpi-card kpi-success">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-check2-all"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Paid Today</div>
-        <div class="md-kpi-value" id="kpi-paid-today" data-key="paid_today">0</div>
-        <div class="md-kpi-foot">of <span id="kpi-issued-today" data-key="total_today">0</span> issued</div>
-      </div>
-    </div>
-
-    <!-- Pending Revenue -->
-    <div class="md-kpi-card kpi-warning">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-clock-history"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Pending Receivable</div>
-        <div class="md-kpi-value" id="kpi-revenue-pending" data-key="revenue_pending" data-format="pkr" style="font-size: 1.45rem; color: #f59e0b;">PKR 0</div>
-        <div class="md-kpi-foot">Uncollected fines</div>
-      </div>
-    </div>
-  {% endif %}
-
-  <!-- Surveillance Cameras -->
-  {% if request.user|has_perm:"view_cameras" %}
-    <div class="md-kpi-card">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-camera-video"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Active Cameras</div>
-        <div class="md-kpi-value">
-          <span id="kpi-active-cameras" data-key="active_cameras">0</span>
-          <span style="font-size: 0.9rem; font-weight: 500; color: var(--md-text-muted);">/ <span id="kpi-online-cameras" data-key="online_cameras">0</span> live</span>
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-shield-fill-check"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Directorate Command</div>
+        <div class="scr-rail-title">
+          DIG Command Center
+          <span class="scr-rail-tag scr-rail-tag--success"><i class="bi bi-broadcast"></i> All Systems Live</span>
         </div>
-        <div class="md-kpi-foot"><a href="{% url 'dig:camera_list' %}" style="color: var(--md-brand-primary);">Manage Network →</a></div>
+        <div class="scr-rail-sub">Directorate-level operational overview, real-time revenue, network status and dispute escalations across every district desk.</div>
+      </div>
+      <div class="scr-rail-actions">
+        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
+        {% if request.user|has_perm:"view_revenue_dashboard" %}
+        <a href="{% url 'dig:revenue_dashboard' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-graph-up-arrow"></i> Revenue Analytics</a>
+        {% endif %}
+        {% if request.user|has_perm:"view_cameras" %}
+        <a href="{% url 'dig:live_monitor' %}" class="scr-rail-btn"><i class="bi bi-camera-video"></i> Live Monitor</a>
+        {% endif %}
       </div>
     </div>
-  {% endif %}
 
-  <!-- Flagged Detections -->
-  {% if request.user|has_perm:"view_detections" %}
-    <div class="md-kpi-card kpi-danger">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-flag-fill"></i>
+    <!-- Fused stat strip · live API driven -->
+    <div class="scr-stats">
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Revenue Collected</div>
+        <div class="scr-stat-value" id="kpi-revenue-collected"
+             data-api-url="{% url 'dig:api_dashboard_kpis' %}"
+             data-key="revenue_collected" data-format="pkr">PKR 0</div>
+        <div class="scr-stat-foot">+ <span id="kpi-revenue-today" data-key="revenue_today" data-format="pkr">PKR 0</span> today</div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Flagged Detections</div>
-        <div class="md-kpi-value" id="kpi-flagged-detections" data-key="flagged_detections" style="color: #ef4444;">0</div>
-        <div class="md-kpi-foot" style="color: #ef4444;">Officer Portal review queue</div>
+      {% if request.user|has_perm:"view_challans" %}
+      <div class="scr-stat">
+        <div class="scr-stat-label">Challans Today</div>
+        <div class="scr-stat-value" id="kpi-total-today" data-key="total_today">0</div>
+        <div class="scr-stat-foot"><span id="kpi-total-week" data-key="total_week">0</span> this week</div>
       </div>
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Paid Today</div>
+        <div class="scr-stat-value" id="kpi-paid-today" data-key="paid_today">0</div>
+        <div class="scr-stat-foot">of <span id="kpi-issued-today" data-key="total_today">0</span> issued</div>
+      </div>
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Pending Receivable</div>
+        <div class="scr-stat-value" id="kpi-revenue-pending" data-key="revenue_pending" data-format="pkr">PKR 0</div>
+        <div class="scr-stat-foot">Uncollected fines</div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"view_cameras" %}
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Active Cameras</div>
+        <div class="scr-stat-value"><span id="kpi-active-cameras" data-key="active_cameras">0</span><small> / <span id="kpi-online-cameras" data-key="online_cameras">0</span> live</small></div>
+        <div class="scr-stat-foot"><a href="{% url 'dig:camera_list' %}">Manage network</a></div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"view_detections" %}
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Flagged Detections</div>
+        <div class="scr-stat-value" id="kpi-flagged-detections" data-key="flagged_detections">0</div>
+        <div class="scr-stat-foot">Awaiting officer review</div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"view_appeals" %}
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Disputed Appeals</div>
+        <div class="scr-stat-value"><span id="kpi-pending-appeals" data-key="pending_appeals">0</span><small> / <span id="kpi-escalated-appeals" data-key="escalated_appeals">0</span> esc.</small></div>
+        <div class="scr-stat-foot"><a href="{% url 'dig:case_escalation' %}">Escalation desk</a></div>
+      </div>
+      {% endif %}
+      {% if request.user|has_perm:"manage_alerts" %}
+      <div class="scr-stat scr-stat--purple">
+        <div class="scr-stat-label">Active Alerts</div>
+        <div class="scr-stat-value" id="kpi-active-alerts" data-key="active_alerts">0</div>
+        <div class="scr-stat-foot"><a href="{% url 'dig:alerts_hub' %}">Broadcasts</a></div>
+      </div>
+      {% endif %}
     </div>
-  {% endif %}
+  </header>
 
-  <!-- Escalated Appeals -->
-  {% if request.user|has_perm:"view_appeals" %}
-    <div class="md-kpi-card kpi-warning">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-chat-square-text-fill"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Disputed Appeals</div>
-        <div class="md-kpi-value">
-          <span id="kpi-pending-appeals" data-key="pending_appeals">0</span>
-          <span style="font-size: 0.9rem; font-weight: 500; color: #ef4444;">/ <span id="kpi-escalated-appeals" data-key="escalated_appeals">0</span> escalated</span>
-        </div>
-        <div class="md-kpi-foot"><a href="{% url 'dig:case_escalation' %}" style="color: var(--md-warning);">Escalation Desk →</a></div>
-      </div>
-    </div>
-  {% endif %}
+  <!-- Unified workspace -->
+  <div class="scr-grid">
 
-  <!-- Active Alerts -->
-  {% if request.user|has_perm:"manage_alerts" %}
-    <div class="md-kpi-card kpi-purple">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-bell-fill"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Active Alerts</div>
-        <div class="md-kpi-value" id="kpi-active-alerts" data-key="active_alerts">0</div>
-        <div class="md-kpi-foot"><a href="{% url 'dig:alerts_hub' %}" style="color: var(--md-purple);">Broadcasts →</a></div>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- Executive Analytics Grid (4 Charts) -->
-{% if request.user|has_perm:"view_analytics" %}
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-    <!-- 1. Violation Distribution -->
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-bar-chart-fill" style="color: var(--md-brand-cyan);"></i>
-          <h3>Violations by Classification</h3>
-        </div>
+    {% if request.user|has_perm:"view_analytics" %}
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-bar-chart-fill"></i> Violations by Classification</div>
         <span class="md-badge md-badge-secondary">All Cameras</span>
       </div>
-      <div class="md-card-body" style="height: 250px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="typeChart" data-api-url="{% url 'dig:api_chart_violation_distribution' %}" data-chart-type="bar" data-index-axis="y"></canvas>
       </div>
-    </div>
+    </section>
 
-    <!-- 2. Location Hotspots -->
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-geo-alt-fill" style="color: #ef4444;"></i>
-          <h3>High-Violation Traffic Junctions</h3>
-        </div>
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-geo-alt-fill"></i> High-Violation Junctions</div>
         <span class="md-badge md-badge-secondary">Top 10</span>
       </div>
-      <div class="md-card-body" style="height: 250px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="locChart" data-api-url="{% url 'dig:api_chart_location_distribution' %}" data-chart-type="bar" data-index-axis="y"></canvas>
       </div>
-    </div>
+    </section>
 
-    <!-- 3. 7-Day Activity Velocity -->
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-graph-up" style="color: #10b981;"></i>
-          <h3>7-Day Enforcement Velocity</h3>
-        </div>
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-graph-up"></i> 7-Day Enforcement Velocity</div>
         <span class="md-badge md-badge-secondary">Daily Volume</span>
       </div>
-      <div class="md-card-body" style="height: 250px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="trendChart" data-api-url="{% url 'dig:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
       </div>
-    </div>
+    </section>
 
-    <!-- 4. Officer Performance Radar -->
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-trophy-fill" style="color: var(--md-warning);"></i>
-          <h3>Officer Triage Performance (30 Days)</h3>
-        </div>
-        <span class="md-badge md-badge-secondary">Leading Squads</span>
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-trophy-fill"></i> Officer Triage Performance</div>
+        <span class="md-badge md-badge-secondary">30 Days</span>
       </div>
-      <div class="md-card-body" style="height: 250px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="officerChart" data-api-url="{% url 'dig:api_chart_officer_kpi' %}" data-chart-type="bar"></canvas>
       </div>
-    </div>
-  </div>
-{% endif %}
+    </section>
+    {% endif %}
 
-<!-- 2-Column: Officer Roster & Live Broadcasts -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
-  <!-- Officers Roster -->
-  <div class="md-card" style="margin-bottom: 0;">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-people-fill" style="color: var(--md-brand-cyan);"></i>
-        <h3>Active Officer Personnel</h3>
-      </div>
-      <a href="{% url 'dig:officer_kpi' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-trophy"></i> Full KPIs
-      </a>
-    </div>
-    <div style="overflow-x: auto;">
-      <table class="md-table">
-        <thead>
-          <tr>
-            <th>Officer</th>
-            <th>Assigned Region</th>
-            <th>Status</th>
-            <th>Last Active</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for o in officers %}
-            <tr>
-              <td>
-                <a href="{% url 'dig:officer_activity' o.id %}" style="font-weight: 600; color: var(--md-brand-primary); text-decoration: none;">
-                  {{ o.display_name|default:o.username }}
-                </a>
-              </td>
-              <td style="color: var(--md-text-muted); font-size: 0.8rem;">{{ o.region|default:'-' }}</td>
-              <td>
-                {% if o.is_active %}
-                  <span class="md-badge md-badge-success"><i class="bi bi-dot"></i> Active</span>
-                {% else %}
-                  <span class="md-badge md-badge-secondary">Inactive</span>
-                {% endif %}
-              </td>
-              <td style="font-size: 0.75rem; color: var(--md-text-muted);">
-                {% if o.last_login %}{{ o.last_login|date:"d M H:i" }}{% else %}Never{% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="4" style="text-align: center; color: var(--md-text-muted); padding: 1.5rem;">No officers on record.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Active Alerts Hub Feed -->
-  {% if request.user|has_perm:"manage_alerts" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-megaphone-fill" style="color: #ef4444;"></i>
-          <h3>High Priority System Alerts</h3>
+    <section class="scr-panel scr-panel-7">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-people-fill"></i> Active Officer Personnel</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'dig:officer_kpi' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-trophy"></i> Full KPIs</a>
         </div>
-        <a href="{% url 'dig:alerts_hub' %}" class="md-btn md-btn-secondary md-btn-sm">
-          <i class="bi bi-gear"></i> Manage Alerts
-        </a>
       </div>
-      <div style="padding: 1rem; max-height: 280px; overflow-y: auto;">
+      <div class="scr-panel-body scr-panel-body--flush">
+        <div style="overflow-x: auto;">
+          <table class="md-table">
+            <thead>
+              <tr><th>Officer</th><th>Assigned Region</th><th>Status</th><th>Last Active</th></tr>
+            </thead>
+            <tbody>
+              {% for o in officers %}
+              <tr>
+                <td><a href="{% url 'dig:officer_activity' o.id %}" style="font-weight: 600; color: var(--md-brand-primary);">{{ o.display_name|default:o.username }}</a></td>
+                <td style="color: var(--md-text-muted); font-size: 0.8rem;">{{ o.region|default:'-' }}</td>
+                <td>
+                  {% if o.is_active %}<span class="md-badge md-badge-success"><i class="bi bi-dot"></i> Active</span>
+                  {% else %}<span class="md-badge md-badge-secondary">Inactive</span>{% endif %}
+                </td>
+                <td style="font-size: 0.75rem; color: var(--md-text-muted);">{% if o.last_login %}{{ o.last_login|date:"d M H:i" }}{% else %}Never{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" style="text-align: center; color: var(--md-text-muted); padding: 1.5rem;">No officers on record.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    {% if request.user|has_perm:"manage_alerts" %}
+    <section class="scr-panel scr-panel-5">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-megaphone-fill"></i> High Priority Alerts</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'dig:alerts_hub' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-gear"></i> Manage</a>
+        </div>
+      </div>
+      <div class="scr-panel-body scr-panel-scroll">
         {% if active_alerts %}
           {% for a in active_alerts %}
-            <div style="display: flex; gap: 0.75rem; padding: 0.75rem; border-radius: var(--md-radius-md); background: #f8fafc; border: 1px solid var(--md-border); margin-bottom: 0.5rem;">
-              <div style="width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; background: {% if a.priority == 'CRITICAL' %}#ef4444{% elif a.priority == 'HIGH' %}#f59e0b{% else %}#0284c7{% endif %};">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-              </div>
-              <div style="flex-grow: 1; min-width: 0;">
-                <div class="sc-flex sc-items-center sc-justify-between">
-                  <span style="font-weight: 700; font-size: 0.85rem; color: var(--md-text-title);">{{ a.title }}</span>
-                  <span style="font-size: 0.7rem; color: var(--md-text-muted);">{{ a.created_at|timesince }} ago</span>
-                </div>
-                <p style="font-size: 0.775rem; color: var(--md-text-body); margin: 0.25rem 0 0 0;">{{ a.body|truncatechars:110 }}</p>
-              </div>
+          <div style="display: flex; gap: 0.75rem; padding: 0.7rem; border-radius: 12px; background: #F8FAFC; border: 1px solid var(--md-border); margin-bottom: 0.5rem;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; background: {% if a.priority == 'CRITICAL' %}#ef4444{% elif a.priority == 'HIGH' %}#f59e0b{% else %}#0284c7{% endif %};">
+              <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
+            <div style="flex-grow: 1; min-width: 0;">
+              <div class="sc-flex sc-items-center sc-justify-between">
+                <span style="font-weight: 700; font-size: 0.85rem; color: var(--md-text-title);">{{ a.title }}</span>
+                <span style="font-size: 0.7rem; color: var(--md-text-muted);">{{ a.created_at|timesince }} ago</span>
+              </div>
+              <p style="font-size: 0.775rem; color: var(--md-text-body); margin: 0.25rem 0 0 0;">{{ a.body|truncatechars:110 }}</p>
+            </div>
+          </div>
           {% endfor %}
         {% else %}
-          <div style="padding: 3rem 1rem; text-align: center; color: var(--md-text-muted);">
-            <i class="bi bi-bell-slash" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+          <div style="padding: 2.4rem 1rem; text-align: center; color: var(--md-text-muted);">
+            <i class="bi bi-bell-slash" style="font-size: 2.2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
             <div style="font-weight: 600; color: var(--md-text-title);">No Active Emergency Broadcasts</div>
             <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">All city sectors operating within normal parameters.</p>
           </div>
         {% endif %}
       </div>
-    </div>
-  {% endif %}
-</div>
+    </section>
+    {% endif %}
 
-<!-- Recent Detections Real-time Stream Table -->
-{% if request.user|has_perm:"view_detections" %}
-  <div class="md-card">
-    <div class="md-card-head">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-radar" style="color: var(--md-brand-cyan);"></i>
-        <h3>Latest Camera Inferences</h3>
+    {% if request.user|has_perm:"view_detections" %}
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-radar"></i> Latest Camera Inferences</div>
+        <span class="md-badge md-badge-secondary">Realtime Stream</span>
       </div>
-    </div>
-    <div style="overflow-x: auto;">
-      <table class="md-table" id="recent-detections-table"
-             data-recent-detections='[{% for d in recent_detections %}{"id":{{ d.id }},"camera":"{{ d.camera.name|default:d.camera_id|escapejs }}","plate":"{{ d.vehicle_plate|default:'-'|escapejs }}","confidence":{{ d.confidence|default:0|stringformat:'f' }},"status":"{{ d.get_status_display|escapejs }}","created_at":"{{ d.created_at|date:'Y-m-d H:i'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Surveillance Camera</th>
-            <th>Vehicle Plate</th>
-            <th>Confidence</th>
-            <th>Status</th>
-            <th>Capture Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Inlined by Javascript -->
-        </tbody>
-      </table>
-    </div>
+      <div class="scr-panel-body scr-panel-body--flush">
+        <div style="overflow-x: auto;">
+          <table class="md-table" id="recent-detections-table"
+                 data-recent-detections='[{% for d in recent_detections %}{"id":{{ d.id }},"camera":"{{ d.camera.name|default:d.camera_id|escapejs }}","plate":"{{ d.vehicle_plate|default:'-'|escapejs }}","confidence":{{ d.confidence|default:0|stringformat:'f' }},"status":"{{ d.get_status_display|escapejs }}","created_at":"{{ d.created_at|date:'Y-m-d H:i'|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+            <thead>
+              <tr><th>ID</th><th>Surveillance Camera</th><th>Vehicle Plate</th><th>Confidence</th><th>Status</th><th>Capture Timestamp</th></tr>
+            </thead>
+            <tbody><!-- populated by dig-dashboard.js --></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
   </div>
-{% endif %}
+</div>
 {% endblock %}
 
 {% block extra_js %}

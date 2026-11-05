@@ -2,228 +2,147 @@
 {% load static %}
 {% load humanize %}
 {% load perm_tags %}
-{% block title %}Officer Command Center | Safe City{% endblock %}
-{% block crumb %}<a href="/">Home</a><span class="sc-crumb-sep">/</span><b>Officer Dashboard</b>{% endblock %}
-
+{% block title %}Officer Command Center{% endblock %}
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
-<!-- Modern Hero Banner -->
-<div class="md-hero">
-  <div>
-    <div class="md-hero-title">
-      <i class="bi bi-shield-shaded"></i>
-      <span>Officer Command Center</span>
-    </div>
-    <p class="md-hero-subtitle">
-      AI Detection Triage &middot; Live Surveillance Tracking &middot; Automated Evidence Pipeline
-    </p>
-  </div>
-  <div class="md-hero-actions">
-    <div class="md-live-badge">
-      <span class="md-live-dot"></span>
-      <span>System Live</span>
-    </div>
-    <div class="sc-text-xs text-light opacity-75 font-monospace" id="liveClock">
-      {% now "D, d M Y · H:i:s" %}
-    </div>
-  </div>
-</div>
+<!-- ====================================================================
+     OFFICER COMMAND SCREEN · one cohesive surface
+     ==================================================================== -->
+<div class="scr">
 
-<!-- Quick Workstation Launchers -->
-<div class="row g-3 mb-4">
-  <div class="col-md-4">
-    <a href="{% url 'officer_portal:live_tracking' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background:#e0f2fe;color:#0284c7;">
-        <i class="bi bi-broadcast"></i>
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-shield-shaded"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Enforcement Desk</div>
+        <div class="scr-rail-title">
+          Officer Command Center
+          <span class="scr-rail-tag scr-rail-tag--warning"><i class="bi bi-inbox"></i> <span id="kpiQueuePill">{{ queue_count|default:0 }}</span> Pending</span>
+        </div>
+        <div class="scr-rail-sub">AI detection triage, live surveillance tracking and the automated evidence pipeline in one workstation.</div>
       </div>
-      <div>
-        <div class="fw-bold fs-6">Live Tracking Workstation</div>
-        <div class="sc-text-xs sc-text-muted">Real-time CCTV canvas radar & vehicle bounding boxes</div>
+      <div class="scr-rail-actions">
+        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="liveClock">{% now "D, d M Y · H:i:s" %}</span></span>
+        <a href="{% url 'officer_portal:review_queue' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-inbox-fill"></i> Open Review Queue</a>
+        <a href="{% url 'officer_portal:live_tracking' %}" class="scr-rail-btn"><i class="bi bi-broadcast"></i> Live Tracking</a>
       </div>
-    </a>
-  </div>
-  <div class="col-md-4">
-    <a href="{% url 'officer_portal:review_queue' %}" class="md-quick-action">
-      <div class="md-quick-icon" style="background:#fef3c7;color:#d97706;">
-        <i class="bi bi-inbox-fill"></i>
+    </div>
+
+    <!-- Fused stat strip -->
+    <div class="scr-stats">
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Review Queue</div>
+        <div class="scr-stat-value" id="queueVal" data-queue-api-url="{% url 'realtime:queue_count' %}">{{ queue_count|default:0|intcomma }}</div>
+        <div class="scr-stat-foot"><a href="{% url 'officer_portal:review_queue' %}">Open queue</a></div>
       </div>
-      <div>
-        <div class="fw-bold fs-6">AI Detection Queue</div>
-        <div class="sc-text-xs sc-text-muted"><span class="badge bg-warning text-dark me-1" id="kpiQueuePill">{{ queue_count|default:0 }}</span> Pending violations awaiting sign-off</div>
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Confirmed by Me</div>
+        <div class="scr-stat-value">{{ confirmed_total|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">+{{ week_confirmed|default:0 }} this week</div>
       </div>
-    </a>
-  </div>
-  <div class="col-md-4">
-  </div>
-</div>
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Rejected (False Positives)</div>
+        <div class="scr-stat-value">{{ rejected_total|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">+{{ week_rejected|default:0 }} this week</div>
+      </div>
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Challans Issued</div>
+        <div class="scr-stat-value">{{ my_challans_total|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">{{ my_challans_paid|default:0 }} paid · {{ my_challans_unpaid|default:0 }} unpaid</div>
+      </div>
+    </div>
+  </header>
 
-<!-- Modern KPI Grid -->
-<div class="md-kpi-grid">
-  <!-- Queue Count -->
-  <div class="md-kpi-card kpi-amber">
-    <div class="md-kpi-top">
-      <span class="md-kpi-label">Review Queue</span>
-      <div class="md-kpi-icon-wrap"><i class="bi bi-clock-history"></i></div>
-    </div>
-    <div class="md-kpi-val" id="queueVal" data-queue-api-url="{% url 'realtime:queue_count' %}">{{ queue_count|default:0|intcomma }}</div>
-    <div class="md-kpi-foot">
-      <a href="{% url 'officer_portal:review_queue' %}" class="text-warning fw-semibold text-decoration-none">
-        <i class="bi bi-arrow-right-circle me-1"></i>Open queue
-      </a>
-    </div>
-  </div>
+  <!-- Unified workspace -->
+  <div class="scr-grid">
 
-  <!-- Confirmed -->
-  <div class="md-kpi-card kpi-green">
-    <div class="md-kpi-top">
-      <span class="md-kpi-label">Confirmed by Me</span>
-      <div class="md-kpi-icon-wrap"><i class="bi bi-check-circle"></i></div>
-    </div>
-    <div class="md-kpi-val">{{ confirmed_total|default:0|intcomma }}</div>
-    <div class="md-kpi-foot">
-      <span class="text-success"><i class="bi bi-arrow-up-short"></i>+{{ week_confirmed|default:0 }}</span> this week
-    </div>
-  </div>
-
-  <!-- Rejected -->
-  <div class="md-kpi-card kpi-red">
-    <div class="md-kpi-top">
-      <span class="md-kpi-label">Rejected (False Positives)</span>
-      <div class="md-kpi-icon-wrap"><i class="bi bi-x-circle"></i></div>
-    </div>
-    <div class="md-kpi-val">{{ rejected_total|default:0|intcomma }}</div>
-    <div class="md-kpi-foot">
-      <span>+{{ week_rejected|default:0 }} this week</span>
-    </div>
-  </div>
-
-  <!-- Challans Issued -->
-  <div class="md-kpi-card kpi-blue">
-    <div class="md-kpi-top">
-      <span class="md-kpi-label">Challans Issued</span>
-      <div class="md-kpi-icon-wrap"><i class="bi bi-receipt"></i></div>
-    </div>
-    <div class="md-kpi-val">{{ my_challans_total|default:0|intcomma }}</div>
-    <div class="md-kpi-foot">
-      <span class="text-success fw-semibold">{{ my_challans_paid|default:0 }} paid</span> &middot; {{ my_challans_unpaid|default:0 }} unpaid
-    </div>
-  </div>
-</div>
-
-<!-- Charts Row -->
-<div class="row g-3 mb-4">
-  <div class="col-lg-8">
-    <div class="md-card h-100">
-      <div class="md-card-head">
-        <h2><i class="bi bi-graph-up-arrow text-primary"></i> 7-Day Review Activity Velocity</h2>
+    <section class="scr-panel scr-panel-8">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-graph-up-arrow"></i> 7-Day Review Activity Velocity</div>
         <span class="md-badge md-badge-info">Daily Throughput</span>
       </div>
-      <div class="md-card-body">
-        <div style="height:260px;position:relative;">
-          <canvas id="officerActivityChart"
-                  data-days-labels='[{% for d in days_data %}"{{ d.label|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
-                  data-days-counts='[{% for d in days_data %}{{ d.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
-        </div>
+      <div class="scr-panel-body scr-panel-chart">
+        <canvas id="officerActivityChart"
+                data-days-labels='[{% for d in days_data %}"{{ d.label|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+                data-days-counts='[{% for d in days_data %}{{ d.count|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
-    </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="md-card h-100">
-      <div class="md-card-head">
-        <h2><i class="bi bi-pie-chart text-info"></i> Decision Distribution</h2>
+    </section>
+
+    <section class="scr-panel scr-panel-4">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-pie-chart"></i> Decision Distribution</div>
       </div>
-      <div class="md-card-body d-flex flex-column align-items-center justify-content-center">
-        <div style="height:210px;width:100%;position:relative;">
+      <div class="scr-panel-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="height: 200px; width: 100%; position: relative;">
           <canvas id="officerDoughnutChart" data-confirmed="{{ confirmed_total|default:0 }}" data-rejected="{{ rejected_total|default:0 }}"></canvas>
         </div>
-        <div class="d-flex justify-content-center gap-3 mt-3 sc-text-xs">
-          <span><i class="bi bi-circle-fill text-success me-1"></i>Confirmed ({{ confirmed_total }})</span>
-          <span><i class="bi bi-circle-fill text-danger me-1"></i>Rejected ({{ rejected_total }})</span>
+        <div style="display: flex; gap: 14px; margin-top: 12px; font-size: 0.78rem; color: var(--sc-text-muted);">
+          <span><i class="bi bi-circle-fill" style="color:#22A45D;"></i> Confirmed ({{ confirmed_total }})</span>
+          <span><i class="bi bi-circle-fill" style="color:#E23B4E;"></i> Rejected ({{ rejected_total }})</span>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+    </section>
 
-<!-- Recent Reviews Ledger -->
-<div class="md-card">
-  <div class="md-card-head">
-    <h2><i class="bi bi-list-check text-primary"></i> My Recent Violation Reviews</h2>
-    <a href="{% url 'officer_portal:review_history' %}" class="md-btn md-btn-outline md-btn-sm">
-      <span>View All History</span><i class="bi bi-chevron-right"></i>
-    </a>
-  </div>
-  <div class="table-responsive">
-    <table class="table sc-table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>Frame / Detection</th>
-          <th>Camera Source</th>
-          <th>License Plate</th>
-          <th>Violation</th>
-          <th>Decision</th>
-          <th>Timestamp</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in recent_reviews %}
-        <tr>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              {% if d.raw_image %}
-              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Snapshot" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;background:#0A0E14;">
-              {% else %}
-              <div style="width:48px;height:32px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;">
-                <i class="bi bi-image"></i>
-              </div>
-              {% endif %}
-              <span class="sc-mono sc-text-sm">#{{ d.id }}</span>
-            </div>
-          </td>
-          <td>
-            <div><strong>{{ d.camera.camera_id|default:"Camera" }}</strong></div>
-            <div class="sc-text-xs sc-text-muted">{{ d.camera.location|default:"Field Sector"|truncatechars:25 }}</div>
-          </td>
-          <td>
-            <span class="sc-mono fw-bold fs-6">{{ d.effective_plate|default:"UNREADABLE" }}</span>
-          </td>
-          <td>
-            <span class="md-badge md-badge-purple">{{ d.get_violation_type_display|default:d.effective_violation_type|default:"Violation" }}</span>
-          </td>
-          <td>
-            {% if d.status == 'confirmed' %}
-            <span class="md-badge md-badge-ok"><i class="bi bi-check2"></i> Confirmed</span>
-            {% elif d.status == 'rejected' %}
-            <span class="md-badge md-badge-danger"><i class="bi bi-x"></i> Rejected</span>
-            {% elif d.status == 'flagged_officer' %}
-            <span class="md-badge md-badge-amber"><i class="bi bi-flag"></i> Flagged</span>
-            {% else %}
-            <span class="md-badge md-badge-gray">{{ d.get_status_display }}</span>
-            {% endif %}
-          </td>
-          <td class="sc-text-sm sc-text-muted">
-            {{ d.reviewed_at|date:"d M H:i"|default:d.created_at|date:"d M H:i" }}
-          </td>
-          <td>
-            <a href="{% url 'officer_portal:detection_detail' d.id %}" class="md-btn md-btn-outline md-btn-sm" title="View details">
-              <i class="bi bi-eye"></i>
-            </a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="sc-empty p-5 text-center">
-            <i class="bi bi-inbox fs-2 opacity-25 d-block mb-2"></i>
-            No reviews completed yet. Open the queue to begin.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-list-check"></i> My Recent Violation Reviews</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'officer_portal:review_history' %}" class="md-btn md-btn-outline md-btn-sm">View All History <i class="bi bi-chevron-right"></i></a>
+        </div>
+      </div>
+      <div class="scr-panel-body scr-panel-body--flush">
+        <div class="table-responsive">
+          <table class="table sc-table align-middle mb-0">
+            <thead>
+              <tr><th>Frame / Detection</th><th>Camera Source</th><th>License Plate</th><th>Violation</th><th>Decision</th><th>Timestamp</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {% for d in recent_reviews %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    {% if d.raw_image %}
+                    <img src="{{ d.raw_image.url }}" alt="Snapshot" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;background:#0A0E14;">
+                    {% else %}
+                    <div style="width:48px;height:32px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;"><i class="bi bi-image"></i></div>
+                    {% endif %}
+                    <span class="sc-mono sc-text-sm">#{{ d.id }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div><strong>{{ d.camera.camera_id|default:"Camera" }}</strong></div>
+                  <div class="sc-text-xs sc-text-muted">{{ d.camera.location|default:"Field Sector"|truncatechars:25 }}</div>
+                </td>
+                <td><span class="sc-mono fw-bold fs-6">{{ d.effective_plate|default:"UNREADABLE" }}</span></td>
+                <td><span class="md-badge md-badge-purple">{{ d.get_violation_type_display|default:d.effective_violation_type|default:"Violation" }}</span></td>
+                <td>
+                  {% if d.status == 'confirmed' %}<span class="md-badge md-badge-ok"><i class="bi bi-check2"></i> Confirmed</span>
+                  {% elif d.status == 'rejected' %}<span class="md-badge md-badge-danger"><i class="bi bi-x"></i> Rejected</span>
+                  {% elif d.status == 'flagged_officer' %}<span class="md-badge md-badge-amber"><i class="bi bi-flag"></i> Flagged</span>
+                  {% else %}<span class="md-badge md-badge-gray">{{ d.get_status_display }}</span>{% endif %}
+                </td>
+                <td class="sc-text-sm sc-text-muted">{{ d.reviewed_at|date:"d M H:i"|default:d.created_at|date:"d M H:i" }}</td>
+                <td>
+                  <a href="{% url 'officer_portal:detection_detail' d.id %}" class="md-btn md-btn-outline md-btn-sm" title="View details"><i class="bi bi-eye"></i></a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="sc-empty p-5 text-center">
+                  <i class="bi bi-inbox fs-2 opacity-25 d-block mb-2"></i>
+                  No reviews completed yet. Open the queue to begin.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </div>
 </div>
 {% endblock %}

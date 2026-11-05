@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Safe City{% endblock %} &middot; SAFE CITIES PROJECT</title>
+  <title>{% block title %}Dashboard{% endblock %} &middot; SAFE CITIES PROJECT</title>
   <meta name="theme-color" content="#1E4E9C">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
 
@@ -96,14 +96,6 @@
     {% if user.is_authenticated %}
     <header class="sc-topbar">
       <div class="sc-topbar-left">
-        <button type="button" class="sc-sidebar-toggle" id="scSidebarToggle" aria-label="Toggle sidebar">
-          <i class="bi bi-list"></i>
-        </button>
-        <nav class="sc-crumb" aria-label="breadcrumb">
-          <a href="{% url 'challans:home' %}"><i class="bi bi-house-door"></i> Home</a>
-          <span class="sc-crumb-sep"><i class="bi bi-chevron-right"></i></span>
-          <span class="sc-crumb-current">{% if page_title %}{{ page_title }}{% else %}Dashboard{% endif %}</span>
-        </nav>
         <form class="sc-search" method="get" action="{% url 'challans:home' %}" role="search">
           <i class="bi bi-search"></i>
           <input type="search" name="q" placeholder="Search ticket, plate or CNIC…" aria-label="Search" autocomplete="off">
@@ -200,7 +192,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/datatables@1.13.8/media/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 

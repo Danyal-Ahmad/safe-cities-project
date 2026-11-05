@@ -348,11 +348,11 @@ def audit_export(request):
             f"<td>{e.target_model or ''} #{e.target_id or ''}</td></tr>"
         )
     html = (
-        "<!DOCTYPE html><html><head><meta charset='utf-8'><title>SafeCity Audit Export</title>"
+        "<!DOCTYPE html><html><head><meta charset='utf-8'><title>SAFE CITIES PROJECT Audit Export</title>"
         "<style>body{font-family:Arial,sans-serif;font-size:11px;margin:24px}"
         "table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px;text-align:left}"
         "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
-        f"<h1>SafeCity Audit | {kind}</h1><p>Generated {tz.now().strftime('%Y-%m-%d %H:%M')} · {len(body_rows)} rows</p>"
+        f"<h1>SAFE CITIES PROJECT Audit | {kind}</h1><p>Generated {tz.now().strftime('%Y-%m-%d %H:%M')} · {len(body_rows)} rows</p>"
         "<table><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th></tr></thead><tbody>"
         + ''.join(body_rows) +
         "</tbody></table><script>window.onload=function(){window.print();}</script></body></html>"

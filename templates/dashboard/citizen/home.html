@@ -3,337 +3,177 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}Citizen Portal | My E-Challans · SafeCity{% endblock %}
-
-{% block crumb %}
-<a href="/">Home</a>
-<span class="sc-crumb-sep">/</span>
-<b>Citizen Portal</b>
-{% endblock %}
+{% block title %}Citizen Portal | My E-Challans{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
-<!-- Modern Hero Banner -->
-<div class="md-hero">
-  <div>
-    <div class="md-hero-title">
-      <i class="bi bi-shield-fill-check"></i>
-      <span>Citizen E-Challan Portal</span>
-      <span class="md-badge md-badge-cyan">VERIFIED CITIZEN</span>
-    </div>
-    <p class="md-hero-subtitle">
-      Your One-Stop Solution for Traffic Fines &amp; Services
-      {% if user_cnic %} &middot; Linked CNIC: <b>{{ user_cnic }}</b>{% endif %}
-    </p>
-    {% if user_plates %}
-    <p class="md-hero-subtitle" style="margin-top: 6px;">
-      Registered Plates:
-      {% for p in user_plates %}
-        <span class="md-badge md-badge-dark md-plate-tag" style="font-family: monospace; font-size: 0.75rem;">{{ p }}</span>
-      {% endfor %}
-    </p>
-    {% endif %}
-    <div class="md-hero-actions">
-      <span class="md-hero-location"><i class="bi bi-geo-alt-fill"></i> Safe City</span>
-      <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.35); padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); color: #C9DAF5;">
-        {% now "D, d M Y · H:i" %}
-      </div>
-    </div>
-  </div>
-  <div class="md-hero-art">
-    <img src="{% static 'img/hero_illustration.jpg' %}" alt="Safe City traffic enforcement">
-  </div>
-</div>
+<!-- ====================================================================
+     CITIZEN PORTAL SCREEN · one cohesive surface
+     ==================================================================== -->
+<div class="scr">
 
-<!-- Outstanding Balance Card (High Visibility) -->
-{% if request.user|has_perm:"view_own_challans" %}
-  <div class="md-balance-card">
-    <div class="sc-flex sc-items-center sc-justify-between" style="flex-wrap: wrap; gap: 1rem; position: relative; z-index: 2;">
-      <div>
-        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 0.35rem; font-weight: 600;">
-          Outstanding Payable Balance
-        </div>
-        <div class="md-balance-amount {% if not outstanding_amount or outstanding_amount == 0 %}clear{% endif %}">
-          PKR {{ outstanding_amount|floatformat:0|intcomma|default:"0" }}
-        </div>
-        <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0.4rem;">
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-shield-fill-check"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Citizen Services</div>
+        <div class="scr-rail-title">
+          My E-Challan Portal
           {% if unpaid_count > 0 %}
-            You have <b style="color: #fca5a5;">{{ unpaid_count }}</b> unpaid violation ticket{{ unpaid_count|pluralize }} requiring settlement.
+          <span class="scr-rail-tag scr-rail-tag--danger"><i class="bi bi-exclamation-circle"></i> {{ unpaid_count }} Unpaid</span>
           {% else %}
-            <i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Excellent! You have no outstanding traffic fines on record.
+          <span class="scr-rail-tag scr-rail-tag--success"><i class="bi bi-check-circle"></i> All Clear</span>
           {% endif %}
         </div>
+        <div class="scr-rail-sub">
+          Your one-stop solution for traffic fines and services{% if user_cnic %} · Linked CNIC: <b>{{ user_cnic }}</b>{% endif %}
+          {% if user_plates %} · Registered plates:
+          {% for p in user_plates %}<span class="md-badge md-badge-dark" style="font-family: var(--sc-mono); font-size: 0.72rem;">{{ p }}</span> {% endfor %}{% endif %}
+        </div>
       </div>
-
-      <div class="sc-flex sc-items-center" style="gap: 0.75rem;">
+      <div class="scr-rail-actions">
+        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i" %}</span></span>
         {% if unpaid_count > 0 and request.user|has_perm:"pay_own_challans" %}
-          <a href="{% url 'citizen_portal:pay_challan' challans.0.id %}" class="md-btn md-btn-cyan" style="font-size: 0.95rem; padding: 0.75rem 1.5rem; box-shadow: 0 0 20px rgba(14,165,233,0.4);">
-            <i class="bi bi-credit-card-2-front-fill"></i> Pay Active Challan Now
-          </a>
+        <a href="{% url 'citizen_portal:pay_challan' challans.0.id %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-credit-card-2-front-fill"></i> Pay Now</a>
         {% endif %}
         {% if request.user|has_perm:"submit_appeals" %}
-          <a href="{% url 'citizen_portal:appeal_tracker' %}" class="md-btn md-btn-secondary" style="font-size: 0.85rem;">
-            <i class="bi bi-shield-exclamation"></i> Appeals Center
-          </a>
+        <a href="{% url 'citizen_portal:appeal_tracker' %}" class="scr-rail-btn"><i class="bi bi-shield-exclamation"></i> Appeals</a>
         {% endif %}
       </div>
     </div>
-  </div>
-{% endif %}
 
-<!-- Dynamic KPI Row (Permission Gated) -->
-<div class="md-kpi-grid" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
-  <!-- Total Challans -->
-  <div class="md-kpi-card">
-    <div class="md-kpi-icon-box">
-      <i class="bi bi-receipt-cutoff"></i>
-    </div>
-    <div class="md-kpi-body">
-      <div class="md-kpi-label">Total E-Challans</div>
-      <div class="md-kpi-value" data-key="total_challans">{{ total_challans|default:0 }}</div>
-      <div class="md-kpi-foot">Lifetime record</div>
-    </div>
-  </div>
-
-  <!-- Unpaid Challans -->
-  {% if request.user|has_perm:"view_own_challans" %}
-    <div class="md-kpi-card kpi-warning">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-hourglass-split"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Unpaid / Due</div>
-        <div class="md-kpi-value" data-key="unpaid_count" style="color: #f59e0b;">{{ unpaid_count|default:0 }}</div>
-        <div class="md-kpi-foot">PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }}</div>
-      </div>
-    </div>
-
-    <!-- Paid Challans -->
-    <div class="md-kpi-card kpi-success">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-check2-circle"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Paid & Settled</div>
-        <div class="md-kpi-value" data-key="paid_count" style="color: #10b981;">{{ paid_count|default:0 }}</div>
-        <div class="md-kpi-foot">PKR {{ paid_amount|floatformat:0|intcomma|default:0 }} cleared</div>
-      </div>
-    </div>
-
-    <!-- Overdue Challans -->
-    <div class="md-kpi-card kpi-danger">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Overdue Tickets</div>
-        <div class="md-kpi-value" data-key="overdue_count" style="color: #ef4444;">{{ overdue_count|default:0 }}</div>
-        <div class="md-kpi-foot">May incur surcharge</div>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- Charts Section (Only shown if history exists) -->
-{% if request.user|has_perm:"view_own_challans" and challans %}
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
-    <!-- 6-Month Velocity -->
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-bar-chart-line-fill" style="color: var(--md-brand-cyan);"></i>
-          <h3>6-Month Challan Activity</h3>
+    <!-- Fused stat strip -->
+    <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
+      {% if request.user|has_perm:"view_own_challans" %}
+      <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
+        <div class="scr-stat-label">Outstanding Balance</div>
+        <div class="scr-stat-value" data-key="outstanding_amount" data-format="pkr">PKR {{ outstanding_amount|floatformat:0|intcomma|default:"0" }}</div>
+        <div class="scr-stat-foot">
+          {% if unpaid_count > 0 %}{{ unpaid_count }} ticket{{ unpaid_count|pluralize }} requiring settlement{% else %}No outstanding traffic fines{% endif %}
         </div>
-        <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">Monthly Trend</span>
       </div>
-      <div class="md-card-body" style="height: 220px; position: relative;">
+      {% endif %}
+      <div class="scr-stat">
+        <div class="scr-stat-label">Total E-Challans</div>
+        <div class="scr-stat-value" data-key="total_challans">{{ total_challans|default:0 }}</div>
+        <div class="scr-stat-foot">Lifetime record</div>
+      </div>
+      {% if request.user|has_perm:"view_own_challans" %}
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Unpaid / Due</div>
+        <div class="scr-stat-value" data-key="unpaid_count">{{ unpaid_count|default:0 }}</div>
+        <div class="scr-stat-foot">PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }} payable</div>
+      </div>
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Paid &amp; Settled</div>
+        <div class="scr-stat-value" data-key="paid_count">{{ paid_count|default:0 }}</div>
+        <div class="scr-stat-foot">PKR {{ paid_amount|floatformat:0|intcomma|default:0 }} cleared</div>
+      </div>
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Overdue Tickets</div>
+        <div class="scr-stat-value" data-key="overdue_count">{{ overdue_count|default:0 }}</div>
+        <div class="scr-stat-foot">May incur surcharge</div>
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Unified workspace -->
+  <div class="scr-grid">
+
+    {% if request.user|has_perm:"view_own_challans" and challans %}
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-bar-chart-line-fill"></i> 6-Month Challan Activity</div>
+        <span class="md-badge md-badge-secondary">Monthly Trend</span>
+      </div>
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"
                 data-month-labels='[{% for m in month_labels %}"{{ m|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                 data-month-counts='[{% for m in month_counts %}{{ m }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
-    </div>
+    </section>
 
-    <!-- Violation Types Breakdown -->
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-pie-chart-fill" style="color: var(--md-purple);"></i>
-          <h3>Infraction Breakdown</h3>
-        </div>
-        <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">Category Share</span>
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Infraction Breakdown</div>
+        <span class="md-badge md-badge-secondary">Category Share</span>
       </div>
-      <div class="md-card-body" style="height: 220px; position: relative;">
+      <div class="scr-panel-body scr-panel-chart">
         <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"
                 data-violation-labels='[{% for v in violation_labels %}"{{ v|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                 data-violation-counts='[{% for v in violation_counts %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
-    </div>
-  </div>
-{% endif %}
+    </section>
+    {% endif %}
 
-<!-- E-Challans Ledger Table -->
-<div class="md-card">
-  <div class="md-card-head">
-    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <i class="bi bi-card-checklist" style="color: var(--md-brand-cyan);"></i>
-      <h3>My E-Challans Ledger ({{ total_challans|default:0 }})</h3>
-    </div>
-    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <a href="{% url 'challans:home' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-search"></i> Search Any Ticket
-      </a>
-    </div>
-  </div>
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-card-checklist"></i> My E-Challans Ledger</div>
+        <div class="scr-panel-tools">
+          <span class="md-badge md-badge-secondary">{{ total_challans|default:0 }} Records</span>
+          <a href="{% url 'challans:home' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-search"></i> Search Any Ticket</a>
+        </div>
+      </div>
 
-  {% if challans %}
-    <div style="overflow-x: auto;">
-      <table class="md-table">
-        <thead>
-          <tr>
-            <th>Ticket No</th>
-            <th>Plate</th>
-            <th>Violation Type</th>
-            <th>Date & Time</th>
-            <th>Legal Fine</th>
-            <th>Status</th>
-            <th>Due Date</th>
-            <th style="text-align: right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for c in challans %}
+      {% if challans %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
             <tr>
-              <td style="font-family: monospace; font-weight: 700;">
-                <a href="{% url 'challans:challan_detail' c.id %}" style="color: var(--md-brand-primary); text-decoration: none;">
-                  #{{ c.ticket_no }}
-                </a>
+              <th>Ticket No</th><th>Plate</th><th>Violation Type</th><th>Date &amp; Time</th>
+              <th>Legal Fine</th><th>Status</th><th>Due Date</th><th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in challans %}
+            <tr>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">
+                <a href="{% url 'challans:challan_detail' c.id %}" style="color: var(--md-brand-primary);">#{{ c.ticket_no }}</a>
               </td>
+              <td><span class="md-badge md-badge-dark" style="font-family: var(--sc-mono); font-size: 0.8rem;">{{ c.plate_number }}</span></td>
               <td>
-                <span class="md-badge md-badge-dark" style="font-family: monospace; font-size: 0.8rem;">
-                  {{ c.plate_number }}
-                </span>
+                {% if c.violation_type == 'wrong_way' %}<span class="md-badge md-badge-danger"><i class="bi bi-arrow-left-right"></i> Wrong Way</span>
+                {% elif c.violation_type == 'signal_break' %}<span class="md-badge md-badge-warning"><i class="bi bi-traffic-light"></i> Red Light</span>
+                {% elif c.violation_type == 'over_speed' %}<span class="md-badge md-badge-purple"><i class="bi bi-speedometer"></i> Speeding</span>
+                {% elif c.violation_type == 'no_helmet' %}<span class="md-badge md-badge-info"><i class="bi bi-shield-slash"></i> No Helmet</span>
+                {% else %}<span class="md-badge md-badge-secondary">{{ c.get_violation_type_display }}</span>{% endif %}
               </td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ c.issue_date|date:"d M Y" }}</td>
+              <td style="font-weight: 700; color: #0b192c;">PKR {{ c.fine_amount|floatformat:0|intcomma }}</td>
               <td>
-                {% if c.violation_type == 'wrong_way' %}
-                  <span class="md-badge md-badge-danger"><i class="bi bi-arrow-left-right"></i> Wrong Way</span>
-                {% elif c.violation_type == 'signal_break' %}
-                  <span class="md-badge md-badge-warning"><i class="bi bi-traffic-light"></i> Red Light</span>
-                {% elif c.violation_type == 'over_speed' %}
-                  <span class="md-badge md-badge-purple"><i class="bi bi-speedometer"></i> Speeding</span>
-                {% elif c.violation_type == 'no_helmet' %}
-                  <span class="md-badge md-badge-info"><i class="bi bi-shield-slash"></i> No Helmet</span>
-                {% else %}
-                  <span class="md-badge md-badge-secondary">{{ c.get_violation_type_display }}</span>
-                {% endif %}
+                {% if c.payment_status == 'PAID' %}<span class="md-badge md-badge-success"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                {% elif c.payment_status == 'VOIDED' %}<span class="md-badge md-badge-secondary"><i class="bi bi-slash-circle"></i> Voided</span>
+                {% elif c.is_overdue %}<span class="md-badge md-badge-danger"><i class="bi bi-clock-history"></i> Overdue</span>
+                {% else %}<span class="md-badge md-badge-warning"><i class="bi bi-exclamation-circle"></i> Unpaid</span>{% endif %}
               </td>
-              <td style="font-size: 0.8rem; color: var(--md-text-muted);">
-                {{ c.issue_date|date:"d M Y" }}
-              </td>
-              <td style="font-weight: 700; color: #0b192c;">
-                PKR {{ c.fine_amount|floatformat:0|intcomma }}
-              </td>
-              <td>
-                {% if c.payment_status == 'PAID' %}
-                  <span class="md-badge md-badge-success"><i class="bi bi-check-circle-fill"></i> Paid</span>
-                {% elif c.payment_status == 'VOIDED' %}
-                  <span class="md-badge md-badge-secondary"><i class="bi bi-slash-circle"></i> Voided</span>
-                {% elif c.is_overdue %}
-                  <span class="md-badge md-badge-danger"><i class="bi bi-clock-history"></i> Overdue</span>
-                {% else %}
-                  <span class="md-badge md-badge-warning"><i class="bi bi-exclamation-circle"></i> Unpaid</span>
-                {% endif %}
-              </td>
-              <td style="font-size: 0.8rem; color: var(--md-text-muted);">
-                {{ c.due_date|date:"d M Y" }}
-              </td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ c.due_date|date:"d M Y" }}</td>
               <td style="text-align: right;">
                 <div class="sc-flex sc-items-center sc-justify-end" style="gap: 0.35rem;">
                   {% if c.payment_status == 'UNPAID' and request.user|has_perm:"pay_own_challans" %}
-                    <a href="{% url 'citizen_portal:pay_challan' c.id %}" class="md-btn md-btn-primary md-btn-sm">
-                      <i class="bi bi-credit-card-fill"></i> Pay
-                    </a>
+                  <a href="{% url 'citizen_portal:pay_challan' c.id %}" class="md-btn md-btn-primary md-btn-sm"><i class="bi bi-credit-card-fill"></i> Pay</a>
                   {% endif %}
-                  <a href="{% url 'challans:challan_detail' c.id %}" class="md-btn md-btn-secondary md-btn-sm" title="View details & evidence">
-                    <i class="bi bi-eye"></i> View
-                  </a>
+                  <a href="{% url 'challans:challan_detail' c.id %}" class="md-btn md-btn-secondary md-btn-sm" title="View details & evidence"><i class="bi bi-eye"></i> View</a>
                 </div>
               </td>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div style="padding: 4rem 2rem; text-align: center; color: var(--md-text-muted);">
-      <i class="bi bi-shield-check" style="font-size: 3.5rem; color: #10b981; display: block; margin-bottom: 0.75rem;"></i>
-      <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--md-text-title); margin: 0 0 0.5rem 0;">All Clear! No Violations Found</h3>
-      <p style="font-size: 0.875rem; max-width: 420px; margin: 0 auto 1.25rem;">There are no traffic tickets issued against your registered CNIC or license plates. Safe driving is appreciated!</p>
-      <a href="{% url 'challans:home' %}" class="md-btn md-btn-primary md-btn-sm">
-        <i class="bi bi-search"></i> Search Any Public Challan
-      </a>
-    </div>
-  {% endif %}
-</div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 4rem 2rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-shield-check" style="font-size: 3.5rem; color: #10b981; display: block; margin-bottom: 0.75rem;"></i>
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--md-text-title); margin: 0 0 0.5rem 0;">All Clear! No Violations Found</h3>
+        <p style="font-size: 0.875rem; max-width: 420px; margin: 0 auto 1.25rem;">There are no traffic tickets issued against your registered CNIC or license plates. Safe driving is appreciated!</p>
+        <a href="{% url 'challans:home' %}" class="md-btn md-btn-primary md-btn-sm"><i class="bi bi-search"></i> Search Any Public Challan</a>
+      </div>
+      {% endif %}
+    </section>
 
-<!-- Quick Action Shortcuts -->
-<div class="md-card">
-  <div class="md-card-head">
-    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <i class="bi bi-lightning-charge-fill" style="color: var(--md-warning);"></i>
-      <h3>Citizen Self-Service Actions</h3>
-    </div>
-  </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; padding: 1.25rem;">
-    {% if request.user|has_perm:"view_own_challans" %}
-      <a href="{% url 'challans:home' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);">
-          <i class="bi bi-search"></i>
-        </div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Public Search</div>
-          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Lookup ticket by number</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"submit_appeals" %}
-      <a href="{% url 'citizen_portal:appeal_tracker' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-warning-bg); color: var(--md-warning);">
-          <i class="bi bi-chat-left-text-fill"></i>
-        </div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">File Dispute / Appeal</div>
-          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Submit evidence for review</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"edit_own_profile" %}
-      <a href="{% url 'citizen_portal:profile_edit' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);">
-          <i class="bi bi-person-lines-fill"></i>
-        </div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Edit Profile</div>
-          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Update mobile & address</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"change_own_password" %}
-      <a href="{% url 'citizen_portal:password_change' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);">
-          <i class="bi bi-shield-lock-fill"></i>
-        </div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.875rem; color: var(--md-text-title);">Security Settings</div>
-          <div style="font-size: 0.75rem; color: var(--md-text-muted);">Change portal password</div>
-        </div>
-      </a>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

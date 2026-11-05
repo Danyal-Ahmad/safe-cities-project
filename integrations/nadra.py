@@ -51,7 +51,7 @@ def verify_cnic(cnic: str, expected_name: Optional[str] = None) -> Dict[str, Any
     if api_url and is_real():
         try:
             url = f"{api_url}&cnic={cnic}" if '?' in api_url else f"{api_url.rstrip('/')}?cnic={cnic}"
-            headers = {'Accept': 'application/json', 'User-Agent': 'SafeCity-FYP/Phase10'}
+            headers = {'Accept': 'application/json', 'User-Agent': 'SafeCities-Project/1.0'}
             if api_key:
                 headers['Authorization'] = f'Bearer {api_key}'
             r = requests.get(url, headers=headers, timeout=8)

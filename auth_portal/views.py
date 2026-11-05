@@ -52,7 +52,7 @@ ALLOWED_ADMIN_ROLES = tuple(ADMIN_ROLE_DASHBOARD_URLS.keys())
 RESET_TOKEN_TTL_HOURS = 2
 
 
-@ratelimit(key='ip', rate='20/15m', method='POST', block=True)
+@ratelimit(key='ip', rate='90/15m', method='POST', block=True)
 def admin_login(request):
     if request.user.is_authenticated:
         return redirect('auth_portal:role_redirect')
@@ -126,7 +126,7 @@ def role_redirect(request):
     return redirect('auth_portal:admin_login')
 
 
-@ratelimit(key='ip', rate='30/15m', method='POST', block=True)
+@ratelimit(key='ip', rate='90/15m', method='POST', block=True)
 def citizen_login(request):
     if request.user.is_authenticated:
         if request.user.role != User.USER:
@@ -407,19 +407,19 @@ def _notify_dig_for_reset(request, user, req):
 def _send_reset_email(request, user, token, kind='admin'):
     if kind == 'admin':
         reset_url = request.build_absolute_uri(
-            reverse('auth_portal:admin_reset_confirm', args=[token.token])
+            reverse('dig:admin_reset_password', args=[token.token])
         )
     else:
         reset_url = request.build_absolute_uri(
             reverse('auth_portal:citizen_reset_confirm', args=[token.token])
         )
-    subject = "SafeCity FYP | Password Reset"
+    subject = "SAFE CITIES PROJECT | Password Reset"
     body = (
         f"Hello {user.display_name},\n\n"
-        f"We received a request to reset your SafeCity password.\n\n"
+        f"We received a request to reset your SAFE CITIES PROJECT password.\n\n"
         f"Reset link (valid for {RESET_TOKEN_TTL_HOURS} hours):\n{reset_url}\n\n"
         f"If you did not request this reset, you can safely ignore this email.\n\n"
-        f"- SafeCity FYP"
+        f"- SAFE CITIES PROJECT"
     )
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,

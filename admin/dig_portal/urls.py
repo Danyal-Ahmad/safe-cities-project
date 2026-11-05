@@ -72,6 +72,10 @@ path('analytics/',                    views.analytics,               name='analy
     path('alerts/hub/alert/<int:alert_id>/edit/',   views.alerts_hub_edit_alert,    name='alerts_hub_edit_alert'),
     path('alerts/hub/alert/<int:alert_id>/delete/',  views.alerts_hub_delete_alert,  name='alerts_hub_delete_alert'),
     path('alerts/hub/broadcast/<int:log_id>/delete/', views.alerts_hub_delete_broadcast, name='alerts_hub_delete_broadcast'),
+    path('alerts/hub/banner/add/',                 views.alerts_hub_add_banner,   name='alerts_hub_add_banner'),
+    path('alerts/hub/banner/<int:banner_id>/edit/',   views.alerts_hub_edit_banner,  name='alerts_hub_edit_banner'),
+    path('alerts/hub/banner/<int:banner_id>/toggle/', views.alerts_hub_toggle_banner, name='alerts_hub_toggle_banner'),
+    path('alerts/hub/banner/<int:banner_id>/delete/', views.alerts_hub_delete_banner, name='alerts_hub_delete_banner'),
 
     path('change-password/',              views.staff_change_password,   name='staff_change_password'),
     path('change-password/alt/',          views.staff_change_password,   name='change_password'),

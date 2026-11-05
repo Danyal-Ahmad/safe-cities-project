@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Login | SAFE CITY FYP</title>
+  <title>Staff Login | SAFE CITIES PROJECT</title>
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -85,7 +85,7 @@
         <div class="sep"></div>
         <img src="{% static 'img/university_logo.png' %}" style="width:44px;height:44px;border-radius:10px" alt="">
       </div>
-      <div class="title"><h1>SAFE CITY FYP</h1><p>STAFF PORTAL</p></div>
+      <div class="title"><h1>SAFE CITIES PROJECT</h1><p>STAFF PORTAL</p></div>
     </div>
     <div class="right">
       <div class="form-title">Staff Sign In</div>
@@ -97,7 +97,7 @@
           <label>Email Address<span class="req">*</span></label>
           <div class="iw">
             <span class="il"><i class="fa-solid fa-envelope"></i></span>
-            <input type="email" name="username" placeholder="staff@safecity.gov" required>
+            <input type="email" name="username" placeholder="you@safe-cities.project" required>
           </div>
         </div>
         <div class="fg">
@@ -108,13 +108,13 @@
             <button type="button" class="tp" onclick="var p=this.previousElementSibling; p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'\u{1F441}':'\u{1F576}'"><i class="fa-solid fa-eye"></i></button>
           </div>
         </div>
-        <button type="submit" class="sc-btn sc-btn-primary">Sign In</button>
+        <button type="submit" class="btn">Sign In</button>
         <div class="cd">
           <a href="{% url 'auth_portal:admin_forgot_password' %}">Forgot Password?</a>
         </div>
       </form>
     </div>
   </div>
-  <script>document.getElementById('loginForm').addEventListener('submit',function(e){document.getElementById('loader').classList.add('show')});</script>
+  <script nonce="{{ request.csp_nonce }}">document.getElementById('loginForm').addEventListener('submit',function(e){document.getElementById('loader').classList.add('show')});</script>
 </body>
 </html>

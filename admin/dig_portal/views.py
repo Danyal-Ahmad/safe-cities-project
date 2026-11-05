@@ -2277,12 +2277,12 @@ def generate_report(request):
             )
         html = (
             "<!DOCTYPE html><html><head><meta charset='utf-8'>"
-            "<title>SafeCity Challan Report</title>"
+            "<title>SAFE CITIES PROJECT Challan Report</title>"
             "<style>body{font-family:Arial,sans-serif;font-size:11px;margin:24px}"
             "h1{font-size:18px}table{border-collapse:collapse;width:100%}"
             "th,td{border:1px solid #ccc;padding:6px;text-align:left}"
             "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
-            "<h1>SafeCity FYP | Challan Report</h1>"
+            "<h1>SAFE CITIES PROJECT | Challan Report</h1>"
             f"<p>Generated: {timezone.now().strftime('%Y-%m-%d %H:%M')} · Rows: {len(rows)}</p>"
             "<table><thead><tr><th>Ticket</th><th>Plate</th><th>Violation</th>"
             "<th>Amount</th><th>Issued</th><th>Status</th></tr></thead><tbody>"
@@ -2946,10 +2946,12 @@ def officer_kpi(request):
 def alerts_hub(request):
     alerts = Alert.objects.all().order_by('-created_at')[:50]
     broadcasts = AuditLog.objects.filter(action='broadcast.send').order_by('-timestamp')[:50]
+    banners = Banner.objects.all().order_by('-created_at')[:100]
     active_tab = request.GET.get('tab', 'alerts')
     return render(request, 'dashboard/dig/alerts_hub.html', {
         'alerts': alerts,
         'broadcasts': broadcasts,
+        'banners': banners,
         'active_tab': active_tab,
         'alerts_active_count': Alert.objects.filter(is_active=True).count(),
         'alerts_danger_count': Alert.objects.filter(severity='danger').count(),
@@ -3112,6 +3114,109 @@ def alerts_hub_delete_broadcast(request, log_id):
         'object_label': (entry.details or {}).get('title', f'Broadcast #{log_id}') if isinstance(entry.details, dict) else f'Broadcast #{log_id}',
         'cancel_url': _alerts_hub_url('broadcasts', request),
     })
+
+
+# ------------------------------------------------------------------
+# Banners (public ads engine) - CRUD backing the Alerts Hub banner tab
+# ------------------------------------------------------------------
+
+_BANNER_PLACEMENTS = {code for code, _ in Banner.PLACEMENT_CHOICES}
+_BANNER_AUDIENCES = {code for code, _ in Banner.AUDIENCE_CHOICES}
+_BANNER_TYPES = {code for code, _ in Banner.BANNER_TYPE_CHOICES}
+
+
+def _banner_payload(request):
+    """Validate banner fields from POST; returns (data, error)."""
+    data = {
+        'title': (request.POST.get('title') or '').strip(),
+        'html_content': (request.POST.get('html_content') or '').strip(),
+        'placement': request.POST.get('placement') or Banner.PLACEMENT_TICKER,
+        'audience': request.POST.get('audience') or Banner.AUDIENCE_ALL,
+        'banner_type': request.POST.get('banner_type') or Banner.BANNER_TYPE_HTML,
+        'image_link': (request.POST.get('image_link') or '').strip(),
+        'show_on_home_only': request.POST.get('show_on_home_only') == 'on',
+        'is_active': request.POST.get('is_active') == 'on',
+    }
+    if not data['title']:
+        return None, "Title is required."
+    if data['placement'] not in _BANNER_PLACEMENTS:
+        data['placement'] = Banner.PLACEMENT_TICKER
+    if data['audience'] not in _BANNER_AUDIENCES:
+        data['audience'] = Banner.AUDIENCE_ALL
+    if data['banner_type'] not in _BANNER_TYPES:
+        data['banner_type'] = Banner.BANNER_TYPE_HTML
+    if data['banner_type'] == Banner.BANNER_TYPE_IMAGE and not (data['html_content'] or request.FILES.get('image')):
+        return None, "Image banners need an uploaded image or HTML fallback."
+    if data['banner_type'] == Banner.BANNER_TYPE_HTML and not data['html_content']:
+        return None, "HTML banners need content."
+    return data, None
+
+
+@role_required('DIG', 'IT')
+def alerts_hub_add_banner(request):
+    if request.method != 'POST':
+        messages.info(request, "Use the Alerts Hub banners tab to create a banner.")
+        return redirect(_alerts_hub_url('banners', request))
+    data, error = _banner_payload(request)
+    if error:
+        messages.error(request, error)
+        return redirect(_alerts_hub_url('banners', request))
+    banner = Banner.objects.create(
+        created_by=request.user,
+        image=request.FILES.get('image') or None,
+        **data,
+    )
+    AuditLog.write(request, 'banner.create', 'Banner', banner.id, title=banner.title[:80],
+                   placement=banner.placement, audience=banner.audience)
+    messages.success(request, f"Banner '{banner.title}' created and scheduled.")
+    return redirect(_alerts_hub_url('banners', request))
+
+
+@role_required('DIG', 'IT')
+def alerts_hub_edit_banner(request, banner_id):
+    banner = get_object_or_404(Banner, pk=banner_id)
+    if request.method != 'POST':
+        messages.info(request, "Use the edit button on a banner card to change it.")
+        return redirect(_alerts_hub_url('banners', request))
+    data, error = _banner_payload(request)
+    if error:
+        messages.error(request, error)
+        return redirect(_alerts_hub_url('banners', request))
+    for field, value in data.items():
+        setattr(banner, field, value)
+    if request.FILES.get('image'):
+        banner.image = request.FILES['image']
+    banner.save()
+    AuditLog.write(request, 'banner.update', 'Banner', banner.id, title=banner.title[:80])
+    messages.success(request, f"Banner '{banner.title}' updated.")
+    return redirect(_alerts_hub_url('banners', request))
+
+
+@role_required('DIG', 'IT')
+def alerts_hub_toggle_banner(request, banner_id):
+    banner = get_object_or_404(Banner, pk=banner_id)
+    banner.is_active = not banner.is_active
+    banner.save(update_fields=['is_active'])
+    AuditLog.write(request, 'banner.toggle', 'Banner', banner.id, active=banner.is_active)
+    messages.success(request, f"Banner '{banner.title}' {'activated' if banner.is_active else 'deactivated'}.")
+    return redirect(_alerts_hub_url('banners', request))
+
+
+@role_required('DIG', 'IT')
+def alerts_hub_delete_banner(request, banner_id):
+    banner = get_object_or_404(Banner, pk=banner_id)
+    if request.method == 'POST':
+        AuditLog.write(request, 'banner.delete', 'Banner', banner.id, title=banner.title[:80])
+        title = banner.title
+        banner.delete()
+        messages.success(request, f"Banner '{title}' deleted.")
+        return redirect(_alerts_hub_url('banners', request))
+    return render(request, 'dashboard/dig/alerts_hub_confirm_delete.html', {
+        'object_type': 'banner',
+        'object_label': banner.title,
+        'cancel_url': _alerts_hub_url('banners', request),
+    })
+
 
 @dig_required
 def admin_add(request):

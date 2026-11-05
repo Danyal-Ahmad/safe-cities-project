@@ -3,231 +3,160 @@
 {% load humanize %}
 {% load perm_tags %}
 
-{% block title %}IT Infrastructure Command | SafeCity Portal{% endblock %}
-
-{% block crumb %}
-<a href="/">Home</a>
-<span class="sc-crumb-sep">/</span>
-<b>IT Infrastructure Command</b>
-{% endblock %}
+{% block title %}IT Infrastructure Command{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
-<!-- Modern Hero Banner -->
-<div class="md-hero">
-  <div>
-    <div class="md-hero-title">
-      <i class="bi bi-motherboard" style="color: #38bdf8;"></i>
-      <span>IT Infrastructure Command Center</span>
-      <span class="md-badge md-badge-cyan">TECHNICAL / INFRASTRUCTURE</span>
-    </div>
-    <p class="md-hero-subtitle">
-      Surveillance Hardware · AI Inference Pipelines · Gateway Integrations · Server & Telemetry Health
-    </p>
-  </div>
-  <div class="md-hero-actions">
-    <div class="sc-text-sm" id="live-clock" style="font-family: monospace; background: rgba(15,23,42,0.6); padding: 0.4rem 0.75rem; border-radius: var(--md-radius-md); border: 1px solid rgba(255,255,255,0.1);">
-      {% now "D, d M Y · H:i:s" %}
-    </div>
-    {% if request.user|has_perm:"system_health" %}
-      <a href="{% url 'it_support_portal:system_health' %}" class="md-btn md-btn-secondary md-btn-sm">
-        <i class="bi bi-heart-pulse"></i> Telemetry
-      </a>
-    {% endif %}
-  </div>
-</div>
+<!-- ====================================================================
+     IT INFRASTRUCTURE COMMAND SCREEN · one cohesive surface
+     ==================================================================== -->
+<div class="scr">
 
-<!-- IT Health & System KPI Strip -->
-<div class="md-kpi-grid">
-  <!-- Cameras Online -->
-  {% if request.user|has_perm:"view_camera_health" %}
-    <div class="md-kpi-card kpi-success">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-camera-video-fill"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Cameras Online</div>
-        <div class="md-kpi-value">
-          <span id="kpi-cam-online" data-key="cameras_online">{{ cameras_online }}</span>
-          <span style="font-size: 0.85rem; font-weight: 500; color: var(--md-text-muted);">/ {{ cameras_total }} units</span>
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-motherboard"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Infrastructure &amp; Platform</div>
+        <div class="scr-rail-title">
+          IT Infrastructure Command
+          <span class="scr-rail-tag {% if ai_available %}scr-rail-tag--success{% else %}scr-rail-tag--danger{% endif %}">
+            <i class="bi bi-cpu"></i> AI Engine {% if ai_available %}Operational{% else %}Degraded{% endif %}
+          </span>
         </div>
-        <div class="md-kpi-foot"><a href="{% url 'it_support_portal:camera_list' %}" style="color: var(--md-brand-primary);">Manage streams →</a></div>
+        <div class="scr-rail-sub">Surveillance hardware, AI inference pipelines, gateway integrations and server telemetry health.</div>
+      </div>
+      <div class="scr-rail-actions">
+        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
+        {% if request.user|has_perm:"system_health" %}
+        <a href="{% url 'it_support_portal:system_health' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-heart-pulse"></i> Telemetry</a>
+        {% endif %}
+        {% if request.user|has_perm:"view_cameras" %}
+        <a href="{% url 'it_support_portal:camera_list' %}" class="scr-rail-btn"><i class="bi bi-camera-video"></i> Cameras</a>
+        {% endif %}
       </div>
     </div>
-  {% endif %}
 
-  <!-- AI Inference Detections 24h -->
-  {% if request.user|has_perm:"view_detections" %}
-    <div class="md-kpi-card">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-cpu-fill"></i>
+    <!-- Fused stat strip -->
+    <div class="scr-stats">
+      {% if request.user|has_perm:"view_camera_health" %}
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Cameras Online</div>
+        <div class="scr-stat-value"><span id="kpi-cam-online" data-key="cameras_online">{{ cameras_online }}</span><small> / {{ cameras_total }} units</small></div>
+        <div class="scr-stat-foot"><a href="{% url 'it_support_portal:camera_list' %}">Manage streams</a></div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Detections (24h)</div>
-        <div class="md-kpi-value" id="kpi-detections-24h" data-key="detections_24h">{{ detections_24h|intcomma }}</div>
-        <div class="md-kpi-foot">{{ detections_7d|intcomma }} past 7 days</div>
+      {% endif %}
+      {% if request.user|has_perm:"view_detections" %}
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Detections (24h)</div>
+        <div class="scr-stat-value" id="kpi-detections-24h" data-key="detections_24h">{{ detections_24h|intcomma }}</div>
+        <div class="scr-stat-foot">{{ detections_7d|intcomma }} past 7 days</div>
       </div>
-    </div>
-  {% endif %}
-
-  <!-- Overdue Challans -->
-  {% if request.user|has_perm:"view_challans" %}
-    <div class="md-kpi-card kpi-danger">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-exclamation-triangle-fill"></i>
+      {% endif %}
+      {% if request.user|has_perm:"view_challans" %}
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Overdue Tickets</div>
+        <div class="scr-stat-value" id="kpi-overdue" data-key="challans_overdue">{{ challans_overdue|intcomma }}</div>
+        <div class="scr-stat-foot">{{ challans_unpaid|intcomma }} unpaid of {{ challans_total|intcomma }}</div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Overdue Tickets</div>
-        <div class="md-kpi-value" id="kpi-overdue" data-key="challans_overdue" style="color: #ef4444;">{{ challans_overdue|intcomma }}</div>
-        <div class="md-kpi-foot">{{ challans_unpaid|intcomma }} unpaid of {{ challans_total|intcomma }}</div>
+      {% endif %}
+      {% if request.user|has_perm:"view_revenue_dashboard" %}
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Processed (30d)</div>
+        <div class="scr-stat-value" id="kpi-revenue-30d" data-key="revenue_30d" data-format="pkr">PKR {{ revenue_30d|floatformat:0|intcomma }}</div>
+        <div class="scr-stat-foot">{{ challans_paid|intcomma }} completed payments</div>
       </div>
-    </div>
-  {% endif %}
-
-  <!-- 30-Day Revenue Collection -->
-  {% if request.user|has_perm:"view_revenue_dashboard" %}
-    <div class="md-kpi-card kpi-success">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-cash-stack"></i>
+      {% endif %}
+      {% if request.user|has_perm:"view_ai_status" %}
+      <div class="scr-stat {% if ai_available %}scr-stat--success{% else %}scr-stat--danger{% endif %}">
+        <div class="scr-stat-label">AI Pipeline</div>
+        <div class="scr-stat-value">{% if ai_available %}ONLINE{% else %}DEGRADED{% endif %}</div>
+        <div class="scr-stat-foot">Plate detector + OCR</div>
       </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">Processed (30d)</div>
-        <div class="md-kpi-value" id="kpi-revenue-30d" data-key="revenue_30d" data-format="pkr" style="font-size: 1.45rem; color: #10b981;">
-          PKR {{ revenue_30d|floatformat:0|intcomma }}
-        </div>
-        <div class="md-kpi-foot">{{ challans_paid|intcomma }} completed payments</div>
-      </div>
-    </div>
-  {% endif %}
-
-  <!-- AI Model Pipeline Status -->
-  {% if request.user|has_perm:"view_ai_status" %}
-    <div class="md-kpi-card {% if ai_available %}kpi-success{% else %}kpi-danger{% endif %}">
-      <div class="md-kpi-icon-box">
-        <i class="bi bi-robot"></i>
-      </div>
-      <div class="md-kpi-body">
-        <div class="md-kpi-label">AI Engine</div>
-        <div class="md-kpi-value" style="font-size: 1.35rem; color: {% if ai_available %}#10b981{% else %}#ef4444{% endif %};">
-          {% if ai_available %}OPERATIONAL{% else %}DEGRADED{% endif %}
-        </div>
-        <div class="md-kpi-foot">Plate Detector + OCR</div>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- Technical Charts Grid -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-  <!-- Ingestion Trend -->
-  {% if request.user|has_perm:"view_detections" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-graph-up" style="color: var(--md-brand-cyan);"></i>
-          <h3>Camera Ingestion Rate (7 Days)</h3>
-        </div>
-        <span class="md-badge md-badge-secondary">Frame Stream</span>
-      </div>
-      <div class="md-card-body" style="height: 240px; position: relative;">
-        <canvas id="detChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
-      </div>
-    </div>
-  {% endif %}
-
-  <!-- Challans Issued -->
-  {% if request.user|has_perm:"view_challans" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-receipt" style="color: var(--md-purple);"></i>
-          <h3>Legal Enforcement Inflow (7 Days)</h3>
-        </div>
-        <span class="md-badge md-badge-secondary">Generated Challans</span>
-      </div>
-      <div class="md-card-body" style="height: 240px; position: relative;">
-        <canvas id="chalChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="bar"></canvas>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- 2-Column: Camera Hardware Health & Recent System Activity -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
-  <!-- Camera Surveillance Status -->
-  {% if request.user|has_perm:"view_camera_health" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-camera-video" style="color: var(--md-brand-cyan);"></i>
-          <h3>Camera Node Telemetry</h3>
-        </div>
-        <a href="{% url 'it_support_portal:camera_list' %}" class="md-btn md-btn-secondary md-btn-sm">
-          <i class="bi bi-gear"></i> Manage Network
-        </a>
-      </div>
-      {% if camera_health %}
-        <div style="overflow-x: auto; max-height: 280px;">
-          <table class="md-table">
-            <thead>
-              <tr>
-                <th>Camera ID</th>
-                <th>Physical Location</th>
-                <th>Health</th>
-                <th>RTSP Stream</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for c in camera_health %}
-                <tr>
-                  <td style="font-family: monospace; font-weight: 700;">{{ c.camera_id }}</td>
-                  <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ c.location|truncatechars:26 }}</td>
-                  <td>
-                    {% if c.health_status == 'online' %}
-                      <span class="md-badge md-badge-success">Online</span>
-                    {% elif c.health_status == 'offline' %}
-                      <span class="md-badge md-badge-danger">Offline</span>
-                    {% else %}
-                      <span class="md-badge md-badge-secondary">Unknown</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if c.is_streaming %}
-                      <span class="md-badge md-badge-success"><i class="bi bi-broadcast"></i> Active</span>
-                    {% else %}
-                      <span class="md-badge md-badge-secondary">Idle</span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
-          <i class="bi bi-camera-video-off" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
-          No cameras enrolled in system registry.
-        </div>
       {% endif %}
     </div>
-  {% endif %}
+  </header>
 
-  <!-- Core Infrastructure Environment -->
-  {% if request.user|has_perm:"system_health" %}
-    <div class="md-card" style="margin-bottom: 0;">
-      <div class="md-card-head">
-        <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-          <i class="bi bi-server" style="color: var(--md-purple);"></i>
-          <h3>Server Runtime Environment</h3>
-        </div>
-        <a href="{% url 'it_support_portal:system_health' %}" class="md-btn md-btn-secondary md-btn-sm">
-          <i class="bi bi-activity"></i> Telemetry
-        </a>
+  <!-- Unified workspace -->
+  <div class="scr-grid">
+
+    {% if request.user|has_perm:"view_detections" %}
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Camera Ingestion Rate (7 Days)</div>
+        <span class="md-badge md-badge-secondary">Frame Stream</span>
       </div>
-      <div style="padding: 1.25rem;">
+      <div class="scr-panel-body scr-panel-chart">
+        <canvas id="detChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_challans" %}
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-receipt"></i> Legal Enforcement Inflow (7 Days)</div>
+        <span class="md-badge md-badge-secondary">Generated Challans</span>
+      </div>
+      <div class="scr-panel-body scr-panel-chart">
+        <canvas id="chalChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="bar"></canvas>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_camera_health" %}
+    <section class="scr-panel scr-panel-7">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-camera-video"></i> Camera Node Telemetry</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'it_support_portal:camera_list' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-gear"></i> Manage Network</a>
+        </div>
+      </div>
+      {% if camera_health %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Camera ID</th><th>Physical Location</th><th>Health</th><th>RTSP Stream</th></tr>
+          </thead>
+          <tbody>
+            {% for c in camera_health %}
+            <tr>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ c.camera_id }}</td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ c.location|truncatechars:26 }}</td>
+              <td>
+                {% if c.health_status == 'online' %}<span class="md-badge md-badge-success">Online</span>
+                {% elif c.health_status == 'offline' %}<span class="md-badge md-badge-danger">Offline</span>
+                {% else %}<span class="md-badge md-badge-secondary">Unknown</span>{% endif %}
+              </td>
+              <td>
+                {% if c.is_streaming %}<span class="md-badge md-badge-success"><i class="bi bi-broadcast"></i> Active</span>
+                {% else %}<span class="md-badge md-badge-secondary">Idle</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-camera-video-off" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        No cameras enrolled in system registry.
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if request.user|has_perm:"system_health" %}
+    <section class="scr-panel scr-panel-5">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-server"></i> Server Runtime Environment</div>
+        <div class="scr-panel-tools">
+          <a href="{% url 'it_support_portal:system_health' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-activity"></i> Telemetry</a>
+        </div>
+      </div>
+      <div class="scr-panel-body">
         <div class="md-stat-row">
           <span class="md-stat-label">Primary Database Engine</span>
           <span class="md-stat-value"><span class="md-badge md-badge-success">PostgreSQL (Connected)</span></span>
@@ -235,16 +164,13 @@
         <div class="md-stat-row">
           <span class="md-stat-label">Computer Vision Pipeline</span>
           <span class="md-stat-value">
-            {% if ai_available %}
-              <span class="md-badge md-badge-success">YOLO + PyTesseract Active</span>
-            {% else %}
-              <span class="md-badge md-badge-danger">Models Missing</span>
-            {% endif %}
+            {% if ai_available %}<span class="md-badge md-badge-success">YOLO + PyTesseract Active</span>
+            {% else %}<span class="md-badge md-badge-danger">Models Missing</span>{% endif %}
           </span>
         </div>
         <div class="md-stat-row">
           <span class="md-stat-label">Python Interpreter</span>
-          <span class="md-stat-value" style="font-family: monospace; font-size: 0.8rem;">{{ python_version }}</span>
+          <span class="md-stat-value" style="font-family: var(--sc-mono); font-size: 0.8rem;">{{ python_version }}</span>
         </div>
         <div class="md-stat-row">
           <span class="md-stat-label">Operating System Platform</span>
@@ -255,58 +181,9 @@
           <span class="md-stat-value"><span class="md-badge md-badge-cyan">Sandbox / Ready</span></span>
         </div>
       </div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- IT Administration Action Launchpad -->
-<div class="md-card">
-  <div class="md-card-head">
-    <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-      <i class="bi bi-sliders" style="color: var(--md-brand-cyan);"></i>
-      <h3>Infrastructure Management Tools</h3>
-    </div>
-  </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1.25rem;">
-    {% if request.user|has_perm:"view_cameras" %}
-      <a href="{% url 'it_support_portal:camera_list' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-info-bg); color: var(--md-brand-cyan);"><i class="bi bi-camera-video"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Camera Network</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Enroll RTSP streams</div>
-        </div>
-      </a>
+    </section>
     {% endif %}
 
-    {% if request.user|has_perm:"payment_method_config" %}
-      <a href="{% url 'it_support_portal:payment_method_list' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-success-bg); color: var(--md-success);"><i class="bi bi-credit-card"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Payment Gateways</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Bank & card APIs</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"edit_system_settings" %}
-      <a href="{% url 'it_support_portal:settings_edit' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: var(--md-purple-bg); color: var(--md-purple);"><i class="bi bi-gear-wide-connected"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">System Settings</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Thresholds & timeouts</div>
-        </div>
-      </a>
-    {% endif %}
-
-    {% if request.user|has_perm:"view_backups" %}
-      <a href="{% url 'it_support_portal:backup_list' %}" class="md-quick-action">
-        <div class="md-quick-icon" style="background: #f1f5f9; color: #475569;"><i class="bi bi-cloud-arrow-down-fill"></i></div>
-        <div>
-          <div style="font-weight: 700; font-size: 0.85rem;">Database Backups</div>
-          <div style="font-size: 0.72rem; color: var(--md-text-muted);">Snapshots & restores</div>
-        </div>
-      </a>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

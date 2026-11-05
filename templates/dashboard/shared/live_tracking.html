@@ -1,26 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}Live Tracking Radar Workstation | Safe City{% endblock %}
-{% block crumb %}<a href="/">Home</a><span class="sc-crumb-sep">/</span><b>Live Tracking Radar</b>{% endblock %}
-
+{% block title %}Live Tracking Radar Workstation{% endblock %}
 {% block content %}
-<!-- Modern Hero Banner -->
-<div class="md-hero">
+<div class="sc-page-hero">
   <div>
-    <div class="md-hero-title">
-      <i class="bi bi-radar"></i>
-      <span>Live Tracking Workstation</span>
-    </div>
-    <p class="md-hero-subtitle">
-      Real-time CCTV video ingestion, AI canvas overlays, and live violation stream
-    </p>
+    <h1><i class="bi bi-radar me-2"></i>Live Tracking Workstation</h1>
+    <p class="sc-lead">Real-time CCTV video ingestion, AI canvas overlays and live violation stream.</p>
   </div>
-  <div class="md-hero-actions">
-    <div class="md-live-badge">
-      <span class="md-live-dot"></span>
-      <span id="radarStatusText">Radar Active</span>
-    </div>
+  <div class="sc-flex sc-gap-2 sc-items-center">
+    <span class="md-badge md-badge-success"><span class="md-live-dot"></span> <span id="radarStatusText">Radar Active</span></span>
   </div>
 </div>
 

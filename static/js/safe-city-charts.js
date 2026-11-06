@@ -49,8 +49,10 @@
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
+            indexAxis: opts.indexAxis || 'x',
             plugins: {
                 legend: {
+                    display: opts.hideLegend ? false : undefined,
                     position: 'bottom',
                     labels: {
                         font: { family: scCharts.defaults.fontFamily, size: 11.5, weight: '600' },
@@ -81,6 +83,43 @@
             scales: opts.scales || undefined
         };
     }
+
+    function datasetsTotal(datasets) {
+        var total = 0;
+        (datasets || []).forEach(function (ds) {
+            var d = (ds && ds.data) || [];
+            if (Array.isArray(d)) {
+                d.forEach(function (v) {
+                    var n = typeof v === 'object' && v ? v.y : v;
+                    total += (typeof n === 'number' && isFinite(n)) ? n : 0;
+                });
+            }
+        });
+        return total;
+    }
+
+    scCharts.emptyState = function (canvas, message) {
+        canvas = getCanvas(canvas);
+        if (!canvas) return null;
+        var box = canvas.parentElement;
+        if (!box || box.classList.contains('sc-chart-empty-host')) return null;
+        canvas.style.display = 'none';
+        var holder = document.createElement('div');
+        holder.className = 'sc-chart-empty';
+        holder.innerHTML = '<i class="bi bi-graph-up-arrow"></i><span>' + (message || 'No data for this period yet') + '</span>';
+        canvas.insertAdjacentElement('afterend', holder);
+        box.classList.add('sc-chart-empty-host');
+        return holder;
+    };
+
+    scCharts.restoreFromEmpty = function (canvas) {
+        canvas = getCanvas(canvas);
+        if (!canvas) return;
+        canvas.style.display = '';
+        var next = canvas.nextElementSibling;
+        if (next && next.classList && next.classList.contains('sc-chart-empty')) next.remove();
+        if (canvas.parentElement) canvas.parentElement.classList.remove('sc-chart-empty-host');
+    };
 
     function applyScales(opts) {
         const axis = {
@@ -314,6 +353,8 @@
         if (!canvas || typeof window.Chart === 'undefined') return null;
         scCharts.destroy(canvasId);
         const opts = options || {};
+        if (datasetsTotal(datasets) <= 0) { scCharts.emptyState(canvas, opts.emptyMessage); return null; }
+        scCharts.restoreFromEmpty(canvas);
         const ds = buildDatasets(canvas, datasets, opts.palette);
         const config = {
             type: 'line',
@@ -321,6 +362,7 @@
             options: mergeOpts(opts)
         };
         config.options.scales = applyScales(opts);
+        config.options.scales.y.grace = '8%';
         return new Chart(getCtx(canvas), config);
     };
 
@@ -329,6 +371,8 @@
         if (!canvas || typeof window.Chart === 'undefined') return null;
         scCharts.destroy(canvasId);
         const opts = options || {};
+        if (datasetsTotal(datasets) <= 0) { scCharts.emptyState(canvas, opts.emptyMessage); return null; }
+        scCharts.restoreFromEmpty(canvas);
         const ds = buildBarDatasets(canvas, datasets, opts.palette);
         const config = {
             type: 'bar',
@@ -336,6 +380,7 @@
             options: mergeOpts(opts)
         };
         config.options.scales = applyScales(opts);
+        config.options.scales.y.grace = '8%';
         return new Chart(getCtx(canvas), config);
     };
 
@@ -345,7 +390,14 @@
         scCharts.destroy(canvasId);
         options = options || {};
         if (!options.indexAxis) options.indexAxis = 'y';
+        if (datasetsTotal(datasets) <= 0) { scCharts.emptyState(canvas, options.emptyMessage); return null; }
+        scCharts.restoreFromEmpty(canvas);
         const ds = buildBarDatasets(canvas, datasets, options.palette);
+        ds.forEach(function (d) {
+            d.maxBarThickness = Math.min(d.maxBarThickness || 34, 34);
+            d.categoryPercentage = 0.62;
+            d.barPercentage = 0.7;
+        });
         const config = {
             type: 'bar',
             data: { labels: labels || [], datasets: ds },
@@ -357,6 +409,7 @@
         scales.y.grid.display = false;
         scales.y.grid.drawOnChartArea = false;
         scales.x.beginAtZero = true;
+        scales.x.grace = '8%';
         config.options.scales = scales;
         return new Chart(getCtx(canvas), config);
     };
@@ -366,6 +419,9 @@
         if (!canvas || typeof window.Chart === 'undefined') return null;
         scCharts.destroy(canvasId);
         options = options || {};
+        const flat = (data || []).reduce(function (a, v) { return a + (typeof v === 'number' ? v : 0); }, 0);
+        if (flat <= 0 || (data || []).length < 2) { scCharts.emptyState(canvas, options.emptyMessage || 'Not enough data yet'); return null; }
+        scCharts.restoreFromEmpty(canvas);
         const palette = scCharts.palettes[options.palette || 'navy'];
         const ds = [{
             data: data || [],

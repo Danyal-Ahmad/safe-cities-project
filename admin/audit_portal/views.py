@@ -546,6 +546,13 @@ def login_events_export(request):
     return resp
 
 
+def _safe_size(field_file, default=0.0):
+    try:
+        return round(field_file.size / 1048576, 2) if field_file else default
+    except (FileNotFoundError, OSError, ValueError):
+        return default
+
+
 @role_required(*AUDIT_ROLES)
 def uploads_log(request):
     """Audit of every upload: videos (with tamper-evident hashes) and template
@@ -558,7 +565,7 @@ def uploads_log(request):
             'kind': 'video', 'id': u.id, 'label': u.original_filename or f'upload #{u.id}',
             'by': u.uploaded_by, 'at': u.created_at, 'sha256': u.file_sha256 or '-',
             'meta': f"{u.camera.camera_id if u.camera else '-'} | {u.get_status_display()}",
-            'size_mb': round(u.video_file.size / 1048576, 2) if u.video_file else 0,
+            'size_mb': _safe_size(u.video_file),
             'frames': u.total_frames_extracted,
             'bursts': u.burst_evidence_collected,
         }

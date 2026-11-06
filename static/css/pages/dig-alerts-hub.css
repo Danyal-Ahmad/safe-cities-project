@@ -28,6 +28,6 @@
 .ah-dot.off { background: #C4CEDF; }
 .ah-view-toggle { display: inline-flex; border: 1px solid var(--sc-border); border-radius: 999px; overflow: hidden; margin-left: auto; }
 .ah-view-btn { border: none; background: #fff; padding: 8px 14px; font-size: 0.78rem; font-weight: 600; color: var(--sc-text-muted); cursor: pointer; }
-.ah-view-btn.active { background: var(--sc-navy); color: #fff; }
+.ah-view-btn.active { background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,.28); }
 .ah-pane { display: none; }
 .ah-pane.active { display: block; }

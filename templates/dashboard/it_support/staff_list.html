@@ -84,7 +84,6 @@
         <thead>
           <tr>
             <th>Staff Member</th>
-            <th>Email</th>
             <th>Role</th>
             <th>Phone</th>
             <th>Department</th>
@@ -97,9 +96,8 @@
           <tr>
             <td>
               <div class="it-staff-name">{{ s.display_name|default:s.username }}</div>
-              <div class="sc-text-xs sc-text-muted sc-mono">{{ s.username }}</div>
+              <div class="sc-text-xs sc-text-muted">{{ s.email|default:s.username }}</div>
             </td>
-            <td class="sc-text-sm">{{ s.email|default:"-" }}</td>
             <td><span class="sc-badge it-role-{{ s.role|lower }}"><i class="bi bi-person-badge"></i>{{ s.role_label|default:s.role }}</span></td>
             <td class="sc-text-sm">{{ s.phone|default:"-" }}</td>
             <td class="sc-text-sm">{{ s.department|default:"-" }}</td>

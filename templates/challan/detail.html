@@ -53,10 +53,10 @@
           <div class="scpub-dl">
             <div class="scpub-dl-row"><span class="scpub-dl-k">Ticket</span><span class="scpub-dl-v scpub-mono">{{ challan.ticket_no }}</span></div>
             <div class="scpub-dl-row"><span class="scpub-dl-k">Plate</span><span class="scpub-dl-v scpub-mono">{{ challan.plate_number }}</span></div>
-            <div class="scpub-dl-row"><span class="scpub-dl-k">Owner</span><span class="scpub-dl-v">{{ challan.owner_name|default:'-' }}</span></div>
-            <div class="scpub-dl-row"><span class="scpub-dl-k">CNIC</span><span class="scpub-dl-v scpub-mono">{{ challan.cnic|default:'-' }}</span></div>
-            <div class="scpub-dl-row"><span class="scpub-dl-k">Phone</span><span class="scpub-dl-v scpub-mono">{{ challan.phone|default:'-' }}</span></div>
-            <div class="scpub-dl-row"><span class="scpub-dl-k">Address</span><span class="scpub-dl-v">{{ challan.address|default:'-' }}</span></div>
+            {% if challan.owner_name %}<div class="scpub-dl-row"><span class="scpub-dl-k">Owner</span><span class="scpub-dl-v">{{ challan.owner_name }}</span></div>{% endif %}
+            {% if challan.cnic %}<div class="scpub-dl-row"><span class="scpub-dl-k">CNIC</span><span class="scpub-dl-v scpub-mono">{{ challan.cnic }}</span></div>{% endif %}
+            {% if challan.phone %}<div class="scpub-dl-row"><span class="scpub-dl-k">Phone</span><span class="scpub-dl-v scpub-mono">{{ challan.phone }}</span></div>{% endif %}
+            {% if challan.address %}<div class="scpub-dl-row"><span class="scpub-dl-k">Address</span><span class="scpub-dl-v">{{ challan.address }}</span></div>{% endif %}
             <div class="scpub-dl-row"><span class="scpub-dl-k">Violation</span><span class="scpub-dl-v">{{ challan.get_violation_type_display }}</span></div>
             <div class="scpub-dl-row"><span class="scpub-dl-k">Location</span><span class="scpub-dl-v">{{ challan.location|default:'-' }}</span></div>
             <div class="scpub-dl-row"><span class="scpub-dl-k">Camera</span><span class="scpub-dl-v scpub-mono">{{ challan.camera.camera_id|default:'-' }}</span></div>
@@ -150,7 +150,7 @@
           <div class="pd-actions">
             <a href="{% url 'challans:challan_pdf' challan.id %}" class="scpub-btn"><i class="bi bi-download"></i> Download PDF</a>
             {% if challan.payment_status != 'PAID' and challan.payment_status != 'VOIDED' %}
-            <a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="scpub-btn scpub-btn-danger"><i class="bi bi-credit-card"></i> Pay Now</a>
+            <a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="scpub-btn"><i class="bi bi-credit-card"></i> Pay Now</a>
             {% endif %}
             <a href="{% url 'challans:home' %}" class="scpub-btn-ghost"><i class="bi bi-search"></i> Search Another Challan</a>
           </div>

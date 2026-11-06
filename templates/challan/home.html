@@ -21,9 +21,6 @@
           <a href="{% url 'auth_portal:citizen_login' %}" class="ph-hero-btn ph-hero-btn--ghost"><i class="bi bi-person-badge"></i> Citizen Login</a>
         </div>
       </div>
-      <div class="ph-hero-art" aria-hidden="true">
-        <img src="{% static 'img/hero_illustration.jpg' %}" alt="">
-      </div>
     </section>
 
     <section class="ph-search-card scpub-card" id="verify">
@@ -102,13 +99,32 @@
     </section>
     {% endif %}
 
-    {% if static_post_ads or popup_ads %}
-    <section class="ph-ads" aria-label="Public service announcements">
+    {% if static_post_ads %}
+    {% with ad=static_post_ads.0 %}
+    <section class="ph-ads" aria-label="Public service announcement">
       <div class="ph-ads-head">
         <h2><i class="bi bi-megaphone"></i> Public Notices</h2>
+        <span class="ph-ads-sub">Official announcements from the enforcement directorate</span>
       </div>
-      {% include 'challan/_public_ads.html' %}
+      <div class="ph-ad-spot" data-ad-spot>
+        {% if ad.image %}
+        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="ph-ad-spot-link">
+          <img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Public service announcement' }}" class="ph-ad-spot-img"
+               onerror="this.closest('[data-ad-spot]').classList.add('is-missing')">
+        </a>
+        {% endif %}
+        <div class="ph-ad-spot-fallback">
+          <div>
+            <div class="ph-ad-spot-kicker">Public Service Announcement</div>
+            <div class="ph-ad-spot-title">
+              {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title|default:'E-Challan verification service is live 24/7' }}</a>
+              {% else %}{{ ad.title|default:'E-Challan verification service is live 24/7' }}{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
+    {% endwith %}
     {% endif %}
 
   </div>
@@ -117,5 +133,4 @@
 
 {% block extra_js %}
 <script src="{% static 'js/pages/public-home.js' %}" defer></script>
-<script src="{% static 'js/pages/public-ads.js' %}" defer></script>
 {% endblock %}

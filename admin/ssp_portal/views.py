@@ -7,6 +7,8 @@ from django.utils import timezone
 from datetime import timezone as dt_timezone
 
 from accounts.decorators import role_required
+from accounts.models import User
+from detections.models import Detection
 from challans.models import Challan
 from appeals.models import ChallanAppeal
 from admin.dig_portal.models import AuditLog
@@ -153,3 +155,16 @@ def decide_appeal(request, appeal_id):
         messages.success(request, f"Appeal {appeal.id} {decision.lower()} by SSP. Citizen has been notified.")
     return redirect('ssp_portal:dashboard')
 
+@role_required('SSP', 'DIG')
+def team_performance(request):
+    officers = User.objects.filter(role='OFFICER')
+    stats = []
+    for o in officers:
+        reviewed = Detection.objects.filter(reviewed_by=o).count()
+        confirmed = Detection.objects.filter(reviewed_by=o, status=Detection.CONFIRMED).count()
+        rejected = Detection.objects.filter(reviewed_by=o, status=Detection.REJECTED).count()
+        flagged = Detection.objects.filter(reviewed_by=o, status=Detection.FLAGGED).count()
+        accuracy = round((confirmed / reviewed * 100), 1) if reviewed else None
+        stats.append({'officer': o, 'reviewed': reviewed, 'confirmed': confirmed, 'rejected': rejected, 'flagged': flagged, 'accuracy': accuracy})
+    stats.sort(key=lambda s: s['reviewed'], reverse=True)
+    return render(request, 'dashboard/ssp/team_performance.html', {'stats': stats})

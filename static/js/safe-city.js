@@ -301,10 +301,67 @@
     
 
     function scInitTooltips() {
-        if (typeof window.bootstrap === 'undefined' || !window.bootstrap.Tooltip) return;
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-            try { new bootstrap.Tooltip(el); } catch (e) {  }
+        document.querySelectorAll('[data-bs-toggle="tooltip"], [data-sc-tooltip]').forEach(function (el) {
+            const text = el.getAttribute('data-sc-tooltip') || el.getAttribute('title') || '';
+            if (!text || el.dataset.scTipDone) return;
+            el.dataset.scTipDone = '1';
+            if (el.getAttribute('title')) el.removeAttribute('title');
+            const tip = document.createElement('div');
+            tip.className = 'sc-tooltip';
+            tip.textContent = text;
+            document.body.appendChild(tip);
+            function place() {
+                const r = el.getBoundingClientRect();
+                tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - tip.offsetWidth / 2), window.innerWidth - tip.offsetWidth - 8) + 'px';
+                tip.style.top = (r.top - tip.offsetHeight - 8 < 8 ? r.bottom + 8 : r.top - tip.offsetHeight - 8) + 'px';
+            }
+            el.addEventListener('mouseenter', function () { tip.classList.add('is-on'); place(); });
+            el.addEventListener('mouseleave', function () { tip.classList.remove('is-on'); });
+            el.addEventListener('focus', function () { tip.classList.add('is-on'); place(); });
+            el.addEventListener('blur', function () { tip.classList.remove('is-on'); });
         });
+    }
+
+    function scInitModals() {
+        function open(sel) {
+            const modal = sel instanceof Element ? sel : document.querySelector(sel);
+            if (!modal) return;
+            modal.classList.add('is-open', 'show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('sc-modal-open');
+            const firstInput = modal.querySelector('input:not([type=hidden]), select, textarea');
+            if (firstInput) setTimeout(function () { firstInput.focus(); }, 60);
+        }
+        function close(modal) {
+            if (!modal) return;
+            modal.classList.remove('is-open', 'show');
+            modal.setAttribute('aria-hidden', 'true');
+            if (!document.querySelector('.modal.is-open')) document.body.classList.remove('sc-modal-open');
+        }
+        document.addEventListener('click', function (e) {
+            const opener = e.target.closest('[data-sc-open], [data-bs-toggle="modal"]');
+            if (opener) {
+                const sel = opener.getAttribute('data-sc-target') || opener.getAttribute('data-bs-target');
+                if (sel) { e.preventDefault(); open(sel); }
+                return;
+            }
+            const closer = e.target.closest('[data-sc-close], [data-bs-dismiss="modal"]');
+            if (closer) {
+            e.preventDefault();
+                close(closer.closest('.modal'));
+                return;
+            }
+            if (e.target.classList && e.target.classList.contains('modal') && e.target.classList.contains('is-open')) {
+                close(e.target);
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const opened = document.querySelector('.modal.is-open');
+                if (opened) close(opened);
+            }
+        });
+        window.scModal = { open: open, close: close };
     }
 
     
@@ -350,12 +407,21 @@
     
     
 
+    document.addEventListener('error', function (e) {
+        var el = e.target;
+        if (el && el.tagName === 'IMG' && !el.dataset.scBroken) {
+            el.dataset.scBroken = '1';
+            el.classList.add('sc-img-broken');
+        }
+    }, true);
+
     function init() {
         startClock();
         initSidebar();
         initUserMenu();
         scInitTables();
         scInitTooltips();
+        scInitModals();
         initMsgDismiss();
         initConfirmLinks();
         scShowMessages();

@@ -54,20 +54,20 @@
         <div class="scr-stat-foot">Lifetime record</div>
       </div>
       {% if request.user|has_perm:"view_own_challans" %}
-      <div class="scr-stat scr-stat--warning">
+      <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--warning{% else %}scr-stat--success{% endif %}">
         <div class="scr-stat-label">Unpaid / Due</div>
         <div class="scr-stat-value" data-key="unpaid_count">{{ unpaid_count|default:0 }}</div>
-        <div class="scr-stat-foot">PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }} payable</div>
+        <div class="scr-stat-foot">{% if unpaid_count > 0 %}PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }} payable{% else %}Nothing pending{% endif %}</div>
       </div>
       <div class="scr-stat scr-stat--success">
         <div class="scr-stat-label">Paid &amp; Settled</div>
         <div class="scr-stat-value" data-key="paid_count">{{ paid_count|default:0 }}</div>
         <div class="scr-stat-foot">PKR {{ paid_amount|floatformat:0|intcomma|default:0 }} cleared</div>
       </div>
-      <div class="scr-stat scr-stat--danger">
+      <div class="scr-stat {% if overdue_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
         <div class="scr-stat-label">Overdue Tickets</div>
         <div class="scr-stat-value" data-key="overdue_count">{{ overdue_count|default:0 }}</div>
-        <div class="scr-stat-foot">May incur surcharge</div>
+        <div class="scr-stat-foot">{% if overdue_count > 0 %}May incur surcharge{% else %}No overdue tickets{% endif %}</div>
       </div>
       {% endif %}
     </div>

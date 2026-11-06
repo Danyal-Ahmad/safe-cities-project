@@ -31,8 +31,13 @@
 </div>
 {% else %}
 <div class="sc-empty">
-<p>You have not filed any appeals yet.</p>
-<a href="{% url 'citizen_portal:home' %}" class="sc-btn sc-btn-primary" style="margin-top:12px;">View my challans</a>
+  <i class="bi bi-chat-square-quote"></i>
+  <div class="sc-empty-title">No appeals filed yet</div>
+  <p class="sc-empty-text">If you believe an e-challan was issued in error, open the challan from your ledger and file an appeal. Officers review every appeal with the full evidence chain.</p>
+  <div class="d-flex align-items-center justify-content-center gap-2 mt-3">
+    <a href="{% url 'citizen_portal:home' %}" class="sc-btn"><i class="bi bi-receipt"></i> View my challans</a>
+    <a href="{% url 'challans:home' %}" class="sc-btn sc-btn-primary"><i class="bi bi-search"></i> Search a public challan</a>
+  </div>
 </div>
 {% endif %}
 </div>

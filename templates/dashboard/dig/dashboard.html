@@ -59,7 +59,7 @@
       <div class="scr-stat scr-stat--info">
         <div class="scr-stat-label">Active Cameras</div>
         <div class="scr-stat-value"><span id="kpi-active-cameras" data-key="active_cameras">0</span><small> / <span id="kpi-online-cameras" data-key="online_cameras">0</span> live</small></div>
-        <div class="scr-stat-foot"><a href="{% url 'dig:camera_list' %}">Manage network</a></div>
+        <div class="scr-stat-foot">Enforcement network</div>
       </div>
       {% endif %}
       {% if request.user|has_perm:"view_detections" %}
@@ -73,14 +73,14 @@
       <div class="scr-stat scr-stat--warning">
         <div class="scr-stat-label">Disputed Appeals</div>
         <div class="scr-stat-value"><span id="kpi-pending-appeals" data-key="pending_appeals">0</span><small> / <span id="kpi-escalated-appeals" data-key="escalated_appeals">0</span> esc.</small></div>
-        <div class="scr-stat-foot"><a href="{% url 'dig:case_escalation' %}">Escalation desk</a></div>
+        <div class="scr-stat-foot">Awaiting DIG decision</div>
       </div>
       {% endif %}
       {% if request.user|has_perm:"manage_alerts" %}
       <div class="scr-stat scr-stat--purple">
         <div class="scr-stat-label">Active Alerts</div>
         <div class="scr-stat-value" id="kpi-active-alerts" data-key="active_alerts">0</div>
-        <div class="scr-stat-foot"><a href="{% url 'dig:alerts_hub' %}">Broadcasts</a></div>
+        <div class="scr-stat-foot">Hub broadcasts</div>
       </div>
       {% endif %}
     </div>

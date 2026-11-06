@@ -84,7 +84,7 @@
           {% for d in detections %}
           <tr class="sc-row-link" data-href="{% url 'officer_portal:detection_detail' d.id %}">
             <td class="sc-mono">#{{ d.id }}</td>
-            <td><strong class="sc-mono sc-plate-cell">{{ d.effective_plate|default:"UNREAD" }}</strong></td>
+            <td><strong class="sc-mono sc-plate-cell">{{ d.effective_plate|default:"Not Readable" }}</strong></td>
             <td class="sc-text-sm">
               {% if d.camera %}
                 <span title="{{ d.camera.camera_id }}{% if d.camera.location %} — {{ d.camera.location }}{% endif %}">{{ d.camera.camera_id }}</span>{% if d.camera.location %} <span class="sc-text-faint" title="{{ d.camera.location }}">&middot; {{ d.camera.location|truncatechars:22 }}</span>{% endif %}

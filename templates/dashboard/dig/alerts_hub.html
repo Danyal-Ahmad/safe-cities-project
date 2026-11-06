@@ -20,7 +20,7 @@
 </div>
 
 <div class="md-kpi-grid">
-  <div class="md-kpi-card kpi-blue">
+  <div class="md-kpi-card {% if alerts|length > 0 %}kpi-blue{% else %}kpi-neutral{% endif %}">
     <div class="md-kpi-icon-box"><i class="bi bi-bell"></i></div>
     <div class="md-kpi-body">
       <div class="md-kpi-label">Total Alerts</div>
@@ -28,7 +28,7 @@
       <div class="md-kpi-foot">Last 50 shown</div>
     </div>
   </div>
-  <div class="md-kpi-card kpi-success">
+  <div class="md-kpi-card {% if alerts_active_count|default:"0" > 0 %}kpi-success{% else %}kpi-neutral{% endif %}">
     <div class="md-kpi-icon-box"><i class="bi bi-broadcast"></i></div>
     <div class="md-kpi-body">
       <div class="md-kpi-label">Active Now</div>
@@ -36,7 +36,7 @@
       <div class="md-kpi-foot">Visible to audience</div>
     </div>
   </div>
-  <div class="md-kpi-card kpi-danger">
+  <div class="md-kpi-card {% if alerts_danger_count|default:"0" > 0 %}kpi-danger{% else %}kpi-neutral{% endif %}">
     <div class="md-kpi-icon-box"><i class="bi bi-exclamation-triangle"></i></div>
     <div class="md-kpi-body">
       <div class="md-kpi-label">Critical Severity</div>
@@ -44,7 +44,7 @@
       <div class="md-kpi-foot">Requires attention</div>
     </div>
   </div>
-  <div class="md-kpi-card kpi-warning">
+  <div class="md-kpi-card {% if broadcasts|length > 0 %}kpi-warning{% else %}kpi-neutral{% endif %}">
     <div class="md-kpi-icon-box"><i class="bi bi-broadcast-pin"></i></div>
     <div class="md-kpi-body">
       <div class="md-kpi-label">Broadcasts</div>
@@ -55,8 +55,8 @@
 </div>
 
 <div class="sc-tabs">
-  <a class="{% if active_tab == 'alerts' %}sc-active{% endif %}" href="?tab=alerts"><i class="bi bi-bell me-1"></i> Alerts ({{ alerts|length }})</a>
-  <a class="{% if active_tab == 'broadcasts' %}sc-active{% endif %}" href="?tab=broadcasts"><i class="bi bi-broadcast-pin me-1"></i> Broadcast Log ({{ broadcasts|length }})</a>
+  <a class="{% if active_tab == 'alerts' %}sc-active{% endif %}" href="?tab=alerts"><i class="bi bi-bell me-1"></i> Alerts</a>
+  <a class="{% if active_tab == 'broadcasts' %}sc-active{% endif %}" href="?tab=broadcasts"><i class="bi bi-broadcast-pin me-1"></i> Broadcast Log</a>
 </div>
 
 <div class="ah-pane {% if active_tab == 'alerts' %}active{% endif %}" id="pane-alerts">
@@ -112,7 +112,12 @@
       </div>
     </div>
     {% empty %}
-    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty"><i class="bi bi-bell-slash"></i><p>No alerts yet - create one to notify staff or citizens.</p></div></div>
+    <div class="sc-card" style="grid-column:1/-1;"><div class="sc-empty">
+      <i class="bi bi-bell-slash"></i>
+      <div class="sc-empty-title">No alerts yet</div>
+      <p class="sc-empty-text">Publish the first advisory to every staff portal and the public announcement ticker.</p>
+      <button type="button" class="sc-btn sc-btn-primary" data-bs-toggle="modal" data-bs-target="#newAlertModal"><i class="bi bi-plus-circle me-1"></i> Create your first alert</button>
+    </div></div>
     {% endfor %}
   </div>
 

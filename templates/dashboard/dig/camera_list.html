@@ -166,16 +166,16 @@
             </td>
             <td>
               {% if c.is_enrolled %}
-                <span class="sc-badge sc-badge-ok"><i class="bi bi-patch-check"></i>Enrolled</span>
+                <span class="sc-badge sc-badge-ok" data-sc-tooltip="Enrolled with ingest worker"><i class="bi bi-patch-check"></i></span>
               {% else %}
-                <span class="sc-badge sc-badge-gray"><i class="bi bi-hourglass"></i>Pending</span>
+                <span class="sc-badge sc-badge-gray" data-sc-tooltip="Enrollment pending"><i class="bi bi-hourglass"></i></span>
               {% endif %}
             </td>
             <td>
               {% if c.is_streaming %}
-                <span class="sc-badge sc-badge-teal"><i class="bi bi-play-circle"></i>Live</span>
+                <span class="sc-badge sc-badge-teal" data-sc-tooltip="Streaming live"><i class="bi bi-play-circle"></i></span>
               {% else %}
-                <span class="sc-badge sc-badge-gray"><i class="bi bi-pause-circle"></i>Paused</span>
+                <span class="sc-badge sc-badge-gray" data-sc-tooltip="Stream paused"><i class="bi bi-pause-circle"></i></span>
               {% endif %}
             </td>
             <td class="sc-text-sm">

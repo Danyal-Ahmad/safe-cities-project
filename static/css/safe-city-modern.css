@@ -638,19 +638,19 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 10px; border
 
 .scr-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
-  background: var(--sc-surface, #FFFFFF);
-  border-top: 1px solid var(--sc-border, #E4E9F2);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 14px 16px 4px;
+  background: transparent;
 }
 
 .scr-stat {
   position: relative;
   padding: 14px 16px 14px 19px;
   min-width: 0;
-  border-right: 1px solid var(--sc-border, #E4E9F2);
   transition: background 0.15s ease;
 }
-.scr-stat:last-child { border-right: none; }
+.scr-stat:hover { box-shadow: 0 6px 18px rgba(15,31,61,.08); transform: translateY(-1px); }
 .scr-stat:hover { background: var(--sc-surface-alt, #F8FAFD); }
 
 .scr-stat::before {
@@ -836,8 +836,17 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 10px; border
 }
 
 .scr-stat {
-  padding: 15px 16px 15px 20px;
-  transition: background 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 88px;
+  padding: 14px 16px;
+  background: var(--sc-surface, #FFFFFF);
+  border: 1px solid var(--sc-border, #E4E9F2);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 31, 61, 0.05);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .scr-stat:hover { background: #FFFFFF; }
@@ -857,7 +866,7 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 10px; border
 .scr-stat--purple::before  { background: linear-gradient(180deg, #A78BFA, #7C3AED); }
 .scr-stat--teal::before    { background: linear-gradient(180deg, #2DD4BF, #0D9488); }
 
-.scr-stat-value { font-size: 1.42rem; letter-spacing: -0.02em; }
+.scr-stat-value { font-size: 1.3rem; letter-spacing: -0.02em; }
 
 .scr-stat-foot { font-weight: 600; }
 
@@ -1024,3 +1033,24 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 10px; border
 }
 
 .sc-plate-cell { white-space: nowrap; }
+
+/* Chart empty state + minimum plot heights */
+.sc-chart-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  min-height: 220px; border: 1px dashed #D3DBE8; border-radius: 14px;
+  background: repeating-linear-gradient(135deg, #FBFCFE 0 14px, #F5F8FD 14px 28px);
+  color: #94A0B8; font-size: 12.5px; font-weight: 700; text-align: center; padding: 24px;
+}
+.sc-chart-empty i { font-size: 26px; color: #BFD6FE; }
+.scr-panel-chart, .sc-chart-box, [data-api-url] { min-height: 260px; }
+canvas[data-api-url], canvas[data-chart] { display: block; }
+
+/* Zero-state: neutralize modifier colors when value is 0 */
+.scr-stat.is-zero::before { background: #CBD5E1 !important; }
+.scr-stat.is-zero .scr-stat-value { color: var(--md-text-muted, #64748B); }
+.scr-stat.is-zero .scr-stat-foot { color: var(--md-text-faint, #94A0B8); }
+
+/* Neutral KPI (zero data) + compact md-kpi */
+.md-kpi-card.kpi-neutral { --kpi-accent: #94A0B8; }
+.md-kpi-card.kpi-neutral .md-kpi-icon-box { background: #F1F5F9; color: #94A0B8; }
+.md-kpi-card.kpi-neutral .md-kpi-value { color: #64748B; }

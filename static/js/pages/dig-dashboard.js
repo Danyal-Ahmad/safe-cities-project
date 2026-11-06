@@ -34,6 +34,17 @@
           el.textContent = Number(val).toLocaleString('en-PK');
         }
       });
+        document.querySelectorAll('.scr-stat').forEach(function (stat) {
+            var nums = stat.querySelectorAll('.scr-stat-value');
+            var anyNonZero = false;
+            nums.forEach(function (n) {
+                var raw = n.textContent.replace(/[^0-9.]/g, '');
+                var v = parseFloat(raw);
+                if (!isNaN(v) && v > 0) anyNonZero = true;
+            });
+            stat.classList.toggle('is-zero', !anyNonZero);
+        });
+
     } catch(e) { console.warn('KPI load failed:', e); }
   }
 

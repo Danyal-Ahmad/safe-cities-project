@@ -16,7 +16,7 @@
       <i class="bi bi-person-lines-fill"></i>
       <span>Officer Performance Ledger</span>
     </div>
-    <span class="sc-badge sc-badge-purple">{{ stats|length }} Officers</span>
+    <span class="sc-badge sc-badge-purple">{{ stats|length }} Officer{{ stats|length|pluralize }}</span>
   </div>
   <div class="sc-card-body p-0">
     {% if stats %}

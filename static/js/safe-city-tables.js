@@ -132,8 +132,7 @@
         if (!wrap) {
             wrap = document.createElement('div');
             wrap.className = 'sc-table-pagination';
-            wrap.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;font-size:0.875rem;color:#64748b;';
-            instance.table.parentElement.appendChild(wrap);
+                        instance.table.parentElement.appendChild(wrap);
         }
         instance.paginationWrap = wrap;
     }
@@ -143,35 +142,42 @@
         if (!tbody) return;
         const visible = Array.prototype.slice.call(tbody.querySelectorAll('tr')).filter(function (r) { return r.style.display !== 'none'; });
         const total = visible.length;
+        if (!total) { if (instance.paginationWrap) instance.paginationWrap.innerHTML = ''; return; }
         const totalPages = Math.max(1, Math.ceil(total / instance.state.perPage));
         const cur = Math.min(instance.state.page, totalPages);
 
         const info = document.createElement('span');
+        info.className = 'sc-pagination-info';
         info.textContent = 'Showing ' + Math.min((cur - 1) * instance.state.perPage + 1, total) + ' to ' + Math.min(cur * instance.state.perPage, total) + ' of ' + total;
 
         const controls = document.createElement('div');
-        controls.style.display = 'flex';
-        controls.style.gap = '0.25rem';
+        controls.className = 'sc-pagination-controls';
 
-        function btn(text, page) {
+        function btn(svg, page, label, disabled) {
             const b = document.createElement('button');
-            b.textContent = text;
-            b.className = 'sc-btn sc-btn-sm sc-btn-ghost';
-            b.style.cssText = 'min-width:32px;height:32px;padding:0 0.5rem;';
-            b.disabled = page < 1 || page > totalPages;
-            b.addEventListener('click', function () {
-                instance.state.page = page;
-                nativePaginate(instance.table, page, instance.state.perPage);
-                updatePagination(instance);
-            });
+            b.type = 'button';
+            b.className = 'sc-pagination-btn' + (disabled ? ' is-disabled' : '');
+            b.setAttribute('aria-label', label);
+            b.disabled = !!disabled;
+            b.innerHTML = svg;
+            if (!disabled) {
+                b.addEventListener('click', function () {
+                    instance.state.page = page;
+                    nativePaginate(instance.table, page, instance.state.perPage);
+                    updatePagination(instance);
+                });
+            }
             return b;
         }
 
-        controls.appendChild(btn('\u00ab', 1));
-        controls.appendChild(btn('\u2039', cur - 1));
-        controls.appendChild(btn(String(cur), cur));
-        controls.appendChild(btn('\u203a', cur + 1));
-        controls.appendChild(btn('\u00bb', totalPages));
+        controls.appendChild(btn('<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10.5 3 5.5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', 1, 'First page', cur === 1));
+        controls.appendChild(btn('<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M9.5 3.5 5.5 8l4 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', cur - 1, 'Previous page', cur === 1));
+        const num = document.createElement('span');
+        num.className = 'sc-pagination-num';
+        num.textContent = cur + ' / ' + totalPages;
+        controls.appendChild(num);
+        controls.appendChild(btn('<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6.5 3.5 10.5 8l-4 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', cur + 1, 'Next page', cur === totalPages));
+        controls.appendChild(btn('<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5.5 3 10.5 8l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', totalPages, 'Last page', cur === totalPages));
 
         instance.paginationWrap.innerHTML = '';
         instance.paginationWrap.appendChild(info);

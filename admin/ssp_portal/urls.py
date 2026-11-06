@@ -23,6 +23,7 @@ urlpatterns = [
 
     path('camera-health/', dig_views.camera_health, name='camera_health'),
     path('cameras-status/', dig_views.cameras_status, name='cameras_status'),
+    path('team-performance/', views.team_performance, name='team_performance'),
     path('officer-kpi/', dig_views.officer_kpi, name='officer_kpi'),
 
     path('notifications/', dig_views.notifications, name='notifications'),

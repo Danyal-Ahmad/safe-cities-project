@@ -90,89 +90,167 @@ table { border-collapse: collapse; border-spacing: 0; }
    APP SHELL
    ========================================================================== */
 
-/* ---------- App shell: fixed-height frame. The sidebar never scrolls;
-   .sc-main is the ONLY scroll container so the topbar (sticky top) and
-   footer (sticky bottom) stay permanently visible. ---------- */
+/* ==========================================================================
+   UNIFIED APP SHELL (v2) - one connected frame, no separation.
+   Column: ticker strip (navy) -> navbar (white, full width) -> body
+   (dark sidebar + light scroll column) -> footer (navy, full width).
+   Blocks are flush behind 1px hairlines: no floating cards, no gaps.
+   ========================================================================== */
 
 .sc-app {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background: var(--sc-bg);
 }
 
-/* ---------- Sidebar (white floating card, full height, never scrolls) ---------- */
-
-.sc-sidebar {
-  position: relative;
-  align-self: stretch;
-  height: 100%;
-  width: 262px;
-  flex: 0 0 262px;
-  margin: 12px 0 12px 12px;
-
+.sc-body {
+  flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
-  background: var(--sc-surface);
-  border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius-lg);
-  box-shadow: var(--sc-shadow);
-  overflow: hidden;
-  z-index: 99996;
-  transition: width 0.22s ease, flex-basis 0.22s ease;
+  min-height: 0;
 }
 
-.sc-brand {
+/* ---- Announcement ticker: slim strip ABOVE the navbar, never merged
+       into it. Item segments use fully visible em dashes (no cut edges,
+       no left borders). Marquee: right-to-left, seamless, pause on hover. */
+.sc-ticker {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  height: 38px;
+  background: linear-gradient(90deg, #0A1836 0%, #0F2557 55%, #132A62 100%);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.25);
+  overflow: hidden;
+}
+.sc-ticker-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  padding: 0 18px;
+  background: rgba(59, 130, 246, 0.18);
+  border-right: 1px solid rgba(96, 165, 250, 0.28);
+  color: #DBEAFE;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sc-ticker-label i { font-size: 0.85rem; color: #93C5FD; }
+.sc-ticker-viewport { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; overflow: hidden; }
+.sc-ticker-track {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 18px 16px;
-  border-bottom: 1px solid var(--sc-border);
-}
-
-.sc-brand img {
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
-  border-radius: 12px;
-  background: var(--sc-info-bg);
-  padding: 4px;
   flex: 0 0 auto;
-}
-
-.sc-brand-text { display: flex; flex-direction: column; min-width: 0; }
-
-.sc-brand-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--sc-navy-deep);
   white-space: nowrap;
+  padding: 0 28px;
+  will-change: transform;
 }
-
-.sc-brand-sub {
-  font-size: 0.68rem;
+.sc-ticker.is-scrolling .sc-ticker-track {
+  animation: sc-ticker-marquee var(--sc-ticker-duration, 40s) linear infinite;
+}
+.sc-ticker-viewport:hover .sc-ticker-track,
+.sc-ticker-viewport:focus-within .sc-ticker-track { animation-play-state: paused; }
+@keyframes sc-ticker-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.sc-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 64px;
+  font-size: 0.8rem;
   font-weight: 600;
-  text-transform: uppercase;
+  color: rgba(232, 240, 255, 0.88);
+}
+.sc-ticker-item::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #60A5FA;
+}
+.sc-ticker-item-critical::before, .sc-ticker-item-danger::before { background: #F87171; }
+.sc-ticker-item-warning::before, .sc-ticker-item-caution::before { background: #FBBF24; }
+.sc-ticker-item-success::before { background: #34D399; }
+.sc-ticker-item-title { color: #E8F0FF; }
+.sc-ticker-item-title a { color: #93C5FD; }
+.sc-ticker-item-title a:hover { text-decoration: underline; }
+.sc-ticker-item-message { color: rgba(232, 240, 255, 0.6); font-weight: 500; }
+.sc-ticker-item-time { font-family: var(--sc-mono, monospace); font-size: 0.72rem; color: rgba(147, 197, 253, 0.8); }
+.sc-ticker-item-new {
+  font-size: 0.6rem;
+  font-weight: 800;
   letter-spacing: 0.12em;
-  color: var(--sc-primary);
-  white-space: nowrap;
+  color: #6EE7B7;
+  border: 1px solid rgba(110, 231, 183, 0.45);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+/* Em-dash separator between ticker segments: always fully visible. */
+.sc-ticker-dash { color: rgba(96, 165, 250, 0.65); font-weight: 700; }
+
+/* ---------- Sidebar: dark rail, hangs from the navbar, rests on the
+   footer - connected to both, never a floating card ---------- */
+
+.sc-sidebar {
+  flex: 0 0 264px;
+  width: 264px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: linear-gradient(180deg, #0F2557 0%, #0B1D45 100%);
+  border-right: 1px solid rgba(96, 165, 250, 0.16);
+  overflow: hidden;
+}
+
+/* Sidebar head: role context only. The brand (two logos) lives in the
+   navbar; profile/password/sign-out live only in the navbar dropdown. */
+.sc-side-head {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.14);
+}
+
+.sc-side-head-role {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #F0F4FF;
+}
+
+.sc-side-head-sub {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(147, 197, 253, 0.72);
 }
 
 .sc-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px 12px;
+  padding: 10px 12px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.3) transparent;
 }
+.sc-nav::-webkit-scrollbar { width: 8px; }
+.sc-nav::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.28); border-radius: 8px; }
 
-.sc-nav-section { margin-top: 14px; }
+.sc-nav-section { margin-top: 16px; }
 
 .sc-nav-title {
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--sc-text-faint);
+  letter-spacing: 0.16em;
+  color: rgba(147, 197, 253, 0.55);
   padding: 6px 10px 6px 12px;
 }
 
@@ -180,39 +258,39 @@ table { border-collapse: collapse; border-spacing: 0; }
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   margin-bottom: 2px;
-  border-radius: var(--sc-radius);
-  color: var(--sc-text);
-  font-size: 0.875rem;
+  border-radius: 10px;
+  color: rgba(232, 240, 255, 0.78);
+  font-size: 0.855rem;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sc-nav-link i {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   width: 22px;
   text-align: center;
-  color: var(--sc-text-muted);
+  color: rgba(147, 197, 253, 0.68);
   transition: color 0.15s ease;
 }
 
 .sc-nav-link:hover {
-  background: var(--sc-bg-soft);
-  color: var(--sc-navy-deep);
+  background: rgba(96, 165, 250, 0.14);
+  color: #FFFFFF;
 }
 
-.sc-nav-link:hover i { color: var(--sc-primary); }
+.sc-nav-link:hover i { color: #93C5FD; }
 
 .sc-nav-link.sc-active,
 .sc-nav-link.active {
-  background: var(--sc-navy);
+  background: linear-gradient(90deg, #2563EB, #1D4ED8);
   color: #FFFFFF;
-  box-shadow: var(--sc-shadow-navy);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
 }
 
 .sc-nav-link.sc-active i,
-.sc-nav-link.active i { color: #9DB8F0; }
+.sc-nav-link.active i { color: #BFDBFE; }
 
 .sc-nav-link-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -225,55 +303,32 @@ table { border-collapse: collapse; border-spacing: 0; }
   padding: 1px 7px;
 }
 
-.sc-nav-bottom {
-  border-top: 1px solid var(--sc-border);
-  padding: 10px 12px;
-}
-
-.sc-nav-bottom-link {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 9px 12px;
-  border-radius: var(--sc-radius);
-  color: var(--sc-text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.sc-nav-bottom-link i { font-size: 1rem; width: 22px; text-align: center; }
-.sc-nav-bottom-link:hover { background: var(--sc-danger-bg); color: var(--sc-danger); }
-
-/* ---------- Main column (the only scroll container) ---------- */
+/* ---------- Scroll column: the only scroll container in the shell ---------- */
 
 .sc-main {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 16px 0 0;
-  scrollbar-gutter: stable;
 }
 
-/* ---------- Topbar (fixed/sticky navbar: always visible, never scrolls) ---------- */
+/* ---------- Navbar: full-width white band, flush with the ticker above
+   and the sidebar on its left edge ---------- */
 
 .sc-topbar {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
+  position: relative;
   z-index: 99998;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 18px;
-  margin-bottom: 14px;
+  min-height: 64px;
+  padding: 8px 24px;
   background: var(--sc-surface);
-  border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius-lg);
-  box-shadow: var(--sc-shadow);
+  border-bottom: 1px solid var(--sc-border);
 }
 
 .sc-topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
@@ -483,65 +538,67 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 /* ---------- Content / footer ---------- */
 
-.sc-content { flex: 1; padding: 2px 2px 24px; min-width: 0; }
+.sc-content { flex: 1; padding: 22px 24px 28px; min-width: 0; }
 
-/* Fixed footer: sticky at the bottom of the scroll column, always visible,
-   pinned above every other layer (z-index 99999) so ads and page content
-   can never slide behind or over it. */
+/* Footer: full-width navy band. It merges with the sidebar bottom (both
+   navy, continuous behind a hairline) - footer + sidebar read as one. */
 .sc-footer {
-  position: sticky;
-  bottom: 0;
+  flex: 0 0 auto;
   z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 14px 18px;
-  margin: 0 2px 12px;
-  border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius-lg) var(--sc-radius-lg) 0 0;
-  background: var(--sc-surface);
-  box-shadow: 0 -6px 18px rgba(15, 37, 87, 0.06);
-  font-size: 0.75rem;
-  color: var(--sc-text-faint);
+  padding: 12px 24px;
+  border-top: 1px solid rgba(96, 165, 250, 0.16);
+  background: linear-gradient(90deg, #0B1D45 0%, #0F2557 60%, #132A62 100%);
+  font-size: 0.72rem;
+  color: rgba(232, 240, 255, 0.55);
 }
 
-/* ---------- Flash messages (inline strip directly below the navbar) ---------- */
+/* ---------- Flash messages: temporary inline strips directly below the
+   navbar. Never toasts, never floating. Segments are separated by a
+   fully visible em dash; NO cut-off left border. Auto-dismissed by JS. */
 
 .sc-messages {
-  position: sticky;
-  top: 76px;
-  z-index: 99997;
-  margin-bottom: 14px;
   display: grid;
   gap: 10px;
+  padding: 16px 24px 0;
 }
 
 .sc-msg {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 14px;
-  border-radius: var(--sc-radius);
+  padding: 12px 16px;
+  border-radius: 12px;
   border: 1px solid var(--sc-border);
   background: var(--sc-surface);
   box-shadow: var(--sc-shadow);
-  font-size: 0.875rem;
+  font-size: 0.855rem;
 }
 
-.sc-msg i { font-size: 1.05rem; margin-top: 1px; }
+.sc-msg i { font-size: 1.02rem; margin-top: 1px; }
+.sc-msg-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.sc-msg-dash { color: var(--sc-text-faint); font-weight: 700; margin-top: 1px; }
 .sc-msg-body { flex: 1; color: var(--sc-text); }
 .sc-msg-close { background: none; border: none; color: var(--sc-text-faint); cursor: pointer; font-size: 0.85rem; padding: 2px; }
+.sc-msg-close:hover { color: var(--sc-text); }
 
-.sc-msg-success { border-left: 4px solid var(--sc-success); }
-.sc-msg-success i { color: var(--sc-success); }
-.sc-msg-error, .sc-msg-danger { border-left: 4px solid var(--sc-danger); }
-.sc-msg-error i, .sc-msg-danger i { color: var(--sc-danger); }
-.sc-msg-warning { border-left: 4px solid var(--sc-warning); }
-.sc-msg-warning i { color: var(--sc-warning); }
-.sc-msg-info, .sc-msg-debug { border-left: 4px solid var(--sc-primary); }
-.sc-msg-info i, .sc-msg-debug i { color: var(--sc-primary); }
+.sc-msg-success i, .sc-msg-success .sc-msg-label { color: var(--sc-success); }
+.sc-msg-error i, .sc-msg-danger i,
+.sc-msg-error .sc-msg-label, .sc-msg-danger .sc-msg-label { color: var(--sc-danger); }
+.sc-msg-warning i, .sc-msg-warning .sc-msg-label { color: var(--sc-warning); }
+.sc-msg-info i, .sc-msg-debug i,
+.sc-msg-info .sc-msg-label, .sc-msg-debug .sc-msg-label { color: var(--sc-primary); }
 
 /* ==========================================================================
    PAGE HEADERS
@@ -1031,12 +1088,37 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 
 .sc-kpi {
+  position: relative;
   background: var(--sc-surface);
   border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius);
+  border-radius: 14px;
   box-shadow: var(--sc-shadow);
   padding: 18px;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
+
+/* Accent edge: subtle brand gradient on the left rail of every KPI card,
+   tinted per status. Reads instantly, costs nothing. */
+.sc-kpi::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--sc-primary, #2563EB), rgba(37, 99, 235, 0));
+}
+
+.sc-kpi:hover {
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 14px 30px rgba(15, 37, 87, 0.14);
+}
+
+.sc-kpi-ok::after { background: linear-gradient(180deg, var(--sc-success, #22A45D), rgba(34, 164, 93, 0)); }
+.sc-kpi-amber::after { background: linear-gradient(180deg, #D98E0B, rgba(217, 142, 11, 0)); }
+.sc-kpi-danger::after { background: linear-gradient(180deg, var(--sc-danger, #E23B4E), rgba(226, 59, 78, 0)); }
 
 .sc-kpi-label {
   font-size: 0.68rem;
@@ -1047,11 +1129,12 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 
 .sc-kpi-value {
-  font-size: 1.65rem;
+  font-size: 1.72rem;
   font-weight: 800;
   color: var(--sc-navy-deep);
   margin-top: 4px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .sc-kpi-icon {
@@ -1062,9 +1145,10 @@ table { border-collapse: collapse; border-spacing: 0; }
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
-  background: var(--sc-info-bg);
+  background: linear-gradient(135deg, var(--sc-info-bg), rgba(96, 165, 250, 0.22));
   color: var(--sc-info);
   margin-bottom: 10px;
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25);
 }
 
 .sc-kpi-foot { font-size: 0.72rem; color: var(--sc-text-faint); margin-top: 4px; }
@@ -1266,11 +1350,23 @@ table { border-collapse: collapse; border-spacing: 0; }
    ========================================================================== */
 
 @media print {
-  .sc-sidebar, .sc-topbar, .sc-footer, .sc-messages { display: none !important; }
-  .sc-app { display: block; }
-  .sc-main { padding: 0; }
+  .sc-sidebar, .sc-topbar, .sc-ticker, .sc-footer, .sc-messages { display: none !important; }
+  .sc-app, .sc-body { display: block; }
+  .sc-main { overflow: visible; }
   .sc-content { padding: 0; }
   body { background: #FFFFFF; }
+}
+
+/* ---------- Small screens: hide the rail, condense the navbar ---------- */
+@media (max-width: 900px) {
+  .sc-sidebar { display: none; }
+  .sc-topbar { padding: 8px 14px; }
+  .sc-clock { display: none; }
+  .sc-content { padding: 14px; }
+  .sc-messages { padding: 12px 14px 0; }
+  .sc-footer { padding: 10px 14px; }
+  .sc-ticker-label span { display: none; }
+  .sc-ticker-label { padding: 0 12px; }
 }
 
 .sc-print-sheet {

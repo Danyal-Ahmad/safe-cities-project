@@ -27,20 +27,19 @@
       </div>
     </section>
 
-    <!-- Search card: two inputs + one button -->
+    <!-- Search card: BOTH inputs + button inline on a single line.
+         No label rows, no <br>, no full-width button under the fields. -->
     <section class="ph-search-card scpub-card">
       <form method="get" action="{% url 'challans:home' %}" class="scpub-form" role="search">
         <div class="ph-fields">
-          <div class="scpub-field">
-            <label for="phPlate">Number Plate</label>
-            <input class="scpub-input" id="phPlate" type="text" name="plate" placeholder="Number Plate (e.g. LEA-1234)" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
-          </div>
-          <div class="scpub-field">
-            <label for="phCnic">CNIC</label>
-            <input class="scpub-input" id="phCnic" type="text" inputmode="numeric" name="cnic" placeholder="CNIC (13 digits)" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
-          </div>
+          <input class="scpub-input ph-inline-input" id="phPlate" type="text" name="plate"
+                 aria-label="Number Plate" placeholder="Number Plate (e.g. LEA-1234)"
+                 value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
+          <input class="scpub-input ph-inline-input" id="phCnic" type="text" inputmode="numeric" name="cnic"
+                 aria-label="CNIC" placeholder="CNIC (13 digits)"
+                 value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
+          <button type="submit" class="scpub-btn ph-search-btn"><i class="bi bi-search"></i> Search Challan</button>
         </div>
-        <button type="submit" class="scpub-btn"><i class="bi bi-search"></i> Search Challan</button>
         <p class="ph-urdu-hint" lang="ur" dir="rtl">اپنا چالان یہاں تلاش کریں</p>
       </form>
 

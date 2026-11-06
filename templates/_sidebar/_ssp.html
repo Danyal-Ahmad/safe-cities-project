@@ -39,12 +39,3 @@
   <div class="sc-nav-title">Settings</div>
   <a href="{% url 'ssp_portal:self_profile' %}" class="sc-nav-link {% if request.path == '/portal/ssp/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-link-text">Profile</span></a>
 </div>
-
-<div class="sc-nav-bottom">
-  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
-    {% csrf_token %}
-    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
-      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
-    </button>
-  </form>
-</div>

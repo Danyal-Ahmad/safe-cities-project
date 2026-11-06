@@ -34,14 +34,17 @@ body.public-home {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('../../img/home_hero_bg.jpg') center / cover no-repeat;
-  opacity: 0.35;
+  /* home_hero_v2: purpose-drawn flat skyline artwork (2026 refresh).
+     Replaces the 2024 collage whose scanned-look artifacts (ghost
+     watermarks, overlapping sign icons) read as noise at low opacity. */
+  background: url('../../img/home_hero_v2.jpg') center / cover no-repeat;
+  opacity: 0.38;
 }
 .scpub-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(10, 26, 58, 0.88), rgba(20, 60, 140, 0.78));
+  background: linear-gradient(135deg, rgba(8, 18, 46, 0.92), rgba(20, 60, 140, 0.82));
 }
 .scpub-inner {
   position: relative;
@@ -49,7 +52,7 @@ body.public-home {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  padding: 28px 20px 20px;
+  padding: 28px 20px 8px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -388,22 +391,29 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 }
 
 /* Centered hero: dual logos + separator + title/subtitle */
-.ph-hero { margin-bottom: 30px; }
+.ph-hero { margin-bottom: 26px; }
 
-/* Search card */
-.ph-search-card { max-width: 640px; width: 100%; margin: 0 auto; }
+/* Search card: one inline row - plate input + cnic input + button.
+   No label rows, no <br>, the button never drops to its own line. */
+.ph-search-card { max-width: 860px; width: 100%; margin: 0 auto; }
 .ph-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.ph-search-card .scpub-field { margin-bottom: 14px; }
+.ph-inline-input { flex: 1 1 220px; width: auto; }
+.ph-search-btn {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+}
 .ph-urdu-hint {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   text-align: center;
   font-family: 'Noto Nastaliq Urdu', 'Inter', sans-serif;
   font-size: 13.5px;
-  color: rgba(232, 240, 255, 0.62);
+  color: rgba(232, 240, 255, 0.8);
   line-height: 2;
 }
 .ph-no-record { margin-top: 14px; }
@@ -503,11 +513,14 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 
 /* ===== BANNER ADS section: exactly ONE large banner =====
    Pure square/rectangle: edge-to-edge inside the content column, no border,
-   no rounded corners, no shadow decoration on the frame itself. */
+   no rounded corners, no shadow decoration on the frame itself. The label
+   gets a trailing hairline so the section reads as a proper header row
+   (no floating chip, no background seam behind the image). */
 .ph-ads {
   position: relative;
   z-index: 1;
-  margin-top: 30px;
+  margin-top: 28px;
+  background: transparent;
 }
 
 .ph-banner-ads {
@@ -517,14 +530,20 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 }
 
 .ph-banner-label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 12px;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: rgba(147, 197, 253, 0.75);
+}
+.ph-banner-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.35), transparent);
 }
 
 .ph-banner-label i { font-size: 0.8rem; }
@@ -533,7 +552,7 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
   width: 100%;
   border: 0;
   border-radius: 0;
-  background: rgba(8, 18, 46, 0.55);
+  background: transparent;
   overflow: hidden;
   line-height: 0;
 }
@@ -578,12 +597,15 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 
 /* ===== Responsive ===== */
 @media (max-width: 760px) {
-  .scpub-inner { padding: 20px 16px 16px; }
+  .scpub-inner { padding: 20px 16px 6px; }
   .ph-hero { margin-bottom: 22px; }
   .ph-hero .scpub-logos img { width: 46px; height: 46px; }
   .ph-hero .scpub-logos img + img { width: 42px; height: 42px; }
   .ph-brand-title { font-size: 17px; letter-spacing: 1.4px; }
-  .ph-fields { grid-template-columns: 1fr; }
+  /* Search row stacks on phones: inputs full width, button full width. */
+  .ph-fields { flex-direction: column; }
+  .ph-inline-input { flex: 1 1 auto; }
+  .ph-search-btn { width: 100%; }
   .ph-top { justify-content: center; margin-bottom: 18px; }
   .scpub-footer { flex-direction: column; text-align: center; gap: 8px; }
   .scpub-card { padding: 20px 18px; }

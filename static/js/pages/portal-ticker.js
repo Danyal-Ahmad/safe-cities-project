@@ -168,6 +168,13 @@
       item.appendChild(t);
     }
     if (message) {
+      if (title) {
+        var d1 = document.createElement('span');
+        d1.className = 'sc-ticker-dash';
+        d1.setAttribute('aria-hidden', 'true');
+        d1.textContent = '\u2014';
+        item.appendChild(d1);
+      }
       var m = document.createElement('span');
       m.className = 'sc-ticker-item-message';
       m.textContent = message;
@@ -177,6 +184,13 @@
     var fresh = document.createElement('span');
     fresh.className = 'sc-ticker-item-new';
     fresh.textContent = 'NEW';
+    if (title || message) {
+      var d2 = document.createElement('span');
+      d2.className = 'sc-ticker-dash';
+      d2.setAttribute('aria-hidden', 'true');
+      d2.textContent = '\u2014';
+      item.appendChild(d2);
+    }
     item.appendChild(fresh);
 
     track.insertBefore(item, track.firstChild);

@@ -57,6 +57,7 @@ urlpatterns = [
     path('alerts/hub/banner/<int:banner_id>/toggle/', dig_views.alerts_hub_toggle_banner,  name='alerts_hub_toggle_banner'),
     path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner,  name='alerts_hub_delete_banner'),
 
+    path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),
 

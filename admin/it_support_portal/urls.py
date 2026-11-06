@@ -21,6 +21,7 @@ urlpatterns = [
     path('cameras/assignments/', dig_views.camera_assignments, name='camera_assignments'),
     path('live-monitor/', dig_views.live_monitor, name='live_monitor'),
     path('live-monitor/feed/', dig_views.live_monitor_feed, name='live_monitor_feed'),
+    path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('live-tracking/', views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', views.live_tracking_timeline, name='live_tracking_timeline'),
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),

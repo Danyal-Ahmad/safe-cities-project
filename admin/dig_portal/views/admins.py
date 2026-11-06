@@ -49,7 +49,7 @@ def admin_list(request):
         messages.success(request, f"Permissions updated for {target.email or target.username}.")
         return redirect('dig:admin_list')
 
-    from .admin_profiles import all_dropdowns, ROLE_PROFILES
+    from ..admin_profiles import all_dropdowns, ROLE_PROFILES
     import json
     admins = list(User.objects.filter(role__in=[User.DIG, User.SSP, User.SUPERVISOR, User.OFFICER, User.AUDIT, User.IT_SUPPORT]).order_by('role', '-date_joined'))
     from accounts.models import OfficerProfile
@@ -102,7 +102,7 @@ def admin_edit(request, user_id):
     from accounts.permissions import (
         ROLE_HIERARCHY, ROLE_PERMISSION_MATRIX, summarize_role,
     )
-    from .admin_profiles import all_dropdowns, ROLE_PROFILES
+    from ..admin_profiles import all_dropdowns, ROLE_PROFILES
     import json
     _ae_dropdowns = all_dropdowns()
     _ae_role_profiles_json = json.dumps({
@@ -266,7 +266,7 @@ def admin_edit(request, user_id):
 
 @dig_required
 def admin_add(request):
-    from .admin_profiles import (
+    from ..admin_profiles import (
         get_profile, generate_staff_id,
     )
     if request.method == 'POST':
@@ -339,7 +339,7 @@ def admin_add(request):
                        staff_id=user.staff_id, auto_assigned=True)
         messages.success(request, f"Admin account '{user.display_name}' created with Staff ID {user.staff_id}.")
         return redirect('dig:admin_list')
-    from .admin_profiles import all_dropdowns as _dd, ROLE_PROFILES as _rp
+    from ..admin_profiles import all_dropdowns as _dd, ROLE_PROFILES as _rp
     import json as _json
     return render(request, 'dashboard/dig/admin_add.html', {
         'dropdowns': _dd(),

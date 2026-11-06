@@ -16,7 +16,7 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
-# Gateway webhook limit: 60/min per IP (see docs/SECURITY_AUDIT.md matrix).
+
 WEBHOOK_LIMIT = (60, 60)
 
 
@@ -118,9 +118,8 @@ def _webhook_secret() -> str:
 @csrf_exempt
 @require_http_methods(['POST'])
 def payment_webhook(request):
-    # Per-IP limit before signature verification - flooding must not cost
-    # an HMAC pass or a DB lookup. Plain in-view check (no decorator
-    # wrapping) so @csrf_exempt stays intact.
+
+
     if is_rate_limited(request, 'payment_webhook',
                        limit=WEBHOOK_LIMIT[0], window=WEBHOOK_LIMIT[1]):
         return rate_limit_response(request)
@@ -152,12 +151,7 @@ def payment_webhook(request):
             'ticket_no': challan.ticket_no,
         })
 
-    # Idempotent settlement (2026 hardening pass): the old code was
-    # check-then-act (read payment_status, then mark_paid), so two
-    # concurrent webhook deliveries could BOTH settle the same challan
-    # (double credit in audit logs / notifications, paid_at written
-    # twice). select_for_update serialises webhook + demo-checkout on the
-    # challan row; the loser re-reads PAID inside the lock and short-circuits.
+
     with transaction.atomic():
         locked = type(challan).objects.select_for_update().get(pk=challan.pk)
         if locked.payment_status == locked.PAID:

@@ -1,7 +1,4 @@
-/* ==========================================================================
-   DIG PORTAL - Audit PDF Templates (dig-audit-templates)
-   Select-only page: preview cards + activate action
-   ========================================================================== */
+
 
 .dig-aud-card {
   display: flex;
@@ -54,7 +51,6 @@
   color: var(--sc-text-muted, #5B6B85);
 }
 
-/* Sandboxed A4 preview frame (browser chrome strip above the iframe) */
 .dig-aud-frame {
   display: block;
   width: 100%;
@@ -65,7 +61,6 @@
   box-shadow: inset 0 18px 0 -17px #F1F4F9;
 }
 
-/* Card action rows */
 .dig-aud-actions {
   display: flex;
   align-items: center;

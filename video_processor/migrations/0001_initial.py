@@ -1,4 +1,3 @@
-"""video_processor migration 0001 - VideoUpload + VideoFrame."""
 from django.db import migrations, models
 import django.db.models.deletion
 

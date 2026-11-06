@@ -1,9 +1,7 @@
-/* Violation Heatmap - extracted from templates/dashboard/dig/heatmap.html */
+
 (function () {
   'use strict';
 
-  // Heat points are supplied by the server on #heatmap-map via data-heat-points
-  // (previously inlined with {{ heat_points|safe }}).
   const mapEl = document.getElementById('heatmap-map');
   let heatPoints = [];
   try { heatPoints = JSON.parse((mapEl && mapEl.dataset.heatPoints) || '[]'); } catch(e) { heatPoints = []; }

@@ -169,7 +169,6 @@ class EvidenceCheckTests(PipelineBase):
 
 
 class StrictPolicyTests(PipelineBase):
-    """Strict 3-frame evidence, PK plate format and car-only gate policy."""
 
     def test_two_frame_evidence_is_not_enough(self):
         ev2 = [{'plate': 'LEA-1100', 'confidence': 0.9, 'ocr_confidence': 0.9,

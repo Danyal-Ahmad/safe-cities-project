@@ -1,28 +1,15 @@
-/**
- * SafeCities Project - Tables engine (framework-free)
- * Sort + filter + paginate any <table> with a modern card presentation:
- * the table lives inside an .sc-table-card surface and the pagination
- * footer ("Showing X to Y of Z" + page controls) is rendered INSIDE that
- * card as a proper footer bar - never as a loose floating fragment.
- */
+
+
 (function () {
     'use strict';
 
     const scTables = {};
     scTables._instances = scTables._instances || {};
 
-    // ============================================================
-    // Config
-    // ============================================================
-
     scTables.config = {
         pageLength: 25,
         lengthMenu: [10, 25, 50, 100]
     };
-
-    // ============================================================
-    // Native sort/filter/paginate implementation
-    // ============================================================
 
     function nativeSort(table, colIndex, direction) {
         const tbody = table.querySelector('tbody');
@@ -71,21 +58,10 @@
         return { total: total, page: page, perPage: perPage };
     }
 
-    // ============================================================
-    // Card presentation + footer bar
-    // ============================================================
-
-    /* Attach the pagination footer to the table's existing presentation
-       wrapper. Priority:
-       1. an .sc-table-card the engine (or the template) already provided;
-       2. an .sc-table-wrap (project table style) - footer goes inside it;
-       3. a .card-body / .sc-card-body - footer goes inside it;
-       4. otherwise wrap the table in a fresh .sc-table-card.
-       Never nest a new card inside an existing one. */
     function ensureCard(instance) {
         const table = instance.table;
         let card = table.closest('.sc-table-card');
-        let host = null; // where the footer element is appended
+        let host = null;
 
         if (!card) {
             const wrap = table.closest('.sc-table-wrap');
@@ -121,8 +97,7 @@
             footer.appendChild(info);
             footer.appendChild(controls);
             if (host.classList.contains('sc-table-wrap')) {
-                // The wrap scrolls horizontally; the footer must stay fixed
-                // below it, so insert as its next sibling.
+
                 host.parentNode.insertBefore(footer, host.nextSibling);
             } else {
                 host.appendChild(footer);
@@ -180,7 +155,6 @@
         c.appendChild(first);
         c.appendChild(prev);
 
-        // Compact page window: 1 … (cur-1) cur (cur+1) … last
         const window = [];
         for (let p = 1; p <= totalPages; p++) {
             if (p === 1 || p === totalPages || Math.abs(p - cur) <= 1) window.push(p);
@@ -207,10 +181,6 @@
         c.appendChild(lastB);
     }
 
-    // ============================================================
-    // Init native table
-    // ============================================================
-
     function initNative(table) {
         const id = table.id || 'tbl_' + Math.random().toString(36).substr(2, 9);
         if (scTables._instances[id]) return scTables._instances[id];
@@ -223,7 +193,6 @@
         };
         scTables._instances[id] = instance;
 
-        // Sorting
         table.querySelectorAll('thead th[data-sortable], thead th.sortable').forEach(function (th) {
             th.style.cursor = 'pointer';
             th.addEventListener('click', function () {
@@ -240,7 +209,6 @@
             });
         });
 
-        // Search
         const searchEl = document.querySelector('[data-table-search="' + id + '"]');
         if (searchEl) {
             searchEl.addEventListener('input', function () {
@@ -252,17 +220,12 @@
             });
         }
 
-        // Presentation: card + footer, then paginate.
         ensureCard(instance);
         nativePaginate(table, instance.state.page, instance.state.perPage);
         updateFooter(instance);
 
         return instance;
     }
-
-    // ============================================================
-    // Public API
-    // ============================================================
 
     scTables.init = function (tableId, options) {
         const table = typeof tableId === 'string' ? document.getElementById(tableId) : tableId;
@@ -333,10 +296,6 @@
             });
         });
     };
-
-    // ============================================================
-    // Auto-init tables with data-table-init attribute
-    // ============================================================
 
     function autoInit() {
         document.querySelectorAll('[data-table-init], table.sc-data-table').forEach(function (el) {

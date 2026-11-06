@@ -10,9 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     IT INFRASTRUCTURE COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -39,7 +37,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_camera_health" %}
       <div class="scr-stat scr-stat--success">
@@ -79,7 +76,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_detections" %}

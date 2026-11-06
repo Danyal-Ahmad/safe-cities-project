@@ -1,10 +1,3 @@
-"""Court-ready evidence frame annotation.
-
-Takes a detection's raw capture frame and renders the single large evidence
-image displayed on challan PDFs: vehicle containment box, plate box, wrong-way
-direction arrow, capture telemetry strip. The original raw frame is never
-modified; the annotated copy is stored on ``Detection.annotated_image``.
-"""
 from __future__ import annotations
 
 import datetime
@@ -36,7 +29,6 @@ def _clamp(value, low, high):
 
 
 def annotate_evidence_frame(detection, camera=None) -> bytes | None:
-    """Render the annotated JPEG bytes for a detection, or None on failure."""
     try:
         from PIL import Image, ImageDraw
 
@@ -56,24 +48,24 @@ def annotate_evidence_frame(detection, camera=None) -> bytes | None:
         plate_bbox = raw.get('bbox')
         vehicle_bbox = raw.get('vehicle_bbox')
 
-        # Vehicle containment box (red)
+
         if vehicle_bbox and len(vehicle_bbox) == 4:
             vx1, vy1, vx2, vy2 = [int(_clamp(v, 0, width if i % 2 == 0 else height))
                                   for i, v in enumerate(vehicle_bbox)]
             draw.rectangle([vx1, vy1, vx2, vy2], outline=(220, 38, 38), width=box_w)
 
-        # Plate box (yellow)
+
         if plate_bbox and len(plate_bbox) == 4:
             px1, py1, px2, py2 = [int(_clamp(v, 0, width if i % 2 == 0 else height))
                                   for i, v in enumerate(plate_bbox)]
             draw.rectangle([px1, py1, px2, py2], outline=(250, 204, 21), width=max(2, int(3 * scale)))
 
-        # Wrong-way direction arrow across the vehicle box
+
         if vehicle_bbox and len(vehicle_bbox) == 4:
             vx1, vy1, vx2, vy2 = [int(v) for v in vehicle_bbox]
             mid_y = (vy1 + vy2) // 2
             raw_side = (detection.ai_side_classification or '')
-            # arrow flows against legal direction: back-facing plates => vehicle travelling away
+
             arrow_len = max(60, int((vx2 - vx1) * 0.9))
             if raw_side == 'back':
                 ax1, ax2 = vx1 + arrow_len, vx1
@@ -88,14 +80,14 @@ def annotate_evidence_frame(detection, camera=None) -> bytes | None:
                 pts = [(ax2, mid_y), (ax2 - head, mid_y - head), (ax2 - head, mid_y + head)]
             draw.polygon(pts, fill=(220, 38, 38))
 
-        # Header band
+
         band_h = max(34, int(44 * scale))
         draw.rectangle([0, 0, width, band_h], fill=(15, 37, 78))
         draw.text((int(14 * scale), int(6 * scale)),
                   'SAFE CITIES PROJECT  |  TRAFFIC VIOLATION EVIDENCE',
                   fill=(255, 255, 255), font=font_big)
 
-        # Telemetry strip
+
         ts = (detection.created_at or datetime.datetime.now())
         ts_str = ts.strftime('%d-%m-%Y %H:%M:%S')
         cam_id = getattr(camera, 'camera_id', None) or (
@@ -121,7 +113,6 @@ def annotate_evidence_frame(detection, camera=None) -> bytes | None:
 
 
 def store_annotated_evidence(detection, camera=None) -> bool:
-    """Render and persist the annotated evidence frame on the detection."""
     data = annotate_evidence_frame(detection, camera)
     if not data:
         return False

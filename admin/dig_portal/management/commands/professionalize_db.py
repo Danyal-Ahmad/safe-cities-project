@@ -1,11 +1,3 @@
-"""
-Drop orphan tables not used by the app, rename remaining tables to
-professional sc_* names, and ensure sc_blacklist exists.
-
-Usage:
-  python manage.py professionalize_db
-  python manage.py professionalize_db --dry-run
-"""
 from django.core.management.base import BaseCommand
 from django.db import connection
 

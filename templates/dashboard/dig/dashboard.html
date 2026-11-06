@@ -6,10 +6,7 @@
 {% block title %}DIG Command Center{% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     DIG COMMAND SCREEN · one cohesive surface
-     command rail + stat strip + unified workspace
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -34,7 +31,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip · live API driven -->
     <div class="scr-stats">
       <div class="scr-stat scr-stat--success">
         <div class="scr-stat-label">Revenue Collected</div>
@@ -91,7 +87,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_analytics" %}
@@ -217,7 +212,7 @@
             <thead>
               <tr><th>ID</th><th>Surveillance Camera</th><th>Vehicle Plate</th><th>Confidence</th><th>Status</th><th>Capture Timestamp</th></tr>
             </thead>
-            <tbody><!-- populated by dig-dashboard.js --></tbody>
+            <tbody></tbody>
           </table>
         </div>
       </div>

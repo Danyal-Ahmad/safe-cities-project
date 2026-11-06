@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Officer | Detection Detail (officer-detection-detail.js)
-   Image fallbacks, notes counters + validation, confirm dialogs, copy hash.
-   ========================================================================== */
+
+
 (function () {
   'use strict';
 
@@ -15,7 +13,6 @@
 
   ready(function () {
 
-    /* ---- Broken image fallbacks ---------------------------------------- */
     document.querySelectorAll('img[data-img-fallback]').forEach(function (img) {
       img.addEventListener('error', function () {
         var box = img.closest('.sc-evidence-imgbox') || img.parentElement;
@@ -24,7 +21,6 @@
       });
     });
 
-    /* ---- Confidence meter widths (data-driven, no inline CSS) ---------- */
     document.querySelectorAll('.sc-conf-fill[data-conf-width]').forEach(function (el) {
       var w = parseInt(el.getAttribute('data-conf-width'), 10);
       if (!isNaN(w)) {
@@ -32,7 +28,6 @@
       }
     });
 
-    /* ---- Notes character counters -------------------------------------- */
     document.querySelectorAll('[data-notes-input]').forEach(function (input) {
       var min = parseInt(input.getAttribute('data-notes-min') || '0', 10);
       var form = input.closest('form');
@@ -50,7 +45,6 @@
       update();
     });
 
-    /* ---- Submit validation + destructive-action confirmation ----------- */
     document.querySelectorAll('form[data-notes-form]').forEach(function (form) {
       form.addEventListener('submit', function (e) {
         var min = parseInt(form.getAttribute('data-notes-min') || '0', 10);
@@ -99,7 +93,6 @@
       });
     });
 
-    /* ---- Copy evidence hash --------------------------------------------- */
     document.querySelectorAll('[data-copy-value]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var value = btn.getAttribute('data-copy-value') || '';
@@ -122,7 +115,6 @@
   });
 })();
 
-// --- 3-frame sequential evidence viewer (90FPS burst) ---
 (function () {
   var main = document.getElementById('detailTargetImage');
   var strip = document.getElementById('seqFrameStrip');

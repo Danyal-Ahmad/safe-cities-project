@@ -102,10 +102,6 @@ path('analytics/',                    views.analytics,               name='analy
     path('regional-access/',              views.regional_access,         name='regional_access'),
 
 
-
-
-
-
     path('live-monitor/',                 views.live_monitor,            name='live_monitor'),
     path('live-monitor/feed/',            views.live_monitor_feed,       name='live_monitor_feed'),
     path('live-tracking/timeline/',       officer_views.frame_timeline,  name='live_tracking_timeline'),

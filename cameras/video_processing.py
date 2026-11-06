@@ -1,11 +1,3 @@
-"""Video upload processing engine.
-
-For every sampled frame the AI pipeline runs; when a plate is detected the
-processor also captures the next two CONSECUTIVE frames (90FPS-style burst)
-and re-checks them one-by-one, building the 3-frame sequential evidence
-package stored on the Detection. Only frames whose plate reads agree across
-the sequence can pass evidence verification and issue a challan.
-"""
 import io
 import logging
 import os
@@ -18,7 +10,7 @@ from django.utils import timezone
 logger = logging.getLogger('wrongway.video_upload')
 
 MAX_FRAMES_PER_UPLOAD = 500
-SEQUENTIAL_EVIDENCE_FRAMES = 2  # extra consecutive frames captured per plate hit
+SEQUENTIAL_EVIDENCE_FRAMES = 2  
 
 
 def _extract_frame_timestamps(duration_seconds, interval_seconds):
@@ -47,7 +39,6 @@ def _normalize_plate(raw):
 
 
 def _capture_sequential_frames(cap, count):
-    """Read the next `count` truly consecutive frames from an open capture."""
     frames = []
     for _ in range(count):
         ok, frame = cap.read()
@@ -181,7 +172,7 @@ def process_video_upload(upload_id):
                         except Exception:
                             pass
 
-                    # --- 3-frame sequential evidence (90FPS-style burst) ---
+
                     evidence_meta = [{
                         'slot': 1,
                         'timestamp': round(ts, 3),
@@ -226,8 +217,8 @@ def process_video_upload(upload_id):
                                 'source': 'sequential',
                             })
                     detection.evidence_frames_meta = evidence_meta
-                    # Strict-evidence contract: expose the per-frame reads and
-                    # the car-only gate in the raw AI response the pipeline reads.
+
+
                     raw_resp = detection.ai_raw_response or {}
                     raw_resp['frame_evidence'] = [
                         {'plate': m.get('plate'), 'confidence': m.get('confidence'),

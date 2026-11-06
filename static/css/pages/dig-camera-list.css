@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG - Camera Network  (dashboard/dig/camera_list.html)
-   ========================================================================== */
 
-/* ---------- Filter bar (also a GET form for server-side search) ---------- */
 
 .cam-filter-bar {
   display: flex;
@@ -15,8 +11,6 @@
   border-radius: var(--sc-radius, 14px);
   background: var(--sc-bg-soft, #F1F4F9);
 }
-
-/* ---------- Server-side search notice ---------- */
 
 .cam-server-note {
   display: flex;
@@ -82,8 +76,6 @@
 
 .cam-filter-select:focus { border-color: var(--sc-primary, #2563EB); }
 
-/* ---------- Camera id icon ---------- */
-
 .cam-id-icon {
   width: 30px;
   height: 30px;
@@ -99,8 +91,6 @@
 .cam-location { max-width: 230px; }
 
 .cam-dir-badge { min-width: 78px; justify-content: center; }
-
-/* ---------- Health chip (online / offline / degraded / unknown) ---------- */
 
 .cam-health-chip {
   display: inline-flex;
@@ -155,8 +145,6 @@
   100% { box-shadow: 0 0 0 0 rgba(34, 164, 93, 0); }
 }
 
-/* ---------- Read-only note (non-IT roles) ---------- */
-
 .cam-readonly-note {
   display: inline-flex;
   align-items: center;
@@ -171,7 +159,6 @@
 
 .cam-actions { flex-wrap: nowrap; }
 
-/* Hide verbose action labels on narrow screens */
 @media (max-width: 1280px) {
   .cam-action-label { display: none; }
 }

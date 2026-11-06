@@ -1,6 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT | Challan Templates (it-challan-templates)
-   ========================================================================== */
+
 
 .it-tpl-card {
   display: flex;
@@ -47,7 +45,6 @@
 .it-tpl-blurb a { color: var(--sc-primary, #2563EB); text-decoration: none; }
 .it-tpl-blurb a:hover { text-decoration: underline; }
 
-/* Sandboxed preview frame (mini browser chrome + iframe) */
 .it-tpl-frame {
   position: relative;
   display: flex;
@@ -88,7 +85,6 @@
   display: block;
 }
 
-/* Card action rows */
 .it-tpl-actions {
   display: flex;
   align-items: center;
@@ -99,7 +95,6 @@
 
 .it-tpl-actions form { margin: 0; }
 
-/* Collapsible editors */
 .it-tpl-edit {
   margin-top: 10px;
   border-top: 1px dashed var(--sc-border-strong, #D3DAE7);
@@ -128,7 +123,6 @@
   min-height: 120px;
 }
 
-/* Header upload widget */
 .it-upload > summary { list-style: none; }
 .it-upload > summary::-webkit-details-marker { display: none; }
 

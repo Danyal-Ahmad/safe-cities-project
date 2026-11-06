@@ -19,7 +19,6 @@ def make_user(email, role, cnic=None, phone=None, password='Passw0rd!Long123'):
 
 
 class PortalIsolationTests(TestCase):
-    """Every portal path must be hard-locked to its own role."""
 
     PORTALS = [
         ('/portal/dig/', 'DIG'),
@@ -176,7 +175,6 @@ class CitizenIsolationTests(TestCase):
 
 
 class CitizenAccountIsolationTests(TestCase):
-    """Realtime feeds must not leak to citizens."""
 
     def test_live_recent_detections_blocked_for_citizens(self):
         citizen = make_user('citz_feed@t.fyp', 'USER')

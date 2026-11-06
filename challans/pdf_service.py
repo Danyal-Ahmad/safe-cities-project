@@ -1,15 +1,3 @@
-"""Challan PDF generation service.
-
-Guarantees:
-- Every challan renders as EXACTLY ONE A4 page (page-count verified with pypdf;
-  overflow re-renders through the compact template, then the ReportLab
-  single-page fallback).
-- Exactly ONE large evidence image: the annotated full-frame capture with the
-  violation box, plate box and direction arrow (Detection.annotated_image,
-  falling back to the raw frame).
-- Payment channels are rendered as ICONS (static/img/payment/*.svg), not text.
-- Only the selected template plus its data is rendered, never extra data.
-"""
 import re
 import logging
 import os
@@ -33,7 +21,7 @@ TEMPLATE_MAP = {
     'command_brief': 'challan/challan_templates/command_brief.html',
     'secure_instrument': 'challan/challan_templates/secure_instrument.html',
     'urdu_executive': 'challan/challan_templates/urdu_executive.html',
-    'compact_a4': 'challan/challan_templates/command_brief.html',  # overflow guard
+    'compact_a4': 'challan/challan_templates/command_brief.html',  
     'safecityfyp_classic': 'challan/challan_templates/modern_a4.html',
 }
 
@@ -75,7 +63,6 @@ def _make_barcode(ticket_no: str):
 
 
 def _make_qr_svg(payload: str):
-    """Server-side QR code as an inline SVG string (WeasyPrint cannot run JS)."""
     try:
         import qrcode
         import qrcode.image.svg as qr_svg
@@ -94,7 +81,6 @@ def _resolve_static(path_rel: str):
 
 
 def _evidence_image(challan):
-    """The ONE evidence image used by every template: annotated frame first."""
     det = getattr(challan, 'detection', None)
     if det is None:
         return None, None
@@ -119,9 +105,6 @@ def _pdf_page_count(pdf_bytes: bytes) -> int:
 
 
 def _needs_nadra_excise_integration(challan) -> bool:
-    """True when owner identity could not be resolved because NADRA/Excise
-    registry integration is not configured. Drives the red PDF warning text.
-    """
     if getattr(challan, 'owner_name', None):
         return False
     try:
@@ -136,7 +119,6 @@ def _needs_nadra_excise_integration(challan) -> bool:
 
 
 def _fallback_reportlab_pdf(challan) -> bytes:
-    """Single-page A4 PDF when WeasyPrint is unavailable."""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.colors import HexColor, black
     from reportlab.pdfgen import canvas
@@ -208,7 +190,6 @@ def _fallback_reportlab_pdf(challan) -> bytes:
 
 
 def _minimal_pdf_bytes(ticket_no: str) -> bytes:
-    """Tiny valid PDF with no external deps (last resort)."""
     label = f'Challan {ticket_no or ""}'.replace('(', ' ').replace(')', ' ')[:60]
     content = f'BT /F1 12 Tf 50 750 Td ({label}) Tj ET'
     body = content.encode('latin-1', errors='ignore')
@@ -243,11 +224,10 @@ def _minimal_pdf_bytes(ticket_no: str) -> bytes:
     return pdf
 
 
-_WEASYPRINT_STATE = None  # None = untested, True = ok, False = broken
+_WEASYPRINT_STATE = None  
 
 
 def _render_html_to_pdf(html_string):
-    """HTML -> PDF via WeasyPrint, then xhtml2pdf, then None (caller falls back)."""
     global _WEASYPRINT_STATE
     if _WEASYPRINT_STATE is not False:
         try:
@@ -389,7 +369,6 @@ def _render_template_to_html(tpl_key, context):
 
 
 def generate_challan_pdf(challan):
-    """Render the challan PDF, guaranteeing a ONE A4 page document."""
     from admin.dig_portal.models import SystemSettings
 
     sys_settings = SystemSettings.get()
@@ -412,7 +391,7 @@ def generate_challan_pdf(challan):
                 'Challan %s rendered %d pages with template %s | re-rendering compact',
                 getattr(challan, 'ticket_no', challan.pk), pages, tpl_key,
             )
-            # Overflow guard: re-render with the compact one-page template.
+
             compact_html = _render_template_to_html('compact_a4', context)
             if compact_html:
                 compact_bytes = _render_html_to_pdf(compact_html)
@@ -422,7 +401,7 @@ def generate_challan_pdf(challan):
                 return _fallback_reportlab_pdf(challan)
             except Exception as e:
                 logger.warning('ReportLab fallback failed: %s', e)
-                return pdf_bytes  # best effort: keep multi-page over no challan
+                return pdf_bytes  
 
     try:
         return _fallback_reportlab_pdf(challan)

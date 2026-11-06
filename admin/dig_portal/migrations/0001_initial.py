@@ -1,12 +1,3 @@
-"""dig_portal migration 0001 - SystemSettings + AuditLog + Alert + Banner.
-
-NOTE: This migration was originally authored when the app was named `core`.
-Index names have been regenerated for the `dig_portal` app_label so they no
-longer collide with the legacy `core_*` tables left in the database from the
-previous app name. Run the `fix_db_prefix` management command once to rename
-the legacy `core_*` tables/indexes/migration-rows to `dig_portal_*` before
-applying migrations on an existing database.
-"""
 from django.db import migrations, models
 import django.db.models.deletion
 

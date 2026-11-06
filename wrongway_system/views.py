@@ -1,10 +1,3 @@
-"""Shared error handlers for Safe City.
-
-Every handler renders the single shared template ``errors/error_page.html``
-with a ``code`` / ``title`` / ``message`` context. The template is a
-standalone page (own <head>, CSS via {% static %}) so it renders even when
-the request context or context processors are unavailable (e.g. 500s).
-"""
 
 from django.http import HttpResponse
 from django.template import loader
@@ -13,12 +6,6 @@ ERROR_TEMPLATE = 'errors/error_page.html'
 
 
 def _render_error(request, status_code, title, message):
-    """Render the shared error page.
-
-    Deliberately uses ``loader`` + a plain (non-Request) context so that
-    context processors never run - the 500 handler must work even when the
-    database / auth machinery is the thing that is broken.
-    """
     context = {
         'code': status_code,
         'title': title,

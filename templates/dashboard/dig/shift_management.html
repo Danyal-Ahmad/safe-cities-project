@@ -1,9 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% comment %}V37: shift assignment is now auto-only (round-robin/least-busy)
- - DIG picks a start/end time and the system assigns whichever eligible
-   officer has the fewest shifts in the trailing 7 days. No manual officer
-   picker anymore.{% endcomment %}
+
 {% block title %}Shift Roster{% endblock %}
 
 {% block extra_head %}

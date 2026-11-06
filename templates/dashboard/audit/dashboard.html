@@ -10,9 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     AUDIT OVERSIGHT COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -35,7 +33,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_challans" %}
       <div class="scr-stat">
@@ -73,7 +70,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_audit_log" %}

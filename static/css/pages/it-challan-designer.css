@@ -1,6 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT | Challan Template Designer (it-challan-designer)
-   ========================================================================== */
+
 
 .it-ds-pal {
   display: grid;
@@ -51,7 +49,6 @@
   font-size: 1rem;
 }
 
-/* Canvas */
 .it-ds-canvas {
   position: relative;
   min-height: 520px;
@@ -140,7 +137,6 @@
 
 .it-ds-placed-x:hover { background: var(--sc-danger-bg, #FDF3F5); }
 
-/* Code output */
 .it-ds-code {
   font-size: 0.72rem;
   line-height: 1.45;

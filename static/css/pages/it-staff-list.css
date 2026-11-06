@@ -1,6 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT | Staff Directory (it-staff-list)
-   ========================================================================== */
+
 
 .it-staff-name {
   font-size: 0.86rem;
@@ -8,7 +6,6 @@
   color: var(--sc-navy-deep, #0F2557);
 }
 
-/* Role-coloured badges (aligned with system avatar colours) */
 .it-role-dig { background: #F1EDFC; color: #6D28D9; }
 .it-role-ssp { background: #FDF3F5; color: #BE123C; }
 .it-role-supv { background: #FDF6E7; color: #B45309; }

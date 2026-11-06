@@ -10,7 +10,6 @@
 {% block content %}
 <div id="cctvWall" class="cctv-wall" data-feed-url="{{ feed_url }}">
 
-  <!-- ======== Wall toolbar: identity, counters, clock, server search ======== -->
   <div class="cctv-toolbar">
     <div class="cctv-toolbar-id">
       <div class="cctv-title-row">
@@ -60,7 +59,6 @@
   </div>
   {% endif %}
 
-  <!-- ======== Borderless surveillance wall grid ======== -->
   <div id="cctvGrid" class="cctv-grid">
     {% for c in cameras %}
     <div class="cctv-col" data-search="{{ c.camera_id|lower }} {{ c.location|lower }} {{ c.camera_type_label|lower }} {{ c.legal_direction_label|lower }} {{ c.violation_side|lower }}">

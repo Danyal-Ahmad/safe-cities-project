@@ -19,8 +19,6 @@ log = logging.getLogger('wrongway.officer')
 
 
 def officer_camera_ids(user):
-    """Camera IDs the user may see. Officers are limited to their active
-    CameraAssignment rows; senior staff (DIG/SSP/SUPV) see everything."""
     if user.role == 'OFFICER':
         from realtime.models import CameraAssignment
         ids = list(
@@ -154,8 +152,8 @@ def review_queue(request):
 @officer_or_dig_required
 def detection_detail(request, detection_id):
     detection = get_object_or_404(Detection, pk=detection_id)
-    # Officer IDOR guard: officers may only open detections from their
-    # assigned cameras (senior staff see everything).
+
+
     if request.user.role == 'OFFICER':
         allowed = officer_camera_ids(request.user)
         if detection.camera_id is not None and detection.camera_id not in allowed:
@@ -281,7 +279,6 @@ def review_history(request):
 
 
 def lookup_owner_by_plate(plate_number):
-    """Resolve plate to owner via local registration then the Excise registry."""
     logger = logging.getLogger('wrongway.excise')
     plate = (plate_number or '').strip().upper()
     if not plate or plate == 'UNKNOWN':
@@ -412,8 +409,6 @@ def performance(request):
 
 @role_required('OFFICER')
 def live_tracking(request):
-    """Officer Live Tracking - camera-scoped to this officer's active
-    CameraAssignment rows only. Uses LiveTrackingService for consistent data."""
     from admin.shared import LiveTrackingService
 
     service = LiveTrackingService(
@@ -488,7 +483,6 @@ def vehicle_tracking(request):
 
 @role_required('OFFICER', 'IT')
 def frame_timeline(request):
-    """JSON feed for officer Live Tracking trail - camera-assignment scoped."""
     from admin.shared import LiveTrackingService
 
     service = LiveTrackingService(

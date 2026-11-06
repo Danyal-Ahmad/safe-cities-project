@@ -1,4 +1,4 @@
-# Idempotent Shift table - works whether user table is accounts_user or sc_users
+
 
 import django.db.models.deletion
 from django.conf import settings
@@ -93,15 +93,9 @@ END $$;
 
 
 def _run_postgres_shift_sql(apps, schema_editor):
-    """The DDL above is PL/pgSQL and only valid on PostgreSQL (production),
-    where it idempotently merges/upgrades a possibly-preexisting shift table.
-    On other backends (e.g. SQLite in USE_SQLITE_DRY_RUN / CI) there is no
-    legacy table to merge, so just create the table the normal Django way."""
     if schema_editor.connection.vendor != 'postgresql':
-        # Non-PostgreSQL path (USE_SQLITE_DRY_RUN / CI only). Create the table
-        # with exactly the columns state_operations.CreateModel declares above,
-        # named to match what the later 0013 rename migration expects
-        # ('dig_portal_shift' -> its eventual db_table).
+
+
         with schema_editor.connection.cursor() as cursor:
             cursor.execute(
                 'CREATE TABLE IF NOT EXISTS "dig_portal_shift" ('

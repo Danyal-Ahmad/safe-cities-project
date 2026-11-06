@@ -132,10 +132,8 @@ def dashboard(request):
 
 @it_required
 def pdf_settings(request):
-    """Legacy URL - PDF settings live under System Settings tab."""
     from django.shortcuts import redirect
     return redirect('/portal/it/settings/?tab=pdf-settings')
-
 
 
 @it_required
@@ -309,7 +307,6 @@ def staff_list(request):
     })
 
 
-
 from django.http import JsonResponse
 from accounts.decorators import permission_required, it_required
 
@@ -317,7 +314,6 @@ from accounts.decorators import permission_required, it_required
 @it_required
 @permission_required('live_tracking')
 def live_tracking(request):
-    """IT Support Live Vehicle Tracking (full camera access)."""
     from cameras.models import Camera
     from realtime.models import LiveFeed
     from admin.shared import LiveTrackingService
@@ -364,7 +360,6 @@ def live_tracking(request):
 @it_required
 @permission_required('live_tracking_timeline')
 def live_tracking_timeline(request):
-    """JSON timeline for IT Live Tracking."""
     from admin.shared import LiveTrackingService
 
     plate = (request.GET.get('plate') or '').strip()
@@ -392,7 +387,6 @@ def live_tracking_timeline(request):
 
 @it_required
 def audit_templates_manage(request):
-    """IT Support: full control over audit report PDF templates (Canva-lite)."""
     from admin.audit_portal.audit_pdf import (BUILTIN_TEMPLATES,
                                               generate_audit_pdf,
                                               get_active_template_key,
@@ -401,7 +395,7 @@ def audit_templates_manage(request):
     from admin.dig_portal.models import (AuditPDFTemplate, AuditLog,
                                          SystemSettings)
 
-    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
+
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         if sample_key not in {t['key'] for t in get_audit_templates()}:

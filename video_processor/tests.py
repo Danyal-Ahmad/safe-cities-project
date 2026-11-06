@@ -11,7 +11,6 @@ from video_processor.models import VideoUpload
 
 
 class VideoPipelineDryRunTests(TestCase):
-    """Dry-run the full video upload -> frame extraction -> pipeline -> challan flow."""
 
     @classmethod
     def setUpTestData(cls):

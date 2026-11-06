@@ -1,10 +1,5 @@
-/* ==========================================================================
-   DIG - Camera Network  (dashboard/dig/camera_list.html)
-   Client-side registry filtering (search + health + active state).
-   The filter bar is also a GET form (?q=&health=&active=) so the server can
-   pre-filter the registry; this script keeps the instant in-page filtering
-   on top of whatever the server returned.
-   ========================================================================== */
+
+
 (function () {
   'use strict';
 
@@ -59,8 +54,7 @@
 
   if (resetBtn) {
     resetBtn.addEventListener('click', function () {
-      // When the server already filtered the registry (?q= etc.) the only way
-      // to truly reset is to drop the query string and reload.
+
       if (filterBar && filterBar.getAttribute('data-server-filtered') === '1') {
         window.location.href = window.location.pathname;
         return;

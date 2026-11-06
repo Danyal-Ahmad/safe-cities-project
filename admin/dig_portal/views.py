@@ -133,13 +133,6 @@ def dashboard(request):
 @staff_required
 @permission_required('view_live_monitor')
 def live_monitor(request):
-    """Senior-staff CCTV wall (DIG / SSP / SUPERVISOR portals).
-
-    Server-side search: ``?q=`` matches camera_id or location (case-insensitive).
-    The Camera model has no separate ``name`` / ``area`` columns, so ``location``
-    doubles as the area label. Per-camera display attributes (channel chip,
-    feed kind, camera type line) are derived here so the template stays simple.
-    """
     from django.urls import reverse as _reverse, NoReverseMatch as _NoReverseMatch
 
     q = (request.GET.get('q') or '').strip()
@@ -171,11 +164,7 @@ def live_monitor(request):
                 else:
                     latest_detections[d.camera_id] = ''
 
-    # Snapshot endpoint: not every portal re-exports camera_snapshot and the
-    # endpoint itself requires camera_feed / view_cameras. Resolve a usable
-    # namespace once (current portal first, DIG portal as fallback) so the
-    # template never has to guess (which used to raise NoReverseMatch on the
-    # SSP / supervisor routes).
+
     snapshot_ns = None
     try:
         user = request.user
@@ -193,12 +182,11 @@ def live_monitor(request):
     direction_labels = dict(Camera._meta.get_field('legal_direction').choices)
 
     def _feed_kind(stream):
-        """Classify a stream URL: browser-playable video, snapshot source, or none."""
         low = (stream or '').lower()
         if not low:
             return 'none'
         if low.startswith(('rtsp://', 'rtsps://')):
-            # Raw RTSP cannot be played by browsers; fall back to snapshots.
+
             return 'snapshot'
         if '/media/' in low or any(ext in low for ext in ('.mp4', '.webm', '.mov', '.m4v', '.avi', '.mkv')):
             return 'video'
@@ -219,8 +207,8 @@ def live_monitor(request):
         c.playable_stream = stream
         c.feed_kind = _feed_kind(stream)
         c.snapshot_url = _reverse(f'{snapshot_ns}:camera_snapshot', args=[c.id]) if snapshot_ns else ''
-        # The Camera model has no camera_type column; derive it from the
-        # configured source so every channel shows an ANPR / SNAPSHOT tag.
+
+
         if c.feed_kind == 'video':
             c.camera_type_label = 'ANPR'
         elif c.feed_kind == 'snapshot':
@@ -286,10 +274,6 @@ def live_monitor(request):
 @staff_required
 @permission_required('view_live_monitor')
 def live_monitor_feed(request):
-    """JSON feed for the Live Monitor page: recent activity + camera status counts.
-    Polled client-side so the alert ticker and status badges refresh in place
-    without a full page reload (which would otherwise restart video tiles).
-    """
     from detections.models import Detection
 
     cameras = Camera.objects.all()
@@ -510,10 +494,6 @@ def admin_edit(request, user_id):
         ('OFFICER', 'Officer'), ('AUDIT', 'Audit'), ('IT', 'IT Support'),
     ]
 
-    """DIG edits an admin/staff user. Avatar upload supported.
-    Role is editable via checkboxes - permissions are auto-derived from role
-    via ROLE_PERMISSION_MATRIX. The DIG can reassign any admin role here.
-    Name (first_name) is required."""
     from accounts.permissions import (
         ROLE_HIERARCHY, ROLE_PERMISSION_MATRIX, summarize_role,
     )
@@ -716,13 +696,6 @@ def _camera_list_redirect(request):
 
 @role_required('DIG', 'IT', 'SSP', 'SUPV', 'AUDIT')
 def camera_list(request):
-    """Camera registry with server-side search.
-
-    ``?q=`` matches camera_id or location (case-insensitive); ``?health=`` and
-    ``?active=`` narrow by health status and active state so filtered views are
-    shareable URLs. The instant client-side filter in the template keeps
-    working on top of whatever the server returns.
-    """
     q = (request.GET.get('q') or '').strip()
     health = (request.GET.get('health') or '').strip()
     active = (request.GET.get('active') or '').strip()
@@ -740,7 +713,7 @@ def camera_list(request):
 
     cameras = list(camera_qs)
 
-    # KPI counters reflect the full registry, not just the current search.
+
     if q or health or active:
         all_cameras = list(base_qs)
     else:
@@ -1001,10 +974,6 @@ def camera_set_online(request, camera_id):
 
 
 def _camera_delete_impact(camera):
-    """Non-destructive summary of what still references this camera, so IT can
-    make an informed choice between deactivating (safe, reversible) and force
-    deleting (detaches history, still preserved via SET_NULL but no longer
-    attributable to this camera record once it's gone)."""
     from realtime.models import CameraAssignment
     return {
         'detections': camera.detections.count(),
@@ -1058,7 +1027,6 @@ def regenerate_enrollment_token(request, camera_id):
 
 @staff_required
 def cameras_status(request):
-    """Camera status board: auto health refresh plus server-side search (?q=)."""
     all_cameras = list(Camera.objects.all().order_by('-installed_date'))
     threshold = timezone.now() - datetime.timedelta(minutes=3)
     manual_online_threshold = timezone.now() - datetime.timedelta(hours=24)
@@ -1085,7 +1053,7 @@ def cameras_status(request):
                     c.health_status = 'degraded'
                     c.save(update_fields=['health_status'])
 
-    # Counters are computed after the refresh pass so they reflect reality.
+
     online_count = sum(1 for c in all_cameras if c.health_status == 'online')
     offline_count = sum(1 for c in all_cameras if c.health_status == 'offline')
     degraded_count = sum(1 for c in all_cameras if c.health_status == 'degraded')
@@ -1118,7 +1086,6 @@ def settings_edit(request):
         _m.info(request, 'Administrative form selection is managed under Staff workflows. System configuration is handled by IT Support.')
         return redirect('dig:dashboard')
 
-    """IT-only system configuration. DIG is redirected to dashboard."""
     from .models import ChallanTemplate
     is_it = (
         getattr(request.user, 'role', '') in ('IT', 'IT_SUPPORT')
@@ -1661,7 +1628,6 @@ def csrf_failure(request, reason=""):
 
 @senior_staff_required
 def vehicle_search(request):
-    """Search detections + challans by plate / CNIC / owner. Inputs sanitized."""
     import re
     raw = (request.GET.get('q') or '').strip()
     q = re.sub(r'[^A-Za-z0-9\- ]', '', raw)[:32].strip()
@@ -2479,7 +2445,6 @@ def challan_confirm_delete(request, challan_id):
 
 @any_permission_required('officer_pki', 'officer_profile_manage')
 def officer_signatures(request):
-    """Manage officer e-signatures centrally. Lists all staff officers + their signature status."""
     from django.db.models import Q
     qs = (User.objects
           .filter(role__in=[User.OFFICER, User.SSP, User.SUPERVISOR, User.DIG])
@@ -2606,7 +2571,6 @@ def regional_command(request):
 
 @staff_required
 def camera_health(request):
-    """Camera health dashboard with KPI counters and server-side search (?q=)."""
     q = (request.GET.get('q') or '').strip()
     base = Camera.objects.all().order_by('-installed_date')
     total = base.count()
@@ -2950,7 +2914,6 @@ def camera_snapshot(request, camera_id):
 
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT')
 def appeals_queue(request):
-    """Mistake-challan appeals queue: SSP decides, DIG/Supervisor/Audit have visibility."""
     appeals = list(
         ChallanAppeal.objects.all().select_related('challan', 'submitted_by').order_by('-created_at')[:100]
     )
@@ -2967,7 +2930,6 @@ def appeals_queue(request):
 
 @role_required('DIG', 'SSP')
 def regional_heatmap(request):
-    """Real Leaflet heatmap: camera GPS points + challan density, with city landmarks fallback."""
     import json
     from cameras.models import Camera
 
@@ -2998,7 +2960,7 @@ def regional_heatmap(request):
         for key, coords in CITY_GEO.items():
             if key in t:
                 return coords
-        return (31.5204, 74.3587)  # city centre fallback
+        return (31.5204, 74.3587)  
 
     heat_points = []
     camera_markers = []
@@ -3118,7 +3080,7 @@ def alerts_hub_add_alert(request):
         created_by=request.user,
     )
     AuditLog.write(request, 'alert.create', 'Alert', 0, title=title[:80])
-    # Realtime push notification to the targeted portal rooms (Socket.IO).
+
     try:
         from realtime.realtime_events import emit_portal_notification
         emit_portal_notification(
@@ -3129,7 +3091,6 @@ def alerts_hub_add_alert(request):
         pass
     messages.success(request, f"Alert '{title}' created. Previous active alerts have been deactivated (max 1 active ticker policy).")
     return redirect(_alerts_hub_url('alerts', request))
-
 
 
 def alerts_hub_add_broadcast(request):
@@ -3226,11 +3187,7 @@ def alerts_hub_edit_alert(request, alert_id):
     return redirect(_alerts_hub_url('alerts', request))
 
 
-
-
-
 def alerts_hub_delete_broadcast(request, log_id):
-    """Delete a broadcast log entry (AuditLog action=broadcast.send)."""
     entry = get_object_or_404(AuditLog, pk=log_id, action='broadcast.send')
     if request.method == 'POST':
         entry.delete()
@@ -3243,17 +3200,12 @@ def alerts_hub_delete_broadcast(request, log_id):
     })
 
 
-# ------------------------------------------------------------------
-# Banners (public ads engine) - CRUD backing the Alerts Hub banner tab
-# ------------------------------------------------------------------
-
 _BANNER_PLACEMENTS = {code for code, _ in Banner.PLACEMENT_CHOICES}
 _BANNER_AUDIENCES = {code for code, _ in Banner.AUDIENCE_CHOICES}
 _BANNER_TYPES = {code for code, _ in Banner.BANNER_TYPE_CHOICES}
 
 
 def _banner_payload(request):
-    """Validate banner fields from POST; returns (data, error)."""
     data = {
         'title': (request.POST.get('title') or '').strip(),
         'html_content': (request.POST.get('html_content') or '').strip(),
@@ -3503,11 +3455,6 @@ def payment_settings(request):
 
 @role_required('DIG')
 def ads_select(request):
-    """DIG ad selection: activate/deactivate ads and set serving priority.
-
-    Content editing is restricted to IT Support (Ads Studio). DIG only
-    selects which prepared ads are served and in what order.
-    """
     if request.method == 'POST':
         action = request.POST.get('action', '')
         banner_id = request.POST.get('banner_id')
@@ -3593,7 +3540,6 @@ def staff_set_password(request):
 
 @any_permission_required('camera_feed', 'view_cameras')
 def camera_stream_url(request, camera_id):
-    """Get the best available stream URL for a camera (HTTP snapshot or RTSP)."""
     camera = get_object_or_404(Camera, pk=camera_id)
     if request.user.role == 'OFFICER':
         from realtime.models import CameraAssignment
@@ -3613,10 +3559,8 @@ def camera_stream_url(request, camera_id):
     return JsonResponse({'stream_url': None, 'type': 'none'}, status=404)
 
 
-
 @it_required
 def challan_template_designer(request):
-    """Visual A4 block designer - outputs Django HTML template for PDF."""
     from admin.dig_portal.models import ChallanTemplate
     from admin.dig_portal.models import SystemSettings
     if request.method == 'POST':
@@ -3660,13 +3604,8 @@ def challan_template_designer(request):
     })
 
 
-@permission_required('live_tracking')  # H11 FIX: was @role_required('IT','OFFICER') - use permission matrix instead
+@permission_required('live_tracking')  
 def live_tracking(request):
-    """Shared Live Tracking page for staff portals.
-
-    permission.json grants `live_tracking` to OFFICER + IT Support only -
-    DIG/SSP/Supervisor/Audit are intentionally excluded.
-    """
     from admin.shared import LiveTrackingService
     from detections.models import Detection
 
@@ -3707,8 +3646,6 @@ def live_tracking(request):
 
 @it_required
 def camera_test(request, camera_id):
-    """IT-only camera diagnostics: verify the configured stream is reachable,
-    decodable, and return latency + a snapshot preview (JSON)."""
     import time
     import base64
 
@@ -3782,11 +3719,9 @@ def camera_test(request, camera_id):
         return JsonResponse({'ok': False, 'kind': 'rtsp', 'error': f'RTSP test failed: {e}'})
 
 
-
 @dig_required
 @require_GET
 def api_dashboard_kpis(request):
-    """Role-aware KPI bundle for the DIG dashboard."""
     from datetime import timedelta
     today = timezone.localdate()
     week_start = today - timedelta(days=7)
@@ -3829,7 +3764,6 @@ def api_dashboard_kpis(request):
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT', 'IT')
 @require_GET
 def api_chart_violation_distribution(request):
-    """Chart.js-friendly data: viol type → count over the last N days (default 30)."""
     try:
         days = max(1, min(180, int(request.GET.get('days', 30))))
     except (TypeError, ValueError):
@@ -3859,7 +3793,6 @@ def api_chart_violation_distribution(request):
 @permission_required('view_analytics')
 @require_GET
 def api_chart_location_distribution(request):
-    """Top-10 violation hotspots as a horizontal-bar dataset."""
     rows = (
         Challan.objects.exclude(location__isnull=True).exclude(location='')
         .values('location').annotate(c=Count('id')).order_by('-c')[:10]
@@ -3877,7 +3810,6 @@ def api_chart_location_distribution(request):
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT', 'IT')
 @require_GET
 def api_chart_activity_trend(request):
-    """7-day activity trend (detections vs challans) for the area chart."""
     from datetime import timedelta
     rows = []
     for d in range(6, -1, -1):
@@ -3902,7 +3834,6 @@ def api_chart_activity_trend(request):
 @permission_required('view_detections')
 @require_GET
 def api_table_recent_detections(request):
-    """DataTables server-side endpoint for recent detections."""
     try:
         draw   = int(request.GET.get('draw', 1))
         start  = int(request.GET.get('start', 0))
@@ -3932,7 +3863,6 @@ def api_table_recent_detections(request):
 @dig_required
 @require_GET
 def api_chart_officer_kpi(request):
-    """Per-officer accuracy/confirmation count, for the bar chart on the dashboard."""
     rows = (
         Detection.objects.filter(reviewed_by__isnull=False)
         .values('reviewed_by__username')
@@ -3952,10 +3882,8 @@ def api_chart_officer_kpi(request):
     })
 
 
-
 @dig_required
 def admin_reset_request_list(request):
-    """List all pending admin password reset requests - DIG only."""
     from accounts.models import AdminPasswordResetRequest
 
     pending = (
@@ -3980,7 +3908,6 @@ def admin_reset_request_list(request):
 
 @dig_required
 def admin_reset_password(request, token):
-    """Form for DIG to set a new password on behalf of an admin."""
     from accounts.models import AdminPasswordResetRequest
     from django.contrib.auth.password_validation import validate_password
     from django.core.exceptions import ValidationError
@@ -4060,11 +3987,6 @@ def admin_reset_password(request, token):
 
 @role_required('DIG')
 def audit_templates_select(request):
-    """DIG portal: select-only page for the active audit report PDF template.
-
-    DIG may activate any built-in or database template but cannot create,
-    edit or delete templates (that is IT Support's job).
-    """
     from admin.audit_portal.audit_pdf import (BUILTIN_TEMPLATES,
                                               generate_audit_pdf,
                                               get_active_template_key,
@@ -4072,7 +3994,7 @@ def audit_templates_select(request):
                                               get_template_preview_html)
     from .models import AuditPDFTemplate
 
-    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
+
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         if sample_key not in {t['key'] for t in get_audit_templates()}:
@@ -4122,12 +4044,6 @@ def audit_templates_select(request):
 
 @role_required('DIG')
 def challan_template_select(request):
-    """DIG template selection page - pick the active challan layout only.
-
-    DIG can select which template is active for every challan, but cannot
-    create, edit or delete templates (the Challan Studio is IT Support
-    exclusive). Mirrors the IT registry with the 7 verified layouts.
-    """
     from .models import ChallanTemplate
     from challans.pdf_service import TEMPLATE_MAP
     import pathlib
@@ -4226,7 +4142,6 @@ def challan_template_select(request):
 
 @role_required('DIG', 'SSP')
 def flagged_detections(request):
-    """Detections flagged by officers, awaiting senior-staff review."""
     qs = Detection.objects.filter(status=Detection.FLAGGED).select_related('camera', 'reviewed_by').order_by('-created_at')[:200]
     return render(request, 'dashboard/dig/flagged_detections.html', {'flagged': qs})
 

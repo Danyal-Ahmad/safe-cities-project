@@ -201,12 +201,6 @@ class AuditLog(models.Model):
 
 
 class LoginEvent(models.Model):
-    """Immutable record of every authentication attempt on the platform.
-
-    Captures the account, portal, outcome, source IP and full device
-    fingerprint (browser / OS / device type) so auditors can reconstruct
-    who accessed the system, from where and with what device.
-    """
     PORTAL_ADMIN = 'admin'
     PORTAL_CITIZEN = 'citizen'
     PORTAL_CHOICES = [(PORTAL_ADMIN, 'Staff Portal'), (PORTAL_CITIZEN, 'Citizen Portal')]
@@ -447,8 +441,8 @@ class Banner(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # Stored-XSS guard: banner HTML is rendered |safe on public pages, so
-        # every write path sanitizes executable constructs at the model layer.
+
+
         from admin.dig_portal.sanitize import sanitize_banner_html
         if self.html_content:
             self.html_content = sanitize_banner_html(self.html_content)
@@ -646,7 +640,6 @@ class ChallanTemplate(models.Model):
 
 
 class AuditPDFTemplate(models.Model):
-    """Custom HTML layout for audit report PDF exports (Canva-lite library)."""
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=255, blank=True, default="")
     html_content = models.TextField(blank=True, default="")
@@ -669,7 +662,6 @@ class AuditPDFTemplate(models.Model):
 
 
 class BlacklistEntry(models.Model):
-    """Flagged vehicle plates blocked from normal processing."""
     plate_number = models.CharField(max_length=20, unique=True, db_index=True)
     reason = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)

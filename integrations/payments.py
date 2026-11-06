@@ -1,10 +1,3 @@
-"""
-Payment gateway integrations - JazzCash, EasyPaisa, bank, card.
-Cash is never accepted online.
-
-If merchant keys are missing, initiate_payment returns mode='demo' with a
-local simulated checkout URL so the UI can still complete the flow in FYP demos.
-"""
 from __future__ import annotations
 
 import hashlib
@@ -49,7 +42,6 @@ def _type_key(method) -> str:
 
 
 def _jazzcash_secure_hash(fields: Dict[str, str], integrity_salt: str) -> str:
-    """JazzCash v1.1 secure hash (sorted keys, salt prefix, HMAC-SHA256)."""
     keys = sorted(k for k in fields.keys() if fields.get(k) not in (None, ''))
     sorted_str = '&'.join(f'{k}={fields[k]}' for k in keys)
     msg = (integrity_salt + '&' + sorted_str).encode('utf-8')
@@ -77,18 +69,6 @@ def _has_keys(cfg: dict, *keys: str) -> bool:
 
 
 def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dict[str, Any]:
-    """
-    Start a payment session for the given challan + PaymentMethod.
-
-    Returns dict:
-      ok: bool
-      mode: 'form' | 'redirect' | 'demo' | 'error'
-      provider: str
-      action_url: str (POST target or redirect)
-      fields: dict (form fields for mode=form)
-      reference: str
-      message: str
-    """
     type_key = _type_key(method)
     cfg = _cfg(method)
     txn = _txn_settings(method)
@@ -128,7 +108,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
 
         now = datetime.now()
         txn_datetime = now.strftime('%Y%m%d%H%M%S')
-        expiry = now.strftime('%Y%m%d%H%M%S')  # gateway may ignore; real deploy sets +1h
+        expiry = now.strftime('%Y%m%d%H%M%S')  
         bill_ref = (ticket or reference)[:20]
         fields = {
             'pp_Version': '1.1',
@@ -229,7 +209,6 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
 
 
 def _demo_payload(challan, method, reference: str, return_url: str, provider: str) -> Dict[str, Any]:
-    """Local demo checkout when merchant keys are not configured."""
     method_name = getattr(method, 'name', None) or str(method or 'wallet')
     method_slug = str(provider or method_name).strip().lower().replace(' ', '_') or 'wallet'
     try:

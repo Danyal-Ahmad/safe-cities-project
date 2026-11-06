@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG | System Settings  (dashboard/dig/settings_edit.html)
-   ========================================================================== */
 
-/* ---------- Section quick-nav ---------- */
 
 .set-nav {
   display: flex;
@@ -35,14 +31,10 @@
   color: var(--sc-navy-deep, #0F2557);
 }
 
-/* ---------- Required marker ---------- */
-
 .set-req {
   color: var(--sc-danger, #E23B4E);
   font-weight: 800;
 }
-
-/* ---------- Fines reference ---------- */
 
 .set-fines-grid {
   display: grid;
@@ -81,8 +73,6 @@
   .set-fines-grid { grid-template-columns: 1fr; }
 }
 
-/* ---------- AI model strip ---------- */
-
 .set-model-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -111,8 +101,6 @@
 
 .set-model-meta { font-size: 0.72rem; color: var(--sc-text-faint, #8A94B0); }
 
-/* ---------- Secret (password) fields ---------- */
-
 .set-secret-field { position: relative; }
 
 .set-secret-field input { padding-right: 46px; }
@@ -136,8 +124,6 @@
 }
 
 .set-secret-toggle:hover { color: var(--sc-primary, #2563EB); background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08)); }
-
-/* ---------- Toggle switches ---------- */
 
 .set-switch-label {
   display: flex !important;
@@ -196,7 +182,6 @@
 
 .set-switch-text strong { display: block; font-size: 0.85rem; color: var(--sc-navy-deep, #0F2557); }
 
-/* Missing required field flash */
 .set-invalid {
   border-color: var(--sc-danger, #E23B4E) !important;
   box-shadow: 0 0 0 3px var(--sc-danger-bg, #FDF3F5) !important;
@@ -209,7 +194,6 @@
   75% { transform: translateX(4px); }
 }
 
-/* Save bar state once the user edits anything */
 .set-savebar-dirty {
   border-color: #B9C9E8;
   box-shadow: 0 10px 30px rgba(30, 78, 156, 0.18);
@@ -220,8 +204,6 @@
   color: #B87A10;
   font-weight: 700;
 }
-
-/* ---------- Sticky save bar ---------- */
 
 .set-savebar {
   position: sticky;

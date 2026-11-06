@@ -13,7 +13,6 @@
   </div>
 </div>
 
-<!-- Controls Bar -->
 <div class="md-card mb-3 p-3">
   <form method="get" class="row g-2 align-items-center">
     <div class="col-md-4">
@@ -48,9 +47,8 @@
   </form>
 </div>
 
-<!-- Main Two-Column Workstation Layout -->
 <div class="md-workstation">
-  <!-- Left Column: Video Stage & Interactive Overlay -->
+  
   <div class="md-workstation-main">
     <div class="md-ws-header">
       <div class="md-ws-title">
@@ -87,10 +85,8 @@
         </div>
       {% endif %}
 
-      <!-- Canvas layer where AI bounding boxes are drawn in real-time -->
       <canvas id="trackingCanvas" class="md-canvas-overlay"></canvas>
 
-      <!-- Heads-Up Display Overlay -->
       <div class="md-stage-hud">
         <div class="d-flex gap-2">
           <span class="md-hud-badge-live"><i class="bi bi-circle-fill me-1" style="font-size:7px;"></i>LIVE SURVEILLANCE</span>
@@ -102,7 +98,6 @@
       </div>
     </div>
 
-    <!-- Timeline of Recent Frames below the stage -->
     <div class="p-3 border-top bg-light">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="sc-text-xs fw-bold text-uppercase text-muted">
@@ -135,9 +130,8 @@
     </div>
   </div>
 
-  <!-- Right Column: Live Detection Feed & Target Inspector -->
   <div class="md-workstation-side">
-    <!-- Active Target Inspection Card -->
+    
     <div class="md-card mb-0" id="targetInspectorCard">
       <div class="md-card-head">
         <h2><i class="bi bi-search text-primary"></i> Target Inspector</h2>
@@ -193,7 +187,6 @@
       </div>
     </div>
 
-    <!-- Real-time Live Detections Feed -->
     <div class="md-card mb-0 flex-grow-1">
       <div class="md-card-head">
         <h2><i class="bi bi-activity text-info"></i> Real-Time AI Stream</h2>

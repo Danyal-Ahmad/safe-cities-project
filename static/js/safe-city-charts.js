@@ -1,10 +1,5 @@
-/**
- * SafeCities Project - Chart.js Wrapper Module (re-themed)
- * Modern chart language: rounded bars, smooth curved lines with soft
- * gradient fills, value data labels, padded single-value axes, unified
- * legends, axis units and friendly empty states.
- * Requires Chart.js v4 + chartjs-plugin-datalabels (both loaded globally).
- */
+
+
 (function () {
     'use strict';
 
@@ -14,10 +9,6 @@
 
     const scCharts = {};
 
-    // ============================================================
-    // Prebuilt color palettes (harmonized with the Safe City theme)
-    // ============================================================
-
     scCharts.palettes = {
         navy: ['#2563EB', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#1E40AF', '#DBEAFE'],
         green: ['#22A45D', '#16A34A', '#4ADE80', '#86EFAC', '#BBF7D0', '#15803D', '#166534', '#14532D'],
@@ -26,18 +17,14 @@
         all:  ['#2563EB', '#22A45D', '#F5A623', '#E23B4E', '#14B8A6', '#7C5CE0', '#DB2777', '#5B6B85']
     };
 
-    // ============================================================
-    // Defaults
-    // ============================================================
-
     scCharts.defaults = {
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: '#5B6B85',
         gridColor: 'rgba(180, 192, 214, 0.35)',
         axisColor: '#8A94B0',
-        barRadius: 9,          // rounded bar corners
-        lineTension: 0.42,     // smooth curves
-        labelMax: 24           // hide data labels beyond this many points
+        barRadius: 9,
+        lineTension: 0.42,
+        labelMax: 24
     };
 
     function hexToRgba(hex, alpha) {
@@ -48,9 +35,6 @@
         return 'rgba(' + r + ',' + g + ',' + b + ',' + (alpha == null ? 0.2 : alpha) + ')';
     }
 
-    /* Vertical gradient fill under a line, tied to the plot height. Uses the
-       chart container's height (already laid out) - the canvas bitmap is not
-       sized by Chart.js until after this runs. */
     function gradientFill(ctx, canvas, hex) {
         try {
             var h = (canvas.parentElement && canvas.parentElement.clientHeight) ||
@@ -65,10 +49,6 @@
             return hexToRgba(hex, 0.15);
         }
     }
-
-    // ============================================================
-    // Shared option builder
-    // ============================================================
 
     function baseLegend() {
         return {
@@ -102,16 +82,15 @@
         };
     }
 
-    /* Cartesian scale defaults: soft grid, rounded look, unit title. */
     function buildScales(opts, unit) {
         const s = (opts && opts.scales) || {};
         if (unit) {
-            // Attach the unit to the y axis title unless a custom one exists.
+
             if (!s.y) s.y = {};
             if (!s.y.title) s.y.title = { display: true, text: unit, font: { family: scCharts.defaults.fontFamily, size: 11, weight: '600' }, color: scCharts.defaults.axisColor };
         }
         ['x', 'y'].forEach(function (axis) {
-            if (s[axis] === null || s[axis] === false) return; // caller disabled
+            if (s[axis] === null || s[axis] === false) return;
             s[axis] = s[axis] || {};
             if (s[axis].grid === undefined) {
                 s[axis].grid = axis === 'y'
@@ -126,8 +105,6 @@
         return s;
     }
 
-    /* Padded suggestedMax so a single tiny value never renders as a giant
-       full-height block - bars keep a proportional scale with headroom. */
     function paddedMax(datasets) {
         let max = 0;
         (datasets || []).forEach(function (ds) {
@@ -157,7 +134,6 @@
         return merged;
     }
 
-    // Apply Chart.js global defaults if available
     if (typeof window.Chart !== 'undefined') {
         try {
             Chart.defaults.font.family = scCharts.defaults.fontFamily;
@@ -165,18 +141,11 @@
             Chart.defaults.borderColor = 'rgba(180, 192, 214, 0.30)';
             if (window.ChartDataLabels) {
                 Chart.register(window.ChartDataLabels);
-                // Data labels are opt-in per chart (scCharts.bar enables them
-                // for single-series bars). Raw `new Chart` calls elsewhere in
-                // the app must NOT suddenly grow labels just because the
-                // plugin is registered globally.
+
                 Chart.defaults.set('plugins.datalabels', { display: false });
             }
-        } catch (e) { /* noop */ }
+        } catch (e) {  }
     }
-
-    // ============================================================
-    // Internal helpers
-    // ============================================================
 
     function getCanvas(canvasId) {
         if (typeof canvasId === 'string') {
@@ -194,7 +163,6 @@
             values.every(function (v) { return !v || (typeof v === 'number' && v === 0); });
     }
 
-    /* Friendly empty state replaces a degenerate chart. */
     scCharts.emptyState = function (canvasId, message) {
         const canvas = getCanvas(canvasId);
         if (!canvas) return;
@@ -240,15 +208,11 @@
         });
     }
 
-    // ============================================================
-    // Chart factory helpers
-    // ============================================================
-
     function buildDatasets(datasets, paletteName, ctx, canvas) {
         const palette = scCharts.palettes[paletteName || 'navy'] || scCharts.palettes.navy;
         return colorize(datasets, paletteName).map(function (ds, i) {
             const c = palette[i % palette.length];
-            // Smooth lines with soft gradient fills.
+
             if (ds.type === 'line' || (!ds.type && !ds.indexAxis)) {
                 ds.type = ds.type || 'line';
                 ds.tension = ds.tension === undefined ? scCharts.defaults.lineTension : ds.tension;
@@ -269,9 +233,6 @@
         });
     }
 
-    /* Value labels above bars - only for a single dataset and a small
-       number of points, so stacked multi-series charts never turn into an
-       overlapping number wall. */
     function barDataLabels(labels, datasets) {
         return {
             display: (datasets || []).length === 1 && (labels || []).length <= scCharts.defaults.labelMax,
@@ -299,9 +260,7 @@
             return null;
         }
         scCharts.clearEmptyState(canvasId);
-        // Mark every dataset as a line dataset BEFORE colorize so it picks
-        // the translucent fill color that buildDatasets turns into a
-        // vertical gradient.
+
         (datasets || []).forEach(function (d) { if (!d.type) d.type = 'line'; });
         const ds = buildDatasets(datasets, palette, getCtx(canvas), canvas);
         const scales = buildScales(opts, opts.unit);
@@ -330,7 +289,7 @@
         scCharts.clearEmptyState(canvasId);
         const ds = colorize(datasets, palette);
         ds.forEach(function (d) {
-            // Fully rounded bar caps (rounded bars requirement).
+
             d.borderRadius = d.borderRadius === undefined ? scCharts.defaults.barRadius : d.borderRadius;
             d.borderSkipped = d.borderSkipped === undefined ? false : d.borderSkipped;
             d.maxBarThickness = d.maxBarThickness === undefined ? 42 : d.maxBarThickness;
@@ -376,12 +335,9 @@
         scales.x = scales.x || {};
         if (scales.x.suggestedMax === undefined) scales.x.suggestedMax = paddedMax(datasets);
         if (scales.x.beginAtZero === undefined) scales.x.beginAtZero = true;
-        // indexAxis must ride along in the merged options (mergeOpts only
-        // copies scales/plugins keys plus `extra`).
+
         const chartOpts = mergeOpts(opts, { scales: scales, indexAxis: 'y' });
-        // Extra headroom + right padding so the end-of-bar value label never
-        // clips against the card edge and short bars stay clearly
-        // proportional instead of stretching edge-to-edge.
+
         if (scales.x.suggestedMax) scales.x.suggestedMax = scales.x.suggestedMax * 1.12 + 1;
         chartOpts.layout = chartOpts.layout || {};
         chartOpts.layout.padding = chartOpts.layout.padding || {};
@@ -407,16 +363,13 @@
         scCharts.destroy(canvasId);
         const opts = options || {};
         const palette = scCharts.palettes[opts.palette || 'navy'];
-        // Degenerate doughnut (all zeros / empty) renders as an empty state
-        // instead of a meaningless ring.
+
         if (isAllEmpty(data) || (labels || []).length === 0) {
             scCharts.emptyState(canvasId, opts.emptyMessage || 'No records yet');
             return null;
         }
         scCharts.clearEmptyState(canvasId);
 
-        // Single-category data becomes a clean "stat ring": one full slice,
-        // no redundant legend, and the value drawn in the center.
         const positive = (data || []).filter(function (v) { return (v || 0) > 0; }).length;
         const single = (labels || []).length === 1 || positive === 1;
 
@@ -427,7 +380,7 @@
             data: data || [],
             backgroundColor: colors,
             borderColor: '#FFFFFF',
-            borderWidth: single ? 0 : 3,   // a 100% slice shows a white seam at 12 o'clock when bordered
+            borderWidth: single ? 0 : 3,
             hoverOffset: 6,
             borderRadius: single ? 0 : 6
         }];
@@ -440,7 +393,7 @@
             const centerValue = (data || []).reduce(function (a, b) { return a + (b || 0); }, 0);
             const centerLabel = (labels || []).slice(0, 2).join(' + ');
             const ctx = getCtx(canvas);
-            chartOpts.plugins.centerText = false; // placeholder removed below
+            chartOpts.plugins.centerText = false;
             delete chartOpts.plugins.centerText;
             const centerTextPlugin = {
                 id: 'scCenterText',
@@ -480,8 +433,7 @@
                     usePointStyle: true, pointStyle: 'circle',
                     padding: 14,
                     generateLabels: function (chart) {
-                        // Legend derived from the actual (label, color) pairs
-                        // so it can never contradict the drawn data again.
+
                         return chart.data.labels.map(function (label, i) {
                             const v = chart.data.datasets[0].data[i] || 0;
                             const bg = chart.data.datasets[0].backgroundColor[i];
@@ -504,10 +456,6 @@
             options: chartOpts
         });
     };
-
-    // ============================================================
-    // Lifecycle helpers
-    // ============================================================
 
     scCharts._registry = scCharts._registry || {};
 
@@ -534,11 +482,6 @@
         return Chart.getChart(canvas) || null;
     };
 
-    // ============================================================
-    // Fetch-and-render helper
-    // Expects: { labels: [...], datasets: [...], type: 'line'|'bar'|'doughnut', options: {} }
-    // ============================================================
-
     scCharts.fetchRender = function (canvasId, url, type) {
         type = type || 'line';
         const headers = {};
@@ -556,10 +499,6 @@
                 throw new Error('Unknown chart type: ' + type);
             });
     };
-
-    // ============================================================
-    // Auto-init: any <canvas data-chart> will be rendered
-    // ============================================================
 
     function autoInit() {
         document.querySelectorAll('canvas[data-chart]').forEach(function (canvas) {

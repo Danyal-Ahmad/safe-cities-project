@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Officer | Vehicle Tracking (officer-vehicle-tracking)
-   Plate search, how-to steps, detection timeline and challan history.
-   ========================================================================== */
+
 
 .sc-kpi-value-sm {
   font-size: 1.25rem;
@@ -17,8 +14,6 @@
   color: var(--sc-text-muted);
   margin-bottom: 6px;
 }
-
-/* ---- How-to steps ---------------------------------------------------------- */
 
 .sc-vt-steps {
   display: grid;
@@ -65,8 +60,6 @@
   font-size: 0.78rem;
   color: var(--sc-text-muted);
 }
-
-/* ---- Detection timeline ----------------------------------------------------- */
 
 .sc-vt-timeline {
   list-style: none;
@@ -189,14 +182,10 @@
   align-self: center;
 }
 
-/* ---- Challan table ------------------------------------------------------------ */
-
 .sc-table-wrap-flush {
   border: none;
   border-radius: 0;
 }
-
-/* ---- Responsive ------------------------------------------------------------------ */
 
 @media (max-width: 980px) {
   .sc-vt-steps {

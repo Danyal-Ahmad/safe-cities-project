@@ -1,16 +1,10 @@
-/* ==========================================================================
-   AUDIT PORTAL | Authentication Events (audit-auth-events)
-   ========================================================================== */
 
-/* Action badges - monospace so dotted actions align nicely ------------- */
 
 .audit-action-badge {
   font-family: var(--sc-mono, monospace);
   font-size: 0.7rem;
   white-space: nowrap;
 }
-
-/* Details cell - single line with ellipsis; full text on hover via title */
 
 .audit-details-cell {
   max-width: 380px;
@@ -23,8 +17,6 @@
   display: inline;
 }
 
-/* Actor cell - name + username stacked */
-
 .audit-actor-name {
   font-weight: 600;
   color: var(--sc-navy-deep, #0F2557);
@@ -35,8 +27,6 @@
   font-size: 0.72rem;
   color: var(--sc-text-faint, #8A94B0);
 }
-
-/* IP cell */
 
 .audit-ip {
   white-space: nowrap;

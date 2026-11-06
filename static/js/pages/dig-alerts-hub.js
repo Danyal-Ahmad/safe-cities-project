@@ -1,8 +1,7 @@
-/* Alert Hub - extracted from templates/dashboard/dig/alerts_hub.html */
+
 (function () {
   'use strict';
 
-  // Card/List view toggles
   document.querySelectorAll('.ah-view-toggle').forEach(function(toggle){
     var kind = toggle.getAttribute('data-view-toggle');
     var grid = document.getElementById(kind + 'Grid');
@@ -18,7 +17,6 @@
     });
   });
 
-  // Live filters
   function bindFilter(inputId, sevId, statusId, containerIds){
     function apply(){
       var q = (document.getElementById(inputId)?.value || '').toLowerCase().trim();

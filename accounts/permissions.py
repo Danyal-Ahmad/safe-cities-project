@@ -4,7 +4,6 @@ from collections import OrderedDict
 from typing import Iterable, Set
 
 
-
 PERMISSIONS = (
     'add_camera',
     'edit_camera',
@@ -110,7 +109,6 @@ PERMISSIONS = (
     'officer_profile_manage',
 )
 PERMISSION_SET: frozenset = frozenset(PERMISSIONS)
-
 
 
 _IT_PERMS = {
@@ -341,17 +339,17 @@ _SUPERVISOR_PERMS = {
     'pay_own_challans',
     'submit_appeals',
     'view_blacklist',
-    'view_challans',      # H9 FIX: supervisor must view challans
-    'view_detections',    # H9 FIX: supervisor must view detections
-    'view_analytics',     # H9 FIX: supervisor must view analytics
-    'view_appeals',       # H9 FIX: supervisor must view appeals
-    'view_live_monitor',  # Senior-staff CCTV wall (supervisor portal re-exports the DIG live monitor route)
+    'view_challans',      
+    'view_detections',    
+    'view_analytics',     
+    'view_appeals',       
+    'view_live_monitor',  
     'view_notifications',
     'view_officer_activity',
     'view_officer_feedback',
     'view_officer_kpi',
     'view_own_challans',
-    'view_reports',       # H9 FIX: supervisor must view reports
+    'view_reports',       
     'view_shifts',
     'view_team_performance',
     'view_vehicle_search',

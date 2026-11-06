@@ -1,4 +1,4 @@
-/* Guest payment gateway auto-submit - extracted from templates/challan/pay_redirect.html */
+
 (function () {
   'use strict';
 

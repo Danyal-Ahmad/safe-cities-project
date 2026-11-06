@@ -50,13 +50,6 @@ def active_alerts(request):
 
 
 def ads_delivery(request):
-    """Audience-scoped advertising channels.
-
-    Channel map:
-      home (public)  -> static_post_ads (hidden staging), popup_ads, ticker_ads
-      staff portals   -> ticker_ads, push_ads
-      other public pages -> none (kept clean)
-    """
     ctx = {
         'static_post_ads': [],
         'popup_ads': [],
@@ -169,10 +162,6 @@ def integration_mode(request):
 
 
 def portal_namespace(request):
-    """Return the portal URL namespace only for portals that define notification routes.
-    Public pages (challans, auth, etc.) must get None so base.html does not attempt
-    {% url portal_ns:notification_mark_read %} and raise NoReverseMatch.
-    """
     VALID_PORTAL_NS = {
         'dig', 'ssp_portal', 'supervisor_portal', 'officer_portal',
         'audit_portal', 'it_support_portal', 'citizen_portal',

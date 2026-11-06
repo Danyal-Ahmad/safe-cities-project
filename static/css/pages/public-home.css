@@ -1,21 +1,10 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Public pages design system
-   Dark navy glassmorphism matching the auth/login pages:
-   photo background under #0a1a3a gradient, glass cards rgba(15,28,68,.92)
-   + backdrop blur, Inter, dual logos with "|" separator, gradient titles.
 
-   This stylesheet is shared by all public templates:
-   home, detail, guest_pay, pay_redirect, signed_link_expired.
-   Page-specific rules live in public-<page>.css files.
-   ============================================================================ */
 
-/* ===== Page canvas (guests: body.public-home neutralizes the app shell) ==== */
 body.public-home {
   background: #0a1a3a;
   color: #F0F4F8;
 }
 
-/* Full-screen photo background + navy gradient overlay (login treatment) */
 .scpub {
   position: relative;
   min-height: 100vh;
@@ -55,8 +44,6 @@ body.public-home {
   flex: 1;
 }
 
-/* Authenticated users keep the standard app shell: the public layout renders
-   as a dark rounded panel embedded in the content area. */
 body.scpub-embed .scpub {
   min-height: 0;
   border-radius: 16px;
@@ -66,7 +53,6 @@ body.scpub-embed .scpub {
 body.scpub-embed .scpub-bg { position: absolute; }
 body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
 
-/* ===== Glass card ===== */
 .scpub-card {
   position: relative;
   background: rgba(15, 28, 68, 0.92);
@@ -91,7 +77,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
 }
 .scpub-card-title i { color: #60a5fa; }
 
-/* ===== Brand block: dual logos one side, "|" separator, text other side ==== */
 .scpub-brand {
   display: flex;
   align-items: center;
@@ -141,7 +126,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
   margin-top: 4px;
 }
 
-/* ===== Buttons ===== */
 .scpub-btn {
   display: inline-flex;
   align-items: center;
@@ -186,7 +170,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
 .scpub-btn-danger:hover { background: linear-gradient(135deg, #dc2626, #7f1d1d); color: #fff; }
 .scpub-btn-sm { padding: 9px 14px; font-size: 13px; width: auto; }
 
-/* ===== Forms ===== */
 .scpub-form { width: 100%; }
 .scpub-field { margin-bottom: 16px; }
 .scpub-field label {
@@ -223,7 +206,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
 .scpub-select option { background: #0f1c44; color: #F0F4F8; }
 .scpub-textarea { resize: vertical; min-height: 96px; }
 
-/* Autofill fix (login pages treatment) */
 .scpub input:-webkit-autofill,
 .scpub input:-webkit-autofill:hover,
 .scpub input:-webkit-autofill:focus,
@@ -235,7 +217,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* ===== Badges ===== */
 .scpub-badge {
   display: inline-flex;
   align-items: center;
@@ -255,7 +236,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
 .scpub-badge-gray { background: rgba(148, 163, 184, 0.14); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.3); }
 .scpub-badge-blue { background: rgba(96, 165, 250, 0.14); color: #93c5fd; border-color: rgba(96, 165, 250, 0.3); }
 
-/* ===== Data list (key/value rows) ===== */
 .scpub-dl { display: flex; flex-direction: column; }
 .scpub-dl-row {
   display: flex;
@@ -284,7 +264,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
 .scpub-mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; letter-spacing: 0.03em; }
 .scpub-amount { font-size: 19px; font-weight: 800; color: #fbbf24; }
 
-/* ===== PSID box ===== */
 .scpub-psid {
   margin-top: 16px;
   padding: 14px 16px;
@@ -312,7 +291,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
   color: #93c5fd;
 }
 
-/* ===== Notices ===== */
 .scpub-note {
   display: flex;
   align-items: flex-start;
@@ -343,7 +321,6 @@ body.scpub-embed .scpub-inner { padding: 24px 22px 18px; }
   color: #6ee7a0;
 }
 
-/* ===== Django messages restyled for the dark public shell ===== */
 body.public-home .sc-messages { margin: 0 auto 14px; width: 100%; max-width: 960px; padding: 0 20px; }
 body.public-home .sc-msg {
   background: rgba(15, 28, 68, 0.92);
@@ -354,7 +331,6 @@ body.public-home .sc-msg {
 body.public-home .sc-msg-body { color: #F0F4F8; }
 body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 
-/* ===== Footer ===== */
 .scpub-footer {
   margin-top: auto;
   padding-top: 22px;
@@ -376,21 +352,14 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 .scpub-footer-links a { color: rgba(232, 240, 255, 0.55); font-weight: 600; }
 .scpub-footer-links a:hover { color: #93c5fd; }
 
-/* ============================================================================
-   HOME PAGE (strict minimal spec)
-   ============================================================================ */
-
-/* Top row: single secondary action, right aligned */
 .ph-top {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 26px;
 }
 
-/* Centered hero: dual logos + separator + title/subtitle */
 .ph-hero { margin-bottom: 30px; }
 
-/* Search card */
 .ph-search-card { max-width: 640px; width: 100%; margin: 0 auto; }
 .ph-fields {
   display: grid;
@@ -408,7 +377,6 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 }
 .ph-no-record { margin-top: 14px; }
 
-/* Results */
 .ph-results { margin-top: 22px; }
 .ph-results-head {
   display: flex;
@@ -469,7 +437,6 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 }
 .ph-view-btn:hover { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff; }
 
-/* Mobile: results rows collapse into stacked cards */
 @media (max-width: 640px) {
   .ph-table thead { display: none; }
   .ph-table, .ph-table tbody, .ph-table tr, .ph-table td { display: block; width: 100%; }
@@ -501,9 +468,6 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
   }
 }
 
-/* ===== BANNER ADS section: exactly ONE large banner =====
-   Pure square/rectangle: edge-to-edge inside the content column, no border,
-   no rounded corners, no shadow decoration on the frame itself. */
 .ph-ads {
   position: relative;
   z-index: 1;
@@ -576,7 +540,6 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 
 .ph-big-banner-fallback i { font-size: 1.6rem; }
 
-/* ===== Responsive ===== */
 @media (max-width: 760px) {
   .scpub-inner { padding: 20px 16px 16px; }
   .ph-hero { margin-bottom: 22px; }

@@ -25,7 +25,6 @@ from admin.dig_portal.models import AuditLog
 
 
 def _normalize_cnic(value):
-    """Strip dashes/spaces so 35202-1234567-1 matches 3520212345671."""
     if not value:
         return ''
     return ''.join(ch for ch in str(value) if ch.isdigit())
@@ -65,7 +64,7 @@ def home(request):
         digits = _normalize_cnic(user.cnic)
         if digits:
             q |= Q(cnic=digits)
-            q |= Q(cnic__icontains=digits[:5])  # broad safety; filtered below
+            q |= Q(cnic__icontains=digits[:5])  
     if user.phone:
         q |= Q(phone=user.phone)
     plates = _user_plates(user)
@@ -412,10 +411,7 @@ def pay_challan(request, challan_id):
     })
 
 
-
 def _citizen_challans_qs(user):
-    """All challans matching this citizen (CNIC / phone / registered plates),
-    strict ownership filtered - same rules as the dashboard home view."""
     q = Q()
     if user.cnic:
         q |= Q(cnic=user.cnic)
@@ -438,7 +434,6 @@ def _citizen_challans_qs(user):
 @login_required
 @user_only_required
 def api_citizen_kpis(request):
-    """KPIs scoped to the logged-in citizen: their own challans, appeals, payments."""
     user = request.user
     my_challans = _citizen_challans_qs(user)
     return JsonResponse({
@@ -459,7 +454,6 @@ def api_citizen_kpis(request):
 @login_required
 @user_only_required
 def api_citizen_challans(request):
-    """DataTables server-side endpoint for the citizen's own challans."""
     try:
         draw   = int(request.GET.get('draw', 1))
         start  = int(request.GET.get('start', 0))
@@ -483,8 +477,5 @@ def api_citizen_challans(request):
     return JsonResponse({
         'draw': draw, 'recordsTotal': total, 'recordsFiltered': total, 'data': data,
     })
-
-
-
 
 

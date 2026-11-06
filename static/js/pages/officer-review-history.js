@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Officer | Review History (officer-review-history.js)
-   Clickable rows + quick date-range presets on the filter form.
-   ========================================================================== */
+
+
 (function () {
   'use strict';
 
@@ -14,7 +12,7 @@
   }
 
   ready(function () {
-    // Clickable rows -> detection detail.
+
     document.querySelectorAll('.sc-row-link[data-href]').forEach(function (row) {
       row.addEventListener('click', function (e) {
         if (e.target.closest('a, button, input, select, textarea')) {
@@ -27,7 +25,6 @@
       });
     });
 
-    // Quick date range presets (data-driven: buttons declare day offsets).
     document.querySelectorAll('[data-range-days]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var fromInput = document.getElementById('dateFromInput');

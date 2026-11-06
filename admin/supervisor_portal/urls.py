@@ -15,6 +15,7 @@ urlpatterns = [
     path('vehicle-search/', dig_views.vehicle_search, name='vehicle_search'),
     path('blacklist/', dig_views.blacklist_list, name='blacklist_list'),
     path('reports/', dig_views.reports, name='reports'),
+    path('appeals/', dig_views.appeals_queue, name='appeals_queue'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),
 

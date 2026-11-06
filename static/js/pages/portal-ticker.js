@@ -5,10 +5,12 @@
  * authenticated staff only.
  *
  * Responsibilities:
- *   1. Rotate ticker items when more items exist than fit the viewport:
- *      the item set is duplicated once and a CSS translateX(-50%) marquee
- *      runs at a width-proportional duration, producing a seamless loop.
- *      When everything fits, items are shown statically with no animation.
+ *   1. Continuous marquee: the item set is duplicated until the track is at
+ *      least twice the viewport width, then a CSS translateX(-50%) marquee
+ *      scrolls it right-to-left in a seamless infinite loop. When a single
+ *      copy already exceeds the viewport one duplicate is enough; when the
+ *      items are short the set is repeated as many times as needed so the
+ *      animation always loops seamlessly.
  *   2. Pause on hover is handled in CSS (animation-play-state: paused).
  *   3. Listen for the DOM CustomEvent 'safecity:notification' (dispatched
  *      by static/js/realtime-socket.js) and prepend the new item live.
@@ -31,6 +33,7 @@
   var MIN_DURATION_S = 18;  // never scroll faster than this
   var CLONE_FLAG = 'data-ticker-clone';
   var RESIZE_DELAY_MS = 200;
+  var MAX_COPIES = 12;      // safety cap when repeating very short sets
 
   var resizeTimer = null;
   var lastEvent = null;
@@ -58,26 +61,47 @@
 
   /* --------------------------- marquee control --------------------------- */
 
-  // Measures the track and enables the seamless marquee only when the items
-  // overflow the viewport. Spacing between items is a margin on every item
-  // (see tailwind-bridge.css), so one duplicated set makes the track exactly
-  // twice as wide and the translateX(-50%) loop lands seamlessly.
+  // Measures the track and activates the seamless right-to-left marquee.
+  // Spacing between items is a margin on every item (see tailwind-bridge.css).
+  // The item set is duplicated until the ORIGINAL half of the track is at
+  // least as wide as the viewport, which guarantees the translateX(-50%)
+  // loop is seamless no matter how few items there are - the ticker always
+  // scrolls, infinitely, right to left.
   function ensureMarquee() {
     removeClones();
 
     var items = originalItems();
     if (!items.length) { return; }
 
-    if (track.scrollWidth - viewport.clientWidth <= 8) {
-      // Everything fits: static display, no rotation needed.
-      return;
+    // Width of one original item set.
+    var setWidth = 0;
+    for (var w = 0; w < items.length; w++) {
+      setWidth += items[w].offsetWidth;
+      var ml = getComputedStyle(items[w]).marginLeft;
+      var mr = getComputedStyle(items[w]).marginRight;
+      setWidth += parseFloat(ml) || 0;
+      setWidth += parseFloat(mr) || 0;
     }
+    if (setWidth < 1) { return; }
 
-    for (var i = 0; i < items.length; i++) {
-      var clone = items[i].cloneNode(true);
-      clone.setAttribute(CLONE_FLAG, 'true');
-      clone.setAttribute('aria-hidden', 'true');
-      track.appendChild(clone);
+    // Repeat the set enough times that the original half covers the
+    // viewport (plus a buffer), then mirror it for the -50% loop. The copy
+    // count must be ODD so the track holds an even number of identical
+    // sets and translateX(-50%) lands exactly on a set boundary - that is
+    // what makes the infinite loop seamless.
+    var needed = Math.max(1, Math.ceil((viewport.clientWidth + 80) / setWidth));
+    if (needed % 2 === 0) { needed += 1; }
+    var copies = Math.min(needed, MAX_COPIES);
+    if (copies % 2 === 0) { copies -= 1; }
+    if (copies < 1) { copies = 1; }
+
+    for (var c = 0; c < copies; c++) {
+      for (var i = 0; i < items.length; i++) {
+        var clone = items[i].cloneNode(true);
+        clone.setAttribute(CLONE_FLAG, 'true');
+        clone.setAttribute('aria-hidden', 'true');
+        track.appendChild(clone);
+      }
     }
 
     var halfWidth = track.scrollWidth / 2;

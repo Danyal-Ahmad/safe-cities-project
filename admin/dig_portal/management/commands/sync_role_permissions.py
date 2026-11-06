@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from accounts.permissions import (
     ROLE_PERMISSION_MATRIX,
     ROLE_HIERARCHY,
-    APPEAL_ESCALATION_CHAIN,
 )
 
 User = get_user_model()
@@ -38,9 +37,7 @@ class Command(BaseCommand):
                 f"{info['label']:35s}  {len(perms):3d} permissions"
             )
 
-        self.stdout.write(self.style.SQL_TABLE("\nAPPEAL ESCALATION CHAIN:"))
-        chain_str = "  →  ".join(APPEAL_ESCALATION_CHAIN) or "  (none)"
-        self.stdout.write(f"  {chain_str}")
+        self.stdout.write(self.style.SQL_TABLE("\nAPPEAL FLOW: Citizen submits → SSP decides (single stage)"))
 
         qs = User.objects.all().order_by('role', 'id')
         if opts['user']:

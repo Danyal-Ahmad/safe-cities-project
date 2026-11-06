@@ -9,21 +9,17 @@
   <meta name="theme-color" content="#1E4E9C">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
-  <!-- Tailwind CSS (Play CDN) layered alongside Bootstrap. preflight stays
-       disabled so Bootstrap's base styling is never reset. The inline config
-       below is required by the Play CDN and is the only inline script in this
-       template - it is opted in per request via the CSP nonce issued by
-       SecurityHeadersMiddleware (request.csp_nonce), so it keeps working when
-       script-src 'unsafe-inline' is eventually dropped. Utilities generated at
-       runtime land after the Bootstrap stylesheet, so Tailwind wins where both
-       apply at equal specificity. See static/css/tailwind-bridge.css for the
-       bridge notes. CSP note: production CSP_SCRIPT_SRC
+  <!-- Tailwind CSS (Play CDN). preflight stays disabled: the project design
+       system (static/css/safe-city.css) owns the base layer, Tailwind is used
+       purely for utility classes. The inline config below is required by the
+       Play CDN and is the only inline script in this template - it is opted
+       in per request via the CSP nonce issued by SecurityHeadersMiddleware
+       (request.csp_nonce), so it keeps working when script-src 'unsafe-inline'
+       is eventually dropped. CSP note: production CSP_SCRIPT_SRC
        (wrongway_system/settings.py - single source of truth) must allow
        https://cdn.tailwindcss.com for this to load with DEBUG=False. -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -45,12 +41,18 @@
     };
   </script>
 
+  <!-- Icon and effect libraries (Bootstrap Icons / Font Awesome are icon
+       fonts only - no Bootstrap framework CSS/JS is loaded anywhere). -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
-
-    <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
+  <!-- Framework-free UI stack: sc-framework.css provides every utility and
+       component class the templates need (btn/form/table/modal/grid/...),
+       drawn with the Safe City design tokens. Tailwind supplies extra
+       utilities at runtime. No Bootstrap is loaded. -->
+  <link rel="stylesheet" href="{% static 'css/sc-framework.css' %}">
+  <link rel="stylesheet" href="{% static 'css/safe-city.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-public.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-modern.css' %}">
   <link rel="stylesheet" href="{% static 'css/tailwind-bridge.css' %}">
@@ -96,26 +98,36 @@
     {% if user.is_authenticated %}
     <header class="sc-topbar">
       <div class="sc-topbar-left">
-        <form class="sc-search" method="get" action="{% url 'challans:home' %}" role="search">
-          <i class="bi bi-search"></i>
-          <input type="search" name="q" placeholder="Search ticket, plate or CNIC…" aria-label="Search" autocomplete="off">
-        </form>
+        <div class="sc-topbar-brand">
+          <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
+          <span class="sc-topbar-brand-sep" aria-hidden="true"></span>
+          <img src="{% static 'img/university_logo.png' %}" alt="Partner">
+          <div class="sc-topbar-brand-text">
+            <span class="sc-topbar-brand-title">SAFE CITIES PROJECT</span>
+            <span class="sc-topbar-brand-sub">{{ user.role_label }} Portal</span>
+          </div>
+        </div>
       </div>
       <div class="sc-topbar-right">
         <div class="sc-clock" id="scClock">--:--:--</div>
         <div class="sc-user-menu">
           <button type="button" class="sc-user-btn" id="scUserBtn" aria-haspopup="true" aria-expanded="false">
+            <img class="sc-user-avatar" src="{{ user.avatar_url }}" alt="{{ user.display_name }}">
+            <span class="sc-user-ring" aria-hidden="true"></span>
             <div class="sc-user-info">
               <div class="sc-user-name">{{ user.display_name|default:user.username }}</div>
-              <div class="sc-user-role">{{ user.role_label }}</div>
+              <div class="sc-user-role">{{ user.designation|default:user.role_label }}</div>
             </div>
-            <i class="bi bi-person-circle sc-user-avatar-icon"></i>
             <i class="bi bi-chevron-down"></i>
           </button>
           <div class="sc-user-dropdown" id="scUserMenu" role="menu">
             <div class="sc-user-dropdown-header">
-              <div class="sc-user-dropdown-name">{{ user.display_name|default:user.username }}</div>
-              <div class="sc-user-dropdown-email">{{ user.email|default:user.username }}</div>
+              <img class="sc-user-dropdown-avatar" src="{{ user.avatar_url }}" alt="">
+              <div>
+                <div class="sc-user-dropdown-name">{{ user.display_name|default:user.username }}</div>
+                <div class="sc-user-dropdown-email">{{ user.email|default:user.username }}</div>
+                <div class="sc-user-dropdown-role">{{ user.designation|default:user.role_label }}</div>
+              </div>
             </div>
             {% if user.role == 'USER' %}
             <a href="{% url 'citizen_portal:profile_edit' %}" class="sc-user-dropdown-item" role="menuitem">
@@ -147,7 +159,9 @@
       </div>
     </header>
 
-    {% if ticker_ads %}
+    {% if user.role != 'USER' %}
+    {% include '_partials/portal_ticker.html' %}
+    {% elif ticker_ads %}
     <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
       <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
       <div class="sc-ticker-viewport"><div class="sc-ticker-track">
@@ -160,10 +174,6 @@
       </div></div>
     </div>
     {% endif %}
-    {% endif %}
-
-    {% if user.is_authenticated and user.role != 'USER' %}
-    {% include '_partials/portal_ticker.html' %}
     {% endif %}
 
     {% if messages %}
@@ -192,9 +202,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
@@ -203,13 +210,6 @@
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/relativeTime.js" defer></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js" defer></script>
-
-<script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.2/js/dataTables.buttons.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/datatables.net-select@1.7.0/js/dataTables.select.min.js" defer></script>
-
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
-
-<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js" defer></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
 

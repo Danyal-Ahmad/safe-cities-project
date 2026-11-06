@@ -1,35 +1,43 @@
 /* ==========================================================================
-   CAMERAS STATUS + CAMERA HEALTH (dark navy theme)
+   CAMERAS STATUS + CAMERA HEALTH (unified light theme)
    templates/dashboard/dig/cameras_status.html
    templates/dashboard/dig/camera_health.html
 
-   Matches the LIVE CCTV WALL look (dig-live-monitor.css) so the senior-staff
-   camera pages read as one monitoring suite.
+   Re-themed to the shared light design system so every portal page reads
+   consistently; semantic colors stay (live red, ok green, warn amber).
    ========================================================================== */
 
 .cams-dark {
-  --cd-bg: #0a1220;
-  --cd-panel: #0d1930;
-  --cd-panel-2: #101f3c;
-  --cd-line: #1b2b4a;
-  --cd-text: #e8eef9;
-  --cd-muted: #8ca3c7;
-  --cd-faint: #5e7093;
-  --cd-live: #ff4d5e;
-  --cd-ok: #34d399;
-  --cd-warn: #fbbf24;
-  --cd-danger: #f87171;
-  --cd-accent: #3b82f6;
+  --cd-bg: transparent;
+  --cd-panel: #FFFFFF;
+  --cd-panel-2: #F1F4F9;
+  --cd-line: #E4E8EF;
+  --cd-text: #33415C;
+  --cd-muted: #5B6B85;
+  --cd-faint: #8A94B0;
+  --cd-live: #E23B4E;
+  --cd-ok: #22A45D;
+  --cd-warn: #B87A10;
+  --cd-danger: #E23B4E;
+  --cd-accent: #2563EB;
   --cd-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
 
   background: var(--cd-bg);
   color: var(--cd-text);
   margin: -2px -2px 0;
-  padding: 18px 16px 24px;
+  padding: 18px 0 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-height: 50vh;
+}
+
+/* Light-theme card surfaces for the panels */
+.cams-dark .cd-hero,
+.cams-dark .cd-kpis .cd-kpi {
+  border: 1px solid var(--cd-line);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(15, 37, 87, 0.05);
 }
 
 .cams-dark [hidden] { display: none !important; }
@@ -90,7 +98,7 @@
   white-space: nowrap;
 }
 
-.cd-btn:hover { background: #16294e; color: var(--cd-text); }
+.cd-btn:hover { background: var(--cd-panel-2); color: var(--cd-navy, #0F2557); }
 
 .cd-btn-primary {
   background: var(--cd-accent);
@@ -272,13 +280,13 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: #0b1526;
+  background: var(--cd-panel-2);
   white-space: nowrap;
 }
 
 .cd-table td {
   padding: 10px 14px;
-  border-top: 1px solid rgba(27, 43, 74, 0.55);
+  border-top: 1px solid var(--cd-line);
   font-size: 0.8rem;
   color: var(--cd-text);
   vertical-align: middle;

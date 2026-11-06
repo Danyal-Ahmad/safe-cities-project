@@ -9,7 +9,7 @@ urlpatterns = [
     path('dashboard/',                    views.dashboard,               name='dashboard_alt'),
 
     path('violations/',                   views.violation_stats,         name='violation_stats'),
-    path('escalations/',                  views.escalation_list,         name='escalation_list'),
+    path('appeals/',                      views.appeals_queue,           name='appeals_queue'),
     path('vehicle-search/',               views.vehicle_search,          name='vehicle_search'),
     path('blacklist/',                    views.blacklist_list,          name='blacklist_list'),
     path('blacklist/add/',                views.blacklist_add,           name='blacklist_add'),
@@ -92,8 +92,8 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('cameras-status/',               views.cameras_status,          name='cameras_status'),
 
-    path('case-escalation/',              views.case_escalation_tracker, name='case_escalation'),
-    path('case-escalation/tracker/',      views.case_escalation_tracker, name='case_escalation_tracker'),
+    path('case-escalation/',              views.appeals_queue,           name='case_escalation'),
+    path('case-escalation/tracker/',      views.appeals_queue,           name='case_escalation_tracker'),
     path('heatmap/',                      views.regional_heatmap,        name='heatmap'),
 
     path('officer-feedback/',             views.officer_feedback_list,   name='officer_feedback_list'),

@@ -179,7 +179,6 @@ def submit_appeal(request, challan_id):
             appeal = ChallanAppeal.objects.create(
                 challan=challan, submitted_by=request.user,
                 reason=reason, evidence_file=evidence if evidence else None,
-                current_stage=ChallanAppeal.STAGE_SSP,
             )
 
             from accounts.models import User
@@ -229,15 +228,6 @@ def submit_appeal(request, challan_id):
                     target_url=reverse('ssp_portal:decide_appeal', args=[appeal.id]),
                 )
 
-            for dig in User.objects.filter(role=User.DIG, is_active=True):
-                Notification.objects.create(
-                    recipient=dig,
-                    title=f"[Info] Appeal submitted | {challan.ticket_no}",
-                    message=detail_msg + "\n\n(Directly routed to SSP for decision)",
-                    category='appeal_pending',
-                    target_url=reverse('ssp_portal:dashboard'),
-                )
-
             AuditLog.write(request, 'appeal.submit', 'ChallanAppeal', appeal.id,
                            challan=challan.ticket_no,
                            routed_to='ssp (direct transfer per V13 spec)')
@@ -251,31 +241,6 @@ def submit_appeal(request, challan_id):
 def appeal_tracker(request):
     appeals = ChallanAppeal.objects.filter(submitted_by=request.user).order_by('-created_at')
     return render(request, 'dashboard/citizen/appeal_tracker.html', {'appeals': appeals})
-
-
-@login_required
-@user_only_required
-def escalate_appeal(request, appeal_id):
-    appeal = get_object_or_404(ChallanAppeal, pk=appeal_id, submitted_by=request.user)
-    if appeal.status != ChallanAppeal.REJECTED:
-        messages.error(request, "Only rejected appeals can be escalated.")
-        return redirect('citizen_portal:appeal_tracker')
-    if request.method == 'POST':
-        reason = (request.POST.get('escalation_reason') or '').strip()
-        if len(reason) < 30:
-            messages.error(request, "Escalation reason must be at least 30 characters.")
-            return redirect('citizen_portal:appeal_tracker')
-        appeal.status = ChallanAppeal.ESCALATED
-        appeal.current_stage = ChallanAppeal.STAGE_DIG
-        appeal.is_escalated = True
-        appeal.escalated_at = timezone.now()
-        appeal.escalation_reason = reason
-        appeal.save()
-        AuditLog.write(request, 'appeal.escalate', 'ChallanAppeal', appeal.id,
-                       challan=appeal.challan.ticket_no)
-        messages.success(request, "Appeal escalated to DIG. You will receive a final decision soon.")
-        return redirect('citizen_portal:appeal_tracker')
-    return render(request, 'dashboard/citizen/escalate_appeal.html', {'appeal': appeal})
 
 
 @login_required
@@ -481,7 +446,6 @@ def api_citizen_kpis(request):
             'total_due':       float(my_challans.filter(payment_status=Challan.UNPAID).aggregate(t=Sum('fine_amount'))['t'] or 0),
             'total_paid':      float(my_challans.filter(payment_status=Challan.PAID).aggregate(t=Sum('fine_amount'))['t'] or 0),
             'open_appeals':    ChallanAppeal.objects.filter(submitted_by=user, status=ChallanAppeal.PENDING).count(),
-            'escalated':       ChallanAppeal.objects.filter(submitted_by=user, status=ChallanAppeal.ESCALATED).count(),
             'resolved_appeals': ChallanAppeal.objects.filter(
                 submitted_by=user, status__in=[ChallanAppeal.APPROVED, ChallanAppeal.REJECTED]).count(),
         },

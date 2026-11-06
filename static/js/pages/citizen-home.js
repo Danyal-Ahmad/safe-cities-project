@@ -48,11 +48,12 @@
     } catch(e) { console.warn('KPI load failed:', e); }
   }
 
-  // Static Chart Initializer
+  // Static Chart Initializer - routed through the themed scCharts engine
+  // (rounded bars with value labels, stat-ring doughnuts, empty states).
   // Series data is supplied on the canvases via data-month-* / data-violation-*
   // (previously inlined by the Django template loops).
   function initStaticCharts(){
-    if(typeof Chart === 'undefined') return;
+    if (typeof Chart === 'undefined' || !window.scCharts) return;
 
     const trend = document.getElementById('chart-citizen-trend');
     if(trend && !trend.dataset.apiUrl) {
@@ -61,28 +62,8 @@
       try { labels = JSON.parse(trend.dataset.monthLabels || '[]'); } catch(e) { labels = []; }
       try { counts = JSON.parse(trend.dataset.monthCounts || '[]'); } catch(e) { counts = []; }
       if(labels.length > 0) {
-        new Chart(trend, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Challans',
-              data: counts,
-              backgroundColor: 'rgba(2, 132, 199, 0.75)',
-              borderColor: '#0284c7',
-              borderWidth: 1,
-              borderRadius: 6,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } },
-              x: { grid: { display: false } }
-            }
-          }
+        window.scCharts.bar(trend.id, labels, [{ label: 'Challans', data: counts }], {
+          emptyMessage: 'No challans in recent months'
         });
       }
     }
@@ -94,47 +75,35 @@
       try { labels = JSON.parse(types.dataset.violationLabels || '[]'); } catch(e) { labels = []; }
       try { counts = JSON.parse(types.dataset.violationCounts || '[]'); } catch(e) { counts = []; }
       if(labels.length > 0) {
-        new Chart(types, {
-          type: 'doughnut',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: counts,
-              backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#10b981', '#0284c7'],
-              borderColor: '#fff',
-              borderWidth: 2,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } }
-          }
+        window.scCharts.doughnut(types.id, labels, counts, {
+          emptyMessage: 'No violations recorded'
         });
       }
     }
   }
 
-  // API Chart Initializer
+  // API Chart Initializer - themed engine
   async function initChartFromAPI(canvas){
-    if(typeof Chart === 'undefined') return;
+    if (typeof Chart === 'undefined' || !window.scCharts) return;
     try {
       const apiUrl = canvas.dataset.apiUrl;
       const chartType = canvas.dataset.chartType || 'bar';
       const json = await scFetch(apiUrl);
-      new Chart(canvas, {
-        type: chartType,
-        data: json,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: chartType === 'doughnut' } },
-          scales: chartType === 'doughnut' ? {} : {
-            x: { grid: { display: false } },
-            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
-          }
+
+      if (chartType === 'doughnut' || chartType === 'pie') {
+        let data = json.data;
+        if (!data && Array.isArray(json.datasets) && json.datasets[0] && Array.isArray(json.datasets[0].data)) {
+          data = json.datasets[0].data;
         }
-      });
+        window.scCharts.doughnut(canvas.id, json.labels || [], data || [], {});
+      } else if (chartType === 'line') {
+        (json.datasets || []).forEach(function (d) { if (!d.type) d.type = 'line'; });
+        window.scCharts.line(canvas.id, json.labels || [], json.datasets || []);
+      } else if (chartType === 'horizontalBar') {
+        window.scCharts.horizontalBar(canvas.id, json.labels || [], json.datasets || []);
+      } else {
+        window.scCharts.bar(canvas.id, json.labels || [], json.datasets || []);
+      }
     } catch(e) {
       console.warn('API chart init failed:', e);
     }

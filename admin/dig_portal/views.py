@@ -49,7 +49,7 @@ def dashboard(request):
     pending_detections = Detection.objects.filter(status=Detection.PENDING).count()
     flagged_detections = Detection.objects.filter(status=Detection.FLAGGED).count()
     pending_appeals = ChallanAppeal.objects.filter(status=ChallanAppeal.PENDING).count()
-    escalated_appeals = ChallanAppeal.objects.filter(status=ChallanAppeal.ESCALATED).count()
+    decided_appeals = ChallanAppeal.objects.exclude(status=ChallanAppeal.PENDING).count()
     total_users = User.objects.filter(role=User.USER).count()
     total_officers = User.objects.filter(role=User.OFFICER).count()
 
@@ -119,7 +119,7 @@ def dashboard(request):
         'revenue_collected': revenue_collected, 'revenue_today': revenue_today, 'revenue_pending': revenue_pending,
         'active_cameras': active_cameras, 'online_cameras': online_cameras,
         'pending_detections': pending_detections, 'flagged_detections': flagged_detections,
-        'pending_appeals': pending_appeals, 'escalated_appeals': escalated_appeals,
+        'pending_appeals': pending_appeals, 'decided_appeals': decided_appeals,
         'pending_appeals_recent': pending_appeals_recent,
         'recent_detections': recent_detections,
         'total_users': total_users, 'total_officers': total_officers,
@@ -1573,36 +1573,38 @@ def audit_export(request):
     return response
 
 
-@dig_required
-def escalation_list(request):
-    escalated = ChallanAppeal.objects.filter(status=ChallanAppeal.ESCALATED).order_by('-escalated_at')
-    return render(request, 'dashboard/dig/escalation_list.html', {'appeals': escalated})
-
-
-@role_required('DIG', 'SSP', 'SUPV')
+@role_required('SSP', 'DIG', 'SUPV')
 def appeal_override(request, appeal_id):
     appeal = get_object_or_404(ChallanAppeal, pk=appeal_id)
-
     user_role = request.user.role
-    stage = appeal.current_stage
 
-    if stage == ChallanAppeal.STAGE_OFFICER and user_role != User.OFFICER and user_role != User.DIG:
-        messages.info(request, "This appeal is at Officer review stage. Waiting for an Officer to review first.")
-    elif stage == ChallanAppeal.STAGE_SSP and user_role != User.SSP and user_role != User.DIG:
-        messages.info(request, "This appeal is at SSP review stage. Waiting for SSP to review.")
+    if appeal.status != ChallanAppeal.PENDING:
+        messages.info(request, "This appeal has already been decided by the SSP.")
+    elif user_role != User.SSP:
+        messages.info(request, "Mistake-challan appeals are decided by the SSP only.")
 
     if request.method == 'POST':
+        comment = (request.POST.get('comment') or '').strip()
         action = request.POST.get('action', '').strip()
-        comment = (request.POST.get('comment') or request.POST.get('dig_comment') or '').strip()
+        if user_role != User.SSP:
+            AuditLog.write(request, 'appeal.decision_denied', 'ChallanAppeal', appeal.id,
+                           actor_role=user_role)
+            messages.error(request, "Only the SSP can decide mistake-challan appeals.")
+            return redirect('dig:appeal_override', appeal_id=appeal.id)
+        if action not in ('approve', 'reject'):
+            messages.error(request, "Invalid action.")
+            return redirect('dig:appeal_override', appeal_id=appeal.id)
+        if appeal.status != ChallanAppeal.PENDING:
+            messages.error(request, "This appeal has already been decided.")
+            return redirect('dig:appeal_override', appeal_id=appeal.id)
         if len(comment) < 30:
             messages.error(request, "Comment is required (min 30 chars).")
             return redirect('dig:appeal_override', appeal_id=appeal.id)
 
-        from accounts.models import User as _User
         from admin.dig_portal.models import Notification as _Notif
         c = appeal.challan
         detail_msg = (
-            f"APPEAL {action.upper()} | Stage: {stage.upper()}\n"
+            f"APPEAL {action.upper()} | SSP DECISION\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"Appeal ID: APL-{appeal.id:06d}\n"
             f"Challan No: {c.ticket_no}\n"
@@ -1610,73 +1612,29 @@ def appeal_override(request, appeal_id):
             f"Violation: {c.get_violation_type_display()}\n"
             f"Fine: PKR {c.fine_amount}\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"Reviewer: {request.user.display_name} ({request.user.role})\n"
+            f"Reviewer: {request.user.display_name} (SSP)\n"
             f"Comment: {comment}\n"
         )
 
-        if action == 'route_to_ssp' and stage == ChallanAppeal.STAGE_OFFICER:
-            appeal.advance_to_ssp(comment, request.user)
-            AuditLog.write(request, 'appeal.officer_route_ssp', 'ChallanAppeal', appeal.id,
-                           challan=c.ticket_no, comment=comment[:100])
-            for ssp in _User.objects.filter(role=_User.SSP, is_active=True):
-                _Notif.objects.create(recipient=ssp,
-                    title=f"Appeal routed to SSP | {c.ticket_no}",
-                    message=detail_msg + "\n\nOfficer has routed this appeal to SSP for higher review.",
-                    category='appeal_pending',
-                    target_url=reverse('dig:appeal_override', args=[appeal.id]))
-            messages.success(request, "Appeal routed to SSP. All SSPs notified.")
-        elif action == 'route_to_dig' and stage == ChallanAppeal.STAGE_SSP:
-            appeal.advance_to_dig(comment, request.user)
-            AuditLog.write(request, 'appeal.ssp_route_dig', 'ChallanAppeal', appeal.id,
-                           challan=c.ticket_no, comment=comment[:100])
-            for dig in _User.objects.filter(role=_User.DIG, is_active=True):
-                _Notif.objects.create(recipient=dig,
-                    title=f"Appeal escalated to DIG | {c.ticket_no}",
-                    message=detail_msg + "\n\nSSP has escalated this appeal to DIG for final decision.",
-                    category='appeal_escalated',
-                    target_url=reverse('dig:appeal_override', args=[appeal.id]))
-            messages.success(request, "Appeal escalated to DIG. DIG notified.")
-        elif action in ('approve', 'reject'):
-            if appeal.status != ChallanAppeal.PENDING:
-                messages.error(request, "This appeal has already been decided.")
-                return redirect('dig:appeal_override', appeal_id=appeal.id)
-            allowed = (
-                (stage == ChallanAppeal.STAGE_DIG and user_role == User.DIG)
-                or (stage == ChallanAppeal.STAGE_SSP and user_role == User.SSP)
-                or (stage == ChallanAppeal.STAGE_OFFICER and user_role == User.OFFICER)
-            )
-            if not allowed:
-                AuditLog.write(request, 'appeal.decision_denied', 'ChallanAppeal', appeal.id,
-                               actor_role=user_role, stage=stage)
-                messages.error(request, f"Action '{action}' not valid at stage '{stage}' for your role.")
-                return redirect('dig:appeal_override', appeal_id=appeal.id)
-            decision = ChallanAppeal.APPROVED if action == 'approve' else ChallanAppeal.REJECTED
-            appeal.finalize(decision, comment, request.user)
-            if action == 'approve' and appeal.challan.payment_status == Challan.UNPAID:
-                appeal.challan.payment_status = Challan.VOIDED
-                appeal.challan.save()
-            AuditLog.write(request, f'appeal.{stage}_{action}', 'ChallanAppeal', appeal.id,
-                           challan=c.ticket_no, comment=comment[:100])
+        decision = ChallanAppeal.APPROVED if action == 'approve' else ChallanAppeal.REJECTED
+        appeal.finalize(decision, comment, request.user)
+        if action == 'approve' and appeal.challan.payment_status == Challan.UNPAID:
+            appeal.challan.payment_status = Challan.VOIDED
+            appeal.challan.save()
+        AuditLog.write(request, f'appeal.ssp_{action}', 'ChallanAppeal', appeal.id,
+                       challan=c.ticket_no, comment=comment[:100])
+        if appeal.submitted_by:
             _Notif.objects.create(recipient=appeal.submitted_by,
                 title=f"Appeal {action}d | {c.ticket_no}",
-                message=detail_msg + f"\n\nDecision: {action.upper()}\nStage: {stage.upper()}",
-                category=f'appeal_{action}d',
+                message=detail_msg + f"\n\nDecision: {action.upper()}",
+                category=f'appeal_{"approved" if action == "approve" else "rejected"}',
                 target_url="/portal/")
-            messages.success(request, f"Appeal {action}d. Final decision recorded. Citizen notified.")
-        else:
-            messages.error(request, f"Action '{action}' not valid at stage '{stage}' for your role.")
-            return redirect('dig:appeal_override', appeal_id=appeal.id)
+        messages.success(request, f"Appeal {action}d. Final decision recorded. Citizen notified.")
+        return redirect('dig:appeals_queue')
 
-        return redirect('dig:escalation_list')
     return render(request, 'dashboard/dig/appeal_override.html', {
         'appeal': appeal,
-        'current_stage': stage,
-        'stage_display': dict(ChallanAppeal.STAGE_CHOICES).get(stage, stage),
-        'can_route_to_ssp': stage == ChallanAppeal.STAGE_OFFICER and user_role == User.OFFICER,
-        'can_route_to_dig': stage == ChallanAppeal.STAGE_SSP and user_role == User.SSP,
-        'can_finalize': (stage == ChallanAppeal.STAGE_DIG and user_role == User.DIG)
-                         or (stage == ChallanAppeal.STAGE_OFFICER and user_role in (User.OFFICER, User.DIG))
-                         or (stage == ChallanAppeal.STAGE_SSP and user_role in (User.SSP, User.DIG)),
+        'can_finalize': user_role == User.SSP and appeal.status == ChallanAppeal.PENDING,
     })
 
 
@@ -2809,30 +2767,17 @@ def dashboard_v2(request):
 
 
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT')
-def case_escalation_tracker(request):
-    """Appeals queue for SSP/DIG: pending at SSP stage + escalated to DIG."""
-    from django.db.models import Q
-    role = getattr(request.user, 'role', '')
-    qs = ChallanAppeal.objects.all().select_related('challan', 'submitted_by')
-    if role == 'SSP':
-        qs = qs.filter(
-            Q(status=ChallanAppeal.PENDING, current_stage=ChallanAppeal.STAGE_SSP)
-            | Q(status=ChallanAppeal.ESCALATED)
-        )
-    elif role == 'DIG':
-        qs = qs.filter(
-            Q(status=ChallanAppeal.ESCALATED)
-            | Q(status=ChallanAppeal.PENDING, current_stage=ChallanAppeal.STAGE_DIG)
-        )
-    else:
-        qs = qs.filter(status__in=[ChallanAppeal.PENDING, ChallanAppeal.ESCALATED])
-    appeals = list(qs.order_by('-created_at')[:100])
-    escalated_appeals = [a for a in appeals if a.status == ChallanAppeal.ESCALATED]
+def appeals_queue(request):
+    """Mistake-challan appeals queue: SSP decides, DIG/Supervisor/Audit have visibility."""
+    appeals = list(
+        ChallanAppeal.objects.all().select_related('challan', 'submitted_by').order_by('-created_at')[:100]
+    )
     pending_appeals = [a for a in appeals if a.status == ChallanAppeal.PENDING]
+    decided_appeals = [a for a in appeals if a.status != ChallanAppeal.PENDING]
     flagged = Detection.objects.filter(status=Detection.FLAGGED).order_by('-created_at')[:50]
     return render(request, 'dashboard/dig/case_escalation.html', {
-        'escalated_appeals': escalated_appeals,
         'pending_appeals': pending_appeals,
+        'decided_appeals': decided_appeals,
         'appeals': appeals,
         'flagged': flagged,
     })
@@ -3736,7 +3681,7 @@ def api_dashboard_kpis(request):
             'pending_detections': Detection.objects.filter(status=Detection.PENDING).count(),
             'flagged_detections': Detection.objects.filter(status=Detection.FLAGGED).count(),
             'pending_appeals': ChallanAppeal.objects.filter(status=ChallanAppeal.PENDING).count(),
-            'escalated_appeals': ChallanAppeal.objects.filter(status=ChallanAppeal.ESCALATED).count(),
+            'decided_appeals': ChallanAppeal.objects.exclude(status=ChallanAppeal.PENDING).count(),
             'total_users': User.objects.filter(role=User.USER).count(),
             'total_officers': User.objects.filter(role=User.OFFICER).count(),
             'active_alerts': Alert.objects.filter(is_active=True)

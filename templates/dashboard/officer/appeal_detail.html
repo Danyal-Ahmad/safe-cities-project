@@ -21,12 +21,9 @@
       <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle-fill"></i> {{ appeal.get_status_display }}</span>
     {% elif appeal.status == 'rejected' %}
       <span class="sc-badge sc-badge-red"><i class="bi bi-x-circle-fill"></i> {{ appeal.get_status_display }}</span>
-    {% elif appeal.status == 'escalated' %}
-      <span class="sc-badge sc-badge-purple"><i class="bi bi-arrow-up-right-circle-fill"></i> {{ appeal.get_status_display }}</span>
     {% else %}
       <span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass-split"></i> {{ appeal.get_status_display }}</span>
     {% endif %}
-    <span class="sc-badge sc-badge-blue sc-stage-jump" data-scroll-to="#decisionTrail" data-bs-toggle="tooltip" title="Jump to decision trail"><i class="bi bi-diagram-3"></i> {{ appeal.get_current_stage_display }}</span>
     <a href="{% url 'officer_portal:appeal_list' %}" class="sc-btn sc-btn-sm sc-btn-outline"><i class="bi bi-arrow-left"></i> All Appeals</a>
   </div>
 </div>
@@ -36,8 +33,7 @@
   <i class="bi bi-eye-fill"></i>
   <div>
     <strong>Read-only view.</strong> Officers cannot approve or reject appeals -
-    only the <strong>SSP</strong> decides appeals at the SSP Review stage, with the DIG as the
-    final escalation authority.
+    only the <strong>SSP</strong> decides mistake-challan appeals.
   </div>
 </div>
 {% endif %}
@@ -133,22 +129,6 @@
             {% endif %}
           </div>
         </li>
-        <li class="sc-timeline-item {% if appeal.dig_comment or appeal.dig_reviewed_by %}sc-timeline-done{% endif %} sc-timeline-last">
-          <span class="sc-timeline-dot"><i class="bi bi-award"></i></span>
-          <div class="sc-timeline-body">
-            <div class="sc-timeline-title">
-              DIG Review <span class="sc-text-faint sc-text-xs">(escalation authority)</span>
-              {% if appeal.dig_comment or appeal.dig_reviewed_by %}<span class="sc-badge sc-badge-ok">Done</span>
-              {% else %}<span class="sc-badge sc-badge-muted">Only if escalated</span>{% endif %}
-            </div>
-            {% if appeal.dig_comment %}
-              <p class="sc-timeline-text">{{ appeal.dig_comment }}</p>
-            {% endif %}
-            {% if appeal.dig_reviewed_by %}
-              <div class="sc-timeline-meta">Reviewed by {{ appeal.dig_reviewed_by.display_name|default:appeal.dig_reviewed_by }}{% if appeal.dig_reviewed_at %} &middot; {{ appeal.dig_reviewed_at|date:"d M Y, H:i" }}{% endif %}</div>
-            {% endif %}
-          </div>
-        </li>
       </ul>
     </div>
   </div>
@@ -214,28 +194,9 @@
           <dt>Status</dt>
           <dd>{{ appeal.get_status_display }}</dd>
         </div>
-        <div class="sc-meta-row">
-          <dt>Current Stage</dt>
-          <dd>{{ appeal.get_current_stage_display }}</dd>
-        </div>
-        <div class="sc-meta-row">
-          <dt>Escalated</dt>
-          <dd>
-            {% if appeal.is_escalated %}
-              <span class="sc-badge sc-badge-purple"><i class="bi bi-arrow-up-right-circle-fill"></i> Yes</span>
-              {% if appeal.escalated_at %}<span class="sc-text-faint sc-text-sm"> &middot; {{ appeal.escalated_at|date:"d M Y, H:i" }}</span>{% endif %}
-            {% else %}<span class="sc-text-muted">No</span>{% endif %}
-          </dd>
-        </div>
-        {% if appeal.escalation_reason %}
-        <div class="sc-meta-row sc-meta-row-wide">
-          <dt>Escalation Reason</dt>
-          <dd class="sc-text-sm">{{ appeal.escalation_reason }}</dd>
-        </div>
-        {% endif %}
       </dl>
       <div class="sc-hint">
-        <i class="bi bi-lock"></i> Officers have read-only access to appeals. Decisions are made by the SSP (and DIG on escalation).
+        <i class="bi bi-lock"></i> Officers have read-only access to appeals. Decisions are made by the SSP.
       </div>
     </div>
   </div>

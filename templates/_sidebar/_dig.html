@@ -7,7 +7,7 @@
   <div class="sc-nav-title">Command &amp; Control</div>
   <a href="{% url 'dig:dashboard' %}" class="sc-nav-link {% if request.path == '/portal/dig/' or request.path == '/portal/dig/dashboard/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
   {% if request.user|has_perm:"view_appeals" %}
-  <a href="{% url 'dig:escalation_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/escalations/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Escalations</span></a>
+  <a href="{% url 'dig:appeals_queue' %}" class="sc-nav-link {% if request.path == '/portal/dig/appeals/' %}sc-active{% endif %}"><i class="bi bi-shield-check"></i> <span class="sc-nav-link-text">Appeals</span></a>
   {% endif %}
   {% if request.user|has_perm:"manage_alerts" %}
   <a href="{% url 'dig:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone"></i> <span class="sc-nav-link-text">Alerts Hub</span></a>

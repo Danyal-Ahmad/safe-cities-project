@@ -5,10 +5,11 @@
  * - Live topbar clock
  * - User dropdown menu
  * - Sidebar toggle with localStorage persistence
- * - SweetAlert2 wrappers (alert, confirm, toast)
- * - Django flash messages display
+ * - SweetAlert2 wrappers (alert, confirm - explicit calls only)
+ * - Django flash messages: rendered inline under the navbar, auto-faded
  * - Table sort/search
- * - Bootstrap tooltips init
+ * - Custom modal system (data-bs-toggle="modal" compatible, no Bootstrap)
+ * - Custom tooltip system (data-bs-toggle="tooltip", no Bootstrap)
  */
 (function () {
     'use strict';
@@ -107,10 +108,13 @@
             if (e.target.closest('.sc-user-menu')) return;
             closeUserMenu();
         });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeUserMenu();
+        });
     }
 
     // ============================================================
-    // SweetAlert2 wrappers
+    // SweetAlert2 wrappers (used only for explicit confirm dialogs)
     // ============================================================
 
     function hasSwal() { return typeof window.Swal !== 'undefined'; }
@@ -148,41 +152,35 @@
         });
     }
 
-    function scToast(message, type) {
-        if (!hasSwal()) {
-            console.log('[toast]', type || 'info', message);
-            return;
-        }
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3500,
-            timerProgressBar: true,
-            customClass: { popup: 'sc-toast' },
-        });
-        Toast.fire({
-            icon: type || 'info',
-            title: message || '',
-        });
+    // ============================================================
+    // Flash messages: inline under the navbar, temporary.
+    // Messages stay in the document flow directly below the topbar
+    // (never floating), fade out automatically after 7s, and can be
+    // dismissed manually via the close button.
+    // ============================================================
+
+    function fadeOutMsg(node) {
+        if (node.__scFading) return;
+        node.__scFading = true;
+        node.style.transition = 'opacity .45s ease, transform .45s ease';
+        node.style.opacity = '0';
+        node.style.transform = 'translateY(-4px)';
+        setTimeout(function () {
+            const box = node.parentElement;
+            node.remove();
+            if (box && !box.children.length) box.remove();
+        }, 480);
     }
 
-    function scShowMessages() {
-        const nodes = document.querySelectorAll('.sc-messages .sc-msg, .sc-msg[data-msg-type]');
-        if (!nodes.length) return;
-        let toasted = 0;
-        nodes.forEach(function (n) {
-            const type = (n.getAttribute('data-msg-type') || n.className.match(/sc-msg-(\w+)/) || [, 'info'])[1];
-            const text = n.textContent.trim();
-            if (text && hasSwal()) {
-                scToast(text, type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info');
-                toasted++;
+    function initMsgDismiss() {
+        document.querySelectorAll('.sc-messages .sc-msg').forEach(function (msg) {
+            const btn = msg.querySelector('.sc-msg-close');
+            if (btn) {
+                btn.addEventListener('click', function () { fadeOutMsg(msg); });
             }
+            // Temporary display: auto-fade after 7 seconds.
+            setTimeout(function () { fadeOutMsg(msg); }, 7000);
         });
-        if (toasted === nodes.length) {
-            const box = document.querySelector('.sc-messages');
-            if (box) box.hidden = true;
-        }
     }
 
     // ============================================================
@@ -226,27 +224,121 @@
     }
 
     // ============================================================
-    // Tooltips
+    // Custom modal system (replaces Bootstrap JS modals).
+    // API compatibility: [data-bs-toggle="modal"][data-bs-target="#id"]
+    // opens, [data-bs-dismiss="modal"] closes, .modal.show displays.
     // ============================================================
 
-    function scInitTooltips() {
-        if (typeof window.bootstrap === 'undefined' || !window.bootstrap.Tooltip) return;
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-            try { new bootstrap.Tooltip(el); } catch (e) { /* noop */ }
+    const scModals = {
+        open: function (modalEl) {
+            if (!modalEl || modalEl.classList.contains('show')) return;
+            modalEl.__scBackdrop = document.createElement('div');
+            modalEl.__scBackdrop.className = 'modal-backdrop';
+            document.body.appendChild(modalEl.__scBackdrop);
+            modalEl.__scBackdrop.addEventListener('click', function () { scModals.close(modalEl); });
+            modalEl.classList.add('show');
+            modalEl.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            const focusable = modalEl.querySelector('input:not([type=hidden]), select, textarea, button:not([data-bs-dismiss])');
+            if (focusable) setTimeout(function () { focusable.focus(); }, 60);
+            modalEl.dispatchEvent(new CustomEvent('shown.sc.modal'));
+        },
+        close: function (modalEl) {
+            if (!modalEl || !modalEl.classList.contains('show')) return;
+            modalEl.classList.remove('show');
+            modalEl.style.display = '';
+            if (modalEl.__scBackdrop) {
+                modalEl.__scBackdrop.remove();
+                modalEl.__scBackdrop = null;
+            }
+            if (!document.querySelector('.modal.show')) document.body.style.overflow = '';
+            modalEl.dispatchEvent(new CustomEvent('hidden.sc.modal'));
+        },
+        toggle: function (modalEl) {
+            modalEl.classList.contains('show') ? scModals.close(modalEl) : scModals.open(modalEl);
+        }
+    };
+
+    function initModals() {
+        document.addEventListener('click', function (e) {
+            const opener = e.target.closest('[data-bs-toggle="modal"]');
+            if (opener) {
+                const sel = opener.getAttribute('data-bs-target');
+                const modal = sel ? document.querySelector(sel) : null;
+                if (modal) { e.preventDefault(); scModals.open(modal); }
+                return;
+            }
+            const closer = e.target.closest('[data-bs-dismiss="modal"]');
+            if (closer) {
+                const modal = closer.closest('.modal');
+                if (modal) { e.preventDefault(); scModals.close(modal); }
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const open = document.querySelector('.modal.show');
+                if (open) scModals.close(open);
+            }
         });
     }
 
     // ============================================================
-    // Auto-dismiss messages
+    // Custom tooltips (replaces Bootstrap JS tooltips).
+    // [data-bs-toggle="tooltip"][title="..."] -> styled .sc-tooltip.
+    // Native title attribute is kept as fallback text source.
     // ============================================================
 
-    function initMsgDismiss() {
-        document.querySelectorAll('.sc-msg .sc-msg-close, .sc-banner-dismiss').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const target = btn.closest('.sc-msg, .sc-banner');
-                if (target) target.style.display = 'none';
-            });
+    let scTooltipEl = null;
+    let scTooltipHideTimer = null;
+
+    function showTooltip(host) {
+        const text = host.getAttribute('title') || host.getAttribute('data-bs-original-title') || '';
+        if (!text) return;
+        if (!scTooltipEl) {
+            scTooltipEl = document.createElement('div');
+            scTooltipEl.className = 'sc-tooltip';
+            scTooltipEl.setAttribute('role', 'tooltip');
+            document.body.appendChild(scTooltipEl);
+        }
+        if (host.getAttribute('title')) {
+            host.setAttribute('data-bs-original-title', host.getAttribute('title'));
+            host.removeAttribute('title'); // avoid double native tooltip
+            host.__scRestoreTitle = true;
+        }
+        scTooltipEl.textContent = text;
+        scTooltipEl.style.visibility = 'hidden';
+        scTooltipEl.style.left = '0px';
+        scTooltipEl.style.top = '0px';
+        scTooltipEl.style.display = 'block';
+
+        const r = host.getBoundingClientRect();
+        const tw = scTooltipEl.offsetWidth;
+        const th = scTooltipEl.offsetHeight;
+        let left = r.left + r.width / 2 - tw / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+        let top = r.top - th - 8;
+        if (top < 8) top = r.bottom + 8;
+        scTooltipEl.style.left = left + 'px';
+        scTooltipEl.style.top = top + 'px';
+        scTooltipEl.style.visibility = 'visible';
+    }
+
+    function hideTooltip() {
+        if (scTooltipEl) scTooltipEl.style.display = 'none';
+    }
+
+    function initTooltips() {
+        document.addEventListener('mouseover', function (e) {
+            const host = e.target.closest('[data-bs-toggle="tooltip"]');
+            if (!host) return;
+            clearTimeout(scTooltipHideTimer);
+            scTooltipHideTimer = setTimeout(function () { showTooltip(host); }, 240);
+            host.addEventListener('mouseleave', function () {
+                clearTimeout(scTooltipHideTimer);
+                hideTooltip();
+            }, { once: true });
         });
+        document.addEventListener('scroll', hideTooltip, true);
     }
 
     // ============================================================
@@ -267,8 +359,6 @@
                         window.location.href = el.href;
                     } else if (el.tagName === 'BUTTON' && (el.type || '').toLowerCase() === 'submit') {
                         el.closest('form')?.submit();
-                    } else if (typeof el.click === 'function') {
-                        // re-trigger
                     }
                 });
             });
@@ -283,10 +373,10 @@
         startClock();
         initUserMenu();
         scInitTables();
-        scInitTooltips();
+        initModals();
+        initTooltips();
         initMsgDismiss();
         initConfirmLinks();
-        scShowMessages();
     }
 
     if (document.readyState === 'loading') {
@@ -309,9 +399,7 @@
         closeUserMenu: closeUserMenu,
         alert: scAlert,
         confirm: scConfirm,
-        toast: scToast,
-        showMessages: scShowMessages,
         initTables: scInitTables,
-        initTooltips: scInitTooltips,
+        modals: scModals,
     };
 })();

@@ -495,7 +495,6 @@ class Notification(models.Model):
         ('appeal_pending', 'Appeal Pending Review'),
         ('appeal_approved', 'Appeal Approved'),
         ('appeal_rejected', 'Appeal Rejected'),
-        ('appeal_escalated', 'Appeal Escalated'),
         ('camera', 'Camera Event'),
         ('challan', 'Challan Event'),
         ('payment_verification', 'Payment Verification'),
@@ -508,7 +507,7 @@ class Notification(models.Model):
     message = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other')
     target_url = models.CharField(max_length=500, blank=True, default='',
-                                   help_text="URL to navigate to when clicked (e.g. /dig/appeal/5/override/)")
+                                   help_text="URL to navigate to when clicked")
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

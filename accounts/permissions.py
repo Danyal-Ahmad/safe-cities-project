@@ -44,7 +44,6 @@ PERMISSIONS = (
     'view_own_challans',
     'pay_own_challans',
     'submit_appeals',
-    'escalate_appeals',
     'edit_own_profile',
     'view_detections',
     'review_detections',
@@ -62,8 +61,6 @@ PERMISSIONS = (
     'view_appeals',
     'approve_appeal',
     'reject_appeal',
-    'escalate_appeal',
-    'override_appeal',
     'appeal_workflow',
     'view_cameras',
     'view_camera_health',
@@ -144,8 +141,6 @@ _IT_PERMS = {
     'edit_challan_fine',
     'edit_own_profile',
     'edit_system_settings',
-    'escalate_appeal',
-    'escalate_appeals',
     'excise_integration',
     'export_audit_log',
     'external_api_manage',
@@ -241,8 +236,6 @@ _DIG_PERMS = {
     'edit_own_profile',
     'edit_penalty_config',
     'edit_user',
-    'escalate_appeal',
-    'escalate_appeals',
     'export_audit_log',
     'flag_detection',
     'generate_reports',
@@ -253,7 +246,6 @@ _DIG_PERMS = {
     'mark_challan_paid',
     'officer_pki',
     'officer_profile_manage',
-    'override_appeal',
     'pay_own_challans',
     'record_payment',
     'reject_appeal',
@@ -304,12 +296,9 @@ _SSP_PERMS = {
     'approve_high_value_challan',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeal',
-    'escalate_appeals',
     'export_audit_log',
     'flag_detection',
     'generate_reports',
-    'override_appeal',
     'pay_own_challans',
     'reject_appeal',
     'submit_appeals',
@@ -341,7 +330,6 @@ _SUPERVISOR_PERMS = {
     'add_officer_feedback',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'generate_reports',
     'manage_shifts',
     'pay_own_challans',
@@ -369,7 +357,6 @@ _OFFICER_PERMS = {
     'camera_feed',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'flag_detection',
     'live_tracking',
     'live_tracking_timeline',
@@ -398,7 +385,6 @@ _AUDIT_PERMS = {
     'view_regional_command',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'export_audit_log',
     'generate_reports',
     'pay_own_challans',
@@ -435,7 +421,6 @@ _AUDIT_PERMS = {
 _CITIZEN_PERMS = {
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'pay_own_challans',
     'submit_appeals',
     'view_notifications',
@@ -598,23 +583,6 @@ def can_override_user(actor_user, target_user) -> bool:
     return actor_level > target_level
 
 
-APPEAL_ESCALATION_CHAIN: tuple = ('OFFICER', 'SUPV', 'SSP', 'DIG')
-
-
-def get_appeal_escalation_chain() -> tuple:
-    return APPEAL_ESCALATION_CHAIN
-
-
-def get_next_escalation_role(current_role: str) -> str | None:
-    chain = APPEAL_ESCALATION_CHAIN
-    if current_role not in chain:
-        return None
-    idx = chain.index(current_role)
-    if idx + 1 >= len(chain):
-        return None
-    return chain[idx + 1]
-
-
 def get_all_roles() -> list:
     return list(ROLE_HIERARCHY.keys())
 
@@ -714,7 +682,6 @@ def get_permission_groups() -> 'OrderedDict[str, list]':
         'view_own_challans',
         'pay_own_challans',
         'submit_appeals',
-        'escalate_appeals',
         'edit_own_profile',
     ]
 
@@ -741,8 +708,6 @@ def get_permission_groups() -> 'OrderedDict[str, list]':
         'view_appeals',
         'approve_appeal',
         'reject_appeal',
-        'escalate_appeal',
-        'override_appeal',
         'appeal_workflow',
     ]
 

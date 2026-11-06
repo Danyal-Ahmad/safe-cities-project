@@ -27,6 +27,7 @@ urlpatterns = [
     path('login-events/',        views.login_events,         name='login_events'),
     path('login-events/export/', views.login_events_export,  name='login_events_export'),
     path('uploads/',             views.uploads_log,          name='uploads_log'),
+    path('appeals/',             dig_views.appeals_queue,    name='appeals_queue'),
 
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
 

@@ -63,6 +63,14 @@
     </div>
     {% endif %}
 
+    {% if messages %}
+    <div class="ps-messages">
+      {% for m in messages %}
+      <div class="ps-msg ps-msg-{{ m.tags|default:'info' }}"><i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i> {{ m }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <main class="ps-main">
       {% block content %}{% endblock %}
     </main>
@@ -72,18 +80,6 @@
       <span>All Rights Reserved</span>
     </footer>
   </div>
-
-  {% block ad_channels %}
-    {% include 'challan/_public_ads.html' %}
-  {% endblock %}
-
-  {% if messages %}
-  <div class="ps-messages">
-    {% for m in messages %}
-    <div class="ps-msg ps-msg-{{ m.tags|default:'info' }}"><i class="bi bi-info-circle-fill"></i> {{ m }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
 
   <script src="{% static 'js/pages/public-ads.js' %}" defer></script>
   {% block extra_js %}{% endblock %}

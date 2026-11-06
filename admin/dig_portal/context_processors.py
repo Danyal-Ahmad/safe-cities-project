@@ -117,7 +117,6 @@ def ads_delivery(request):
 
 def sidebar_badge_counts(request):
     ctx = {
-        'escalated_appeals_count': 0,
         'high_value_challans_count': 0,
         'pending_appeals_count': 0,
         'pending_detections_count': 0,
@@ -129,8 +128,6 @@ def sidebar_badge_counts(request):
         u = request.user
         if u.role in (User.DIG, User.SSP, User.AUDIT):
             from appeals.models import ChallanAppeal
-            ctx['escalated_appeals_count'] = ChallanAppeal.objects.filter(
-                status=ChallanAppeal.ESCALATED).count()
             ctx['pending_appeals_count'] = ChallanAppeal.objects.filter(
                 status=ChallanAppeal.PENDING).count()
         if u.role in (User.SSP, User.AUDIT):

@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect, Http404
+from django.urls import reverse
 from django.contrib import messages
 from django.http import FileResponse, HttpResponseForbidden, HttpResponse
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
@@ -341,7 +342,6 @@ def challan_detail(request, challan_id):
                 guest_cnic=guest_cnic,
                 guest_name=guest_name or (challan.owner_name or ''),
                 reason=reason,
-                current_stage=ChallanAppeal.STAGE_SSP,
                 status=ChallanAppeal.PENDING,
             )
         else:
@@ -352,7 +352,6 @@ def challan_detail(request, challan_id):
                 challan=challan,
                 submitted_by=request.user,
                 reason=reason,
-                current_stage=ChallanAppeal.STAGE_SSP,
                 status=ChallanAppeal.PENDING,
             )
         if request.FILES.get('evidence_file'):
@@ -368,6 +367,27 @@ def challan_detail(request, challan_id):
             from admin.dig_portal.models import AuditLog
             AuditLog.write(request, 'appeal.submit', 'ChallanAppeal', appeal.id,
                            ticket=challan.ticket_no, guest=is_guest)
+        except Exception:
+            pass
+        try:
+            from accounts.models import User as _User
+            from admin.dig_portal.models import Notification
+            for ssp in _User.objects.filter(role=_User.SSP, is_active=True):
+                Notification.objects.create(
+                    recipient=ssp,
+                    title=f"[ACTION REQUIRED] New Appeal | {challan.ticket_no}",
+                    message=(
+                        f"NEW APPEAL SUBMITTED\n"
+                        f"Challan No: {challan.ticket_no}\n"
+                        f"Plate Number: {challan.plate_number}\n"
+                        f"Violation: {challan.get_violation_type_display()}\n"
+                        f"Fine: PKR {challan.fine_amount}\n"
+                        f"Submitted by: {guest_name or 'Guest (CNIC matched)'}\n"
+                        f"Reason: {reason}"
+                    ),
+                    category='appeal_submit',
+                    target_url=reverse('ssp_portal:decide_appeal', args=[appeal.id]),
+                )
         except Exception:
             pass
         messages.success(request, "Appeal submitted. SSP will review your case.")

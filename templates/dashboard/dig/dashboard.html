@@ -21,7 +21,7 @@
           DIG Command Center
           <span class="scr-rail-tag scr-rail-tag--success"><i class="bi bi-broadcast"></i> All Systems Live</span>
         </div>
-        <div class="scr-rail-sub">Directorate-level operational overview, real-time revenue, network status and dispute escalations across every district desk.</div>
+        <div class="scr-rail-sub">Directorate-level operational overview, real-time revenue, network status and mistake-challan appeals across every district desk.</div>
       </div>
       <div class="scr-rail-actions">
         <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
@@ -77,8 +77,8 @@
       {% if request.user|has_perm:"view_appeals" %}
       <div class="scr-stat scr-stat--warning">
         <div class="scr-stat-label">Disputed Appeals</div>
-        <div class="scr-stat-value"><span id="kpi-pending-appeals" data-key="pending_appeals">0</span><small> / <span id="kpi-escalated-appeals" data-key="escalated_appeals">0</span> esc.</small></div>
-        <div class="scr-stat-foot"><a href="{% url 'dig:case_escalation' %}">Escalation desk</a></div>
+        <div class="scr-stat-value"><span id="kpi-pending-appeals" data-key="pending_appeals">0</span></div>
+        <div class="scr-stat-foot"><a href="{% url 'dig:appeals_queue' %}">Appeals desk</a></div>
       </div>
       {% endif %}
       {% if request.user|has_perm:"manage_alerts" %}

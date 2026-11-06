@@ -134,10 +134,9 @@
             {% for a in existing_appeals %}
             <div class="pd-appeal-row">
               <span class="scpub-mono pd-appeal-date">{{ a.created_at|date:'d M Y' }}</span>
-              <span>{{ a.get_current_stage_display }}</span>
+              
               {% if a.status == 'approved' %}<span class="scpub-badge scpub-badge-green">{{ a.get_status_display }}</span>
               {% elif a.status == 'rejected' %}<span class="scpub-badge scpub-badge-red">{{ a.get_status_display }}</span>
-              {% elif a.status == 'escalated' %}<span class="scpub-badge scpub-badge-blue">{{ a.get_status_display }}</span>
               {% else %}<span class="scpub-badge scpub-badge-amber">{{ a.get_status_display }}</span>{% endif %}
             </div>
             {% endfor %}

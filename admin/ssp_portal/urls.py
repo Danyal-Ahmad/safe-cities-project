@@ -16,10 +16,9 @@ urlpatterns = [
     path('blacklist/add/', dig_views.blacklist_add, name='blacklist_add'),
 
 
-    path('appeals/', dig_views.case_escalation_tracker, name='case_escalation'),
-    path('appeals/tracker/', dig_views.case_escalation_tracker, name='case_escalation_tracker'),
-    path('appeals/queue/', dig_views.case_escalation_tracker, name='appeal_list'),
-    path('escalations/', dig_views.case_escalation_tracker, name='escalation_list'),
+    path('appeals/', dig_views.appeals_queue, name='case_escalation'),
+    path('appeals/tracker/', dig_views.appeals_queue, name='case_escalation_tracker'),
+    path('appeals/queue/', dig_views.appeals_queue, name='appeal_list'),
 
     path('camera-health/', dig_views.camera_health, name='camera_health'),
     path('cameras-status/', dig_views.cameras_status, name='cameras_status'),

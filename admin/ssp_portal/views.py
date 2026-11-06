@@ -27,14 +27,8 @@ def dashboard(request):
 
     pending_appeals = ChallanAppeal.objects.filter(
         status=ChallanAppeal.PENDING,
-        current_stage=ChallanAppeal.STAGE_SSP,
     ).select_related('challan', 'submitted_by', 'challan__created_by').order_by('-created_at')[:20]
 
-    escalations = ChallanAppeal.objects.filter(
-        status=ChallanAppeal.ESCALATED,
-    ).select_related('challan', 'submitted_by').order_by('-escalated_at')[:20]
-
-    escalated = ChallanAppeal.objects.filter(status=ChallanAppeal.ESCALATED).count()
     total_revenue = Challan.objects.filter(payment_status='PAID').aggregate(t=Sum('fine_amount'))['t'] or 0
     total_challans = Challan.objects.count()
     high_value_count = Challan.objects.filter(fine_amount__gte=HIGH_VALUE_THRESHOLD, payment_status='UNPAID').count()
@@ -69,8 +63,6 @@ def dashboard(request):
     return render(request, 'dashboard/ssp/dashboard.html', {
         'high_value_challans': high_value_challans,
         'pending_appeals': pending_appeals,
-        'escalations': escalations,
-        'escalated': escalated,
         'total_revenue': total_revenue,
         'total_challans': total_challans,
         'high_value_count': high_value_count,
@@ -104,7 +96,7 @@ def decide_appeal(request, appeal_id):
         if decision not in ('APPROVED', 'REJECTED'):
             messages.error(request, "Invalid decision.")
             return redirect('ssp_portal:dashboard')
-        if appeal.status != ChallanAppeal.PENDING or appeal.current_stage != ChallanAppeal.STAGE_SSP:
+        if appeal.status != ChallanAppeal.PENDING:
             messages.error(request, "This appeal is not awaiting an SSP decision.")
             return redirect('ssp_portal:dashboard')
 

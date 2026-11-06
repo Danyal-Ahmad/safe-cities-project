@@ -24,7 +24,7 @@
   <a href="{% url 'dig:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
   {% endif %}
   {% if request.user|has_any_perm:"view_appeals,view_case_escalation" %}
-  <a href="{% url 'dig:case_escalation_tracker' %}" class="sc-nav-link {% if request.path == '/portal/dig/escalations/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Appeals</span></a>
+  <a href="{% url 'dig:appeals_queue' %}" class="sc-nav-link {% if request.path == '/portal/dig/appeals/' %}sc-active{% endif %}"><i class="bi bi-shield-check"></i> <span class="sc-nav-link-text">Appeals</span></a>
   {% endif %}
 </div>
 

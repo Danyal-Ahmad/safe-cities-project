@@ -369,7 +369,6 @@ def lookup_owner_by_plate(plate_number):
 def appeal_list(request):
     appeals = ChallanAppeal.objects.filter(
         status=ChallanAppeal.PENDING,
-        current_stage=ChallanAppeal.STAGE_OFFICER,
     ).order_by('created_at')
     return render(request, 'dashboard/officer/appeal_list.html', {
         'appeals': appeals,

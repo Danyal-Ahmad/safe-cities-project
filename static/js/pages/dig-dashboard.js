@@ -2,6 +2,13 @@
 (function () {
   'use strict';
 
+  // "wrong_way" -> "Wrong Way" for chart/category labels coming from API keys.
+  function prettyLabel(s) {
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
   // Live clock
   function updateClock(){
     const el = document.getElementById('live-clock');
@@ -48,41 +55,40 @@
     } catch(e) { console.warn('KPI load failed:', e); }
   }
 
-  // Generic Chart.js from API
+  // Generic Chart.js from API, routed through the themed scCharts engine
+  // (rounded bars, smooth gradient lines, padded single-value axes, value
+  // labels, unified legends and friendly empty states).
   async function initChartFromAPI(canvas){
-    if(typeof Chart === 'undefined') return;
+    if (typeof Chart === 'undefined' || !window.scCharts) return;
     try {
       const apiUrl   = canvas.dataset.apiUrl;
       const chartType = canvas.dataset.chartType || 'bar';
       const indexAxis = canvas.dataset.indexAxis || 'x';
       const json = await scFetch(apiUrl);
 
-      const opts = {
-        type: chartType,
-        data: json,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 600, easing: 'easeOutQuart' },
-          plugins: { legend: { display: chartType === 'line' } },
-          scales: {
-            x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-            y: { grid: { color: 'rgba(0,0,0,0.05)' } }
-          }
+      if (chartType === 'doughnut' || chartType === 'pie') {
+        let data = json.data;
+        if (!data && Array.isArray(json.datasets) && json.datasets[0] && Array.isArray(json.datasets[0].data)) {
+          data = json.datasets[0].data;
         }
-      };
-      if(indexAxis === 'y') {
-        opts.options.indexAxis = 'y';
-        opts.options.scales.x.grid = { color: 'rgba(0,0,0,0.05)' };
+        window.scCharts.doughnut(canvas.id, (json.labels || []).map(prettyLabel), data || [], {});
+      } else if (chartType === 'line') {
+        (json.datasets || []).forEach(function (d) { if (!d.type) d.type = 'line'; });
+        window.scCharts.line(canvas.id, (json.labels || []).map(prettyLabel), json.datasets || []);
+      } else if (indexAxis === 'y') {
+        window.scCharts.horizontalBar(canvas.id, (json.labels || []).map(prettyLabel), json.datasets || []);
+      } else {
+        // Trend-style payloads (tension/fill) render as smooth lines.
+        const lineish = Array.isArray(json.datasets) && json.datasets.some(function (d) {
+          return d && (d.tension !== undefined || d.fill !== undefined);
+        });
+        if (lineish) {
+          window.scCharts.line(canvas.id, (json.labels || []).map(prettyLabel), json.datasets || []);
+        } else {
+          window.scCharts.bar(canvas.id, (json.labels || []).map(prettyLabel), json.datasets || []);
+        }
       }
-      if(chartType === 'line') {
-        opts.options.scales.y.beginAtZero = true;
-      }
-
-      new Chart(canvas, opts);
-    } catch(e) {
-      console.warn('Chart init failed:', e);
-    }
+    } catch(e) { console.warn('Chart init failed:', e); }
   }
 
   // Recent detections table renderer

@@ -1,12 +1,10 @@
 from admin.officer_portal import views as officer_views
 from django.urls import path
 from . import views
-from . import autocomplete
 
 app_name = 'dig'
 urlpatterns = [
     path('',                              views.dashboard,               name='dashboard'),
-    path('dashboard/',                    views.dashboard,               name='dashboard_alt'),
 
     path('violations/',                   views.violation_stats,         name='violation_stats'),
     path('appeals/',                      views.appeals_queue,           name='appeals_queue'),
@@ -47,11 +45,7 @@ path('analytics/',                    views.analytics,               name='analy
     path('admins/',                       views.admin_list,              name='admin_list'),
     path('admins/add/',                   views.admin_add,               name='admin_add'),
     path('admins/<int:user_id>/',         views.admin_edit,              name='admin_edit'),
-    path('admins/<int:user_id>/toggle/',  views.admin_toggle,            name='admin_toggle'),
-    path('admins/<int:user_id>/toggle-active/', views.admin_toggle,   name='admin_toggle_active'),
-    path('users/<int:user_id>/toggle/', views.admin_toggle,           name='citizen_toggle'),
     path('admins/set-password/',           views.staff_set_password,      name='staff_set_password'),
-    path('admins/<int:user_id>/delete/',  views.admin_delete,            name='admin_delete'),
 
     path('reports/',                      views.reports,                 name='reports'),
     path('reports/generate/',             views.generate_report,         name='generate_report'),
@@ -111,8 +105,6 @@ path('analytics/',                    views.analytics,               name='analy
 
 
 
-    path('autocomplete/',                 autocomplete.autocomplete,     name='autocomplete'),
-    path('check-duplicate/',              autocomplete.check_duplicate,  name='check_duplicate'),
 
     path('live-monitor/',                 views.live_monitor,            name='live_monitor'),
     path('live-monitor/feed/',            views.live_monitor_feed,       name='live_monitor_feed'),
@@ -120,7 +112,6 @@ path('analytics/',                    views.analytics,               name='analy
 
 
     path('cameras/',                      views.camera_list,             name='camera_list'),
-    path('cameras/list/',                 views.camera_list,             name='camera_list_alt'),
     path('cameras/add/',                  views.camera_add,              name='camera_add'),
     path('cameras/<int:camera_id>/edit/', views.camera_edit,             name='camera_edit'),
     path('cameras/<int:camera_id>/delete/', views.camera_delete,         name='camera_delete'),

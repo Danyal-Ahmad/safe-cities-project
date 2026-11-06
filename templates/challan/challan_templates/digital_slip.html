@@ -123,7 +123,7 @@
       {% for p in payment_icons %}<img src="{{ p.path }}" title="{{ p.label }}">{% endfor %}
     </div>
   </div>
-  <div class="urdu-hint">ادائیگی کی آخری تاریخ: {{ challan.due_date|date:"d-m-Y" }} | Payment due date</div>
+  <div class="urdu-hint" dir="rtl">ادائیگی کی آخری تاریخ: {{ challan.due_date|date:"d-m-Y" }} | Payment due date</div>
   <div class="sig-row">
     <div class="sig"><div class="line">Authorized Signature | SAFE CITIES PROJECT</div></div>
     <div class="sig"><div class="line">Verification | Evidence chain sealed</div></div>

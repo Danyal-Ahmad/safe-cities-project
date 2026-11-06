@@ -1540,47 +1540,6 @@ def bulk_fine_adjust(request):
     return redirect('dig:challan_list')
 
 
-@dig_required
-def bulk_detections(request):
-    if request.method != 'POST':
-        return redirect('dig:dashboard')
-    action = request.POST.get('bulk_action')
-    selected_ids = request.POST.getlist('selected')
-    if len(selected_ids) > 100:
-        messages.error(request, "Max 100 detections per bulk action.")
-        return redirect('dig:dashboard')
-    notes = request.POST.get('bulk_notes', f"Bulk {action} by DIG")
-    from django.db import transaction
-    count = 0
-    try:
-        with transaction.atomic():
-            for det_id in selected_ids:
-                try:
-                    d = Detection.objects.get(pk=det_id, status=Detection.PENDING)
-                    d.status = Detection.CONFIRMED if action == 'confirm' else Detection.REJECTED
-                    d.reviewed_by = request.user
-                    d.reviewed_at = timezone.now()
-                    d.review_notes = notes
-                    d.save()
-                    if action == 'confirm':
-                        from detections.pipeline import issue_challan
-                        if d.evidence_summary['all_passed'] and d.ai_detected_violation:
-                            issue_challan(d, d.camera, user=request.user)
-                        else:
-                            raise ValueError(
-                                f"Detection {d.pk} failed evidence verification; challan blocked"
-                            )
-                    count += 1
-                except Detection.DoesNotExist:
-                    continue
-            AuditLog.write(request, f'bulk.{action}', 'Detection', None, count=count)
-    except Exception as e:
-        messages.error(request, f"Bulk {action} failed: {e}")
-        return redirect('dig:dashboard')
-    messages.success(request, f"Bulk {action}: {count} detection(s) processed.")
-    return redirect('dig:dashboard')
-
-
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT', 'IT')
 def audit_log(request):
     qs = AuditLog.objects.all()
@@ -2989,44 +2948,6 @@ def camera_snapshot(request, camera_id):
     return HttpResponse(status=204)
 
 
-@staff_required
-def camera_snapshot_json(request):
-    from django.urls import resolve
-    try:
-        current_ns = resolve(request.path_info).namespace or 'dig'
-    except Exception:
-        current_ns = 'dig'
-    cameras = Camera.objects.filter(is_active=True).order_by('-installed_date')
-    data = []
-    for cam in cameras:
-        latest = Detection.objects.filter(camera=cam).order_by('-created_at').first()
-        has_snapshot = bool(latest and latest.raw_image)
-        data.append({
-            'id': cam.id,
-            'camera_id': cam.camera_id,
-            'location': cam.location,
-            'direction': cam.get_legal_direction_display(),
-            'direction_code': cam.legal_direction,
-            'health_status': cam.health_status,
-            'is_active': cam.is_active,
-            'is_streaming': cam.is_streaming,
-            'rtsp_url': cam.rtsp_url or '',
-            'snapshot_url': reverse(f'{current_ns}:camera_snapshot', args=[cam.id]),
-            'has_snapshot': has_snapshot,
-            'last_frame_at': cam.last_frame_at.isoformat() if cam.last_frame_at else None,
-            'latest_detection_id': latest.id if latest else None,
-        })
-    return JsonResponse({'cameras': data})
-
-
-@dig_required
-
-def dashboard_v2(request):
-    """Deprecated command-centre view - redirect to primary DIG dashboard."""
-    from django.shortcuts import redirect
-    return redirect('dig:dashboard')
-
-
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT')
 def appeals_queue(request):
     """Mistake-challan appeals queue: SSP decides, DIG/Supervisor/Audit have visibility."""
@@ -3506,52 +3427,6 @@ def admin_add(request):
         'role_profiles_json': _json.dumps({k: {'designation': v.get('designation',''), 'department': v.get('department',''), 'region': v.get('region',''), 'staff_id_prefix': v.get('staff_id_prefix','PSC')} for k,v in _rp.items()}),
         'roles': [User.SSP, User.SUPERVISOR, User.OFFICER, User.AUDIT, User.IT_SUPPORT],
     })
-
-
-@dig_required
-def admin_toggle(request, user_id):
-    target = get_object_or_404(User, pk=user_id)
-    next_url = request.POST.get('next') or request.GET.get('next') or ''
-    if target.role == User.DIG and User.objects.filter(role=User.DIG, is_active=True).count() == 1 and target.is_active:
-        messages.error(request, "Cannot deactivate the last active DIG account.")
-        return redirect(next_url if next_url.startswith('/') else 'dig:admin_list')
-    target.is_active = not target.is_active
-    target.save()
-    AuditLog.write(request, 'admin.toggle', 'User', target.id, active=target.is_active)
-    label = 'Citizen' if target.role == User.USER else 'Admin'
-    messages.success(request, f"{label} {target.display_name} {'activated' if target.is_active else 'blocked'}.")
-    if next_url.startswith('/'):
-        return redirect(next_url)
-    return redirect('dig:citizen_users_list' if target.role == User.USER else 'dig:admin_list')
-
-
-@senior_staff_required
-def admin_delete(request, user_id):
-    from accounts.models import User
-    from .models import AuditLog
-    if getattr(request.user, 'role', None) not in ('DIG',) and not getattr(request.user, 'is_dig', False):
-        messages.error(request, "Only DIG can delete staff accounts.")
-        return redirect('dig:admin_list')
-    target = get_object_or_404(User, pk=user_id)
-    if target.id == request.user.id:
-        messages.error(request, "You cannot delete your own account.")
-        return redirect('dig:admin_list')
-    if target.role == User.DIG and User.objects.filter(role=User.DIG, is_active=True).count() <= 1:
-        messages.error(request, "Cannot delete the last DIG account.")
-        return redirect('dig:admin_list')
-    next_url = request.POST.get('next') or ''
-    uid, email, role = target.id, target.email, target.role
-    target.delete()
-    try:
-        AuditLog.write(request, 'admin.delete', 'User', uid, email=email)
-    except Exception:
-        pass
-    messages.success(request, f"Account deleted ({email}).")
-    if next_url.startswith('/'):
-        return redirect(next_url)
-    return redirect('dig:citizen_users_list' if role == User.USER else 'dig:admin_list')
-
-
 
 
 PAYMENT_METHOD_DEFAULTS = {
@@ -4076,14 +3951,6 @@ def api_chart_officer_kpi(request):
         ],
     })
 
-
-
-def _client_ip(request):
-    """Extract client IP, honouring X-Forwarded-For."""
-    xff = request.META.get('HTTP_X_FORWARDED_FOR')
-    if xff:
-        return xff.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR')
 
 
 @dig_required

@@ -154,7 +154,7 @@ def ingest(request):
     challan = None
     action = 'queued_review'
     try:
-        from detections.finalize import finalize_detection_from_ai
+        from detections.pipeline import finalize_detection_from_ai
         detection, challan, action = finalize_detection_from_ai(detection, result, camera=camera)
     except Exception as fin_err:
         logger.warning("finalize_detection_from_ai failed: %s", fin_err)

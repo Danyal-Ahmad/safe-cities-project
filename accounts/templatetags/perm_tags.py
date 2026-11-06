@@ -59,16 +59,6 @@ def has_any_perm(user, permission_keys):
 
 
 @register.simple_tag
-def perm_nav(user, permission_key, css_class='', icon=''):
-    """Return a hidden placeholder if the user lacks the permission.
-    Useful for collapsing sidebar items in-place."""
-    if not user or not getattr(user, 'is_authenticated', False):
-        return mark_safe('')
-    if user_has_permission(user, permission_key):
-        return mark_safe(f'data-perm="{permission_key}" data-allowed="1"')
-    return mark_safe(f'data-perm="{permission_key}" data-allowed="0"')
-
-
 @register.filter(name='role_label')
 def role_label(user):
     """Human-readable role label."""

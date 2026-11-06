@@ -15,6 +15,8 @@ header is composed. The policy itself lives in wrongway_system/settings.py
 """
 import secrets
 
+from admin.shared.net import client_ip
+
 
 class AuditLogMiddleware:
     MUTATING_METHODS = {'POST', 'PUT', 'PATCH', 'DELETE'}
@@ -47,7 +49,7 @@ class AuditLogMiddleware:
                     action=f"{request.method} {request.path}",
                     target_model='', target_id=None,
                     details={'path': request.path, 'method': request.method},
-                    ip_address=request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                    ip_address=client_ip(request)
                               or request.META.get('REMOTE_ADDR'),
                     user_agent=ua_str,
                     device=device,

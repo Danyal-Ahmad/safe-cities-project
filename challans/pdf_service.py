@@ -10,6 +10,7 @@ Guarantees:
 - Payment channels are rendered as ICONS (static/img/payment/*.svg), not text.
 - Only the selected template plus its data is rendered, never extra data.
 """
+import re
 import logging
 import os
 from io import BytesIO

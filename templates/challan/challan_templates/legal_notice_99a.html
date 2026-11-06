@@ -99,7 +99,7 @@
   {% endif %}
 
   <div class="warn">Non-payment within the stipulated period may result in escalated recovery action, additional penalty, or suspension of vehicle registration under the applicable law.</div>
-  <div class="urdu-hint">نوٹس: {{ challan.violation_type_display_urdu }} کے الزام پر جاری | Notice issued for the analyzed violation</div>
+  <div class="urdu-hint" dir="rtl">نوٹس: {{ challan.violation_type_display_urdu }} کے الزام پر جاری | Notice issued for the analyzed violation</div>
 
   <div class="signatures">
     <div class="sig"><div class="line">{% if officer_signature_name %}{{ officer_signature_name }},<br>{% endif %}{{ officer_signature_designation|default:'Enforcement Officer' }}<br>SAFE CITIES PROJECT</div></div>

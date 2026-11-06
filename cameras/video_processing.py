@@ -243,7 +243,7 @@ def process_video_upload(upload_id):
 
                     detection.save()
                     try:
-                        from detections.finalize import finalize_detection_from_ai
+                        from detections.pipeline import finalize_detection_from_ai
                         detection, challan, action = finalize_detection_from_ai(
                             detection, result, camera=camera,
                         )

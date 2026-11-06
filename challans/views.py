@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.core.cache import cache
 
 from accounts.models import User
+from admin.shared.net import client_ip
 
 from .models import Challan
 from .pdf_service import _needs_nadra_excise_integration
@@ -41,7 +42,7 @@ def _pdf_rate_limited(request) -> bool:
         ident = f'u{request.user.pk}'
     else:
         ident = 'i' + (
-            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            client_ip(request)
             or request.META.get('REMOTE_ADDR', '127.0.0.1')
         )
     key = f'challan_pdf_rl:{ident}'
@@ -82,7 +83,7 @@ def _check_rate_limit(request) -> bool:
     if request.user.is_authenticated and hasattr(request.user, 'role') and request.user.role != 'USER':
         return True
     ip = (
-        request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+        client_ip(request)
         or request.META.get('REMOTE_ADDR', '127.0.0.1')
     )
     cache_key = f"challan_search_rl:{ip}"

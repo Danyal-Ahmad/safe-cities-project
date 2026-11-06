@@ -407,6 +407,12 @@ def issue_challan(detection, camera, user=None):
         logger.warning('evidence annotation deferred: %s', e)
 
     try:
+        from admin.dig_portal.views import run_auto_blacklist
+        run_auto_blacklist(challan.plate_number)
+    except Exception as e:
+        logger.warning('auto blacklist check skipped: %s', e)
+
+    try:
         from challans.pdf_service import save_challan_pdf
         save_challan_pdf(challan)
     except Exception as e:
@@ -428,15 +434,6 @@ def issue_challan(detection, camera, user=None):
         pass
     return challan
 
-
-
-def _emit_realtime(detection, action: str):
-    """Push a detection event to the Socket.IO portal rooms (best effort)."""
-    try:
-        from realtime.realtime_events import emit_detection_event
-        emit_detection_event(detection, action)
-    except Exception:
-        pass
 
 
 def process_detection(detection, result: dict, camera=None, system_user=None):

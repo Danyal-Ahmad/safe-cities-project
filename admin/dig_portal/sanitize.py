@@ -43,11 +43,3 @@ def sanitize_banner_html(raw: str) -> str:
         return match.group(0) if tag in _ALLOWED_TAGS else ''
     text = re.sub(r'<\s*/?\s*([a-zA-Z0-9-]+)[^>]*>', _tag_allowed, text)
     return text
-
-
-def sanitize_notification_text(raw: str, max_len: int = 500) -> str:
-    """Escape a plain-text notification: no markup at all."""
-    if not raw:
-        return ''
-    from django.utils.html import escape
-    return escape(str(raw))[:max_len]

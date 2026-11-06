@@ -243,7 +243,7 @@
     </div>
     {% if qr_svg %}<div class="qr"><div class="qrbox">{{ qr_svg|safe }}</div><div class="qrlbl">Scan to verify and pay online</div></div>{% endif %}
   </div>
-  <div class="urdu-hint">براہ کرم {{ challan.due_date|date:"d-m-Y" }} تک جرمانہ ادا کریں | Pay the fine before the due date</div>
+  <div class="urdu-hint" dir="rtl">براہ کرم {{ challan.due_date|date:"d-m-Y" }} تک جرمانہ ادا کریں | Pay the fine before the due date</div>
 
   <div class="sigzone">
     <div class="sig">

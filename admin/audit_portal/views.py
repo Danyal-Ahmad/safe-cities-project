@@ -1,6 +1,7 @@
 import datetime
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from admin.shared.net import client_ip
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 
@@ -377,7 +378,7 @@ def _check_pdf_export_rate(request) -> bool:
         ident = f"u{request.user.pk}"
     else:
         ident = (
-            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            client_ip(request)
             or request.META.get('REMOTE_ADDR', '127.0.0.1')
         )
     cache_key = f"audit_pdf_rl:{ident}"

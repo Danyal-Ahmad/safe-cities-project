@@ -676,7 +676,20 @@ def fresh() -> None:
 
 
 def show_help() -> None:
-    print(__doc__)
+    print("""Safe City launcher
+
+Usage: python launcher.py <command>
+
+Commands:
+  run          Start the stack (PostgreSQL check, migrations, collectstatic, runserver)
+  setup        Full fresh setup (venv packages, DB create, migrations, seed admin)
+  migrate      Apply database migrations
+  seedadmin    Create the default DIG admin account
+  static       Collect static files
+  test         Run the Django test suite
+  status       Show stack status (DB + server)
+  help         Show this help
+""")
 
 
 def main() -> None:

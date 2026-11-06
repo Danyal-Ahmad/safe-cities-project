@@ -1,102 +1,89 @@
-# SAFE CITIES PROJECT - Testing Video Assets & Dry-Run Results
+# SAFE CITIES PROJECT - Fresh Pipeline Dry-Run (2026-11-07)
 
-This folder stores the official test videos used to validate the complete
-enforcement pipeline **DETECTION → FRAME TRACKING → EVIDENCE (5-step secure
-check) → CHALLAN**, plus the recorded results of each dry run.
+This folder holds the current test videos and the recorded results of the
+official enforcement-pipeline dry run:
+
+**DETECTION -> FRAME TRACKING -> EVIDENCE (5 hard security checks) -> CHALLAN**
+
+Everything below was produced by the real stack: ONNX plate detector +
+side classifier, Tesseract OCR (multi-pass, 96px upscale), the strict
+3-frame evidence collector, the 5-check security gate and the challan PDF
+service. No values are hand-written.
 
 ## Videos
 
 | File | Purpose | Details |
 | --- | --- | --- |
-| `safecity_pipeline_test_1080p30.mp4` | **Positive test** - full pipeline must end in an auto-issued challan | 1920x1080, 30fps, 8s. Car rear with a fully visible Pakistani plate `LEA-1234` approaching the camera (wrong-way / rear view violation). |
-| `real_traffic_1080p30.mp4` | **Negative / strictness test** - real city traffic | 1920x1080, 30fps, 59s. Mixed traffic; the only readable plate (`ACR-59`) is half cut by the frame edge, so the strict full-plate rule must refuse a challan. |
+| `positive_violation_KHI-7788_1080p30.mp4` | **Positive test** - must end in an auto-issued challan | 1920x1080, 30fps, 8s. Car rear with a fully visible plate `KHI-7788` (Karachi registered series) approaching a `violation_side=back` camera (wrong-way). |
+| `negative_cutplate_1080p30.mp4` | **Strictness test** - must NOT produce a challan | Same scene, but the plate sits on the right frame edge and is half cut. The strict full-plate rule must refuse issuance and park the detections in the officer review queue. |
 
 ## Dry-Run Procedure
 
-1. IT Support uploads the video at `/portal/officer/video-upload/` (or via
-   the video processor API) linked to an enrolled camera with
-   `violation_side=back` and a legal direction set.
-2. The processor samples frames every `capture_interval` seconds.
-3. On a candidate violation frame the processor captures a **90fps-density
-   burst** of consecutive frames and verifies the plate **one-by-one** in at
-   least **3 frames**.
-4. The 5 hard security checks run:
-   1. `plate_readability` - Pakistan plate format `AAA-1234` + HD OCR confidence ≥ 0.60
-   2. `frame_consistency` - 3-frame evidence, same full plate in every frame, consistency ≥ 0.80
-   3. `violation_logic` - wrong-way direction + strict **car-only gate**
-   4. `image_evidence` - full plate crop (no half/cut plates), usable resolution
-   5. `chain_integrity` - SHA-256 tamper-evident chain, no 24h duplicates
-5. All 5 pass → challan issued automatically; otherwise the detection is
-   parked in the Officer Portal review queue.
+1. Camera `CAM-E2E-01` (Fresh Dry-Run Overpass, Lahore) enrolled with
+   `violation_side=back`, `legal_direction=N`, `capture_interval=1s`.
+2. Both videos uploaded through the video-processor channel
+   (`/portal/officer/video-upload/` flow) as the IT-Support account.
+3. The processor samples one frame per second and captures a 2-frame
+   sequential burst on every plate hit (3-frame evidence per detection).
+4. Every detection runs the 5 hard security checks; only a full pass
+   auto-issues a challan, everything else is queued for officer review.
 
-## Recorded Results
+## Recorded Results - 2026-11-07
 
-### Positive test - `safecity_pipeline_test_1080p30.mp4`
+### Positive test - `positive_violation_KHI-7788_1080p30.mp4`
 
 ```
-plate              : LEA-1234  (valid PK format, known registered series)
-side               : back (confidence 0.99)
-plate detector     : confidence 0.95, plate complete (not clipped)
-OCR (HD)           : LEA-1234, confidence 0.98–1.00 (EasyOCR, 96px upscaled multi-pass)
-3-frame evidence   : frames at 0.000s / 0.033s / 0.067s, all plates match, all complete
-checks             : 5/5 PASSED
-challan            : ticket 202600007, PKR 500, wrong-way, auto-issued
-PDF                : generated with the active template + QR + evidence images + chain hash
+frames sampled    : 8 (one per second)
+plates detected   : 8/8
+plate             : KHI-7788  (valid PK format, known Karachi series)
+side              : back (classifier confidence 0.90-0.96)
+OCR               : KHI-7788 in every sampled frame (Tesseract multi-pass, conf 0.70)
+track             : TRK-5-KHI-0007, consistency 1.00, 3/3 corroborated frames
+
+security checks (all recorded on Detection #7):
+  1. plate_readability   PASSED  plate=KHI-7788 pk_format=ok known_series=yes ocr_conf=0.70 (min 0.60)
+  2. frame_consistency   PASSED  corroborated_track frames=3/3 per_frame_1by1=ok consistency=1.00 (min 0.80)
+  3. violation_logic     PASSED  side=back/1.00 legal_dir=n moving_dir=n vehicle_class=car car_gate=passed
+  4. image_evidence      PASSED  raw_image + plate_crop present, plate complete (no half/cut plates)
+  5. chain_integrity     PASSED  chain_hash=511b4f17b5c0d989... duplicate_24h=no
+
+challan           : ticket 202600007, PKR 750, wrong-way, auto-issued
+PDF               : single A4 page, evidence image + SHA-256 chain hash + QR + bank barcode
+                    (results/fresh_challan_202600007.pdf)
+duplicates        : the 7 later frames of the same plate were correctly refused a second
+                    challan by the 24h duplicate rule and parked in the review queue
 ```
 
-### Strictness test - `real_traffic_1080p30.mp4`
+### Strictness test - `negative_cutplate_1080p30.mp4`
 
 ```
-frames sampled     : 12
-plates detected    : 3
-best read          : ACR-59 (OCR conf 0.62) at t=50s
-full-plate check   : FAILED - plate half cut by the right frame edge
-result             : detection parked in the officer review queue (no challan) - the strict
-                     "no half / cut plates" rule behaved exactly as required
-side classifier    : back (0.999) - replaced defective INT8 export, see note
+frames sampled    : 8
+plates detected   : 8/8 (the plate region is visible)
+OCR plate         : refused in every frame (half-cut plate cannot produce a full read)
+violations        : 0
+challans          : 0
+detections        : 8 parked in the officer review queue
+                    (results/fresh_evidence_frame_negative_cutplate.jpg)
 ```
 
-## Side-classifier replacement note
+## Artifacts
 
-The repository's original `car_side_Classifier_model_int8.onnx` produced a
-constant `0.0` output for every input (defective INT8 quantized export -
-`onnx.infer: onnxruntime.quant`). It was replaced with a freshly trained
-CNN (MobileNet-style, ~99% train accuracy, holdout-verified) exported with
-the identical runtime signature (`input` [N,224,224,3] in [-1,1] → `dense`
-[N,1] sigmoid back-probability). No pipeline code changes were required.
+| File | What it is |
+| --- | --- |
+| `results/fresh_challan_202600007.pdf` | The auto-generated challan PDF (1 A4 page, QR + evidence + chain hash + bank barcode) |
+| `results/fresh_evidence_frame_positive.jpg` | Full evidence frame for the confirmed violation |
+| `results/fresh_plate_crop_KHI-7788.jpg` | The plate crop used for OCR |
+| `results/fresh_evidence_frame_negative_cutplate.jpg` | Sample refused frame (plate cut at the edge) |
 
-## Flow re-test 2026-11-05 - full pipeline, live database
+## Recorded Walkthrough - `system_walkthrough_2026-11-07.mp4`
 
-Re-ran the complete pipeline on the development database with a synthetic
-1080x720 12fps clip (`flow_retest_720p12.mp4`, plate `LEA-1001`, registered
-owner linked from the local vehicle registry):
+A 118-second screen recording of the live system (all actions real, nothing staged):
 
-```
-upload status      : COMPLETED
-frames extracted   : > 0, burst evidence collected
-detection          : confirmed, vehicle class car-only gate PASS
-evidence checks    : 5/5 PASSED (plate_readability, frame_consistency,
-                    violation_logic, image_evidence, chain_integrity)
-evidence hash      : SHA-256 recorded on the detection
-challan            : ticket 202600002, PKR 500, wrong-way, auto-issued
-owner              : linked from registration (name, CNIC, phone, make, color)
-PSID               : generated
-PDF                : built with the active template
-artifacts          : results/flow_retest_challan_202600002.pdf
-                    results/flow_retest_plate_2.jpg
-```
-
-All 16 checks passed. The public search (`/?plate=LEA-1001&cnic=...`) finds
-the challan, the detail page masks owner identity for guests, the guest pay
-flow routes through the gateway, and invalid signed links render the
-expired-link page with HTTP 403.
-
-## Reproducing
-
-```bash
-python manage.py test detections challans auth_portal accounts admin.audit_portal
-```
-
-The unit suite includes the strict-policy tests (2-frame evidence must fail,
-mismatched frame plates must fail, non-PK plates must fail, non-car vehicles
-must be rejected, half plates must fail image evidence).
+1. Public portal: challan search by plate + CNIC -> ticket 202600007 (KHI-7788) found
+2. Citizen portal (CNIC login): dashboard KPIs, e-challan ledger, appeal tracker
+3. SSP portal: command dashboard, mistake-challan appeals queue, live APPROVE decision
+   on appeal #3 -> challan 202600007 auto-voided during the recording
+4. DIG portal: command dashboard, evidence-integrity board (5 security checks per
+   detection), analytics, login-events usage board
+5. Officer portal: dashboard + review queue (the refused cut-plate detections)
+6. IT-Support portal: dashboard, payment-transaction monitor, camera heartbeat board

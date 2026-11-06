@@ -480,18 +480,7 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
   gap: 10px;
 }
 
-.ph-banner-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(147, 197, 253, 0.75);
-}
 
-.ph-banner-label i { font-size: 0.8rem; }
 
 .ph-big-banner {
   width: 100%;

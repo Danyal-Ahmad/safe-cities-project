@@ -1,7 +1,6 @@
 {% if static_post_ads %}
   {% with ad=static_post_ads.0 %}
   <section class="ph-banner-ads" aria-label="Banner advertisement">
-    <span class="ph-banner-label">BANNER ADS</span>
     <div class="ph-big-banner">
       {% if ad.banner_type == 'html' and ad.html_content %}
         <div class="ph-big-banner-html">{{ ad.html_content|safe }}</div>

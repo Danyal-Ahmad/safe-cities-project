@@ -341,13 +341,33 @@ def analytics(request):
     for vt in vt_data:
         vt['pct'] = round(vt['count'] / vt_max * 100) if vt_max > 0 else 0
 
+    today = timezone.localdate()
+    trend_labels = []
+    trend_data = []
+    for i in range(29, -1, -1):
+        d = today - datetime.timedelta(days=i)
+        trend_labels.append(d.strftime('%d %b'))
+        trend_data.append(qs.filter(issue_date=d).count())
+    month_start = today.replace(day=1)
+    top_locations = list(
+        qs.exclude(location__isnull=True).exclude(location='')
+        .values('location').annotate(c=Count('id')).order_by('-c')[:10]
+    )
     return render(request, 'dashboard/dig/analytics.html', {
-        'challans': qs[:100], 'total': qs.count(),
+        'total': qs.count(),
         'paid': qs.filter(payment_status=Challan.PAID).count(),
         'unpaid': qs.filter(payment_status=Challan.UNPAID).count(),
         'voided': qs.filter(payment_status=Challan.VOIDED).count(),
         'total_revenue': qs.filter(payment_status=Challan.PAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0,
         'pending_revenue': qs.filter(payment_status=Challan.UNPAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0,
+        'this_month': Challan.objects.filter(issue_date__gte=month_start).count(),
+        'pending_review': Detection.objects.filter(status=Detection.PENDING).count(),
+        'confirmed': Detection.objects.filter(status=Detection.CONFIRMED).count(),
+        'trend_labels': trend_labels,
+        'trend_data': trend_data,
+        'type_labels': [vt['label'] for vt in vt_data],
+        'type_counts': [vt['count'] for vt in vt_data],
+        'top_locations': top_locations,
         'date_from': date_from, 'date_to': date_to,
         'violation_types': vt_data,
     })
@@ -370,18 +390,38 @@ def revenue_dashboard(request):
         summary.append({'period': label, 'collected': collected, 'pending': pending,
                         'total': collected + pending, 'challans': qs.count()})
     daily = []
-    for i in range(6, -1, -1):
+    daily_labels = []
+    daily_collected = []
+    daily_pending = []
+    for i in range(13, -1, -1):
         d = today - datetime.timedelta(days=i)
         qs = Challan.objects.filter(issue_date=d)
+        day_collected = qs.filter(payment_status=Challan.PAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0
+        day_pending = qs.filter(payment_status=Challan.UNPAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0
         daily.append({
             'date': d,
-            'collected': qs.filter(payment_status=Challan.PAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0,
-            'pending': qs.filter(payment_status=Challan.UNPAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0,
+            'collected': day_collected,
+            'pending': day_pending,
             'count': qs.count(),
         })
+        daily_labels.append(d.strftime('%d %b'))
+        daily_collected.append(day_collected)
+        daily_pending.append(day_pending)
     max_daily = max([d['collected'] + d['pending'] for d in daily] or [1])
+    collected_total = Challan.objects.filter(payment_status=Challan.PAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0
+    pending_total = Challan.objects.filter(payment_status=Challan.UNPAID).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0
+    overdue_total = Challan.objects.filter(payment_status=Challan.UNPAID, due_date__lt=today).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0
+    month_start = today.replace(day=1)
+    this_month = Challan.objects.filter(payment_status=Challan.PAID, paid_at__date__gte=month_start).aggregate(Sum('fine_amount'))['fine_amount__sum'] or 0
+    status_rows = Challan.objects.values('payment_status').annotate(c=Count('id'))
+    status_map = {row['payment_status']: row['c'] for row in status_rows}
     return render(request, 'dashboard/dig/revenue_dashboard.html', {
         'summary': summary, 'daily': daily, 'max_daily': max_daily,
+        'collected': collected_total, 'pending': pending_total,
+        'overdue': overdue_total, 'this_month': this_month,
+        'daily_labels': daily_labels, 'daily_collected': daily_collected, 'daily_pending': daily_pending,
+        'status_labels': ['Paid', 'Unpaid', 'Voided'],
+        'status_counts': [status_map.get(Challan.PAID, 0), status_map.get(Challan.UNPAID, 0), status_map.get(Challan.VOIDED, 0)],
     })
 
 
@@ -661,10 +701,11 @@ def officer_activity(request, officer_id=None):
         'total_appeals': ChallanAppeal.objects.filter(reviewed_by=officer).count(),
         'total_notes': DetectionReviewNote.objects.filter(author=officer).count(),
     }
+    ns = getattr(getattr(request, 'resolver_match', None), 'namespace', None) or 'dig'
     return render(request, 'dashboard/dig/officer_activity.html', {
         'officer': officer, 'recent_actions': recent_actions,
         'appeals_handled': appeals_handled, 'notes_added': notes_added,
-        'stats': stats,
+        'stats': stats, 'portal_ns': ns,
     })
 
 
@@ -1400,9 +1441,12 @@ def challan_list(request):
     if plate_filter: qs = qs.filter(plate_number__icontains=plate_filter)
     status_filter = request.GET.get('status')
     if status_filter: qs = qs.filter(payment_status=status_filter)
+    search = (request.GET.get('search') or '').strip()
+    if search:
+        qs = qs.filter(Q(location__icontains=search) | Q(plate_number__icontains=search) | Q(ticket_no__icontains=search))
     return render(request, 'dashboard/dig/challan_list.html', {
         'challans': qs[:200], 'total': qs.count(),
-        'plate_filter': plate_filter, 'status_filter': status_filter,
+        'plate_filter': plate_filter, 'status_filter': status_filter, 'search': search,
     })
 
 
@@ -1717,8 +1761,8 @@ def record_payment(request, challan_id):
 def violation_stats(request):
     by_type_qs = (Challan.objects.values('violation_type')
                   .annotate(c=Count('id')).order_by('-c'))
-    by_type = {row['violation_type']: row['c'] for row in by_type_qs}
-    by_type_display = {dict(Challan.VIOLATION_CHOICES).get(k, k): v for k, v in by_type.items()}
+    by_type_display = {dict(Challan.VIOLATION_CHOICES).get(row['violation_type'], row['violation_type']): row['c']
+                       for row in by_type_qs}
 
     by_location_qs = (Challan.objects.exclude(location__isnull=True).exclude(location='')
                       .values('location').annotate(c=Count('id'))
@@ -1728,11 +1772,18 @@ def violation_stats(request):
     if unknown_count:
         by_location.setdefault('Unknown', unknown_count)
 
-    type_max = max(by_type_display.values()) if by_type_display else 1
-    loc_max = max(by_location.values()) if by_location else 1
+    type_max = max(by_type_display.values()) if by_type_display else 0
+    loc_max = max(by_location.values()) if by_location else 0
+    type_rows = [{'label': label, 'count': count,
+                  'pct': round(count / type_max * 100) if type_max else 0}
+                 for label, count in by_type_display.items()]
+    loc_rows = [{'label': label, 'count': count,
+                 'pct': round(count / loc_max * 100) if loc_max else 0}
+                for label, count in by_location.items()]
     return render(request, 'dashboard/dig/violation_stats.html', {
-        'by_type': by_type_display, 'by_location': by_location,
+        'type_rows': type_rows, 'loc_rows': loc_rows,
         'type_max': type_max, 'loc_max': loc_max,
+        'by_type': by_type_display, 'by_location': by_location,
     })
 
 
@@ -2206,58 +2257,177 @@ def backup_download(request, filename):
     return FileResponse(open(path, 'rb'), as_attachment=True, filename=safe)
 
 
+def _report_queryset(kind, date_from=None, date_to=None, camera_id=None,
+                     violation_type=None, officer_id=None):
+    qs = Challan.objects.all().order_by('-issue_date')
+    if kind in ('financial', 'revenue'):
+        qs = qs.filter(payment_status=Challan.PAID)
+    if date_from:
+        try:
+            qs = qs.filter(issue_date__gte=datetime.date.fromisoformat(date_from))
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            qs = qs.filter(issue_date__lte=datetime.date.fromisoformat(date_to))
+        except ValueError:
+            pass
+    if camera_id:
+        qs = qs.filter(camera_id=camera_id)
+    if violation_type:
+        qs = qs.filter(violation_type=violation_type)
+    if officer_id:
+        qs = qs.filter(created_by_id=officer_id)
+    return qs
+
+
+def _challan_csv_response(qs):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="safecity_challan_report.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Ticket', 'Plate', 'Owner', 'Violation', 'Amount', 'Issue Date', 'Due Date', 'Status', 'Location'])
+    for c in qs[:10000]:
+        writer.writerow([
+            c.ticket_no, c.plate_number, c.owner_name or '',
+            c.get_violation_type_display(), c.fine_amount, c.issue_date,
+            c.due_date, c.payment_status, c.location or '',
+        ])
+    return response
+
+
+def _challan_pdf_response(qs):
+    rows = []
+    for c in qs[:2000]:
+        rows.append(
+            f"<tr><td>{c.ticket_no}</td><td>{c.plate_number}</td>"
+            f"<td>{c.get_violation_type_display()}</td><td>{c.fine_amount}</td>"
+            f"<td>{c.issue_date}</td><td>{c.payment_status}</td></tr>"
+        )
+    html = (
+        "<!DOCTYPE html><html><head><meta charset='utf-8'>"
+        "<title>SAFE CITIES PROJECT Challan Report</title>"
+        "<style>body{font-family:Arial,sans-serif;font-size:11px;margin:24px}"
+        "h1{font-size:18px}table{border-collapse:collapse;width:100%}"
+        "th,td{border:1px solid #ccc;padding:6px;text-align:left}"
+        "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
+        "<h1>SAFE CITIES PROJECT | Challan Report</h1>"
+        f"<p>Generated: {timezone.now().strftime('%Y-%m-%d %H:%M')} · Rows: {len(rows)}</p>"
+        "<table><thead><tr><th>Ticket</th><th>Plate</th><th>Violation</th>"
+        "<th>Amount</th><th>Issued</th><th>Status</th></tr></thead><tbody>"
+        + "".join(rows) +
+        "</tbody></table>"
+        "<script>window.onload=function(){window.print();}</script>"
+        "</body></html>"
+    )
+    response = HttpResponse(html, content_type='text/html; charset=utf-8')
+    response['Content-Disposition'] = 'inline; filename="safecity_challan_report.pdf.html"'
+    return response
+
+
+def _log_report_generation(request, title, kind, fmt, qs, params):
+    AuditLog.write(
+        request, 'report.generate', 'Challan', None,
+        title=title, kind=kind, format=fmt, rows=qs.count(), **params
+    )
+
+
 @dig_required
 def generate_report(request):
+    cameras = Camera.objects.filter(is_active=True).order_by('camera_id')
+    officers = User.objects.filter(role=User.OFFICER, is_active=True).order_by('first_name', 'username')
+
+    if request.method == 'POST':
+        title = (request.POST.get('title') or '').strip()
+        kind = (request.POST.get('type') or 'violations').strip().lower()
+        fmt = (request.POST.get('format') or 'csv').strip().lower()
+        date_from = (request.POST.get('start_date') or '').strip()
+        date_to = (request.POST.get('end_date') or '').strip()
+        camera_id = (request.POST.get('camera_id') or '').strip()
+        violation_type = (request.POST.get('violation_type') or '').strip()
+        officer_id = (request.POST.get('officer_id') or '').strip()
+        if not title:
+            messages.error(request, "Report title is required.")
+            return redirect('dig:generate_report')
+        if not date_from or not date_to:
+            messages.error(request, "Start and end dates are required.")
+            return redirect('dig:generate_report')
+        try:
+            start = datetime.date.fromisoformat(date_from)
+            end = datetime.date.fromisoformat(date_to)
+        except ValueError:
+            messages.error(request, "Invalid date range.")
+            return redirect('dig:generate_report')
+        if end < start:
+            messages.error(request, "End date must be on or after the start date.")
+            return redirect('dig:generate_report')
+        if fmt not in ('csv', 'pdf', 'excel'):
+            fmt = 'csv'
+        qs = _report_queryset(kind, date_from, date_to, camera_id, violation_type, officer_id)
+        _log_report_generation(request, title, kind, fmt, qs, {
+            'start_date': date_from, 'end_date': date_to,
+            'camera': camera_id or 'all', 'violation': violation_type or 'all',
+            'officer': officer_id or 'all',
+        })
+        messages.success(request, f"Report '{title}' generated ({qs.count()} rows).")
+        if fmt == 'pdf':
+            return _challan_pdf_response(qs)
+        return _challan_csv_response(qs)
+
     fmt = (request.GET.get('format') or '').lower()
     kind = (request.GET.get('kind') or 'all').lower()
-    qs = Challan.objects.all().order_by('-issue_date')
-    if kind == 'financial':
-        qs = qs.filter(payment_status=Challan.PAID)
-    if fmt == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="safecity_challan_report.csv"'
-        writer = csv.writer(response)
-        writer.writerow(['Ticket', 'Plate', 'Owner', 'Violation', 'Amount', 'Issue Date', 'Due Date', 'Status', 'Location'])
-        for c in qs[:10000]:
-            writer.writerow([
-                c.ticket_no, c.plate_number, c.owner_name or '',
-                c.get_violation_type_display(), c.fine_amount, c.issue_date,
-                c.due_date, c.payment_status, c.location or '',
-            ])
-        return response
-    if fmt == 'pdf':
-        rows = []
-        for c in qs[:2000]:
-            rows.append(
-                f"<tr><td>{c.ticket_no}</td><td>{c.plate_number}</td>"
-                f"<td>{c.get_violation_type_display()}</td><td>{c.fine_amount}</td>"
-                f"<td>{c.issue_date}</td><td>{c.payment_status}</td></tr>"
-            )
-        html = (
-            "<!DOCTYPE html><html><head><meta charset='utf-8'>"
-            "<title>SAFE CITIES PROJECT Challan Report</title>"
-            "<style>body{font-family:Arial,sans-serif;font-size:11px;margin:24px}"
-            "h1{font-size:18px}table{border-collapse:collapse;width:100%}"
-            "th,td{border:1px solid #ccc;padding:6px;text-align:left}"
-            "th{background:#f1f5f9}@media print{body{margin:0}}</style></head><body>"
-            "<h1>SAFE CITIES PROJECT | Challan Report</h1>"
-            f"<p>Generated: {timezone.now().strftime('%Y-%m-%d %H:%M')} · Rows: {len(rows)}</p>"
-            "<table><thead><tr><th>Ticket</th><th>Plate</th><th>Violation</th>"
-            "<th>Amount</th><th>Issued</th><th>Status</th></tr></thead><tbody>"
-            + "".join(rows) +
-            "</tbody></table>"
-            "<script>window.onload=function(){window.print();}</script>"
-            "</body></html>"
-        )
-        response = HttpResponse(html, content_type='text/html; charset=utf-8')
-        response['Content-Disposition'] = 'inline; filename="safecity_challan_report.pdf.html"'
-        return response
-    return render(request, 'dashboard/dig/generate_report.html', {})
+    if fmt in ('csv', 'pdf'):
+        date_from = (request.GET.get('date_from') or '').strip()
+        date_to = (request.GET.get('date_to') or '').strip()
+        camera_id = (request.GET.get('camera_id') or '').strip()
+        violation_type = (request.GET.get('violation_type') or '').strip()
+        officer_id = (request.GET.get('officer_id') or '').strip()
+        qs = _report_queryset(kind, date_from, date_to, camera_id, violation_type, officer_id)
+        _log_report_generation(request, f"Challan report ({kind})", kind, fmt, qs, {
+            'start_date': date_from or 'all', 'end_date': date_to or 'all',
+            'camera': camera_id or 'all', 'violation': violation_type or 'all',
+            'officer': officer_id or 'all',
+        })
+        if fmt == 'csv':
+            return _challan_csv_response(qs)
+        return _challan_pdf_response(qs)
+
+    return render(request, 'dashboard/dig/generate_report.html', {
+        'cameras': cameras,
+        'officers': officers,
+        'violation_types': Challan.VIOLATION_CHOICES,
+        'selected_type': request.GET.get('type') or '',
+    })
 
 
 @senior_staff_required
 def reports(request):
-    return render(request, 'dashboard/dig/reports.html', {})
+    generations = (AuditLog.objects.filter(action='report.generate')
+                   .select_related('actor')[:50])
+    rows = []
+    for g in generations:
+        details = g.details if isinstance(g.details, dict) else {}
+        params = {}
+        if details.get('start_date') and details.get('start_date') != 'all':
+            params['date_from'] = details.get('start_date')
+        if details.get('end_date') and details.get('end_date') != 'all':
+            params['date_to'] = details.get('end_date')
+        kind = details.get('kind') or 'all'
+        if kind in ('financial', 'revenue'):
+            params['kind'] = 'financial'
+        redownload = ''
+        if params:
+            from urllib.parse import urlencode
+            params['format'] = 'csv'
+            redownload = reverse('dig:generate_report') + '?' + urlencode(params)
+        rows.append({
+            'log': g,
+            'title': details.get('title') or 'Challan report',
+            'kind': kind,
+            'format': details.get('format') or 'csv',
+            'rows_count': details.get('rows'),
+            'redownload': redownload,
+        })
+    return render(request, 'dashboard/dig/reports.html', {'reports': rows})
 
 
 @it_required
@@ -2316,6 +2486,20 @@ def camera_assignments(request):
             except CameraAssignment.DoesNotExist:
                 messages.error(request, "Assignment not found.")
             return redirect('dig:camera_assignments')
+
+        elif action == 'release':
+            assignment_id = request.POST.get('assignment_id')
+            try:
+                assignment = CameraAssignment.objects.get(pk=assignment_id, is_active=True)
+                assignment.is_active = False
+                assignment.save()
+                AuditLog.write(request, 'camera.release', 'CameraAssignment', assignment.id,
+                               camera=assignment.camera.camera_id, officer=assignment.officer.display_name)
+                messages.success(request, f"Camera {assignment.camera.camera_id} released from {assignment.officer.display_name}.")
+            except CameraAssignment.DoesNotExist:
+                messages.error(request, "Active assignment not found.")
+            ns = getattr(getattr(request, 'resolver_match', None), 'namespace', None) or 'dig'
+            return redirect(f'{ns}:camera_assignments')
 
     assignments = CameraAssignment.objects.filter(is_active=True).select_related('camera', 'officer', 'assigned_by')
     return render(request, 'dashboard/dig/camera_assignments.html', {
@@ -2409,18 +2593,47 @@ def officer_signatures(request):
 
 @dig_required
 def regional_command(request):
+    city_names = ['Lahore', 'Rawalpindi', 'Faisalabad', 'Multan', 'Gujranwala']
+
+    def _derive_region(value):
+        value = (value or '').strip()
+        if not value:
+            return 'Unassigned'
+        for city in city_names:
+            if city.lower() in value.lower():
+                return city
+        return value.split(',')[0].strip() or 'Unassigned'
+
+    region_names = []
+    for loc in (Camera.objects.exclude(location__isnull=True).exclude(location='')
+                .values_list('location', flat=True).distinct()):
+        region = _derive_region(loc)
+        if region not in region_names:
+            region_names.append(region)
+    for user_region in (User.objects.exclude(region__isnull=True).exclude(region='')
+                        .values_list('region', flat=True).distinct()):
+        region = _derive_region(user_region)
+        if region not in region_names:
+            region_names.append(region)
+
+    today = timezone.localdate()
+    window_start = today - datetime.timedelta(days=30)
     regions = []
-    region_names = ['Central', 'North', 'South', 'East', 'West', 'City Centre']
-    for r in region_names:
-        cam_count = Camera.objects.filter(location__icontains=r, is_active=True).count()
-        cam_online = Camera.objects.filter(location__icontains=r, health_status='online').count()
-        viol_count = Challan.objects.filter(location__icontains=r).count()
-        officer_count = User.objects.filter(role=User.OFFICER, region__icontains=r).count()
-        ssp_count = User.objects.filter(role=User.SSP, region__icontains=r).count()
+    for name in region_names:
+        cam_qs = Camera.objects.filter(location__icontains=name)
+        challan_qs = Challan.objects.filter(location__icontains=name, issue_date__gte=window_start)
+        revenue = challan_qs.filter(payment_status=Challan.PAID).aggregate(total=Sum('fine_amount'))['total'] or 0
         regions.append({
-            'name': r, 'cameras': cam_count, 'cameras_online': cam_online,
-            'violations': viol_count, 'officers': officer_count, 'ssps': ssp_count,
+            'name': name,
+            'cameras': cam_qs.filter(is_active=True).count(),
+            'cameras_online': cam_qs.filter(health_status='online').count(),
+            'challans_30d': challan_qs.count(),
+            'revenue_30d': revenue,
+            'officers': User.objects.filter(role=User.OFFICER, region__icontains=name).count(),
+            'ssps': User.objects.filter(role=User.SSP, region__icontains=name).count(),
         })
+    regions.sort(key=lambda r: (-r['challans_30d'], -r['cameras'], r['name']))
+
     all_cam = Camera.objects.filter(is_active=True).count()
     all_online = Camera.objects.filter(health_status='online').count()
     all_viol = Challan.objects.count()
@@ -2508,26 +2721,74 @@ def operational_reports(request):
     today = timezone.localdate()
     week_ago = today - datetime.timedelta(days=7)
     month_ago = today - datetime.timedelta(days=30)
-    daily = Challan.objects.filter(issue_date=today).count()
-    weekly = Challan.objects.filter(issue_date__gte=week_ago).count()
-    monthly = Challan.objects.filter(issue_date__gte=month_ago).count()
+    periods = []
+    for key, label, qs in (
+        ('daily', 'Today', Challan.objects.filter(issue_date=today)),
+        ('weekly', 'Last 7 Days', Challan.objects.filter(issue_date__gte=week_ago)),
+        ('monthly', 'Last 30 Days', Challan.objects.filter(issue_date__gte=month_ago)),
+    ):
+        collected = qs.filter(payment_status=Challan.PAID).aggregate(total=Sum('fine_amount'))['total'] or 0
+        pending = qs.filter(payment_status=Challan.UNPAID).aggregate(total=Sum('fine_amount'))['total'] or 0
+        periods.append({
+            'key': key, 'label': label,
+            'challans': qs.count(),
+            'paid': qs.filter(payment_status=Challan.PAID).count(),
+            'unpaid': qs.filter(payment_status=Challan.UNPAID).count(),
+            'collected': collected, 'pending': pending,
+        })
+    active_type = request.GET.get('type', 'daily')
+    if active_type not in ('daily', 'weekly', 'monthly'):
+        active_type = 'daily'
+    active = next((p for p in periods if p['key'] == active_type), periods[0])
+    recent_generations = (AuditLog.objects.filter(action='report.generate')
+                          .exclude(details__kind__in=['revenue', 'financial'])
+                          .select_related('actor')[:20])
     return render(request, 'dashboard/dig/operational_reports.html', {
-        'daily': daily, 'weekly': weekly, 'monthly': monthly,
+        'periods': periods, 'active': active, 'active_type': active_type,
+        'daily': periods[0]['challans'], 'weekly': periods[1]['challans'], 'monthly': periods[2]['challans'],
+        'detections_today': Detection.objects.filter(created_at__date=today).count(),
+        'recent_generations': recent_generations,
     })
 
 
 @dig_required
 def financial_reports(request):
     today = timezone.localdate()
-    month_ago = today - datetime.timedelta(days=30)
-    collected = Challan.objects.filter(payment_status=Challan.PAID).aggregate(
-        total=Sum('fine_amount'))['total'] or 0
-    pending = Challan.objects.filter(payment_status=Challan.UNPAID).aggregate(
-        total=Sum('fine_amount'))['total'] or 0
-    this_month = Challan.objects.filter(paid_at__date__gte=month_ago, payment_status=Challan.PAID).aggregate(
-        total=Sum('fine_amount'))['total'] or 0
+    month_start = today.replace(day=1)
+    collected = Challan.objects.filter(payment_status=Challan.PAID).aggregate(total=Sum('fine_amount'))['total'] or 0
+    pending = Challan.objects.filter(payment_status=Challan.UNPAID).aggregate(total=Sum('fine_amount'))['total'] or 0
+    overdue = Challan.objects.filter(payment_status=Challan.UNPAID, due_date__lt=today).aggregate(total=Sum('fine_amount'))['total'] or 0
+    this_month = Challan.objects.filter(paid_at__date__gte=month_start, payment_status=Challan.PAID).aggregate(total=Sum('fine_amount'))['total'] or 0
+    billed = collected + pending
+    collection_rate = round(collected / billed * 100, 1) if billed else 0
+
+    month_labels = []
+    month_collected = []
+    month_pending = []
+    year, month = today.year, today.month
+    for i in range(5, -1, -1):
+        m = month - i
+        y = year
+        while m <= 0:
+            m += 12
+            y -= 1
+        start = datetime.date(y, m, 1)
+        nxt = datetime.date(y + 1, 1, 1) if m == 12 else datetime.date(y, m + 1, 1)
+        paid_sum = Challan.objects.filter(payment_status=Challan.PAID, paid_at__date__gte=start, paid_at__date__lt=nxt).aggregate(total=Sum('fine_amount'))['total'] or 0
+        unpaid_sum = Challan.objects.filter(payment_status=Challan.UNPAID, issue_date__gte=start, issue_date__lt=nxt).aggregate(total=Sum('fine_amount'))['total'] or 0
+        month_labels.append(start.strftime('%b %Y'))
+        month_collected.append(paid_sum)
+        month_pending.append(unpaid_sum)
+
+    method_rows = (Challan.objects.filter(payment_status=Challan.PAID)
+                   .exclude(payment_method__isnull=True).exclude(payment_method='')
+                   .values('payment_method').annotate(c=Count('id'), total=Sum('fine_amount'))
+                   .order_by('-total')[:8])
     return render(request, 'dashboard/dig/financial_reports.html', {
-        'collected': collected, 'pending': pending, 'this_month': this_month,
+        'collected': collected, 'pending': pending, 'overdue': overdue,
+        'this_month': this_month, 'collection_rate': collection_rate,
+        'month_labels': month_labels, 'month_collected': month_collected, 'month_pending': month_pending,
+        'method_rows': method_rows,
     })
 
 
@@ -4101,3 +4362,175 @@ def flagged_detections(request):
     """Detections flagged by officers, awaiting senior-staff review."""
     qs = Detection.objects.filter(status=Detection.FLAGGED).select_related('camera', 'reviewed_by').order_by('-created_at')[:200]
     return render(request, 'dashboard/dig/flagged_detections.html', {'flagged': qs})
+
+
+INTEGRITY_CHECK_ORDER = (
+    'plate_readability', 'frame_consistency', 'violation_logic',
+    'image_evidence', 'chain_integrity',
+)
+
+INTEGRITY_CHECK_LABELS = {
+    'plate_readability': 'Plate Readability',
+    'frame_consistency': 'Frame Consistency',
+    'violation_logic': 'Violation Logic',
+    'image_evidence': 'Image Evidence',
+    'chain_integrity': 'Chain Integrity',
+}
+
+
+def _evidence_panel(detection):
+    checks = [c for c in (detection.evidence_checks or []) if isinstance(c, dict)]
+    by_name = {c.get('check'): c for c in checks}
+    ordered = []
+    for name in INTEGRITY_CHECK_ORDER:
+        c = by_name.get(name) or {}
+        ordered.append({
+            'name': name,
+            'label': INTEGRITY_CHECK_LABELS.get(name, name.replace('_', ' ').title()),
+            'passed': bool(c.get('passed')),
+            'detail': c.get('detail') or '',
+        })
+    passed_count = sum(1 for c in ordered if c['passed'])
+    frames_meta = detection.evidence_frames_meta or []
+    frame_count = len(frames_meta) if frames_meta else detection.track_frames
+    return {
+        'checks': ordered,
+        'passed_count': passed_count,
+        'total': len(ordered),
+        'frame_count': frame_count,
+    }
+
+
+@role_required('DIG', 'SSP', 'SUPV', 'AUDIT')
+def evidence_integrity(request):
+    base = (Detection.objects.select_related('camera')
+            .exclude(evidence_hash__isnull=True).exclude(evidence_hash='')
+            .order_by('-created_at'))
+    status_filter = (request.GET.get('status') or '').strip()
+    if status_filter in (Detection.PENDING, Detection.CONFIRMED, Detection.REJECTED, Detection.FLAGGED):
+        base = base.filter(status=status_filter)
+    rows = []
+    for d in base[:50]:
+        panel = _evidence_panel(d)
+        rows.append({
+            'id': d.id,
+            'camera': d.camera,
+            'plate': d.effective_plate or '-',
+            'status': d.status,
+            'status_display': d.get_status_display(),
+            'created_at': d.created_at,
+            'track_id': d.track_id,
+            'track_consistency': d.track_consistency,
+            'evidence_hash': d.evidence_hash,
+            'verify_url': reverse('dig:evidence_integrity_verify', args=[d.id]),
+            **panel,
+        })
+    hashed_total = Detection.objects.exclude(evidence_hash__isnull=True).exclude(evidence_hash='').count()
+    full_chain = sum(1 for r in rows if r['total'] == 5 and r['passed_count'] == 5)
+    partial_chain = len(rows) - full_chain
+    return render(request, 'dashboard/dig/evidence_integrity.html', {
+        'detections': rows,
+        'hashed_total': hashed_total,
+        'full_chain': full_chain,
+        'partial_chain': partial_chain,
+        'status_filter': status_filter,
+    })
+
+
+@role_required('DIG', 'SSP', 'SUPV', 'AUDIT')
+def evidence_integrity_verify(request, detection_id):
+    detection = get_object_or_404(Detection, pk=detection_id)
+    from detections.pipeline import build_evidence_hash
+    stored = detection.evidence_hash or ''
+    recomputed = ''
+    if detection.evidence_checks:
+        recomputed = build_evidence_hash(detection, detection.evidence_checks, detection.camera) or ''
+    verified = bool(stored) and bool(recomputed) and stored == recomputed
+    AuditLog.write(
+        request, 'evidence.verify', 'Detection', detection.id,
+        verified=verified,
+        stored=(stored[:16] + '..') if stored else '',
+        recomputed=(recomputed[:16] + '..') if recomputed else '',
+    )
+    return JsonResponse({
+        'verified': verified,
+        'recomputed': recomputed,
+        'stored': stored,
+    })
+
+
+@role_required('DIG', 'SSP')
+def login_events(request):
+    from .models import LoginEvent
+    today = timezone.localdate()
+    base = LoginEvent.objects.select_related('user').order_by('-timestamp')
+    portal = (request.GET.get('portal') or '').strip()
+    success = (request.GET.get('success') or '').strip()
+    user_q = (request.GET.get('user') or '').strip()
+    events = base
+    if portal in ('admin', 'citizen'):
+        events = events.filter(portal=portal)
+    if success == '1':
+        events = events.filter(success=True)
+    elif success == '0':
+        events = events.filter(success=False)
+    if user_q:
+        events = events.filter(Q(username_attempted__icontains=user_q) | Q(user__username__icontains=user_q))
+    total = events.count()
+    events = list(events[:200])
+
+    week_ago = today - datetime.timedelta(days=7)
+    week_qs = LoginEvent.objects.filter(timestamp__date__gte=week_ago)
+    logins_7d = week_qs.filter(success=True).count()
+    failed_7d = week_qs.filter(success=False).count()
+    unique_users = week_qs.values('username_attempted').distinct().count()
+    portal_rows = list(week_qs.values('portal').annotate(c=Count('id')).order_by('-c'))
+    top_portal = portal_rows[0] if portal_rows else None
+    top_portal_display = dict(LoginEvent.PORTAL_CHOICES).get(top_portal['portal'], '-') if top_portal else '-'
+
+    trend_labels = []
+    trend_success = []
+    trend_failed = []
+    for i in range(6, -1, -1):
+        d = today - datetime.timedelta(days=i)
+        day_qs = LoginEvent.objects.filter(timestamp__date=d)
+        trend_labels.append(d.strftime('%d %b'))
+        trend_success.append(day_qs.filter(success=True).count())
+        trend_failed.append(day_qs.filter(success=False).count())
+
+    return render(request, 'dashboard/dig/login_events.html', {
+        'events': events,
+        'total': total,
+        'logins_7d': logins_7d,
+        'failed_7d': failed_7d,
+        'unique_users': unique_users,
+        'top_portal': top_portal_display,
+        'trend_labels': trend_labels,
+        'trend_success': trend_success,
+        'trend_failed': trend_failed,
+        'filters': {'portal': portal, 'success': success, 'user': user_q},
+    })
+
+
+@role_required('DIG', 'SSP')
+def login_events_export(request):
+    from .models import LoginEvent
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="dig_login_events.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Timestamp', 'Account', 'Portal', 'Outcome', 'Failure Reason',
+                     'IP Address', 'Browser', 'OS', 'Device Type', 'Device'])
+    for e in LoginEvent.objects.select_related('user').order_by('-timestamp')[:50000]:
+        writer.writerow([
+            e.timestamp.isoformat() if e.timestamp else '',
+            e.user.username if e.user else e.username_attempted,
+            e.get_portal_display(),
+            'SUCCESS' if e.success else 'FAILED',
+            e.failure_reason or '',
+            e.ip_address or '',
+            e.browser or '',
+            e.os or '',
+            e.device_type or '',
+            e.device_summary or '',
+        ])
+    return response

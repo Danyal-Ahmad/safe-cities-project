@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Payment Monitor{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-payment-monitor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-activity me-2"></i>Payment Monitor</h1>
+    <p class="sc-lead">Live gateway transaction stream from the citizen payment flow - successful volume, failures and provider breakdown.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-receipt"></i>{{ total_count|default:0|intcomma }} transactions</span>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-cash-stack"></i></div>
+    <div class="sc-kpi-label">Successful Volume</div>
+    <div class="sc-kpi-value">PKR {{ success_total|floatformat:0|intcomma }}</div>
+    <div class="sc-kpi-foot">{{ status_counts.success|default:0|intcomma }} successful transactions all time</div>
+  </div>
+  <div class="sc-kpi sc-kpi-danger">
+    <div class="sc-kpi-icon"><i class="bi bi-x-octagon"></i></div>
+    <div class="sc-kpi-label">Failed (7 Days)</div>
+    <div class="sc-kpi-value">{{ failed_7d|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">{{ status_counts.failed|default:0|intcomma }} failed transactions all time</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="sc-kpi-label">Pending Now</div>
+    <div class="sc-kpi-value">{{ pending_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">awaiting gateway confirmation</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-diagram-3"></i></div>
+    <div class="sc-kpi-label">Providers Seen</div>
+    <div class="sc-kpi-value">{{ provider_breakdown|length|default:0 }}</div>
+    <div class="sc-kpi-foot">distinct gateway providers</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-funnel"></i>
+    <span>Filter Transactions</span>
+    {% if status_filter or provider_filter or q %}
+    <a href="{% url 'it_support_portal:payment_transactions' %}" class="ms-auto sc-btn sc-btn-sm"><i class="bi bi-x-circle me-1"></i>Clear Filters</a>
+    {% endif %}
+  </div>
+  <div class="sc-card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label sc-text-sm" for="fltStatus">Status</label>
+        <select name="status" id="fltStatus" class="form-select form-select-sm">
+          <option value="">All statuses</option>
+          {% for s in status_rows %}
+          <option value="{{ s.code }}" {% if status_filter == s.code %}selected{% endif %}>{{ s.label }} ({{ s.count }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label sc-text-sm" for="fltProvider">Provider</label>
+        <select name="provider" id="fltProvider" class="form-select form-select-sm">
+          <option value="">All providers</option>
+          {% for p in provider_breakdown %}
+          <option value="{{ p.provider }}" {% if provider_filter == p.provider %}selected{% endif %}>{{ p.provider|default:"unknown" }} ({{ p.count }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label sc-text-sm" for="fltQ">Search Reference</label>
+        <input type="text" name="q" id="fltQ" value="{{ q }}" class="form-control form-control-sm" placeholder="txn ref, ticket no or gateway ref">
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm w-100"><i class="bi bi-search me-1"></i>Apply</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if provider_breakdown %}
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-pie-chart"></i>
+    <span>Provider Breakdown</span>
+  </div>
+  <div class="sc-card-body d-flex flex-wrap sc-gap-2">
+    {% for p in provider_breakdown %}
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-credit-card"></i>{{ p.provider|default:"unknown" }}: {{ p.count }} txn / PKR {{ p.volume|floatformat:0|intcomma }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-list-ul"></i>
+    <span>Transactions ({{ page_obj.paginator.count|intcomma }} total, page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }})</span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if transactions %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Challan</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Provider</th>
+            <th>Txn Ref</th>
+            <th>Gateway Ref</th>
+            <th>Created</th>
+            <th class="text-end">View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in transactions %}
+          <tr>
+            <td class="sc-mono">#{{ t.id }}</td>
+            <td>
+              {% if t.challan %}
+              <a href="{% url 'challans:challan_detail' t.challan.id %}" class="it-pm-link">{{ t.ticket_no }}</a>
+              {% else %}
+              <span class="sc-mono">{{ t.ticket_no }}</span>
+              <div class="sc-text-xs sc-text-muted">challan removed</div>
+              {% endif %}
+            </td>
+            <td class="sc-mono">PKR {{ t.amount|floatformat:0|intcomma }}</td>
+            <td>
+              {% if t.status == 'success' %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Success</span>
+              {% elif t.status == 'failed' %}<span class="sc-badge sc-badge-red"><i class="bi bi-x-circle"></i>Failed</span>
+              {% elif t.status == 'refunded' %}<span class="sc-badge sc-badge-amber"><i class="bi bi-arrow-counterclockwise"></i>Refunded</span>
+              {% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-hourglass"></i>Pending</span>{% endif %}
+            </td>
+            <td><span class="sc-badge sc-badge-blue">{{ t.provider|default:"demo" }}</span></td>
+            <td class="sc-mono sc-text-xs">{{ t.txn_ref|default:"-" }}</td>
+            <td class="sc-mono sc-text-xs">{{ t.gateway_ref|default:"-" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ t.created_at|date:"d M Y H:i" }}</td>
+            <td class="text-end">
+              <a href="{% url 'it_support_portal:payment_transaction_detail' t.id %}" class="sc-btn sc-btn-sm"><i class="bi bi-eye me-1"></i>Detail</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="sc-card-body it-pm-pager d-flex align-items-center justify-content-between">
+      <span class="sc-text-xs sc-text-muted">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count|intcomma }}</span>
+      <span class="d-flex sc-gap-2">
+        {% if page_obj.has_previous %}
+        <a class="sc-btn sc-btn-sm" href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i> Prev</a>
+        {% endif %}
+        <span class="sc-badge sc-badge-gray">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="sc-btn sc-btn-sm" href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next <i class="bi bi-chevron-right"></i></a>
+        {% endif %}
+      </span>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-receipt-cutoff"></i>
+      <p class="mb-1">No payment transactions match the current filters.</p>
+      <p class="sc-hint mb-0">Transactions appear here in real time as citizens pay e-challans through the gateway.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-payment-monitor.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Login Events{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-person-lock me-2"></i>Login Events</h1>
+    <p class="sc-lead">Every authentication attempt across the staff and citizen portals with IP and device fingerprint.</p>
+  </div>
+  <a href="{% url 'dig:login_events_export' %}" class="sc-btn sc-btn-primary"><i class="bi bi-download me-1"></i>Export CSV</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Logins (7d)</span>
+        <span class="metric-icon-box"><i class="bi bi-box-arrow-in-right"></i></span>
+      </div>
+      <div class="metric-value">{{ logins_7d|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">successful sign-ins</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Failed (7d)</span>
+        <span class="metric-icon-box"><i class="bi bi-x-circle"></i></span>
+      </div>
+      <div class="metric-value">{{ failed_7d|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">failed attempts</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Unique Users (7d)</span>
+        <span class="metric-icon-box"><i class="bi bi-people"></i></span>
+      </div>
+      <div class="metric-value">{{ unique_users|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">distinct accounts</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Top Portal (7d)</span>
+        <span class="metric-icon-box"><i class="bi bi-display"></i></span>
+      </div>
+      <div class="metric-value">{{ top_portal|default:"-" }}</div>
+      <div class="sc-text-sm sc-text-muted">most authentication traffic</div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><span><i class="bi bi-graph-up me-2"></i>Login Trend (Last 7 Days)</span></div>
+  <div class="card-body">
+    <canvas id="loginTrendChart" height="220"
+            data-trend-labels="{{ trend_labels|join:',' }}"
+            data-trend-success="{{ trend_success|join:',' }}"
+            data-trend-failed="{{ trend_failed|join:',' }}"></canvas>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><i class="bi bi-list-ul me-2"></i>Recent Events</span>
+    <span class="badge bg-secondary">{{ total|default:0|intcomma }} matching events</span>
+  </div>
+  <div class="card-body pb-0">
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+      <div class="sc-form-group mb-2">
+        <label class="form-label" for="fUser">Account</label>
+        <input type="text" id="fUser" name="user" class="form-control form-control-sm" placeholder="username" value="{{ filters.user|default:'' }}">
+      </div>
+      <div class="sc-form-group mb-2">
+        <label class="form-label" for="fPortal">Portal</label>
+        <select id="fPortal" name="portal" class="form-select form-select-sm">
+          <option value="">All portals</option>
+          <option value="admin" {% if filters.portal == 'admin' %}selected{% endif %}>Staff Portal</option>
+          <option value="citizen" {% if filters.portal == 'citizen' %}selected{% endif %}>Citizen Portal</option>
+        </select>
+      </div>
+      <div class="sc-form-group mb-2">
+        <label class="form-label" for="fSuccess">Outcome</label>
+        <select id="fSuccess" name="success" class="form-select form-select-sm">
+          <option value="">All outcomes</option>
+          <option value="1" {% if filters.success == '1' %}selected{% endif %}>Success</option>
+          <option value="0" {% if filters.success == '0' %}selected{% endif %}>Failed</option>
+        </select>
+      </div>
+      <button type="submit" class="sc-btn sc-btn-sm mb-2"><i class="bi bi-funnel me-1"></i>Filter</button>
+      <a href="{% url 'dig:login_events' %}" class="sc-btn sc-btn-sm mb-2">Reset</a>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Account</th>
+          <th>Portal</th>
+          <th>Outcome</th>
+          <th>IP Address</th>
+          <th>Device</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td class="small">{{ e.timestamp|date:"d M Y H:i:s" }}</td>
+          <td class="fw-semibold">{{ e.user.display_name|default:e.username_attempted }}</td>
+          <td><span class="badge {% if e.portal == 'admin' %}bg-primary{% else %}bg-info{% endif %}">{{ e.get_portal_display }}</span></td>
+          <td>
+            {% if e.success %}<span class="badge bg-success">SUCCESS</span>
+            {% else %}<span class="badge bg-danger">FAILED</span>{% endif %}
+            {% if e.failure_reason %}<span class="small text-muted">{{ e.failure_reason }}</span>{% endif %}
+          </td>
+          <td class="font-monospace small">{{ e.ip_address|default:"-" }}</td>
+          <td class="small">{{ e.device_summary|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-4 text-muted">No login events match the current filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-login-events.js' %}" defer></script>
+{% endblock %}

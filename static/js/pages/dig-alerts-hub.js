@@ -40,24 +40,19 @@
   }
   bindFilter('alertSearch', 'alertSevFilter', 'alertStatusFilter', ['alertGrid', 'alertTableWrap']);
   bindFilter('broadcastSearch', null, null, ['broadcastGrid', 'broadcastTableWrap']);
+  bindFilter('bannerSearch', null, 'bannerStatusFilter', ['bannerGrid', 'bannerTableWrap']);
 
-  // Edit alert modal - prefill
-  var editAlertModal = document.getElementById('editAlertModal');
-  if (editAlertModal) editAlertModal.addEventListener('show.bs.modal', function(e){
-    var btn = e.relatedTarget;
-    document.getElementById('editAlertForm').action = btn.getAttribute('data-edit-url');
+  function prefillAlert(btn){
+    document.getElementById('editAlertForm').action = btn.getAttribute('data-edit-url') || '';
     document.getElementById('editAlertTitle').value = btn.getAttribute('data-title') || '';
     document.getElementById('editAlertMessage').value = btn.getAttribute('data-message') || '';
     document.getElementById('editAlertSeverity').value = btn.getAttribute('data-severity') || 'info';
     document.getElementById('editAlertAudience').value = btn.getAttribute('data-audience') || 'all';
     document.getElementById('editAlertActive').checked = btn.getAttribute('data-active') === '1';
-  });
+  }
 
-  // Edit banner modal - prefill
-  var editBannerModal = document.getElementById('editBannerModal');
-  if (editBannerModal) editBannerModal.addEventListener('show.bs.modal', function(e){
-    var btn = e.relatedTarget;
-    document.getElementById('editBannerForm').action = btn.getAttribute('data-edit-url');
+  function prefillBanner(btn){
+    document.getElementById('editBannerForm').action = btn.getAttribute('data-edit-url') || '';
     document.getElementById('editBannerTitle').value = btn.getAttribute('data-title') || '';
     document.getElementById('editBannerHtml').value = btn.getAttribute('data-html') || '';
     document.getElementById('editBannerPlacement').value = btn.getAttribute('data-placement') || 'popup';
@@ -65,13 +60,22 @@
     document.getElementById('editBannerType').value = btn.getAttribute('data-type') || 'html';
     document.getElementById('editBannerHomeOnly').checked = btn.getAttribute('data-home-only') === '1';
     document.getElementById('editBannerActive').checked = btn.getAttribute('data-active') === '1';
+  }
+
+  function prefillDelete(btn){
+    document.getElementById('confirmDeleteForm').action = btn.getAttribute('data-delete-url') || '';
+    document.getElementById('confirmDeleteObjectName').textContent = btn.getAttribute('data-object-name') || 'this item';
+  }
+
+  document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#editAlertModal"]').forEach(function(btn){
+    btn.addEventListener('click', function(){ prefillAlert(btn); });
   });
 
-  // Delete confirmation modal
-  var delModal = document.getElementById('confirmDeleteModal');
-  if (delModal) delModal.addEventListener('show.bs.modal', function(e){
-    var btn = e.relatedTarget;
-    document.getElementById('confirmDeleteForm').action = btn.getAttribute('data-delete-url');
-    document.getElementById('confirmDeleteObjectName').textContent = btn.getAttribute('data-object-name') || 'this item';
+  document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#editBannerModal"]').forEach(function(btn){
+    btn.addEventListener('click', function(){ prefillBanner(btn); });
+  });
+
+  document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#confirmDeleteModal"]').forEach(function(btn){
+    btn.addEventListener('click', function(){ prefillDelete(btn); });
   });
 })();

@@ -12,7 +12,6 @@
 
   <div class="scpub-inner">
 
-    <!-- Hero: dual logos one side, "|" separator, title + subtitle other side -->
     <section class="ph-hero">
       <div class="scpub-brand">
         <div class="scpub-logos">
@@ -27,7 +26,6 @@
       </div>
     </section>
 
-    <!-- Search card: two inputs + one button -->
     <section class="ph-search-card scpub-card">
       <form method="get" action="{% url 'challans:home' %}" class="scpub-form" role="search">
         <div class="ph-fields">
@@ -49,7 +47,6 @@
       {% endif %}
     </section>
 
-    <!-- Results below the search card (server rendered) -->
     {% if searched and challans %}
     <section class="ph-results">
       <div class="ph-results-head">
@@ -98,9 +95,6 @@
     </section>
     {% endif %}
 
-    <!-- BANNER ADS: one large square banner (edge-to-edge, no border,
-         no rounded corners). Content managed from the DIG portal banner
-         manager (placement = Static post ad). -->
     {% if static_post_ads %}
     <section class="ph-ads" aria-label="Banner advertisement">
       {% include 'challan/_public_ads.html' %}

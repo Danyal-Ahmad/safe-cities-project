@@ -159,7 +159,10 @@
       <div class="scr-panel-body">
         <div class="md-stat-row">
           <span class="md-stat-label">Primary Database Engine</span>
-          <span class="md-stat-value"><span class="md-badge md-badge-success">PostgreSQL (Connected)</span></span>
+          <span class="md-stat-value">
+            {% if db_status.ok %}<span class="md-badge md-badge-success">{{ db_status.label }} (Connected)</span>
+            {% else %}<span class="md-badge md-badge-danger">{{ db_status.label }} (Down)</span>{% endif %}
+          </span>
         </div>
         <div class="md-stat-row">
           <span class="md-stat-label">Computer Vision Pipeline</span>
@@ -178,7 +181,13 @@
         </div>
         <div class="md-stat-row">
           <span class="md-stat-label">Payment Gateway Status</span>
-          <span class="md-stat-value"><span class="md-badge md-badge-cyan">Sandbox / Ready</span></span>
+          <span class="md-stat-value">
+            {% if gateway_status.methods %}
+            <span class="md-badge {% if gateway_status.mode == 'real' %}md-badge-success{% else %}md-badge-cyan{% endif %}">{% if gateway_status.mode == 'real' %}Real{% else %}Sandbox{% endif %} / {{ gateway_status.methods }} Active</span>
+            {% else %}
+            <span class="md-badge md-badge-danger">No Active Method</span>
+            {% endif %}
+          </span>
         </div>
       </div>
     </section>

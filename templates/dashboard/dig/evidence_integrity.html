@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Evidence Integrity{% endblock %}
+
+{% block body_class %}page-dig{% endblock %}
+{% block content %}
+
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-shield-lock me-2"></i>Evidence Integrity</h1>
+    <p class="sc-lead">Tamper-evident evidence chains for every detection. Each package carries the five hard security checks and a SHA-256 chain hash.</p>
+  </div>
+  <a href="{% url 'dig:audit_log' %}" class="sc-btn sc-btn-primary"><i class="bi bi-clock-history me-1"></i>Audit Log</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Evidence Packages</span>
+        <span class="metric-icon-box"><i class="bi bi-box-seam"></i></span>
+      </div>
+      <div class="metric-value">{{ hashed_total|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">detections with a chain hash</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Full Chain (5/5)</span>
+        <span class="metric-icon-box"><i class="bi bi-patch-check"></i></span>
+      </div>
+      <div class="metric-value">{{ full_chain|default:0 }}</div>
+      <div class="sc-text-sm sc-text-muted">all five checks passed</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Partial Chain</span>
+        <span class="metric-icon-box"><i class="bi bi-exclamation-triangle"></i></span>
+      </div>
+      <div class="metric-value">{{ partial_chain|default:0 }}</div>
+      <div class="sc-text-sm sc-text-muted">one or more checks failed</div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><i class="bi bi-list-check me-2"></i>Recent Evidence Packages</span>
+    <div class="d-flex gap-2 align-items-center">
+      <form method="get" class="d-flex gap-2 align-items-center">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All statuses</option>
+          <option value="pending_review" {% if status_filter == 'pending_review' %}selected{% endif %}>Pending Review</option>
+          <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+          <option value="flagged_officer" {% if status_filter == 'flagged_officer' %}selected{% endif %}>Flagged</option>
+        </select>
+        <button type="submit" class="sc-btn sc-btn-sm">Filter</button>
+      </form>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if detections %}
+    {% for d in detections %}
+    <div class="card mb-3" data-evidence-panel="{{ d.id }}">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="fw-semibold"><i class="bi bi-box-seam me-1"></i>Detection #{{ d.id }}</span>
+          <span class="badge bg-dark ms-2 font-monospace">{{ d.plate }}</span>
+          {% if d.status == 'confirmed' %}<span class="badge bg-success ms-1">{{ d.status_display }}</span>
+          {% elif d.status == 'pending_review' %}<span class="badge bg-warning ms-1">{{ d.status_display }}</span>
+          {% elif d.status == 'flagged_officer' %}<span class="badge bg-danger ms-1">{{ d.status_display }}</span>
+          {% else %}<span class="badge bg-secondary ms-1">{{ d.status_display }}</span>{% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge {% if d.total == 5 and d.passed_count == 5 %}bg-success{% else %}bg-danger{% endif %}">
+            {{ d.passed_count }}/{{ d.total }} checks
+          </span>
+          <button type="button" class="sc-btn sc-btn-sm sc-btn-primary" data-verify-btn data-verify-url="{{ d.verify_url }}" data-detection-id="{{ d.id }}">
+            <i class="bi bi-shield-check me-1"></i>Verify hash
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-lg-4">
+            <div class="small text-muted mb-1">Capture</div>
+            <div class="fw-semibold">{{ d.created_at|date:"d M Y H:i" }}</div>
+            <div class="small text-muted mt-2 mb-1">Camera</div>
+            <div class="fw-semibold">
+              {% if d.camera %}{{ d.camera.camera_id }} | {{ d.camera.location|truncatechars:40 }}{% else %}-{% endif %}
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="small text-muted mb-1">Track</div>
+            <div class="fw-semibold font-monospace">{{ d.track_id|default:"-" }}</div>
+            <div class="small text-muted mt-2 mb-1">Frames / Consistency</div>
+            <div class="fw-semibold">{{ d.frame_count|default:0 }} frames | {{ d.track_consistency|floatformat:2 }} consistency</div>
+          </div>
+          <div class="col-lg-4">
+            <div class="small text-muted mb-1">SHA-256 Evidence Hash</div>
+            <div class="font-monospace small text-break">{{ d.evidence_hash }}</div>
+            <div class="mt-2" data-verify-result="{{ d.id }}"></div>
+          </div>
+        </div>
+        <div class="row g-2 mt-3">
+          {% for c in d.checks %}
+          <div class="col-md-4 col-lg">
+            <div class="d-flex align-items-center gap-2">
+              {% if c.passed %}
+              <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>PASS</span>
+              {% else %}
+              <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>FAIL</span>
+              {% endif %}
+              <span class="small fw-semibold">{{ c.label }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="sc-empty-state">
+      <i class="bi bi-shield-lock"></i>
+      <h3>No evidence packages yet</h3>
+      <p>Detections with a computed evidence chain hash will be listed here.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dig-evidence-integrity.js' %}" defer></script>
+{% endblock %}

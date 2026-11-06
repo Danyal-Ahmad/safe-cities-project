@@ -1,7 +1,4 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   Supervisor sidebar
-   ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -13,8 +10,17 @@
   {% if request.user|has_perm:"view_team_performance" %}
   <a href="{% url 'supervisor_portal:team_performance' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/team-performance/' %}sc-active{% endif %}"><i class="bi bi-trophy"></i> <span class="sc-nav-link-text">Team Performance</span></a>
   {% endif %}
+  {% if request.user|has_perm:"view_detections" %}
+  <a href="{% url 'supervisor_portal:team_queue_load' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/queue-load/' %}sc-active{% endif %}"><i class="bi bi-layers"></i> <span class="sc-nav-link-text">Queue Load</span></a>
+  {% endif %}
   {% if request.user|has_perm:"view_shifts" %}
   <a href="{% url 'supervisor_portal:shift_management' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/shifts/' %}sc-active{% endif %}"><i class="bi bi-calendar-week"></i> <span class="sc-nav-link-text">My Officers</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_officer_activity" %}
+  <a href="{% url 'supervisor_portal:officer_activity_list' %}" class="sc-nav-link {% if '/officer-activity/' in request.path or '/activity/' in request.path %}sc-active{% endif %}"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Officer Activity</span></a>
+  {% endif %}
+  {% if request.user|has_any_perm:"view_cameras,view_shifts" %}
+  <a href="{% url 'supervisor_portal:camera_assignments' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/camera-assignments/' %}sc-active{% endif %}"><i class="bi bi-camera-video"></i> <span class="sc-nav-link-text">Camera Assignments</span></a>
   {% endif %}
 </div>
 

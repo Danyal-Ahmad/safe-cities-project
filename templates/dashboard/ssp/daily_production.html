@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+
+{% block title %}Daily Production Report{% endblock %}
+
+{% block content %}
+<div class="scr">
+
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · District Oversight</div>
+        <div class="scr-rail-title">
+          Daily Production Report
+          <span class="scr-rail-tag"><i class="bi bi-calendar-day"></i> {{ selected_date|date:"d M Y" }}</span>
+        </div>
+        <div class="scr-rail-sub">Challan production for the selected day by violation, camera and issuing officer, with totals and comparison against the previous day.</div>
+      </div>
+      <div class="scr-rail-actions">
+        <form method="get" action="{% url 'ssp_portal:daily_production' %}" class="sc-flex sc-items-center" style="gap: 8px;">
+          <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" class="md-input" style="padding: 7px 10px; font-size: 0.82rem;">
+          <button type="submit" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-calendar3"></i> Apply</button>
+          <a href="{% url 'ssp_portal:daily_production' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Today</a>
+        </form>
+        {% if request.user|has_perm:"generate_reports" %}
+        <a href="{% url 'ssp_portal:daily_production_export' %}?date={{ selected_date|date:'Y-m-d' }}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-download"></i> Export CSV</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="scr-stats">
+      <div class="scr-stat">
+        <div class="scr-stat-label">Challans Issued</div>
+        <div class="scr-stat-value">{{ totals.issued|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">
+          {% if deltas.issued > 0 %}<span class="md-badge md-badge-success">+{{ deltas.issued }} vs {{ prev_date|date:"d M" }}</span>
+          {% elif deltas.issued < 0 %}<span class="md-badge md-badge-danger">{{ deltas.issued }} vs {{ prev_date|date:"d M" }}</span>
+          {% else %}No change vs {{ prev_date|date:"d M" }}{% endif %}
+        </div>
+      </div>
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Fines Issued</div>
+        <div class="scr-stat-value">PKR {{ totals.fines_issued|floatformat:0|intcomma }}</div>
+        <div class="scr-stat-foot">
+          {% if deltas.fines_issued > 0 %}<span class="md-badge md-badge-success">+PKR {{ deltas.fines_issued|floatformat:0|intcomma }} vs {{ prev_date|date:"d M" }}</span>
+          {% elif deltas.fines_issued < 0 %}<span class="md-badge md-badge-danger">-PKR {{ deltas.fines_issued|floatformat:0|intcomma }} vs {{ prev_date|date:"d M" }}</span>
+          {% else %}No change vs {{ prev_date|date:"d M" }}{% endif %}
+        </div>
+      </div>
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Fines Collected</div>
+        <div class="scr-stat-value">PKR {{ totals.fines_paid|floatformat:0|intcomma }}</div>
+        <div class="scr-stat-foot">{{ totals.paid|default:0 }} paid of {{ totals.issued|default:0 }} issued</div>
+      </div>
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Fines Unpaid</div>
+        <div class="scr-stat-value">PKR {{ totals.fines_unpaid|floatformat:0|intcomma }}</div>
+        <div class="scr-stat-foot">{{ totals.unpaid|default:0 }} challans awaiting payment</div>
+      </div>
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Voided</div>
+        <div class="scr-stat-value">{{ totals.voided|default:0 }}</div>
+        <div class="scr-stat-foot">PKR {{ totals.fines_voided|floatformat:0|intcomma }} released</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="scr-grid">
+
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-exclamation-octagon"></i> Production by Violation Type</div>
+        <span class="md-badge md-badge-secondary">{{ selected_date|date:"d M Y" }}</span>
+      </div>
+      {% if violation_rows %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>Violation</th><th>Issued</th><th>Paid</th><th>Unpaid</th><th>Voided</th>
+              <th>Fines Issued</th><th>Fines Paid</th><th>Fines Unpaid</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in violation_rows %}
+            <tr>
+              <td><b>{{ v.label }}</b></td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ v.issued }}</td>
+              <td style="color: #10b981; font-weight: 600;">{{ v.paid }}</td>
+              <td style="color: #f59e0b; font-weight: 600;">{{ v.unpaid }}</td>
+              <td style="color: #ef4444;">{{ v.voided }}</td>
+              <td style="font-family: var(--sc-mono);">PKR {{ v.fines_issued|floatformat:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: #10b981;">PKR {{ v.fines_paid|floatformat:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: #f59e0b;">PKR {{ v.fines_unpaid|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 3.5rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-inbox" style="font-size: 3rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--md-text-title);">No Challans Issued</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">No challans were issued on {{ selected_date|date:"d M Y" }}. Pick another date above.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-camera-video"></i> Top Cameras by Challans</div>
+        <span class="md-badge md-badge-secondary">Top 10</span>
+      </div>
+      {% if camera_rows %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Camera</th><th>Location</th><th>Challans</th><th>Fines Issued</th></tr>
+          </thead>
+          <tbody>
+            {% for c in camera_rows %}
+            <tr>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ c.cam_code }}</td>
+              <td>{{ c.cam_location }}</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ c.issued }}</td>
+              <td style="font-family: var(--sc-mono);">PKR {{ c.fines_issued|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 3rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-camera-video-off" style="font-size: 2.4rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 1rem; font-weight: 700; color: var(--md-text-title);">No Camera-Linked Challans</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">No challans issued on {{ selected_date|date:"d M Y" }} carry a camera reference.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="scr-panel scr-panel-6">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-person-badge"></i> Officer Production</div>
+        <span class="md-badge md-badge-secondary">Issuing officers</span>
+      </div>
+      {% if officer_rows %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Officer</th><th>Username</th><th>Challans</th><th>Fines Issued</th></tr>
+          </thead>
+          <tbody>
+            {% for o in officer_rows %}
+            <tr>
+              <td><b>{{ o.display_name }}</b></td>
+              <td style="font-family: var(--sc-mono); font-size: 0.8rem; color: var(--md-text-muted);">{{ o.username }}</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ o.issued }}</td>
+              <td style="font-family: var(--sc-mono);">PKR {{ o.fines_issued|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 3rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-person-x" style="font-size: 2.4rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 1rem; font-weight: 700; color: var(--md-text-title);">No Officer Activity</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">No officer issued a challan on {{ selected_date|date:"d M Y" }}.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-arrow-left-right"></i> Day-over-Day Comparison</div>
+        <span class="md-badge md-badge-secondary">{{ selected_date|date:"d M Y" }} vs {{ prev_date|date:"d M Y" }}</span>
+      </div>
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Metric</th><th>{{ selected_date|date:"D d M Y" }}</th><th>{{ prev_date|date:"D d M Y" }}</th><th>Change</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Challans Issued</b></td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ totals.issued|default:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">{{ prev_totals.issued|default:0|intcomma }}</td>
+              <td>{% if deltas.issued > 0 %}<span class="md-badge md-badge-success">+{{ deltas.issued }}</span>{% elif deltas.issued < 0 %}<span class="md-badge md-badge-danger">{{ deltas.issued }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Paid Count</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ totals.paid|default:0 }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">{{ prev_totals.paid|default:0 }}</td>
+              <td>{% if deltas.paid > 0 %}<span class="md-badge md-badge-success">+{{ deltas.paid }}</span>{% elif deltas.paid < 0 %}<span class="md-badge md-badge-danger">{{ deltas.paid }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Unpaid Count</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ totals.unpaid|default:0 }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">{{ prev_totals.unpaid|default:0 }}</td>
+              <td>{% if deltas.unpaid > 0 %}<span class="md-badge md-badge-warning">+{{ deltas.unpaid }}</span>{% elif deltas.unpaid < 0 %}<span class="md-badge md-badge-success">{{ deltas.unpaid }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Voided Count</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ totals.voided|default:0 }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">{{ prev_totals.voided|default:0 }}</td>
+              <td>{% if deltas.voided > 0 %}<span class="md-badge md-badge-warning">+{{ deltas.voided }}</span>{% elif deltas.voided < 0 %}<span class="md-badge md-badge-success">{{ deltas.voided }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Fines Issued</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">PKR {{ totals.fines_issued|floatformat:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">PKR {{ prev_totals.fines_issued|floatformat:0|intcomma }}</td>
+              <td>{% if deltas.fines_issued > 0 %}<span class="md-badge md-badge-success">+PKR {{ deltas.fines_issued|floatformat:0|intcomma }}</span>{% elif deltas.fines_issued < 0 %}<span class="md-badge md-badge-danger">-PKR {{ deltas.fines_issued|floatformat:0|intcomma }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Fines Collected</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">PKR {{ totals.fines_paid|floatformat:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">PKR {{ prev_totals.fines_paid|floatformat:0|intcomma }}</td>
+              <td>{% if deltas.fines_paid > 0 %}<span class="md-badge md-badge-success">+PKR {{ deltas.fines_paid|floatformat:0|intcomma }}</span>{% elif deltas.fines_paid < 0 %}<span class="md-badge md-badge-danger">-PKR {{ deltas.fines_paid|floatformat:0|intcomma }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Fines Unpaid</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">PKR {{ totals.fines_unpaid|floatformat:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">PKR {{ prev_totals.fines_unpaid|floatformat:0|intcomma }}</td>
+              <td>{% if deltas.fines_unpaid > 0 %}<span class="md-badge md-badge-warning">+PKR {{ deltas.fines_unpaid|floatformat:0|intcomma }}</span>{% elif deltas.fines_unpaid < 0 %}<span class="md-badge md-badge-success">-PKR {{ deltas.fines_unpaid|floatformat:0|intcomma }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+            <tr>
+              <td>Fines Voided</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">PKR {{ totals.fines_voided|floatformat:0|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); color: var(--md-text-muted);">PKR {{ prev_totals.fines_voided|floatformat:0|intcomma }}</td>
+              <td>{% if deltas.fines_voided > 0 %}<span class="md-badge md-badge-warning">+PKR {{ deltas.fines_voided|floatformat:0|intcomma }}</span>{% elif deltas.fines_voided < 0 %}<span class="md-badge md-badge-success">-PKR {{ deltas.fines_voided|floatformat:0|intcomma }}</span>{% else %}<span class="md-badge md-badge-secondary">No change</span>{% endif %}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

@@ -539,12 +539,12 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
 }
 
 .ph-big-banner-link,
-.ph-big-banner-link img {
+.ph-big-banner-link img, .ph-big-banner > img {
   display: block;
   width: 100%;
 }
 
-.ph-big-banner-link img {
+.ph-big-banner-link img, .ph-big-banner > img {
   height: clamp(180px, 26vw, 320px);
   object-fit: cover;
   transition: transform 0.5s ease;

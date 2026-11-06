@@ -10,9 +10,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     SSP DISTRICT COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
 <div class="scr">
 
   <header class="scr-head">
@@ -37,7 +34,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_challans" %}
       <div class="scr-stat">
@@ -68,7 +64,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_analytics" %}
@@ -90,6 +85,60 @@
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="violDistChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>
       </div>
+    </section>
+    {% endif %}
+
+    {% if request.user|has_perm:"view_challans" %}
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-exclamation-octagon"></i> High-Value Challans Awaiting Acknowledgement</div>
+        <span class="md-badge md-badge-danger">PKR {{ HIGH_VALUE|intcomma }} and above · {{ high_value_challans|length }} pending</span>
+      </div>
+      {% if high_value_challans %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>Ticket #</th><th>Plate</th><th>Violation</th><th>Amount</th>
+              <th>Issued By</th><th>Issued</th><th>Location</th><th style="text-align: right;">SSP Acknowledgement</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ch in high_value_challans %}
+            <tr>
+              <td style="font-family: var(--sc-mono);">
+                <a href="{% url 'challans:challan_detail' ch.id %}" style="color: var(--md-brand-primary);">{{ ch.ticket_no }}</a>
+              </td>
+              <td><span class="md-badge md-badge-dark" style="font-family: var(--sc-mono);">{{ ch.plate_number }}</span></td>
+              <td>{{ ch.get_violation_type_display }}</td>
+              <td style="font-weight: 700;">PKR {{ ch.fine_amount|floatformat:0|intcomma }}</td>
+              <td>{{ ch.created_by.display_name|default:'System' }}</td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{{ ch.issue_date|date:"d M Y" }}</td>
+              <td style="font-size: 0.8rem; max-width: 160px;">{% if ch.location %}{{ ch.location }}{% elif ch.camera %}{{ ch.camera.location }}{% else %}-{% endif %}</td>
+              <td style="text-align: right;">
+                {% if ch.id in acked_ids %}
+                <span class="md-badge md-badge-success"><i class="bi bi-patch-check"></i> Acknowledged</span>
+                {% elif request.user|has_perm:"approve_high_value_challan" %}
+                <form method="post" action="{% url 'ssp_portal:approve_challan' ch.id %}" style="display: inline-flex;">
+                  {% csrf_token %}
+                  <button type="submit" class="md-btn md-btn-primary md-btn-sm" style="font-size: 0.72rem; padding: 2px 10px;"><i class="bi bi-check2-circle"></i> Acknowledge</button>
+                </form>
+                {% else %}
+                <span class="md-badge md-badge-secondary">Awaiting SSP</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 3.5rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-shield-check" style="font-size: 3rem; color: #10b981; display: block; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--md-text-title);">No High-Value Challans Pending</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">There are no unpaid challans of PKR {{ HIGH_VALUE|intcomma }} or more awaiting acknowledgement.</p>
+      </div>
+      {% endif %}
     </section>
     {% endif %}
 

@@ -15,6 +15,9 @@
   <a href="{% url 'it_support_portal:camera_health' %}" class="sc-nav-link {% if request.path == '/portal/it/camera-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse"></i> <span class="sc-nav-link-text">Camera Health</span></a>
   <a href="{% url 'it_support_portal:cameras_status' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras-status/' %}sc-active{% endif %}"><i class="bi bi-broadcast"></i> <span class="sc-nav-link-text">Cameras Status</span></a>
   {% endif %}
+  {% if request.user|has_perm:"view_camera_health" %}
+  <a href="{% url 'it_support_portal:camera_heartbeats' %}" class="sc-nav-link {% if '/cameras/heartbeats/' in request.path %}sc-active{% endif %}"><i class="bi bi-stopwatch"></i> <span class="sc-nav-link-text">Camera Heartbeats</span></a>
+  {% endif %}
   {% if request.user|has_perm:"manage_camera_assignments" %}
   <a href="{% url 'it_support_portal:camera_assignments' %}" class="sc-nav-link {% if request.path == '/portal/it/cameras/assignments/' %}sc-active{% endif %}"><i class="bi bi-link-45deg"></i> <span class="sc-nav-link-text">Camera Assignments</span></a>
   {% endif %}
@@ -52,13 +55,12 @@
   {% if request.user|has_perm:"manage_alerts" %}
   <a href="{% url 'it_support_portal:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone-fill"></i> <span class="sc-nav-link-text">Alerts</span></a>
   {% endif %}
-  {% if request.user|has_perm:"manage_ads" %}
-  {% endif %}
 </div>
 
 <div class="sc-nav-section" data-section="Payments">
   <div class="sc-nav-title">Payments</div>
   {% if request.user|has_perm:"payment_method_config" %}
+  <a href="{% url 'it_support_portal:payment_transactions' %}" class="sc-nav-link {% if '/payments/monitor/' in request.path %}sc-active{% endif %}"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Payment Monitor</span></a>
   <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-nav-link {% if request.path == '/portal/it/payment-methods/' %}sc-active{% endif %}"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Payment Methods</span></a>
   <a href="{% url 'it_support_portal:payment_method_add' %}" class="sc-nav-link {% if request.path == '/portal/it/payment-methods/add/' %}sc-active{% endif %}"><i class="bi bi-plus-circle"></i> <span class="sc-nav-link-text">Add Method</span></a>
   {% endif %}
@@ -68,6 +70,7 @@
   <div class="sc-nav-title">Staff</div>
   {% if request.user|has_perm:"view_users" %}
   <a href="{% url 'it_support_portal:staff_list' %}" class="sc-nav-link {% if request.path == '/portal/it/staff/' %}sc-active{% endif %}"><i class="bi bi-people-fill"></i> <span class="sc-nav-link-text">Staff Directory</span></a>
+  <a href="{% url 'it_support_portal:reset_requests' %}" class="sc-nav-link {% if request.path == '/portal/it/reset-requests/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Reset Requests</span></a>
   {% endif %}
 </div>
 

@@ -10,9 +10,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     CITIZEN PORTAL SCREEN · one cohesive surface
-     ==================================================================== -->
 <div class="scr">
 
   <header class="scr-head">
@@ -45,7 +42,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
       {% if request.user|has_perm:"view_own_challans" %}
       <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
@@ -81,7 +77,6 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_own_challans" and challans %}

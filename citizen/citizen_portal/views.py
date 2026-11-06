@@ -233,7 +233,10 @@ def submit_appeal(request, challan_id):
                            routed_to='ssp (direct transfer per V13 spec)')
             messages.success(request, "Appeal submitted. Directly routed to SSP for review. You will be notified of the decision.")
             return redirect('citizen_portal:appeal_tracker')
-    return render(request, 'dashboard/citizen/submit_appeal.html', {'challan': challan})
+    return render(request, 'dashboard/citizen/submit_appeal.html', {
+        'challan': challan,
+        'has_active': ChallanAppeal.has_active_appeal(challan),
+    })
 
 
 @login_required
@@ -405,6 +408,7 @@ def pay_challan(request, challan_id):
         'payment_methods': payment_methods,
         'psid': challan.psid,
         'qr_payload': challan.payment_qr_payload,
+        'has_active': ChallanAppeal.has_active_appeal(challan),
     })
 
 

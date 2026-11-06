@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load perm_tags %}
+{% block title %}Shift Roster{% endblock %}
+
+{% block extra_head %}
+<style>
+  .sh-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    align-items: end;
+  }
+  .sh-form .sh-submit { align-self: end; }
+  @media (max-width: 760px) { .sh-form { grid-template-columns: 1fr 1fr; } }
+  .sh-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.10));
+    color: var(--sc-primary, #2563EB);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    flex: 0 0 auto;
+  }
+  .sh-officer { display: inline-flex; align-items: center; gap: 10px; }
+  .sh-card + .sh-card { margin-top: 18px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-calendar3-week"></i> Officer Shift Roster</h1>
+    <p class="sc-lead">Assign duty slots to your officers and track the current roster</p>
+  </div>
+</div>
+
+{% if request.user|has_perm:"manage_shifts" %}
+<div class="card sh-card">
+  <div class="card-header">
+    <div><i class="bi bi-plus-circle"></i> Assign Shift</div>
+  </div>
+  <div class="card-body">
+    <form method="post" action="{% url 'supervisor_portal:shift_add' %}" class="sh-form">
+      {% csrf_token %}
+      <div class="form-group mb-0">
+        <label class="form-label">Shift Slot <span class="req" style="color:#E23B4E">*</span></label>
+        <select class="form-select form-control-sm" name="slot" required onchange="applySlot(this)">
+          <option value="">Select slot...</option>
+          <option value="morning">Morning (06:00 - 14:00)</option>
+          <option value="evening">Evening (14:00 - 22:00)</option>
+          <option value="night">Night (22:00 - 06:00)</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label">Date <span class="req" style="color:#E23B4E">*</span></label>
+        <input class="form-control form-control-sm" type="date" name="shift_date" id="shiftDate" required onchange="applySlot(document.querySelector('[name=slot]'))">
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label">Officer</label>
+        <select class="form-select form-control-sm" name="officer_id">
+          <option value="">Auto-assign least busy officer</option>
+          {% for o in officers %}
+          <option value="{{ o.id }}">{{ o.get_full_name|default:o.username }} ({{ o.email }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label">Start <span class="req" style="color:#E23B4E">*</span></label>
+        <input class="form-control form-control-sm" type="datetime-local" name="start_time" id="startTime" required>
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label">End <span class="req" style="color:#E23B4E">*</span></label>
+        <input class="form-control form-control-sm" type="datetime-local" name="end_time" id="endTime" required>
+      </div>
+      <div class="sh-submit">
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle"></i> Assign</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="card sh-card">
+  <div class="card-header">
+    <div><i class="bi bi-clock-history"></i> Recent Shifts</div>
+    <span class="badge badge-blue">{{ shifts|length }}</span>
+  </div>
+  <div class="p-0 table-responsive">
+    {% if shifts %}
+    <table class="table table-hover table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Officer</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Assigned By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in shifts %}
+        <tr>
+          <td>
+            <span class="sh-officer">
+              <span class="sh-avatar">{{ s.officer.initials }}</span>
+              <span>{{ s.officer.display_name }}</span>
+            </span>
+          </td>
+          <td class="small">{{ s.start_time|date:"d-M-Y H:i" }}</td>
+          <td class="small">{{ s.end_time|date:"d-M-Y H:i" }}</td>
+          <td class="small">{{ s.assigned_by.display_name|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="sc-empty-state">
+      <i class="bi bi-moon-stars"></i>
+      <h3>No shifts yet</h3>
+      <p>Use the assignment form above to schedule the first shift.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card sh-card">
+  <div class="card-header">
+    <div><i class="bi bi-people"></i> Officers</div>
+    <span class="badge badge-blue">{{ officers|length }}</span>
+  </div>
+  <div class="p-0 table-responsive">
+    {% if officers %}
+    <table class="table table-hover table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Officer</th>
+          <th>Staff ID</th>
+          <th>Region</th>
+          <th>Last Login</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in officers %}
+        <tr>
+          <td>
+            <span class="sh-officer">
+              <span class="sh-avatar">{{ o.initials }}</span>
+              <span>{{ o.display_name }}</span>
+            </span>
+          </td>
+          <td class="sc-mono sc-text-sm">{{ o.staff_id|default:"-" }}</td>
+          <td class="small">{{ o.region|default:"-" }}</td>
+          <td class="small">{{ o.last_login|date:"d-M-Y H:i"|default:"Never" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="sc-empty-state">
+      <i class="bi bi-person-x"></i>
+      <h3>No officers</h3>
+      <p>No officer accounts exist yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script nonce="{{ request.csp_nonce }}">
+function applySlot(sel) {
+  var date = document.getElementById('shiftDate');
+  var start = document.getElementById('startTime');
+  var end = document.getElementById('endTime');
+  if (!sel || !date || !start || !end) return;
+  var d = date.value || new Date().toISOString().slice(0, 10);
+  var map = {
+    morning: ['06:00', '14:00'],
+    evening: ['14:00', '22:00'],
+    night: ['22:00', '06:00']
+  };
+  var m = map[sel.value];
+  if (m) {
+    start.value = d + 'T' + m[0];
+    var endDate = m[1] === '06:00' ? new Date(new Date(d).getTime() + 86400000).toISOString().slice(0, 10) : d;
+    end.value = endDate + 'T' + m[1];
+  }
+}
+</script>
+{% endblock %}

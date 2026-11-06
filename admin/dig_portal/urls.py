@@ -57,6 +57,10 @@ path('analytics/',                    views.analytics,               name='analy
     path('reports/generate/',             views.generate_report,         name='generate_report'),
     path('operational-reports/',          views.operational_reports,     name='operational_reports'),
     path('financial-reports/',            views.financial_reports,       name='financial_reports'),
+    path('evidence-integrity/',           views.evidence_integrity,      name='evidence_integrity'),
+    path('evidence-integrity/<int:detection_id>/verify/', views.evidence_integrity_verify, name='evidence_integrity_verify'),
+    path('login-events/',                 views.login_events,            name='login_events'),
+    path('login-events/export/',          views.login_events_export,     name='login_events_export'),
 
     path('payments/',                     views.payment_list,            name='payment_list'),
 

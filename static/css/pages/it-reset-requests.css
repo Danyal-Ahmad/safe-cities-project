@@ -1,0 +1,29 @@
+.it-rr-note {
+  border-top: 3px solid var(--sc-warning-bg, #FDF3E0);
+}
+
+.it-rr-note-ic {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--sc-warning-bg, #FDF3E0);
+  color: #D98E0B;
+  font-size: 1.05rem;
+}
+
+.it-rr-note-t {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--sc-navy-deep, #0F2557);
+  margin-bottom: 2px;
+}
+
+.it-rr-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--sc-navy-deep, #0F2557);
+}

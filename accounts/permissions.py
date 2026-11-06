@@ -333,6 +333,7 @@ _SUPERVISOR_PERMS = {
     'view_evidence_hashes',
     'add_officer_feedback',
     'live_tracking',
+    'view_cameras',
     'change_own_password',
     'edit_own_profile',
     'generate_reports',

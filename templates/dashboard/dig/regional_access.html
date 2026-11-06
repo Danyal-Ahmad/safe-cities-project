@@ -6,22 +6,24 @@
 {% block content %}
 <div class="sc-page-hero">
  <div>
- <h1><i class="bi bi-circle"></i> Regional Access</h1>
- <p>Which SSP/Supervisor accounts oversee which regions</p>
+ <h1><i class="bi bi-person-badge me-2"></i> Regional Access</h1>
+ <p class="sc-lead">Which SSP/Supervisor accounts oversee which regions</p>
  </div>
  <div>
  <a href="{% url 'dig:admin_list' %}" class="sc-btn sc-btn-primary">
- <i class="bi bi-circle"></i> Manage Staff
+ <i class="bi bi-people me-1"></i> Manage Staff
  </a>
  </div>
 </div>
 
-<div>
- <div class="card-header ">
- <div><i class="bi bi-circle"></i> SSP Officers</div>
+<div class="row g-4">
+ <div class="col-12">
+ <div class="card">
+ <div class="card-header d-flex justify-content-between align-items-center">
+ <div><i class="bi bi-person-badge me-2"></i> SSP Officers</div>
  <span class="badge bg-secondary">{{ ssp_users|length }}</span>
  </div>
- <div class="p-0 table-responsive">
+ <div class="card-body p-0 table-responsive">
  {% if ssp_users %}
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -35,24 +37,32 @@
  {% for u in ssp_users %}
  <tr>
  <td>{{ u.display_name|default:u.username }}</td>
- <td class="form-control font-monospace">{{ u.username }}</td>
- <td>{% if u.is_active %}<span class="badge ">Active</span>{% else %}<span class="badge ">Disabled</span>{% endif %}</td>
+ <td class="font-monospace">{{ u.username }}</td>
+ <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Disabled</span>{% endif %}</td>
  </tr>
  {% endfor %}
  </tbody>
  </table>
  {% else %}
- <div class="empty-state"><i class=" SSP accounts yet.</p></div>
+ <div class="sc-empty-state">
+ <i class="bi bi-person-x"></i>
+ <h3>No SSP accounts yet.</h3>
+ <p>Create SSP accounts to assign regional command.</p>
+ </div>
  {% endif %}
+ </div>
+ </div>
  </div>
 </div>
 
-<div>
- <div class="card-header ">
- <div><i class="bi bi-circle"></i> Supervisors</div>
+<div class="row g-4 mt-1">
+ <div class="col-12">
+ <div class="card">
+ <div class="card-header d-flex justify-content-between align-items-center">
+ <div><i class="bi bi-people me-2"></i> Supervisors</div>
  <span class="badge bg-secondary">{{ supervisor_users|length }}</span>
  </div>
- <div class="p-0 table-responsive">
+ <div class="card-body p-0 table-responsive">
  {% if supervisor_users %}
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -66,19 +76,25 @@
  {% for u in supervisor_users %}
  <tr>
  <td>{{ u.display_name|default:u.username }}</td>
- <td class="form-control font-monospace">{{ u.username }}</td>
- <td>{% if u.is_active %}<span class="badge ">Active</span>{% else %}<span class="badge ">Disabled</span>{% endif %}</td>
+ <td class="font-monospace">{{ u.username }}</td>
+ <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Disabled</span>{% endif %}</td>
  </tr>
  {% endfor %}
  </tbody>
  </table>
  {% else %}
- <div class="empty-state"><i class=" Supervisor accounts yet.</p></div>
+ <div class="sc-empty-state">
+ <i class="bi bi-person-x"></i>
+ <h3>No Supervisor accounts yet.</h3>
+ <p>Create Supervisor accounts to assign regional oversight.</p>
+ </div>
  {% endif %}
+ </div>
+ </div>
  </div>
 </div>
 
-<p class="hint">
+<p class="sc-hint">
  Note: this page currently lists SSP/Supervisor accounts only - there is no per-region
  assignment field on the User model yet, so it cannot show which specific region each
  account is responsible for. See the audit notes for the regional-data-model gap.

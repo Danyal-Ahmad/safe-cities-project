@@ -11,6 +11,10 @@ urlpatterns = [
     path('challans/<int:challan_id>/approve/', views.approve_challan, name='approve_challan_alias'),
     path('appeal/<int:appeal_id>/decide/', views.decide_appeal, name='decide_appeal'),
 
+    path('production/', views.daily_production, name='daily_production'),
+    path('production/export/', views.daily_production_export, name='daily_production_export'),
+    path('camera-outage/', views.camera_outage, name='camera_outage'),
+
     path('challans/', dig_views.challan_list, name='challan_list'),
     path('blacklist/', dig_views.blacklist_list, name='blacklist_list'),
     path('blacklist/add/', dig_views.blacklist_add, name='blacklist_add'),
@@ -23,6 +27,8 @@ urlpatterns = [
     path('camera-health/', dig_views.camera_health, name='camera_health'),
     path('cameras-status/', dig_views.cameras_status, name='cameras_status'),
     path('officer-kpi/', dig_views.officer_kpi, name='officer_kpi'),
+    path('violations/', dig_views.violation_stats, name='violation_stats'),
+    path('revenue/', dig_views.revenue_dashboard, name='revenue_dashboard'),
 
     path('notifications/', dig_views.notifications, name='notifications'),
     path('notifications/<int:notification_id>/read/', dig_views.notification_read, name='notification_read'),

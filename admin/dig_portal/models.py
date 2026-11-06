@@ -167,6 +167,14 @@ class AuditLog(models.Model):
         return f"{self.timestamp:%Y-%m-%d %H:%M} | {self.actor} - {self.action}"
 
     @classmethod
+    def parse_device(cls, ua_str):
+        try:
+            browser, os_name, device_type, brand, summary = LoginEvent._parse_ua(ua_str)
+        except Exception:
+            return '', ''
+        return summary or device_type, device_type
+
+    @classmethod
     def write(cls, request, action, target_model='', target_id=None, **details):
         actor = None
         ip = None

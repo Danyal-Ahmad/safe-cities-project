@@ -41,6 +41,9 @@
   {% if request.user|has_perm:"view_analytics" %}
   <a href="{% url 'dig:analytics' %}" class="sc-nav-link {% if request.path == '/portal/dig/analytics/' %}sc-active{% endif %}"><i class="bi bi-graph-up-arrow"></i> <span class="sc-nav-link-text">Analytics</span></a>
   {% endif %}
+  {% if request.user|has_perm:"view_evidence_hashes" %}
+  <a href="{% url 'dig:evidence_integrity' %}" class="sc-nav-link {% if '/evidence-integrity/' in request.path %}sc-active{% endif %}"><i class="bi bi-shield-lock"></i> <span class="sc-nav-link-text">Evidence Integrity</span></a>
+  {% endif %}
   {% if request.user|has_perm:"view_reports" %}
   <a href="{% url 'dig:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-text"></i> <span class="sc-nav-link-text">Reports</span></a>
   {% endif %}
@@ -96,6 +99,9 @@
   {% endif %}
   {% if request.user|has_perm:"view_audit_log" %}
   <a href="{% url 'dig:audit_log' %}" class="sc-nav-link {% if request.path == '/portal/dig/audit/' %}sc-active{% endif %}"><i class="bi bi-clock-history"></i> <span class="sc-nav-link-text">Audit Log</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_login_events" %}
+  <a href="{% url 'dig:login_events' %}" class="sc-nav-link {% if '/login-events/' in request.path %}sc-active{% endif %}"><i class="bi bi-person-lock"></i> <span class="sc-nav-link-text">Login Events</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_compliance" %}
   <a href="{% url 'dig:compliance' %}" class="sc-nav-link {% if request.path == '/portal/dig/compliance/' %}sc-active{% endif %}"><i class="bi bi-shield-check"></i> <span class="sc-nav-link-text">Compliance</span></a>

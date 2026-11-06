@@ -94,17 +94,17 @@
       <form method="post" id="loginForm" autocomplete="off">
         {% csrf_token %}
         <div class="fg">
-          <label>Email Address<span class="req">*</span></label>
+          <label for="loginEmail">Email Address<span class="req">*</span></label>
           <div class="iw">
             <span class="il"><i class="fa-solid fa-envelope"></i></span>
-            <input type="email" name="username" placeholder="you@safe-cities.project" required>
+            <input type="email" id="loginEmail" name="username" placeholder="you@safe-cities.project" required>
           </div>
         </div>
         <div class="fg">
-          <label>Password<span class="req">*</span></label>
+          <label for="loginPassword">Password<span class="req">*</span></label>
           <div class="iw">
             <span class="il"><i class="fa-solid fa-lock"></i></span>
-            <input type="password" name="password" placeholder="Enter your password" required>
+            <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
             <button type="button" class="tp" onclick="var p=this.previousElementSibling; p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'\u{1F441}':'\u{1F576}'"><i class="fa-solid fa-eye"></i></button>
           </div>
         </div>

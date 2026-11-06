@@ -75,32 +75,32 @@
       <form method="post" autocomplete="off">
         {% csrf_token %}
         <div class="fg">
-          <label>Full Name<span class="req">*</span></label>
-          <input type="text" name="first_name" placeholder="Ahmad Khan" required>
+          <label for="fullName">Full Name<span class="req">*</span></label>
+          <input type="text" id="fullName" name="first_name" placeholder="Ahmad Khan" required>
         </div>
         <div class="row">
           <div class="fg">
-            <label>CNIC<span class="req">*</span></label>
-            <input type="text" name="cnic" placeholder="35202-1234567-1" required>
+            <label for="cnic">CNIC<span class="req">*</span></label>
+            <input type="text" id="cnic" name="cnic" placeholder="35202-1234567-1" required>
             <div class="hint">13 digits, with or without dashes</div>
           </div>
           <div class="fg">
-            <label>Phone<span class="req">*</span></label>
-            <input type="text" name="phone" placeholder="+92-300-1234567" required>
+            <label for="phone">Phone<span class="req">*</span></label>
+            <input type="text" id="phone" name="phone" placeholder="+92-300-1234567" required>
           </div>
         </div>
         <div class="fg">
-          <label>Email (optional)</label>
-          <input type="email" name="email" placeholder="you@example.com">
+          <label for="email">Email (optional)</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com">
         </div>
         <div class="row">
           <div class="fg">
-            <label>Password<span class="req">*</span></label>
-            <input type="password" name="password1" placeholder="12+ characters" required>
+            <label for="password1">Password<span class="req">*</span></label>
+            <input type="password" id="password1" name="password1" placeholder="12+ characters" required>
           </div>
           <div class="fg">
-            <label>Confirm Password<span class="req">*</span></label>
-            <input type="password" name="password2" placeholder="Repeat password" required>
+            <label for="password2">Confirm Password<span class="req">*</span></label>
+            <input type="password" id="password2" name="password2" placeholder="Repeat password" required>
           </div>
         </div>
         <div class="check">

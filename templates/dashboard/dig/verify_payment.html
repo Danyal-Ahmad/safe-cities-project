@@ -12,11 +12,11 @@
  </div>
 </div>
 
-<div>
- <div>
- <div>
+<div class="row g-4">
+ <div class="col-lg-6">
+ <div class="card h-100">
  <div class="card-header">
- <span><i class="bi bi-circle me-2"></i>Verify Payment</span>
+ <span><i class="bi bi-credit-card me-2"></i>Verify Payment</span>
  </div>
  <div class="card-body">
  <form method="post">
@@ -37,9 +37,9 @@
  </div>
  </form>
  {% if verification_result %}
- <div class=" p-3 {% if verified %} bg-opacity-10{% else %} bg-opacity-10{% endif %} ">
- <h5 class="{% if verified %}{% else %}{% endif %}">
- <i class=" -{% if verified %}circle-check{% else %}circle-xmark{% endif %} me-2"></i>
+ <div class="alert {% if verified %}alert-success{% else %}alert-danger{% endif %} p-3 mt-3">
+ <h5 class="mb-2">
+ <i class="bi {% if verified %}bi-circle-check{% else %}bi-x-circle{% endif %} me-2"></i>
  {% if verified %}Payment Verified{% else %}Payment Not Found{% endif %}
  </h5>
  <div>

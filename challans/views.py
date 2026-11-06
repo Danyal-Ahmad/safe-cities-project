@@ -552,6 +552,7 @@ def guest_pay(request, challan_id):
                 'challan': challan,
                 'payment_methods': methods,
                 'bank_instructions': init.get('fields') or {},
+                'has_active': ChallanAppeal.has_active_appeal(challan),
             })
 
         messages.info(request, "Payment session started. Complete it at the gateway.")
@@ -560,6 +561,7 @@ def guest_pay(request, challan_id):
     return render(request, 'challan/guest_pay.html', {
         'challan': challan,
         'payment_methods': methods,
+        'has_active': ChallanAppeal.has_active_appeal(challan),
     })
 
 

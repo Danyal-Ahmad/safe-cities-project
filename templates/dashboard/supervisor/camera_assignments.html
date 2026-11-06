@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+
+{% block title %}Camera Assignments{% endblock %}
+
+{% block content %}
+<div class="scr">
+
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-camera-video-fill"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Field Supervision</div>
+        <div class="scr-rail-title">
+          Camera Assignments
+          <span class="scr-rail-tag"><i class="bi bi-eye"></i> Read Only Oversight</span>
+        </div>
+        <div class="scr-rail-sub">Which officer is assigned to which camera, when it was assigned and by whom.</div>
+      </div>
+      <div class="scr-rail-actions">
+        <a href="{% url 'supervisor_portal:dashboard' %}" class="scr-rail-btn"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <div class="scr-stats">
+      <div class="scr-stat">
+        <div class="scr-stat-label">Total Assignments</div>
+        <div class="scr-stat-value">{{ totals.assignments|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">All camera to officer mappings</div>
+      </div>
+      <div class="scr-stat scr-stat--success">
+        <div class="scr-stat-label">Active Assignments</div>
+        <div class="scr-stat-value">{{ totals.active|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">Currently granting camera access</div>
+      </div>
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Cameras Covered</div>
+        <div class="scr-stat-value">{{ totals.cameras|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">Distinct cameras with an officer</div>
+      </div>
+      <div class="scr-stat scr-stat--purple">
+        <div class="scr-stat-label">Officers Assigned</div>
+        <div class="scr-stat-value">{{ totals.officers|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">Officers holding at least one camera</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="scr-grid">
+
+    <section class="scr-panel scr-panel-5">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-person-video3"></i> Assignments Per Officer</div>
+        <span class="md-badge md-badge-secondary">Read Only</span>
+      </div>
+      {% if officer_rows %}
+      <div class="scr-panel-body scr-panel-scroll">
+        <table class="md-table">
+          <thead>
+            <tr><th>Officer</th><th>Active</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            {% for c in officer_rows %}
+            <tr>
+              <td><b>{{ c.officer.display_name|default:c.officer.username }}</b></td>
+              <td><span class="md-badge md-badge-success">{{ c.active }}</span></td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ c.total }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-camera-video-off" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        No camera assignments on record.
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="scr-panel scr-panel-7">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-journal-text"></i> Assignment Ledger</div>
+        <span class="md-badge md-badge-secondary">{{ totals.assignments|default:0 }} Rows</span>
+      </div>
+      {% if assignments %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Camera</th><th>Location</th><th>Officer</th><th>Assigned By</th><th>Assigned On</th><th>Status</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            {% for a in assignments %}
+            <tr>
+              <td style="font-family: var(--sc-mono); font-size: 0.8rem; font-weight: 700;">{{ a.camera.camera_id }}</td>
+              <td>{{ a.camera.location|default:"-" }}</td>
+              <td><b>{{ a.officer.display_name|default:a.officer.username }}</b></td>
+              <td>{{ a.assigned_by.display_name|default:"-" }}</td>
+              <td class="small">{{ a.assigned_at|date:"d-M-Y H:i" }}</td>
+              <td>
+                {% if a.is_active %}
+                <span class="md-badge md-badge-success">Active</span>
+                {% else %}
+                <span class="md-badge md-badge-secondary">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="small" style="color: var(--md-text-muted);">{{ a.notes|default:"-"|truncatechars:60 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-camera-video-off" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        No camera assignments on record.
+      </div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+{% endblock %}

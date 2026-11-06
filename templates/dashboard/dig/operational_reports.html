@@ -6,41 +6,157 @@
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
 <div class="sc-page-hero">
- <div>
- <h1><i class="bi bi-file-earmark-bar-chart me-2"></i>Operational Reports</h1>
- <p class=" opacity-75">Operational performance and camera system reports</p>
- </div>
+  <div>
+    <h1><i class="bi bi-file-earmark-bar-chart me-2"></i>Operational Reports</h1>
+    <p class="sc-lead">Operational performance and enforcement activity</p>
+  </div>
+  <a href="{% url 'dig:generate_report' %}?type=operational" class="sc-btn sc-btn-primary"><i class="bi bi-gear me-1"></i>Generate Report</a>
 </div>
 
-<div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:generate_report' %}?type=operational"><div class="card-body "><i></i><div>Camera Performance</div><div class="small ">Uptime & capture rates</div></div></a></div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:generate_report' %}?type=detections"><div class="card-body "><i></i><div>Detection Stats</div><div class="small ">Accuracy & rates</div></div></a></div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:generate_report' %}?type=officer_performance"><div class="card-body "><i></i><div>Officer Performance</div><div class="small ">Review efficiency</div></div></a></div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:generate_report' %}?type=shifts"><div class="card-body "><i></i><div>Shift Reports</div><div class="small ">Coverage & handover</div></div></a></div>
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-calendar3 me-2"></i>Reporting Period</span>
+    <div class="btn-group btn-group-sm">
+      <a href="{% url 'dig:operational_reports' %}?type=daily" class="btn {% if active_type == 'daily' %}btn-primary{% else %}sc-btn{% endif %}">Daily</a>
+      <a href="{% url 'dig:operational_reports' %}?type=weekly" class="btn {% if active_type == 'weekly' %}btn-primary{% else %}sc-btn{% endif %}">Weekly</a>
+      <a href="{% url 'dig:operational_reports' %}?type=monthly" class="btn {% if active_type == 'monthly' %}btn-primary{% else %}sc-btn{% endif %}">Monthly</a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="metric-card h-100">
+          <div class="metric-card-top">
+            <span class="metric-label">Challans</span>
+            <span class="metric-icon-box"><i class="bi bi-receipt"></i></span>
+          </div>
+          <div class="metric-value">{{ active.challans|default:0|intcomma }}</div>
+          <div class="sc-text-sm sc-text-muted">{{ active.label }}</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="metric-card h-100">
+          <div class="metric-card-top">
+            <span class="metric-label">Paid / Unpaid</span>
+            <span class="metric-icon-box"><i class="bi bi-check2-circle"></i></span>
+          </div>
+          <div class="metric-value">{{ active.paid|default:0 }} / {{ active.unpaid|default:0 }}</div>
+          <div class="sc-text-sm sc-text-muted">{{ active.label }}</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="metric-card h-100">
+          <div class="metric-card-top">
+            <span class="metric-label">Collected</span>
+            <span class="metric-icon-box"><i class="bi bi-cash-coin"></i></span>
+          </div>
+          <div class="metric-value">PKR {{ active.collected|default:0|intcomma }}</div>
+          <div class="sc-text-sm sc-text-muted">{{ active.label }}</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="metric-card h-100">
+          <div class="metric-card-top">
+            <span class="metric-label">Pending Revenue</span>
+            <span class="metric-icon-box"><i class="bi bi-hourglass-split"></i></span>
+          </div>
+          <div class="metric-value">PKR {{ active.pending|default:0|intcomma }}</div>
+          <div class="sc-text-sm sc-text-muted">{{ active.label }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div>
- <div class="card-header"><span><i class="bi bi-circle me-2"></i>Recent Operational Reports</span></div>
- <div class="p-0">
- <div class="table-responsive">
- <table class="table table-hover ">
- <thead><tr><th>Title</th><th>Type</th><th>Date Range</th><th>Generated</th><th>Format</th><th>Actions</th></tr></thead>
- <tbody>
- {% for r in reports %}
- <tr>
- <td>{{ r.title }}</td>
- <td><span class="badge ">{{ r.get_type_display }}</span></td>
- <td>{{ r.start_date|date:"d M Y" }} - {{ r.end_date|date:"d M Y" }}</td>
- <td>{{ r.created_at|date:"d M Y H:i" }}</td>
- <td><span class="badge ">{{ r.get_format_display }}</span></td>
- <td><a href="{{ r.file.url }}" class="sc-btn sc-btn-primary" target="_blank"><i class="bi bi-circle"></i>
- </tr>
- {% empty %}
- <tr><td colspan="6" class=" py-4">No operational reports generated yet</td></tr>
- {% endfor %}
- </tbody>
- </table>
- </div>
- </div>
+<div class="row g-3">
+  <div class="col-md-3">
+    <a class="card text-decoration-none h-100 d-block" href="{% url 'dig:generate_report' %}?type=camera_performance">
+      <div class="card-body text-center py-4">
+        <i class="bi bi-camera-video fs-2 text-primary mb-2 d-block"></i>
+        <div class="fw-semibold">Camera Performance</div>
+        <div class="small text-muted">Uptime &amp; capture rates</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a class="card text-decoration-none h-100 d-block" href="{% url 'dig:generate_report' %}?type=violations">
+      <div class="card-body text-center py-4">
+        <i class="bi bi-search fs-2 text-success mb-2 d-block"></i>
+        <div class="fw-semibold">Detection Stats</div>
+        <div class="small text-muted">Accuracy &amp; rates</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a class="card text-decoration-none h-100 d-block" href="{% url 'dig:generate_report' %}?type=officer_performance">
+      <div class="card-body text-center py-4">
+        <i class="bi bi-person-check fs-2 text-warning mb-2 d-block"></i>
+        <div class="fw-semibold">Officer Performance</div>
+        <div class="small text-muted">Review efficiency</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a class="card text-decoration-none h-100 d-block" href="{% url 'dig:generate_report' %}?type=compliance">
+      <div class="card-body text-center py-4">
+        <i class="bi bi-calendar-week fs-2 text-danger mb-2 d-block"></i>
+        <div class="fw-semibold">Shift Reports</div>
+        <div class="small text-muted">Coverage &amp; handover</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><span><i class="bi bi-table me-2"></i>Period Comparison</span>
+    <span class="badge bg-secondary">{{ detections_today|default:0 }} detections today</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle mb-0">
+      <thead>
+        <tr><th>Period</th><th>Challans</th><th>Paid</th><th>Unpaid</th><th>Collected (PKR)</th><th>Pending (PKR)</th></tr>
+      </thead>
+      <tbody>
+        {% for p in periods %}
+        <tr {% if p.key == active_type %}class="table-active fw-semibold"{% endif %}>
+          <td>
+            <a href="{% url 'dig:operational_reports' %}?type={{ p.key }}">{{ p.label }}</a>
+          </td>
+          <td>{{ p.challans|intcomma }}</td>
+          <td>{{ p.paid|intcomma }}</td>
+          <td>{{ p.unpaid|intcomma }}</td>
+          <td>{{ p.collected|intcomma }}</td>
+          <td>{{ p.pending|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><span><i class="bi bi-clock-history me-2"></i>Recent Operational Reports</span></div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Ref</th><th>Title</th><th>Type</th><th>Generated By</th><th>Date</th><th>Format</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for g in recent_generations %}
+        <tr>
+          <td class="font-monospace">RPT-{{ g.id|stringformat:"06d" }}</td>
+          <td>{{ g.details.title|default:"Challan report" }}</td>
+          <td><span class="badge bg-primary">{{ g.details.kind|default:"all"|title }}</span></td>
+          <td>{{ g.actor.display_name|default:g.actor.username|default:"System" }}</td>
+          <td class="small">{{ g.timestamp|date:"d M Y H:i" }}</td>
+          <td><span class="badge bg-secondary">{{ g.details.format|default:"csv"|upper }}</span></td>
+          <td>
+            <a href="{% url 'dig:generate_report' %}?format=csv" class="sc-btn sc-btn-primary" title="Generate CSV report"><i class="bi bi-download"></i> Open report</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-4 text-muted">No operational reports generated yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Camera Heartbeats{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-camera-heartbeats.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-heart-pulse me-2"></i>Camera Heartbeats</h1>
+    <p class="sc-lead">Stream freshness for every enrolled camera based on the last frame received - fresh under 5 minutes, stale within an hour, dead beyond it.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <form method="post" action="{% url 'it_support_portal:camera_heartbeat_run' %}">
+      {% csrf_token %}
+      <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-repeat me-1"></i>Run Health Check</button>
+    </form>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-broadcast"></i></div>
+    <div class="sc-kpi-label">Fresh Streams</div>
+    <div class="sc-kpi-value">{{ stats.fresh|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">last frame under 5 minutes ago</div>
+  </div>
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="sc-kpi-label">Stale Streams</div>
+    <div class="sc-kpi-value">{{ stats.stale|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">last frame 5 to 60 minutes ago</div>
+  </div>
+  <div class="sc-kpi sc-kpi-danger">
+    <div class="sc-kpi-icon"><i class="bi bi-camera-video-off"></i></div>
+    <div class="sc-kpi-label">Dead Streams</div>
+    <div class="sc-kpi-value">{{ stats.dead|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">no frame for over 60 minutes</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-speedometer2"></i></div>
+    <div class="sc-kpi-label">Fresh Ratio</div>
+    <div class="sc-kpi-value">{{ stats.fresh_pct|default:0 }}%</div>
+    <div class="sc-kpi-foot">{{ stats.fresh|default:0|intcomma }} of {{ stats.total|default:0|intcomma }} cameras ({{ stats.never|default:0|intcomma }} never reported)</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-funnel"></i>
+    <span>Freshness Buckets</span>
+    <span class="ms-auto d-flex flex-wrap sc-gap-2">
+      <a href="{% url 'it_support_portal:camera_heartbeats' %}" class="sc-badge {% if not bucket_filter %}sc-badge-blue{% else %}sc-badge-gray{% endif %}">All ({{ stats.total }})</a>
+      <a href="?bucket=fresh" class="sc-badge {% if bucket_filter == 'fresh' %}sc-badge-ok{% else %}sc-badge-gray{% endif %}">Fresh ({{ stats.fresh }})</a>
+      <a href="?bucket=stale" class="sc-badge {% if bucket_filter == 'stale' %}sc-badge-amber{% else %}sc-badge-gray{% endif %}">Stale ({{ stats.stale }})</a>
+      <a href="?bucket=dead" class="sc-badge {% if bucket_filter == 'dead' %}sc-badge-red{% else %}sc-badge-gray{% endif %}">Dead ({{ stats.dead }})</a>
+      <a href="?bucket=never" class="sc-badge {% if bucket_filter == 'never' %}sc-badge-red{% else %}sc-badge-gray{% endif %}">Never ({{ stats.never }})</a>
+    </span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if cameras %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>Camera ID</th>
+            <th>Location</th>
+            <th>Freshness</th>
+            <th>Frame Age</th>
+            <th>Last Frame At</th>
+            <th>Health Check Age</th>
+            <th>Health Status</th>
+            <th>Active</th>
+            <th>Streaming</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cameras %}
+          <tr>
+            <td class="sc-mono" style="font-weight: 700;">{{ c.camera_id }}</td>
+            <td class="sc-text-sm">{{ c.location|truncatechars:32 }}</td>
+            <td>
+              {% if c.it_frame_bucket == 'fresh' %}<span class="sc-badge sc-badge-ok"><i class="bi bi-broadcast"></i>Fresh</span>
+              {% elif c.it_frame_bucket == 'stale' %}<span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass"></i>Stale</span>
+              {% elif c.it_frame_bucket == 'dead' %}<span class="sc-badge sc-badge-red"><i class="bi bi-camera-video-off"></i>Dead</span>
+              {% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>Never</span>{% endif %}
+            </td>
+            <td class="sc-text-sm">{{ c.it_frame_age_text }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ c.last_frame_at|date:"d M Y H:i"|default:"never" }}</td>
+            <td class="sc-text-sm">{{ c.it_health_age_text }}</td>
+            <td>
+              {% if c.health_status == 'online' %}<span class="sc-badge sc-badge-ok">Online</span>
+              {% elif c.health_status == 'offline' %}<span class="sc-badge sc-badge-red">Offline</span>
+              {% elif c.health_status == 'degraded' %}<span class="sc-badge sc-badge-amber">Degraded</span>
+              {% else %}<span class="sc-badge sc-badge-gray">Unknown</span>{% endif %}
+            </td>
+            <td>
+              {% if c.is_active %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Yes</span>
+              {% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>No</span>{% endif %}
+            </td>
+            <td>
+              {% if c.is_streaming %}<span class="sc-badge sc-badge-blue"><i class="bi bi-broadcast"></i>On</span>
+              {% else %}<span class="sc-badge sc-badge-gray">Idle</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-camera-video-off"></i>
+      <p class="mb-1">No cameras in this bucket.</p>
+      <p class="sc-hint mb-0">Switch to another freshness bucket or run a health check to refresh camera status.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="sc-card it-hb-note">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle"></i>
+    <span>How This Board Works</span>
+  </div>
+  <div class="sc-card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="it-hb-item">
+          <i class="bi bi-clock"></i>
+          <div>
+            <div class="it-hb-item-t">Freshness comes from real frames</div>
+            <div class="sc-text-xs sc-text-muted">Every camera worker frame updates last_frame_at. Buckets are computed live on each page load.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="it-hb-item">
+          <i class="bi bi-arrow-repeat"></i>
+          <div>
+            <div class="it-hb-item-t">Run Health Check mirrors the cron job</div>
+            <div class="sc-text-xs sc-text-muted">It applies the same 120 second timeout rule as the check_camera_heartbeats management command.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="it-hb-item">
+          <i class="bi bi-shield-check"></i>
+          <div>
+            <div class="it-hb-item-t">Every run is audited</div>
+            <div class="sc-text-xs sc-text-muted">Each manual scan writes a camera.healthcheck_run entry to the audit log.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

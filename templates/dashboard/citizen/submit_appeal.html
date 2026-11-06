@@ -10,20 +10,20 @@
 <form method="post" enctype="multipart/form-data">
 {% csrf_token %}
 <div class="sc-form-group">
-<label>CNIC *</label>
-<input type="text" name="guest_cnic" placeholder="35202-1234567-1" required>
+<label for="guestCnic">CNIC *</label>
+<input type="text" id="guestCnic" name="guest_cnic" placeholder="35202-1234567-1" required>
 </div>
 <div class="sc-form-group">
-<label>Your name</label>
-<input type="text" name="guest_name">
+<label for="guestName">Your name</label>
+<input type="text" id="guestName" name="guest_name">
 </div>
 <div class="sc-form-group">
-<label>Reason for appeal *</label>
-<textarea name="reason" rows="4" required placeholder="Explain why you are appealing this challan..."></textarea>
+<label for="reason">Reason for appeal *</label>
+<textarea id="reason" name="reason" rows="4" required placeholder="Explain why you are appealing this challan..."></textarea>
 </div>
 <div class="sc-form-group">
-<label>Evidence (optional)</label>
-<input type="file" name="evidence_file" accept="image/*,.pdf">
+<label for="evidenceFile">Evidence (optional)</label>
+<input type="file" id="evidenceFile" name="evidence_file" accept="image/*,.pdf">
 <div class="sc-hint">Image or PDF, max 10 MB</div>
 </div>
 <div class="sc-check">

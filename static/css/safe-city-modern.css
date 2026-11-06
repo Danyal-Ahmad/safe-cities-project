@@ -866,10 +866,12 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
 .scr-stat-foot {
   margin-top: 2px;
   font-size: 0.71rem;
+  line-height: 1.45;
   color: var(--sc-text-muted);
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .scr-stat-foot a { color: var(--sc-primary); font-weight: 600; text-decoration: none; }
 .scr-stat-foot a:hover { text-decoration: underline; }

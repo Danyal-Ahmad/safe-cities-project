@@ -26,6 +26,8 @@ body.ps-page {
 
 /* ---- header ---- */
 .ps-header {
+  position: relative;
+  z-index: 2;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 16px 28px; border-bottom: 1px solid rgba(96,165,250,.14);
   background: rgba(8,18,46,.55); backdrop-filter: blur(14px);
@@ -170,6 +172,8 @@ select.ps-input option { color: #0f1c46; background: #fff; }
 
 /* ---- ticker ---- */
 .ps-ticker {
+  position: relative;
+  z-index: 2;
   display: flex; align-items: stretch; gap: 0;
   background: rgba(8,18,46,.82); border-bottom: 1px solid rgba(96,165,250,.14);
   font-size: 13px; overflow: hidden;
@@ -179,35 +183,38 @@ select.ps-input option { color: #0f1c46; background: #fff; }
   background: rgba(59,130,246,.16); border-right: 1px solid rgba(96,165,250,.22);
 }
 .ps-ticker-viewport { overflow: hidden; flex: 1; display: flex; align-items: center; }
-.ps-ticker-track { display: inline-flex; gap: 48px; white-space: nowrap; padding: 9px 0; will-change: transform; }
-.ps-ticker-item { color: rgba(232,240,255,.85); font-weight: 600; }
+.ps-ticker-track { display: inline-flex; gap: 48px; white-space: nowrap; padding: 9px 0; will-change: transform; flex: 0 0 auto; }
+.ps-ticker.is-scrolling .ps-ticker-track {
+  animation: ps-ticker-marquee var(--ps-ticker-duration, 40s) linear infinite;
+}
+.ps-ticker-viewport:hover .ps-ticker-track,
+.ps-ticker-viewport:focus-within .ps-ticker-track { animation-play-state: paused; }
+@keyframes ps-ticker-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ps-ticker.is-scrolling .ps-ticker-track { animation: none; }
+  .ps-ticker-viewport { overflow-x: auto; }
+}
+.ps-ticker-item { color: rgba(232,240,255,.85); font-weight: 600; display: inline-flex; align-items: center; }
 .ps-ticker-item a { color: #93C5FD; text-decoration: none; }
 .ps-ticker-item a:hover { text-decoration: underline; }
 .ps-ticker-note { color: rgba(232,240,255,.5); font-weight: 400; margin-left: 10px; }
 
-/* ---- popup ad ---- */
-.ps-popup { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center; padding: 24px; }
-.ps-popup.is-open { display: flex; }
-.ps-popup-backdrop { position: absolute; inset: 0; background: rgba(4,10,26,.78); backdrop-filter: blur(4px); }
-.ps-popup-modal {
-  position: relative; z-index: 1; max-width: 520px; width: 100%; border-radius: 10px; overflow: hidden;
-  background: rgba(15,28,68,.97); border: 1px solid rgba(96,165,250,.25);
-  box-shadow: 0 30px 100px rgba(0,0,0,.7);
-}
-.ps-popup-close {
-  position: absolute; right: 10px; top: 8px; z-index: 2; background: rgba(8,18,46,.8); color: #93C5FD;
-  border: 1px solid rgba(96,165,250,.3); border-radius: 8px; width: 34px; height: 34px; font-size: 18px;
-  cursor: pointer; line-height: 1;
-}
-.ps-popup-close:hover { background: rgba(96,165,250,.2); }
-.ps-popup-body { padding: 8px; }
-.ps-popup-body img { width: 100%; border-radius: 8px; display: block; }
-.ps-popup-fallback { padding: 34px 28px; text-align: center; }
-.ps-popup-fallback h2 { font-size: 19px; font-weight: 800; color: #F0F4F8; }
-.ps-popup-tag { margin-top: 10px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(232,240,255,.4); font-weight: 700; }
+/* ---- popup ad (retired: homepage now shows a single large banner) ---- */
 
-/* ---- flash messages ---- */
-.ps-messages { position: fixed; right: 20px; bottom: 20px; z-index: 95; display: flex; flex-direction: column; gap: 10px; }
+/* ---- flash messages: inline strip directly under the header (never
+     floating), auto-dismissed by JS after a few seconds ---- */
+.ps-messages {
+  width: 100%;
+  max-width: 1080px;
+  margin: 18px auto 0;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .ps-msg {
   display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600;
   background: rgba(15,28,68,.96); color: #F0F4F8; border: 1px solid rgba(96,165,250,.3);

@@ -1,7 +1,9 @@
 /**
- * SafeCities Project - DataTables Wrapper
- * Works WITH or WITHOUT jQuery/DataTables plugin.
- * Falls back to native JS sorting/filtering/pagination when DataTables is absent.
+ * SafeCities Project - Tables engine (framework-free)
+ * Sort + filter + paginate any <table> with a modern card presentation:
+ * the table lives inside an .sc-table-card surface and the pagination
+ * footer ("Showing X to Y of Z" + page controls) is rendered INSIDE that
+ * card as a proper footer bar - never as a loose floating fragment.
  */
 (function () {
     'use strict';
@@ -15,29 +17,8 @@
 
     scTables.config = {
         pageLength: 25,
-        lengthMenu: [10, 25, 50, 100],
-        language: {
-            search: 'Search:',
-            lengthMenu: 'Show _MENU_ entries',
-            info: 'Showing _START_ to _END_ of _TOTAL_',
-            infoEmpty: 'No entries',
-            zeroRecords: 'No matching records found',
-            paginate: {
-                first: '&laquo;',
-                last: '&raquo;',
-                next: '&rsaquo;',
-                previous: '&lsaquo;'
-            }
-        }
+        lengthMenu: [10, 25, 50, 100]
     };
-
-    // ============================================================
-    // Detect DataTables availability
-    // ============================================================
-
-    function hasDataTables() {
-        return typeof window.jQuery !== 'undefined' && typeof window.jQuery.fn.DataTable !== 'undefined';
-    }
 
     // ============================================================
     // Native sort/filter/paginate implementation
@@ -60,26 +41,170 @@
         rows.forEach(function (r) { tbody.appendChild(r); });
     }
 
+    function visibleRows(table) {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return [];
+        return Array.prototype.slice.call(tbody.querySelectorAll('tr')).filter(function (r) {
+            return !r.dataset.filteredOut;
+        });
+    }
+
     function nativeFilter(table, query) {
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
-        const q = query.toLowerCase();
+        const q = (query || '').toLowerCase();
         tbody.querySelectorAll('tr').forEach(function (row) {
-            row.style.display = row.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+            const match = row.textContent.toLowerCase().indexOf(q) !== -1;
+            if (match) { delete row.dataset.filteredOut; }
+            else { row.dataset.filteredOut = '1'; }
         });
     }
 
     function nativePaginate(table, page, perPage) {
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-        const rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
-        const visibleRows = rows.filter(function (r) { return r.style.display !== 'none'; });
-        const total = visibleRows.length;
+        const rows = visibleRows(table);
+        const total = rows.length;
         const start = (page - 1) * perPage;
         const end = start + perPage;
-        rows.forEach(function (r) { r.style.display = 'none'; });
-        visibleRows.slice(start, end).forEach(function (r) { r.style.display = ''; });
+        rows.forEach(function (r, i) {
+            r.style.display = (i >= start && i < end) ? '' : 'none';
+        });
         return { total: total, page: page, perPage: perPage };
+    }
+
+    // ============================================================
+    // Card presentation + footer bar
+    // ============================================================
+
+    /* Attach the pagination footer to the table's existing presentation
+       wrapper. Priority:
+       1. an .sc-table-card the engine (or the template) already provided;
+       2. an .sc-table-wrap (project table style) - footer goes inside it;
+       3. a .card-body / .sc-card-body - footer goes inside it;
+       4. otherwise wrap the table in a fresh .sc-table-card.
+       Never nest a new card inside an existing one. */
+    function ensureCard(instance) {
+        const table = instance.table;
+        let card = table.closest('.sc-table-card');
+        let host = null; // where the footer element is appended
+
+        if (!card) {
+            const wrap = table.closest('.sc-table-wrap');
+            const cardBody = table.closest('.card-body, .sc-card-body');
+            if (wrap) {
+                host = wrap;
+            } else if (cardBody) {
+                host = cardBody;
+            } else {
+                card = document.createElement('div');
+                card.className = 'sc-table-card';
+                const scroll = document.createElement('div');
+                scroll.className = 'sc-table-scroll';
+                table.parentNode.insertBefore(card, table);
+                scroll.appendChild(table);
+                card.appendChild(scroll);
+                host = card;
+            }
+        } else {
+            host = card;
+        }
+
+        const existing = host.classList.contains('sc-table-wrap')
+            ? (host.nextElementSibling && host.nextElementSibling.classList.contains('sc-table-footer') ? host.nextElementSibling : null)
+            : host.querySelector('.sc-table-footer');
+        if (!existing) {
+            const footer = document.createElement('div');
+            footer.className = 'sc-table-footer';
+            const info = document.createElement('span');
+            info.className = 'sc-table-info';
+            const controls = document.createElement('div');
+            controls.className = 'sc-table-controls';
+            footer.appendChild(info);
+            footer.appendChild(controls);
+            if (host.classList.contains('sc-table-wrap')) {
+                // The wrap scrolls horizontally; the footer must stay fixed
+                // below it, so insert as its next sibling.
+                host.parentNode.insertBefore(footer, host.nextSibling);
+            } else {
+                host.appendChild(footer);
+            }
+            instance.footerEl = footer;
+        } else {
+            instance.footerEl = existing;
+        }
+        instance.card = host;
+        instance.footerInfo = instance.footerEl.querySelector('.sc-table-info');
+        instance.footerControls = instance.footerEl.querySelector('.sc-table-controls');
+    }
+
+    function pageButton(html, page, title, disabled, active) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'sc-table-page' + (active ? ' active' : '');
+        b.innerHTML = html;
+        b.title = title;
+        b.disabled = !!disabled;
+        if (!disabled) {
+            b.addEventListener('click', function () {
+                const inst = b.__scInstance;
+                inst.state.page = page;
+                nativePaginate(inst.table, page, inst.state.perPage);
+                updateFooter(inst);
+            });
+        }
+        return b;
+    }
+
+    function updateFooter(instance) {
+        if (!instance.footerInfo) return;
+        const total = visibleRows(instance.table).length;
+        const perPage = instance.state.perPage;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        const cur = Math.min(instance.state.page, totalPages);
+
+        instance.state.page = cur;
+
+        const from = total === 0 ? 0 : (cur - 1) * perPage + 1;
+        const to = Math.min(cur * perPage, total);
+        instance.footerInfo.textContent =
+            total === 0 ? 'No records' : 'Showing ' + from + '\u2013' + to + ' of ' + total + ' records';
+
+        const c = instance.footerControls;
+        c.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        const first = pageButton('<i class="bi bi-chevron-double-left"></i>', 1, 'First page', cur === 1);
+        const prev = pageButton('<i class="bi bi-chevron-left"></i>', cur - 1, 'Previous page', cur === 1);
+        first.__scInstance = instance;
+        prev.__scInstance = instance;
+        c.appendChild(first);
+        c.appendChild(prev);
+
+        // Compact page window: 1 … (cur-1) cur (cur+1) … last
+        const window = [];
+        for (let p = 1; p <= totalPages; p++) {
+            if (p === 1 || p === totalPages || Math.abs(p - cur) <= 1) window.push(p);
+        }
+        let lastPrinted = 0;
+        window.forEach(function (p) {
+            if (p - lastPrinted > 1) {
+                const dots = document.createElement('span');
+                dots.className = 'sc-table-dots';
+                dots.textContent = '\u2026';
+                c.appendChild(dots);
+            }
+            const pb = pageButton(String(p), p, 'Page ' + p, false, p === cur);
+            pb.__scInstance = instance;
+            c.appendChild(pb);
+            lastPrinted = p;
+        });
+
+        const next = pageButton('<i class="bi bi-chevron-right"></i>', cur + 1, 'Next page', cur === totalPages);
+        const lastB = pageButton('<i class="bi bi-chevron-double-right"></i>', totalPages, 'Last page', cur === totalPages);
+        next.__scInstance = instance;
+        lastB.__scInstance = instance;
+        c.appendChild(next);
+        c.appendChild(lastB);
     }
 
     // ============================================================
@@ -89,6 +214,7 @@
     function initNative(table) {
         const id = table.id || 'tbl_' + Math.random().toString(36).substr(2, 9);
         if (scTables._instances[id]) return scTables._instances[id];
+        table.id = id;
         const instance = {
             id: id,
             table: table,
@@ -108,6 +234,9 @@
                 instance.state.sortCol = idx;
                 instance.state.sortDir = dir;
                 nativeSort(table, idx, dir);
+                instance.state.page = 1;
+                nativePaginate(table, 1, instance.state.perPage);
+                updateFooter(instance);
             });
         });
 
@@ -119,93 +248,15 @@
                 nativeFilter(table, searchEl.value);
                 instance.state.page = 1;
                 nativePaginate(table, 1, instance.state.perPage);
-                updatePagination(instance);
+                updateFooter(instance);
             });
         }
 
-        // Initial pagination
+        // Presentation: card + footer, then paginate.
+        ensureCard(instance);
         nativePaginate(table, instance.state.page, instance.state.perPage);
-        buildPagination(instance);
-        updatePagination(instance);
+        updateFooter(instance);
 
-        return instance;
-    }
-
-    function buildPagination(instance) {
-        let wrap = instance.table.parentElement.querySelector('.sc-table-pagination');
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.className = 'sc-table-pagination';
-            wrap.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;font-size:0.875rem;color:#64748b;';
-            instance.table.parentElement.appendChild(wrap);
-        }
-        instance.paginationWrap = wrap;
-    }
-
-    function updatePagination(instance) {
-        const tbody = instance.table.querySelector('tbody');
-        if (!tbody) return;
-        const visible = Array.prototype.slice.call(tbody.querySelectorAll('tr')).filter(function (r) { return r.style.display !== 'none'; });
-        const total = visible.length;
-        const totalPages = Math.max(1, Math.ceil(total / instance.state.perPage));
-        const cur = Math.min(instance.state.page, totalPages);
-
-        const info = document.createElement('span');
-        info.textContent = 'Showing ' + Math.min((cur - 1) * instance.state.perPage + 1, total) + ' to ' + Math.min(cur * instance.state.perPage, total) + ' of ' + total;
-
-        const controls = document.createElement('div');
-        controls.style.display = 'flex';
-        controls.style.gap = '0.25rem';
-
-        function btn(text, page) {
-            const b = document.createElement('button');
-            b.textContent = text;
-            b.className = 'sc-btn sc-btn-sm sc-btn-ghost';
-            b.style.cssText = 'min-width:32px;height:32px;padding:0 0.5rem;';
-            b.disabled = page < 1 || page > totalPages;
-            b.addEventListener('click', function () {
-                instance.state.page = page;
-                nativePaginate(instance.table, page, instance.state.perPage);
-                updatePagination(instance);
-            });
-            return b;
-        }
-
-        controls.appendChild(btn('\u00ab', 1));
-        controls.appendChild(btn('\u2039', cur - 1));
-        controls.appendChild(btn(String(cur), cur));
-        controls.appendChild(btn('\u203a', cur + 1));
-        controls.appendChild(btn('\u00bb', totalPages));
-
-        instance.paginationWrap.innerHTML = '';
-        instance.paginationWrap.appendChild(info);
-        instance.paginationWrap.appendChild(controls);
-    }
-
-    // ============================================================
-    // Init DataTables (jQuery)
-    // ============================================================
-
-    function initDataTables(table) {
-        const id = table.id || 'tbl_' + Math.random().toString(36).substr(2, 9);
-        if (scTables._instances[id]) return scTables._instances[id];
-        const $table = jQuery(table);
-        const dt = $table.DataTable({
-            pageLength: scTables.config.pageLength,
-            lengthMenu: scTables.config.lengthMenu,
-            language: scTables.config.language,
-            dom: 'rt<"sc-table-pagination"ip>',
-            columnDefs: [{ orderable: false, targets: 'no-sort' }],
-            initComplete: function () {
-                // Wrap table in scrollable container if not already
-                const wrapper = table.closest('.sc-table-wrap') || table.parentElement;
-                if (!wrapper.classList.contains('sc-table-wrap')) {
-                    wrapper.classList.add('sc-table-wrap');
-                }
-            }
-        });
-        const instance = { id: id, table: table, $dt: dt, type: 'datatables' };
-        scTables._instances[id] = instance;
         return instance;
     }
 
@@ -214,10 +265,8 @@
     // ============================================================
 
     scTables.init = function (tableId, options) {
-        options = options || {};
         const table = typeof tableId === 'string' ? document.getElementById(tableId) : tableId;
         if (!table) { console.error('[scTables] Table not found:', tableId); return null; }
-        if (hasDataTables()) return initDataTables(table);
         return initNative(table);
     };
 
@@ -231,10 +280,10 @@
         fetch(url, { credentials: 'same-origin', headers: headers })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                // Replace tbody content
                 const tbody = inst.table.querySelector('tbody');
                 if (tbody && data.rows) {
                     tbody.innerHTML = data.rows;
+                    updateFooter(inst);
                 }
             });
     };
@@ -242,7 +291,7 @@
     scTables.exportCsv = function (tableId) {
         const table = document.getElementById(tableId);
         if (!table) return;
-        const rows = table.querySelectorAll('tbody tr:not([style*="display: none"])');
+        const rows = table.querySelectorAll('tbody tr');
         const header = Array.prototype.slice.call(table.querySelectorAll('thead th')).map(function (th) {
             return '"' + th.textContent.trim().replace(/"/g, '""') + '"';
         }).join(',');
@@ -262,11 +311,9 @@
     scTables.columnFilter = function (tableId, colIdx, value) {
         const inst = scTables._instances[tableId];
         if (!inst) return;
-        if (inst.type === 'native') {
-            nativeFilter(inst.table, value);
-        } else if (inst.type === 'datatables') {
-            inst.$dt.column(colIdx).search(value).draw();
-        }
+        nativeFilter(inst.table, value);
+        nativePaginate(inst.table, 1, inst.state.perPage);
+        updateFooter(inst);
     };
 
     scTables.rowActions = function (tableId, actions) {

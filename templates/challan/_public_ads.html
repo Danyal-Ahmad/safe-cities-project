@@ -1,45 +1,31 @@
 {% comment %}
   Public ads partial (included only by challan/home.html).
-  Static strip: placement='ad' banners (homepage_banners) - small subtle chips.
-  Popup: placement='popup' banners (popup_banners) - modal on the home page only.
-  JS contract (static/js/pages/public-ads.js): #scfPopupOverlay, .scf-popup-close,
-  sessionStorage key 'scf_popup_dismissed'. Keep these IDs/classes intact.
+  BANNER ADS section: exactly ONE large banner, edge to edge - no border,
+  no rounded corners, a pure square/rectangle. Content is the highest
+  priority active banner with placement='static_post' (context:
+  static_post_ads, provided by admin.dig_portal.context_processors.
+  ads_delivery). Small ad chips and the popup channel were removed.
+  The ticker (placement='ticker') lives in the header, scrolling
+  right-to-left in an infinite loop.
 {% endcomment %}
-{% if homepage_banners %}
-  <div class="scf-public-ads-banner">
-    {% for ad in homepage_banners %}
-      {% if ad.html_content %}
-        <div class="scf-ad-chip">{{ ad.html_content|safe }}</div>
+{% if static_post_ads %}
+  {% with ad=static_post_ads.0 %}
+  <section class="ph-banner-ads" aria-label="Banner advertisement">
+    <span class="ph-banner-label">BANNER ADS</span>
+    <div class="ph-big-banner">
+      {% if ad.banner_type == 'html' and ad.html_content %}
+        <div class="ph-big-banner-html">{{ ad.html_content|safe }}</div>
       {% elif ad.image %}
-        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="scf-ad-chip">
-          <img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Public service' }}">
+        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="ph-big-banner-link">
+          <img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Public service announcement' }}" loading="lazy">
         </a>
       {% else %}
-        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="scf-ad-chip scf-ad-chip-text">
-          <span class="scf-ad-label">PUBLIC SERVICE</span>
-          <span class="scf-ad-title">{{ ad.title }}</span>
-        </a>
-      {% endif %}
-    {% endfor %}
-  </div>
-{% endif %}
-
-{% if popup_banners %}
-  {% with ad=popup_banners.0 %}
-  <div class="scf-popup-overlay" id="scfPopupOverlay" data-ad-id="{{ ad.id }}">
-    <div class="scf-popup-modal">
-      <button class="scf-popup-close" data-dismiss-popup aria-label="Close">&times;</button>
-      {% if ad.html_content %}
-        <div class="scf-popup-body">{{ ad.html_content|safe }}</div>
-      {% elif ad.image %}
-        {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener"><img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Announcement' }}"></a>
-        {% else %}<img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Announcement' }}">{% endif %}
-      {% else %}
-        <div class="scf-popup-body scf-popup-fallback">
-          <h2>{{ ad.title }}</h2>
+        <div class="ph-big-banner-fallback" style="background: {{ ad.effective_bg_color }}; color: {{ ad.text_color|default:'#FFFFFF' }};">
+          <i class="bi bi-shield-check"></i>
+          <span>{{ ad.title }}</span>
         </div>
       {% endif %}
     </div>
-  </div>
+  </section>
   {% endwith %}
 {% endif %}

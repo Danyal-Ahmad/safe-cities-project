@@ -3124,6 +3124,36 @@ _BANNER_PLACEMENTS = {code for code, _ in Banner.PLACEMENT_CHOICES}
 _BANNER_AUDIENCES = {code for code, _ in Banner.AUDIENCE_CHOICES}
 _BANNER_TYPES = {code for code, _ in Banner.BANNER_TYPE_CHOICES}
 
+# --- Banner image upload hardening (2026 audit, P4 family) ------------------
+# Extension whitelist + PIL sniff + 5 MB cap. Banner images are served from
+# /media/; without this a renamed .html payload would be stored verbatim and
+# later served same-origin as text/html (stored XSS on the public site).
+_BANNER_IMAGE_EXT_WHITELIST = ('.jpg', '.jpeg', '.png', '.webp')
+_BANNER_IMAGE_MAX_BYTES = 5 * 1024 * 1024
+
+
+def _validate_banner_image(f):
+    """Return (ok, error) for an uploaded banner image."""
+    if f is None:
+        return True, ''
+    name = (getattr(f, 'name', '') or '').lower()
+    if not any(name.endswith(ext) for ext in _BANNER_IMAGE_EXT_WHITELIST):
+        return False, 'Banner image must be JPG, JPEG, PNG or WEBP.'
+    if f.size > _BANNER_IMAGE_MAX_BYTES:
+        return False, 'Banner image must be under 5 MB.'
+    try:
+        from PIL import Image
+        f.seek(0)
+        with Image.open(f) as im:
+            im.verify()
+        f.seek(0)
+        with Image.open(f) as im:
+            im.load()
+        f.seek(0)
+    except Exception:
+        return False, 'Banner image is not a valid image.'
+    return True, ''
+
 
 def _banner_payload(request):
     """Validate banner fields from POST; returns (data, error)."""
@@ -3161,9 +3191,15 @@ def alerts_hub_add_banner(request):
     if error:
         messages.error(request, error)
         return redirect(_alerts_hub_url('banners', request))
+    image = request.FILES.get('image')
+    if image:
+        ok_img, img_err = _validate_banner_image(image)
+        if not ok_img:
+            messages.error(request, img_err)
+            return redirect(_alerts_hub_url('banners', request))
     banner = Banner.objects.create(
         created_by=request.user,
-        image=request.FILES.get('image') or None,
+        image=image or None,
         **data,
     )
     AuditLog.write(request, 'banner.create', 'Banner', banner.id, title=banner.title[:80],
@@ -3184,8 +3220,13 @@ def alerts_hub_edit_banner(request, banner_id):
         return redirect(_alerts_hub_url('banners', request))
     for field, value in data.items():
         setattr(banner, field, value)
-    if request.FILES.get('image'):
-        banner.image = request.FILES['image']
+    new_image = request.FILES.get('image')
+    if new_image:
+        ok_img, img_err = _validate_banner_image(new_image)
+        if not ok_img:
+            messages.error(request, img_err)
+            return redirect(_alerts_hub_url('banners', request))
+        banner.image = new_image
     banner.save()
     AuditLog.write(request, 'banner.update', 'Banner', banner.id, title=banner.title[:80])
     messages.success(request, f"Banner '{banner.title}' updated.")

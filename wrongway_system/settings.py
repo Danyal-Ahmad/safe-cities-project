@@ -61,6 +61,15 @@ PG_PASSWORD = os.environ.get('PG_PASSWORD', 'Admin@2026')
 PG_HOST = os.environ.get('PG_HOST', '127.0.0.1')
 PG_PORT = os.environ.get('PG_PORT', '5432')
 
+if not DEBUG and PG_PASSWORD == 'Admin@2026':
+    # Mirrors the SECRET_KEY / ALLOWED_HOSTS guards above: the shipped
+    # development default must never silently reach a production process
+    # (2026 audit, was docs/ROLE_AUDIT_REPORT.md P3).
+    raise SystemExit(
+        "[SafeCity] SECURITY: Set PG_PASSWORD in .env before running with "
+        "DEBUG=False (shipped development default refused)."
+    )
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -276,11 +285,16 @@ SESSION_COOKIE_AGE = 8 * 3600
 SESSION_COOKIE_NAME = 'safecity_sessionid'
 CSRF_COOKIE_NAME = 'safecity_csrftoken'
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = not DEBUG
+# Plain-HTTP load profiles behind a TLS-terminating proxy need the Secure
+# cookie flags off, mirroring SSL_REDIRECT above; default stays on in
+# production. (2026 load pass: without this the locust staff profile could
+# never authenticate - Secure cookies are never sent over plain http, so
+# every login POST 403s with "CSRF cookie not set".)
+SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', not DEBUG)
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', not DEBUG)
 CSRF_COOKIE_HTTPONLY = False  # must be False so dashboard.js can read token for AJAX
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_FAILURE_VIEW = 'admin.dig_portal.views.csrf_failure'

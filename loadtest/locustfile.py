@@ -8,6 +8,7 @@ staff logins. Run headless against a production-style server:
         -u 200 -r 20 -t 2m --host http://127.0.0.1:8010 \\
         --csv loadtest/results/run
 """
+import os
 import random
 import re
 
@@ -17,9 +18,19 @@ from locust import HttpUser, between, task
 PLATES = ['LEA-1001', 'ISB-4567', 'KHI-2345', 'ACR-59', 'LEA-1234', 'RWP-7788']
 CNICS = ['35202-1234567-1', '61101-2233445-2', '42201-9988776-3']
 
+# Staff credentials are env-overridable. Defaults match the long-lived demo
+# database convention (also used by scripts/push_audit.py). The previous
+# revision pointed at officer@safecities.project - an account that does not
+# exist in this database - so its "staff" traffic silently exercised the
+# login page only and the 302s were counted as success. The corrected profile
+# fails loudly if the login POST does not redirect.
+STAFF_USERNAME = os.environ.get('LOADTEST_STAFF_USERNAME', 'officer@safecity.fyp')
+STAFF_PASSWORD = os.environ.get('LOADTEST_STAFF_PASSWORD', 'Test@2026')
+
 
 class PublicVisitor(HttpUser):
     """Anonymous citizen checking an e-challan (75% of traffic)."""
+    weight = 3
     wait_time = between(1, 4)
 
     @task(6)
@@ -41,7 +52,8 @@ class PublicVisitor(HttpUser):
 
 
 class StaffUser(HttpUser):
-    """Staff logging into their portal (25% of traffic)."""
+    """Officer logged into their portal (25% of traffic)."""
+    weight = 1
     wait_time = between(3, 9)
 
     def on_start(self):
@@ -52,12 +64,20 @@ class StaffUser(HttpUser):
             m = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page.text)
         if m:
             token = m.group(1)
-        self.client.post(
+        with self.client.post(
             '/auth/admin/login/',
-            {'username': 'officer@safecities.project',
-             'password': 'SafeCities#2026Project',
+            {'username': STAFF_USERNAME,
+             'password': STAFF_PASSWORD,
              'csrfmiddlewaretoken': token},
-            name='POST /auth/admin/login/')
+            name='POST /auth/admin/login/', catch_response=True) as r:
+            # requests follows redirects by default, so a SUCCESSFUL login
+            # ends on the officer dashboard (200). A REJECTED login re-renders
+            # the form (200, still contains the password input). 4xx/5xx are
+            # surfaced by locust itself.
+            if r.status_code == 200 and 'type="password"' in r.text:
+                r.failure('staff login failed (login form re-rendered)')
+            elif r.status_code != 200:
+                r.failure('staff login failed (HTTP %s)' % r.status_code)
 
     @task(4)
     def portal_dashboard(self):

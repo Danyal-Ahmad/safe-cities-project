@@ -16,7 +16,7 @@ import hashlib
 import logging
 import re
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 
 from detections.models import Detection
@@ -373,32 +373,42 @@ def issue_challan(detection, camera, user=None):
         owner_data = {}
 
     legal = (getattr(camera, 'legal_direction', None) or '') if camera else ''
-    with transaction.atomic():
-        challan = Challan.objects.create(
-            detection=detection,
-            ticket_no=ticket_no,
-            plate_number=plate,
-            province=detection.ai_province,
-            owner_name=owner_data.get('owner_name'),
-            cnic=owner_data.get('cnic'),
-            address=owner_data.get('address'),
-            phone=owner_data.get('phone'),
-            vehicle_type=owner_data.get('vehicle_type') or 'car',
-            make_year=owner_data.get('make_year'),
-            color=owner_data.get('color'),
-            chassis_no=owner_data.get('chassis_no'),
-            violation_type=violation_type,
-            fine_amount=sys_settings.get_fine(violation_type),
-            location=camera.location if camera else 'AI Detection',
-            camera=camera,
-            ai_confidence=detection.ai_confidence,
-            moving_direction=opposite_direction(legal) if legal else None,
-            legal_direction=legal or None,
-            issue_date=datetime.date.today(),
-            due_date=datetime.date.today() + datetime.timedelta(days=sys_settings.due_date_days),
-            payment_status=Challan.UNPAID,
-            created_by=user,
-        )
+    try:
+        with transaction.atomic():
+            challan = Challan.objects.create(
+                detection=detection,
+                ticket_no=ticket_no,
+                plate_number=plate,
+                province=detection.ai_province,
+                owner_name=owner_data.get('owner_name'),
+                cnic=owner_data.get('cnic'),
+                address=owner_data.get('address'),
+                phone=owner_data.get('phone'),
+                vehicle_type=owner_data.get('vehicle_type') or 'car',
+                make_year=owner_data.get('make_year'),
+                color=owner_data.get('color'),
+                chassis_no=owner_data.get('chassis_no'),
+                violation_type=violation_type,
+                fine_amount=sys_settings.get_fine(violation_type),
+                location=camera.location if camera else 'AI Detection',
+                camera=camera,
+                ai_confidence=detection.ai_confidence,
+                moving_direction=opposite_direction(legal) if legal else None,
+                legal_direction=legal or None,
+                issue_date=datetime.date.today(),
+                due_date=datetime.date.today() + datetime.timedelta(days=sys_settings.due_date_days),
+                payment_status=Challan.UNPAID,
+                created_by=user,
+            )
+    except IntegrityError:
+        # 2026 audit (P5): the OneToOne constraint on Challan.detection makes
+        # the database the final arbiter against double-issue. A concurrent
+        # finalisation that loses the race joins the winner instead of
+        # crashing the pipeline.
+        existing = Challan.objects.filter(detection=detection).first()
+        if existing:
+            return existing
+        raise
 
     try:
         from detections.evidence_annotator import store_annotated_evidence

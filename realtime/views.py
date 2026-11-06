@@ -203,7 +203,6 @@ def api_citizen_challans(request):
 @require_GET
 @staff_required
 def api_chart_activity_trend_shared(request):
-    import datetime
     from datetime import timedelta as _td
     from challans.models import Challan
     rows = []
@@ -228,7 +227,6 @@ def api_chart_activity_trend_shared(request):
 @require_GET
 @staff_required
 def api_chart_violation_distribution_shared(request):
-    import datetime
     from django.db.models import Count as _Count
     from challans.models import Challan
     try:

@@ -418,9 +418,6 @@ def export_pdf(request, kind):
 
 @role_required('DIG')
 def templates_select(request):
-    from django.contrib import messages
-    from django.shortcuts import redirect, render
-
     from .audit_pdf import (BUILTIN_TEMPLATES, generate_audit_pdf,
                             get_active_template_key, get_audit_templates,
                             get_template_preview_html)

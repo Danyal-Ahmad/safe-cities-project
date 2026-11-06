@@ -541,7 +541,6 @@ def _ocr_plate_image(pil_image) -> tuple:
     if not candidates or max(c[1] for c in candidates) < 0.55:
         reader = _get_easyocr()
         if reader:
-            import numpy as np
             for img in variants:
                 try:
                     out = reader.readtext(

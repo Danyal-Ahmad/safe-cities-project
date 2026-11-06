@@ -1,5 +1,4 @@
 from django import template
-from django.utils.safestring import mark_safe
 
 from accounts.permissions import user_has_permission, user_has_any_permission
 

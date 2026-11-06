@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.core.cache import cache
 
 from accounts.models import User
+from appeals.models import ChallanAppeal
 from admin.shared.net import client_ip
 
 from .models import Challan

@@ -85,13 +85,10 @@
             </div>
           </div>
         </div>
-        <div class="sc-form-group">
-          <label class="form-label sc-text-sm">Generated template HTML <span class="sc-text-muted">(Django template - challan.* fields are filled at print time)</span></label>
-          <textarea name="html_content" rows="12" class="form-control sc-mono it-ds-code" spellcheck="false" data-ds-html placeholder="Click Generate HTML, or paste an existing template here."></textarea>
-          <div class="sc-flex sc-justify-between sc-mt-2">
-            <span class="sc-hint" data-ds-counter>0 characters &middot; at least 50 required</span>
-            <span class="sc-hint sc-mono" data-ds-blocks-list>no blocks placed</span>
-          </div>
+        <input type="hidden" name="html_content" spellcheck="false" data-ds-html>
+        <div class="sc-flex sc-justify-between sc-mt-2">
+          <span class="sc-hint">The document source is generated from your blocks — never displayed as code.</span>
+          <span class="sc-hint sc-mono" data-ds-blocks-list>no blocks placed</span>
         </div>
         <div class="sc-flex sc-gap-2 sc-flex-wrap">
           <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-save me-1"></i>Save Template</button>

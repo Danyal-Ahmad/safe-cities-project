@@ -13,7 +13,6 @@ urlpatterns = [
     path('detection/<int:detection_id>/flag/',     views.flag_detection,      name='flag_detection'),
     path('detection/<int:detection_id>/note/',     views.add_review_note,     name='add_review_note'),
 
-    path('camera-feed/',                           views.camera_feed,         name='camera_feed'),
     path('detections/',                            views.detections_list,     name='detections_list'),
     path('flagged/',                               views.flagged_list,        name='flagged_list'),
     path('challans/',                              views.challans_list,       name='challans_list'),
@@ -28,9 +27,6 @@ urlpatterns = [
     path('cameras/<int:camera_id>/snapshot/',      dig_views.camera_snapshot, name='camera_snapshot'),
     path('cameras/<int:camera_id>/stream-url/',    dig_views.camera_stream_url, name='camera_stream_url'),
     path('live-tracking/',                         views.live_tracking,       name='live_tracking'),
-    path('vehicle-tracking/',                      views.vehicle_tracking,    name='vehicle_tracking'),
-    path('timeline/',                              views.frame_timeline,      name='frame_timeline'),
-    path('live-tracking/timeline/',                views.frame_timeline,      name='live_tracking_timeline'),
 
     path('notifications/',                          dig_views.notifications,             name='notifications'),
     path('notifications/<int:notification_id>/read/', dig_views.notification_read,       name='notification_read'),

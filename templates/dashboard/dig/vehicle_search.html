@@ -138,7 +138,7 @@
                     {% if es.total %}
                       <span class="sc-badge {% if es.all_passed %}sc-badge-ok{% else %}sc-badge-amber{% endif %}"
                             title="{% if es.all_passed %}All evidence checks passed{% else %}Some evidence checks failed{% endif %}{% if es.hash %} - hash {{ es.hash|slice:':12' }}…{% endif %}">
-                        <i class="bi bi-shield-{% if es.all_passed %}check{% else %}exclamation{% endif %}"></i>
+                        <i class="bi bi-shield-fill-{% if es.all_passed %}check{% else %}exclamation{% endif %}"></i>
                         {{ es.passed }}/{{ es.total }} checks
                       </span>
                     {% else %}

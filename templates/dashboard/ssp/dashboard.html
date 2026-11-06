@@ -22,12 +22,10 @@
         <div class="scr-rail-kicker">Safe Cities Project · District Oversight</div>
         <div class="scr-rail-title">
           SSP District Command
-          <span class="scr-rail-tag"><i class="bi bi-geo-alt"></i> Regional Command</span>
         </div>
         <div class="scr-rail-sub">District-wide enforcement oversight, appeal adjudication, revenue and high-value challan approvals.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_analytics" %}
         <a href="{% url 'ssp_portal:analytics' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-graph-up-arrow"></i> Analytics</a>
         {% endif %}
@@ -82,7 +80,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Appeals Trend (Last 7 Days)</div>
-        <span class="md-badge md-badge-secondary">Weekly Inflow</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="appealsTrendChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="bar"></canvas>
@@ -92,7 +89,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Violation Distribution</div>
-        <span class="md-badge md-badge-secondary">All Violations</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="violDistChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>

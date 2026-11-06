@@ -22,12 +22,10 @@
         <div class="scr-rail-kicker">Safe Cities Project · Field Supervision</div>
         <div class="scr-rail-title">
           Supervisor Operations Command
-          <span class="scr-rail-tag"><i class="bi bi-person-badge"></i> Team Supervisor</span>
         </div>
         <div class="scr-rail-sub">Field officer management, active shift rosters, review backlog and accuracy oversight.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_team_performance" %}
         <a href="{% url 'supervisor_portal:team_performance' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-people"></i> Team Performance</a>
         {% endif %}
@@ -84,7 +82,6 @@
     <section class="scr-panel scr-panel-7">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Team Review Activity (Last 7 Days)</div>
-        <span class="md-badge md-badge-secondary">Triage Throughput</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="teamActivityChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>

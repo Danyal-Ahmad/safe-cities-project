@@ -800,7 +800,7 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
 
 .scr-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
   background: #FFFFFF;
   border-top: 1px solid var(--sc-border);
 }
@@ -839,9 +839,7 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--sc-text-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.45;
 }
 
 .scr-stat-value {

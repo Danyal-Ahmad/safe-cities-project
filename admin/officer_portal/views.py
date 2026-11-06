@@ -144,10 +144,30 @@ def review_queue(request):
         model_info = get_model_info()
     except Exception:
         model_info = {}
+
+    # Live queue telemetry (all values derived from the scoped queryset,
+    # never hardcoded - the tiles update in-page via realtime polling).
+    pendings = list(qs[:200])
+    confidences = [d.ai_confidence for d in pendings if d.ai_confidence]
+    avg_conf = (sum(confidences) / len(confidences)) if confidences else None
+    oldest = pendings[0] if pendings else None
+    oldest_age_min = None
+    if oldest is not None:
+        from django.utils import timezone as _tz
+        delta = _tz.localtime(_tz.now()) - _tz.localtime(oldest.created_at)
+        oldest_age_min = max(0, int(delta.total_seconds() // 60))
+    cameras_active = len({d.camera_id for d in pendings if d.camera_id})
+    plates_pending = len({(d.ai_plate_text or '').strip().upper()
+                           for d in pendings if (d.ai_plate_text or '').strip()})
+
     return render(request, 'dashboard/officer/review_queue.html', {
         'detections': qs[:50], 'selected': selected, 'queue_count': qs.count(),
         'model_info': model_info,
         'ai_threshold': SystemSettings.get().ai_confidence_threshold,
+        'avg_confidence': avg_conf,
+        'oldest_age_min': oldest_age_min,
+        'cameras_active': cameras_active,
+        'plates_pending': plates_pending,
     })
 
 
@@ -222,14 +242,6 @@ def add_review_note(request, detection_id):
             AuditLog.write(request, 'detection.note_add', 'Detection', detection.id, note=note_text[:80])
             messages.success(request, "Internal note added.")
     return redirect(reverse('officer_portal:review_queue') + f'?detection_id={detection_id}')
-
-
-@officer_or_dig_required
-def camera_feed(request):
-    recent = scope_detections(
-        request.user, Detection.objects.filter(status=Detection.PENDING)
-    ).order_by('-created_at')[:24]
-    return render(request, 'dashboard/officer/camera_feed.html', {'recent': recent})
 
 
 @officer_or_dig_required
@@ -465,50 +477,6 @@ def live_tracking(request):
         'stat_unique_plates': stats['unique_plates'],
         'stat_avg_conf': stats['avg_confidence'],
         'status_choices': getattr(Detection, 'STATUS_CHOICES', ()),
-    })
-
-
-@role_required('OFFICER')
-def vehicle_tracking(request):
-    plate = (request.GET.get('plate') or '').strip().upper()
-    detections = []
-    challans = []
-    if plate:
-        detections = list(
-            scope_detections(request.user, Detection.objects.all())
-            .filter(ai_plate_text__icontains=plate)
-            .order_by('-created_at')[:50]
-        )
-        challans = list(Challan.objects.filter(plate_number__icontains=plate).order_by('-issue_date')[:20])
-    return render(request, 'dashboard/officer/vehicle_tracking.html', {
-        'plate': plate,
-        'detections': detections,
-        'challans': challans,
-    })
-
-
-@role_required('OFFICER', 'IT')
-def frame_timeline(request):
-    """JSON feed for officer Live Tracking trail - camera-assignment scoped."""
-    from admin.shared import LiveTrackingService
-
-    service = LiveTrackingService(
-        user=request.user,
-        selected_camera_id=request.GET.get('camera_id') or '',
-        plate_query=request.GET.get('plate') or '',
-        limit=60,
-    )
-    detections = service.get_recent_detections()
-
-    camera_id = request.GET.get('camera_id')
-    if camera_id and service.camera_not_found:
-        return JsonResponse({'items': [], 'camera_not_found': True})
-
-    items = service.serialize_detections(detections)
-    return JsonResponse({
-        'items': items,
-        'count': len(items),
-        'camera_not_found': service.camera_not_found,
     })
 
 

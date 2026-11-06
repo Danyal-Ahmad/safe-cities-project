@@ -175,3 +175,34 @@
   .pd-hero-actions { width: 100%; }
   .pd-hero-actions .scpub-btn { flex: 1; }
 }
+
+/* ===== Official E-Challan embedded PDF (the real rendered document) ===== */
+.pd-pdf-card { overflow: hidden; }
+.pd-pdf-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  max-height: 640px;
+  border: 1px solid #E4E8EF;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #F6F9FD;
+}
+.pd-pdf-embed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.pd-pdf-hint {
+  margin: 10px 0 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #5B6B85;
+}
+.pd-pdf-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.pd-pdf-actions .scpub-btn { width: 100%; }

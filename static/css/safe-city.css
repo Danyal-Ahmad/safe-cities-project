@@ -208,31 +208,8 @@ table { border-collapse: collapse; border-spacing: 0; }
   overflow: hidden;
 }
 
-/* Sidebar head: role context only. The brand (two logos) lives in the
-   navbar; profile/password/sign-out live only in the navbar dropdown. */
-.sc-side-head {
-  padding: 16px 20px 14px;
-  border-bottom: 1px solid rgba(96, 165, 250, 0.14);
-}
-
-.sc-side-head-role {
-  display: block;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #F0F4FF;
-}
-
-.sc-side-head-sub {
-  display: block;
-  margin-top: 3px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgba(147, 197, 253, 0.72);
-}
-
+/* Sidebar: no head block. The two logos live in the navbar; role names are
+   never repeated on the left side. Group titles carry the context. */
 .sc-nav {
   flex: 1;
   overflow-y: auto;
@@ -360,14 +337,6 @@ table { border-collapse: collapse; border-spacing: 0; }
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--sc-navy-deep);
-  white-space: nowrap;
-}
-.sc-topbar-brand-sub {
-  font-size: 0.64rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--sc-primary);
   white-space: nowrap;
 }
 @media (max-width: 900px) {

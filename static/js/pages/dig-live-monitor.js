@@ -2,7 +2,7 @@
    LIVE CCTV WALL | SAFE CITIES PROJECT
    templates/dashboard/dig/live_monitor.html
 
-   - wall clock + per-channel clocks (single ticker)
+   - clean white wall, no page clocks (navbar owns time + date)
    - instant client-side filter (server search via GET form stays native)
    - snapshot / video loading skeletons and no-signal fallbacks
    - video review console: native controls + seek jumps, play/pause,
@@ -20,10 +20,6 @@
      ------------------------------------------------------------------ */
 
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
-
-  function clockText(d) {
-    return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
-  }
 
   function fmtTime(sec) {
     if (!isFinite(sec) || sec < 0) { sec = 0; }
@@ -55,19 +51,6 @@
   }
 
   /* ------------------------------------------------------------------
-     Clocks: shared wall clock + one running timestamp per channel
-     ------------------------------------------------------------------ */
-
-  var wallClock = document.getElementById('cctvWallClock');
-  var tileClocks = wall.querySelectorAll('[data-cctv-clock]');
-
-  function tickClocks() {
-    var t = clockText(new Date());
-    if (wallClock) { wallClock.textContent = t; }
-    for (var i = 0; i < tileClocks.length; i++) { tileClocks[i].textContent = t; }
-  }
-  tickClocks();
-  window.setInterval(tickClocks, 1000);
 
   /* ------------------------------------------------------------------
      Instant client-side filter (complements the server-side ?q= search)
@@ -150,8 +133,7 @@
     '    </div>' +
     '    <div class="cctv-zoom-head-right">' +
     '      <span class="cctv-zoom-meta" id="cctvZoomMeta"></span>' +
-    '      <span class="cctv-zoom-clock" id="cctvZoomClock">--:--:--</span>' +
-    '      <button type="button" class="cctv-zoom-close" id="cctvZoomClose" aria-label="Close review console">&times;</button>' +
+        '      <button type="button" class="cctv-zoom-close" id="cctvZoomClose" aria-label="Close review console">&times;</button>' +
     '    </div>' +
     '  </div>' +
     '  <div class="cctv-zoom-stage" id="cctvZoomStage"></div>' +
@@ -187,7 +169,6 @@
   var stage = document.getElementById('cctvZoomStage');
   var consoleBar = document.getElementById('cctvZoomConsole');
   var noteBox = document.getElementById('cctvZoomNote');
-  var zoomClock = document.getElementById('cctvZoomClock');
   var seekBar = document.getElementById('cctvSeek');
   var timeCurrent = document.getElementById('czTimeCurrent');
   var timeTotal = document.getElementById('czTimeTotal');
@@ -343,7 +324,6 @@
 
     overlay.classList.add('is-open');
     document.body.style.overflow = 'hidden';
-    tickZoomClock();
   }
 
   function closeZoom() {
@@ -360,11 +340,6 @@
     stage.innerHTML = '';
     resetConsoleUi();
   }
-
-  function tickZoomClock() {
-    if (zoomClock) { zoomClock.textContent = clockText(new Date()); }
-  }
-  window.setInterval(tickZoomClock, 1000);
 
   /* Tile triggers: double-click (kept) + Enter key */
   Array.prototype.forEach.call(wall.querySelectorAll('.cctv-tile'), function (tile) {
@@ -434,33 +409,10 @@
   });
 
   /* ------------------------------------------------------------------
-     Live counters + activity ticker (polled, videos keep playing)
+     Live counters (polled, videos keep playing)
      ------------------------------------------------------------------ */
 
   var feedUrl = wall.getAttribute('data-feed-url');
-
-  function renderTicker(items) {
-    var track = document.getElementById('cctvTicker');
-    if (!track) { return; }
-    track.innerHTML = '';
-    items.slice(0, 8).forEach(function (d) {
-      var item = document.createElement('span');
-      item.className = 'cctv-ticker-item';
-      var cam = document.createElement('span');
-      cam.className = 'cctv-ticker-cam';
-      cam.textContent = d.camera_id || 'CAM';
-      var plate = document.createElement('span');
-      plate.className = 'cctv-ticker-plate';
-      plate.textContent = d.plate || 'UNKNOWN';
-      var time = document.createElement('span');
-      time.className = 'cctv-ticker-time';
-      time.textContent = d.created_at_display || '';
-      item.appendChild(cam);
-      item.appendChild(plate);
-      item.appendChild(time);
-      track.appendChild(item);
-    });
-  }
 
   function pollFeed() {
     if (!feedUrl || !window.fetch) { return; }
@@ -471,7 +423,6 @@
         setText('cctvOnlineCount', data.online_count != null ? data.online_count : '-');
         setText('cctvOfflineCount', data.offline_count != null ? data.offline_count : '-');
         setText('cctvTotalCount', data.total_cameras != null ? data.total_cameras : '-');
-        renderTicker(data.recent_detections || []);
       })
       .catch(function () { /* keep last known values on transient errors */ });
   }

@@ -1,6 +1,6 @@
 /* ==========================================================================
    LIVE CCTV WALL | SAFE CITIES PROJECT
-   templates/dashboard/dig/live_monitor.html  (dark monitor theme #0a1220)
+   templates/dashboard/dig/live_monitor.html  (clean white command theme #ffffff)
    Borderless surveillance wall + video review console overlay.
    ========================================================================== */
 
@@ -8,17 +8,17 @@
 
 .cctv-wall,
 .cctv-zoom {
-  --cw-bg: #0a1220;
-  --cw-panel: #0d1930;
-  --cw-panel-2: #101f3c;
-  --cw-line: #1b2b4a;
-  --cw-text: #e8eef9;
-  --cw-muted: #8ca3c7;
-  --cw-faint: #5e7093;
-  --cw-live: #ff4d5e;
-  --cw-ok: #34d399;
-  --cw-warn: #fbbf24;
-  --cw-accent: #3b82f6;
+  --cw-bg: #ffffff;
+  --cw-panel: #ffffff;
+  --cw-panel-2: #f6f9fd;
+  --cw-line: #e2e8f0;
+  --cw-text: #0f2557;
+  --cw-muted: #5b6b85;
+  --cw-faint: #94a3b8;
+  --cw-live: #e23b4e;
+  --cw-ok: #16a34a;
+  --cw-warn: #d97706;
+  --cw-accent: #2563eb;
   --cw-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
 }
 
@@ -198,49 +198,6 @@
 
 .cctv-filter-note a:hover { text-decoration: underline; }
 
-/* ---------- Activity ticker ---------- */
-
-.cctv-ticker {
-  display: flex;
-  align-items: stretch;
-  background: var(--cw-panel);
-  overflow: hidden;
-}
-
-.cctv-ticker-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  background: rgba(255, 77, 94, 0.12);
-  color: var(--cw-live);
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  white-space: nowrap;
-}
-
-.cctv-ticker-track {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 6px 12px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--cw-line) transparent;
-}
-
-.cctv-ticker-item {
-  white-space: nowrap;
-  font-size: 0.72rem;
-  font-family: var(--cw-mono);
-  color: var(--cw-faint);
-}
-
-.cctv-ticker-cam { color: var(--cw-text); font-weight: 700; }
-.cctv-ticker-plate { color: var(--cw-warn); margin-left: 7px; }
-.cctv-ticker-time { color: var(--cw-faint); margin-left: 7px; }
-
 /* ---------- Borderless grid (seam <= 2px) ---------- */
 
 .cctv-grid {
@@ -279,7 +236,8 @@
   gap: 8px;
   padding: 7px 9px;
   min-height: 32px;
-  background: #0b1526;
+  background: #ffffff;
+  border-bottom: 1px solid var(--cw-line);
 }
 
 .cctv-chip {
@@ -328,8 +286,8 @@
 }
 
 .cctv-led-live {
-  color: #ff6b7a;
-  background: rgba(255, 77, 94, 0.16);
+  color: #e23b4e;
+  background: rgba(226, 59, 78, 0.12);
 }
 
 .cctv-led-live .cctv-led-dot {
@@ -422,7 +380,8 @@
 
 .cctv-meta {
   padding: 6px 9px;
-  background: #0b1526;
+  background: #ffffff;
+  border-top: 1px solid var(--cw-line);
   font-family: var(--cw-mono);
   font-size: 0.6rem;
   font-weight: 600;
@@ -490,9 +449,9 @@
   max-height: 94vh;
   display: flex;
   flex-direction: column;
-  background: #0a1428;
+  background: #ffffff;
   border: 1px solid var(--cw-line);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 30px 90px rgba(15, 37, 87, 0.28);
 }
 
 .cctv-zoom-head {
@@ -502,7 +461,8 @@
   flex-wrap: wrap;
   gap: 10px;
   padding: 10px 14px;
-  background: #0d1a33;
+  background: #f6f9fd;
+  border-bottom: 1px solid var(--cw-line);
 }
 
 .cctv-zoom-id {
@@ -542,9 +502,9 @@
 }
 
 .cctv-zoom-close {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #fff;
+  background: #ffffff;
+  border: 1px solid var(--cw-line);
+  color: var(--cw-text);
   width: 32px;
   height: 32px;
   font-size: 1.05rem;

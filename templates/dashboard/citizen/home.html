@@ -6,80 +6,69 @@
 {% block title %}Citizen Portal | My E-Challans{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/citizen-home.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
 <!-- ====================================================================
      CITIZEN PORTAL SCREEN · one cohesive surface
+     Large image-blend hero card (no buttons on the card) + live stat
+     strip + unified workspace. Time + date live in the navbar only.
      ==================================================================== -->
 <div class="scr">
 
-  <header class="scr-head">
-    <div class="scr-rail">
-      <div class="scr-rail-icon"><i class="bi bi-shield-fill-check"></i></div>
-      <div class="scr-rail-titles">
-        <div class="scr-rail-kicker">Safe Cities Project · Citizen Services</div>
-        <div class="scr-rail-title">
-          My E-Challan Portal
-          {% if unpaid_count > 0 %}
-          <span class="scr-rail-tag scr-rail-tag--danger"><i class="bi bi-exclamation-circle"></i> {{ unpaid_count }} Unpaid</span>
-          {% else %}
-          <span class="scr-rail-tag scr-rail-tag--success"><i class="bi bi-check-circle"></i> All Clear</span>
-          {% endif %}
-        </div>
-        <div class="scr-rail-sub">
-          Your one-stop solution for traffic fines and services{% if user_cnic %} · Linked CNIC: <b>{{ user_cnic }}</b>{% endif %}
-          {% if user_plates %} · Registered plates:
-          {% for p in user_plates %}<span class="md-badge md-badge-dark" style="font-family: var(--sc-mono); font-size: 0.72rem;">{{ p }}</span> {% endfor %}{% endif %}
-        </div>
-      </div>
-      <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i" %}</span></span>
-        {% if unpaid_count > 0 and request.user|has_perm:"pay_own_challans" %}
-        <a href="{% url 'citizen_portal:pay_challan' challans.0.id %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-credit-card-2-front-fill"></i> Pay Now</a>
-        {% endif %}
-        {% if request.user|has_perm:"submit_appeals" %}
-        <a href="{% url 'citizen_portal:appeal_tracker' %}" class="scr-rail-btn"><i class="bi bi-shield-exclamation"></i> Appeals</a>
-        {% endif %}
+  <!-- Large hero card: blended landmark artwork on the right, exactly as
+       the approved reference. No action buttons on the card itself - pay
+       and view actions live in the ledger rows below. -->
+  <section class="cz-hero" aria-label="Citizen E-Challan Portal">
+    <div class="cz-hero-text">
+      <div class="cz-hero-kicker">Safe Cities Project &middot; Citizen Services</div>
+      <h1 class="cz-hero-title">Citizen E-Challan Portal</h1>
+      <p class="cz-hero-sub">Your One-Stop Solution for Traffic Fines &amp; Services</p>
+      <div class="cz-hero-facts">
+        {% if user_cnic %}<span>Linked CNIC: <b>{{ user_cnic }}</b></span>{% endif %}
+        {% if user_plates %}<span>Registered plates:
+          {% for p in user_plates %}<span class="cz-plate">{{ p }}</span> {% endfor %}</span>{% endif %}
       </div>
     </div>
+    <div class="cz-hero-art" aria-hidden="true"></div>
+  </section>
 
-    <!-- Fused stat strip -->
-    <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
-      {% if request.user|has_perm:"view_own_challans" %}
-      <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
-        <div class="scr-stat-label">Outstanding Balance</div>
-        <div class="scr-stat-value" data-key="outstanding_amount" data-format="pkr">PKR {{ outstanding_amount|floatformat:0|intcomma|default:"0" }}</div>
-        <div class="scr-stat-foot">
-          {% if unpaid_count > 0 %}{{ unpaid_count }} ticket{{ unpaid_count|pluralize }} requiring settlement{% else %}No outstanding traffic fines{% endif %}
-        </div>
+  <!-- Fused stat strip -->
+  <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
+    {% if request.user|has_perm:"view_own_challans" %}
+    <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
+      <div class="scr-stat-label">Outstanding Balance</div>
+      <div class="scr-stat-value" data-key="outstanding_amount" data-format="pkr">PKR {{ outstanding_amount|floatformat:0|intcomma|default:"0" }}</div>
+      <div class="scr-stat-foot">
+        {% if unpaid_count > 0 %}{{ unpaid_count }} ticket{{ unpaid_count|pluralize }} requiring settlement{% else %}No outstanding traffic fines{% endif %}
       </div>
-      {% endif %}
-      <div class="scr-stat">
-        <div class="scr-stat-label">Total E-Challans</div>
-        <div class="scr-stat-value" data-key="total_challans">{{ total_challans|default:0 }}</div>
-        <div class="scr-stat-foot">Lifetime record</div>
-      </div>
-      {% if request.user|has_perm:"view_own_challans" %}
-      <div class="scr-stat scr-stat--warning">
-        <div class="scr-stat-label">Unpaid / Due</div>
-        <div class="scr-stat-value" data-key="unpaid_count">{{ unpaid_count|default:0 }}</div>
-        <div class="scr-stat-foot">PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }} payable</div>
-      </div>
-      <div class="scr-stat scr-stat--success">
-        <div class="scr-stat-label">Paid &amp; Settled</div>
-        <div class="scr-stat-value" data-key="paid_count">{{ paid_count|default:0 }}</div>
-        <div class="scr-stat-foot">PKR {{ paid_amount|floatformat:0|intcomma|default:0 }} cleared</div>
-      </div>
-      <div class="scr-stat scr-stat--danger">
-        <div class="scr-stat-label">Overdue Tickets</div>
-        <div class="scr-stat-value" data-key="overdue_count">{{ overdue_count|default:0 }}</div>
-        <div class="scr-stat-foot">May incur surcharge</div>
-      </div>
-      {% endif %}
     </div>
-  </header>
+    {% endif %}
+    <div class="scr-stat">
+      <div class="scr-stat-label">Total E-Challans</div>
+      <div class="scr-stat-value" data-key="total_challans">{{ total_challans|default:0 }}</div>
+      <div class="scr-stat-foot">Lifetime record</div>
+    </div>
+    {% if request.user|has_perm:"view_own_challans" %}
+    <div class="scr-stat scr-stat--warning">
+      <div class="scr-stat-label">Unpaid / Due</div>
+      <div class="scr-stat-value" data-key="unpaid_count">{{ unpaid_count|default:0 }}</div>
+      <div class="scr-stat-foot">PKR {{ outstanding_amount|floatformat:0|intcomma|default:0 }} payable</div>
+    </div>
+    <div class="scr-stat scr-stat--success">
+      <div class="scr-stat-label">Paid &amp; Settled</div>
+      <div class="scr-stat-value" data-key="paid_count">{{ paid_count|default:0 }}</div>
+      <div class="scr-stat-foot">PKR {{ paid_amount|floatformat:0|intcomma|default:0 }} cleared</div>
+    </div>
+    <div class="scr-stat scr-stat--danger">
+      <div class="scr-stat-label">Overdue Tickets</div>
+      <div class="scr-stat-value" data-key="overdue_count">{{ overdue_count|default:0 }}</div>
+      <div class="scr-stat-foot">May incur surcharge</div>
+    </div>
+    {% endif %}
+  </div>
 
   <!-- Unified workspace -->
   <div class="scr-grid">
@@ -88,7 +77,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-bar-chart-line-fill"></i> 6-Month Challan Activity</div>
-        <span class="md-badge md-badge-secondary">Monthly Trend</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"
@@ -100,7 +88,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Infraction Breakdown</div>
-        <span class="md-badge md-badge-secondary">Category Share</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"
@@ -114,7 +101,7 @@
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-card-checklist"></i> My E-Challans Ledger</div>
         <div class="scr-panel-tools">
-          <span class="md-badge md-badge-secondary">{{ total_challans|default:0 }} Records</span>
+          <span class="cz-records">{{ total_challans|default:0 }} records</span>
           <a href="{% url 'challans:home' %}" class="md-btn md-btn-secondary md-btn-sm"><i class="bi bi-search"></i> Search Any Ticket</a>
         </div>
       </div>
@@ -134,10 +121,10 @@
               <td style="font-family: var(--sc-mono); font-weight: 700;">
                 <a href="{% url 'challans:challan_detail' c.id %}" style="color: var(--md-brand-primary);">#{{ c.ticket_no }}</a>
               </td>
-              <td><span class="md-badge md-badge-dark" style="font-family: var(--sc-mono); font-size: 0.8rem;">{{ c.plate_number }}</span></td>
+              <td><span class="cz-plate">{{ c.plate_number }}</span></td>
               <td>
                 {% if c.violation_type == 'wrong_way' %}<span class="md-badge md-badge-danger"><i class="bi bi-arrow-left-right"></i> Wrong Way</span>
-                {% elif c.violation_type == 'signal_break' %}<span class="md-badge md-badge-warning"><i class="bi bi-traffic-light"></i> Red Light</span>
+                {% elif c.violation_type == 'signal_break' %}<span class="md-badge md-badge-warning"><i class="bi bi-stoplights"></i> Red Light</span>
                 {% elif c.violation_type == 'over_speed' %}<span class="md-badge md-badge-purple"><i class="bi bi-speedometer"></i> Speeding</span>
                 {% elif c.violation_type == 'no_helmet' %}<span class="md-badge md-badge-info"><i class="bi bi-shield-slash"></i> No Helmet</span>
                 {% else %}<span class="md-badge md-badge-secondary">{{ c.get_violation_type_display }}</span>{% endif %}

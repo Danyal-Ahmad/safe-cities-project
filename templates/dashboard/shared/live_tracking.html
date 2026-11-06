@@ -2,6 +2,9 @@
 {% load static %}
 {% load humanize %}
 {% block title %}Live Tracking Radar Workstation{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/live-tracking.css' %}">
+{% endblock %}
 {% block content %}
 <div class="sc-page-hero">
   <div>
@@ -94,10 +97,9 @@
       <div class="md-stage-hud">
         <div class="d-flex gap-2">
           <span class="md-hud-badge-live"><i class="bi bi-circle-fill me-1" style="font-size:7px;"></i>LIVE SURVEILLANCE</span>
-          <span class="md-hud-tag" id="hudDetectionCount">AI Targets: 0</span>
         </div>
         <div>
-          <span class="md-hud-tag" id="hudTimestamp">{% now "H:i:s" %}</span>
+          <span class="md-hud-tag" id="hudDetectionCount">AI Targets: 0</span>
         </div>
       </div>
     </div>

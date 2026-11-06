@@ -43,8 +43,7 @@
   {% if request.user|has_perm:"challan_template_manage" %}
   <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-ruled"></i> <span class="sc-nav-link-text">Challan Templates</span></a>
   <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Challan Studio</span></a>
-  <a href="{% url 'it_support_portal:audit_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/audit-templates/' %}sc-active{% endif %}"><i class="bi bi-journal-rich"></i> <span class="sc-nav-link-text">Audit Templates</span></a>
-  <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Template Designer</span></a>
+  <a href="{% url 'it_support_portal:audit_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/audit-templates/' %}sc-active{% endif %}"><i class="bi bi-journal-bookmark"></i> <span class="sc-nav-link-text">Audit Templates</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_backups" %}
   <a href="{% url 'it_support_portal:backup_list' %}" class="sc-nav-link {% if request.path == '/portal/it/backups/' %}sc-active{% endif %}"><i class="bi bi-cloud-arrow-down"></i> <span class="sc-nav-link-text">Backups</span></a>

@@ -408,6 +408,7 @@ def challan_detail_signed(request, signed_token):
     challan = get_object_or_404(Challan, pk=challan_id)
     return render(request, 'challan/detail.html', {
         'challan': challan, 'is_guest': True, 'can_appeal': False, 'from_signed_link': True,
+        'pdf_token': signed_token,
         'needs_nadra_excise': _needs_nadra_excise_integration(challan),
     })
 
@@ -450,9 +451,12 @@ def challan_pdf(request, challan_id):
             save_challan_pdf(challan, force=True)
         challan.refresh_from_db()
     try:
+        # ?inline=1 streams the PDF for embedding (iframe/object on the
+        # detail page); the default remains a download attachment.
+        as_attachment = (request.GET.get('inline') or '') != '1'
         return FileResponse(
             challan.pdf_file.open('rb'),
-            as_attachment=True,
+            as_attachment=as_attachment,
             content_type='application/pdf',
             filename=f"challan_{challan.ticket_no}.pdf",
         )

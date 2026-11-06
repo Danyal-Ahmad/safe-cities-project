@@ -95,9 +95,10 @@
   </div>
   {% endif %}
 
-  <!-- Navbar: full width, exactly TWO logos + project title + portal name.
-       No search bar. Profile / password / sign out live ONLY in the circular
-       profile-area dropdown on the right (never in the sidebar). -->
+  <!-- Navbar: full width, exactly TWO logos + the project title. No role
+       names on the left side, no search bar. Profile / password / sign out
+       live ONLY in the circular profile dropdown on the right. TIME + DATE
+       is shown by the navbar clock - never on the pages themselves. -->
   <header class="sc-topbar">
     <div class="sc-topbar-left">
       <a href="{% url 'challans:home' %}" class="sc-topbar-brand">
@@ -106,7 +107,6 @@
         <img src="{% static 'img/university_logo.png' %}" alt="Partner">
         <div class="sc-topbar-brand-text">
           <span class="sc-topbar-brand-title">SAFE CITIES PROJECT</span>
-          <span class="sc-topbar-brand-sub">{{ user.role_label }} Portal</span>
         </div>
       </a>
     </div>
@@ -164,15 +164,11 @@
   {% endif %}
 
   <!-- Body: the sidebar hangs from the navbar and rests on the footer.
-       Navbar + sidebar + footer read as one connected frame behind 1px
-       hairlines: no floating cards, no gaps, no separation. -->
+       The sidebar head no longer repeats a role name - group titles carry
+       the navigation context. -->
   <div class="sc-body">
     {% if user.is_authenticated %}
     <aside class="sc-sidebar">
-      <div class="sc-side-head">
-        <span class="sc-side-head-role">{{ user.role_label }}</span>
-        <span class="sc-side-head-sub">{% if user.role == 'USER' %}Citizen Services{% else %}Operations Console{% endif %}</span>
-      </div>
       <nav class="sc-nav">
         {% with user_role=user.role|lower %}
           {% if user_role == 'dig' %}{% include "_sidebar/_dig.html" %}

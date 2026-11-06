@@ -323,7 +323,7 @@ else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'noreply@wrongway.fyp'
 
-MODELS_DIR = BASE_DIR / 'models'
+MODELS_DIR = BASE_DIR / 'ai_models'
 PLATE_DETECTOR_MODEL = MODELS_DIR / 'NumberPlate_detection_model_int8.onnx'
 SIDE_CLASSIFIER_MODEL = MODELS_DIR / 'car_side_Classifier_model_int8.onnx'
 

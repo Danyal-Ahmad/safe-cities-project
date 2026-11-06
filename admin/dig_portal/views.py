@@ -639,7 +639,7 @@ def admin_edit(request, user_id):
     })
 
 
-@role_required('DIG', 'SSP')
+@role_required('DIG', 'SSP', 'SUPV')
 def officer_activity(request, officer_id=None):
     if not officer_id:
         officer = (
@@ -1909,7 +1909,7 @@ def notification_read(request, notification_id):
         return _safe_redirect(request)
 
 
-@role_required('DIG', 'IT')
+@role_required('DIG', 'IT', 'SSP')
 def verify_citizen_payment(request, challan_id):
     from admin.dig_portal.models import Notification, AuditLog as AL
     challan = get_object_or_404(Challan, pk=challan_id)
@@ -2071,7 +2071,7 @@ def shift_management(request):
     })
 
 
-@dig_required
+@role_required('DIG', 'SSP', 'SUPV')
 def shift_add(request):
     from .models import Shift
     from accounts.models import User
@@ -2783,7 +2783,7 @@ def appeals_queue(request):
     })
 
 
-@dig_required
+@role_required('DIG', 'SSP')
 def regional_heatmap(request):
     """Real Leaflet heatmap: camera GPS points + challan density, with city landmarks fallback."""
     import json

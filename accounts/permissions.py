@@ -290,6 +290,10 @@ _SSP_PERMS = {
     'view_evidence_hashes',
     'add_officer_feedback',
     'view_live_monitor',
+    'manage_shifts',
+    'view_revenue_dashboard',
+    'view_heatmap',
+    'live_tracking',
     'add_review_note',
     'add_to_blacklist',
     'approve_appeal',
@@ -328,6 +332,7 @@ _SSP_PERMS = {
 _SUPERVISOR_PERMS = {
     'view_evidence_hashes',
     'add_officer_feedback',
+    'live_tracking',
     'change_own_password',
     'edit_own_profile',
     'generate_reports',

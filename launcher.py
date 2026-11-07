@@ -27,17 +27,18 @@ PG_HOST = os.environ.get('PG_HOST', '127.0.0.1')
 PG_PORT = os.environ.get('PG_PORT', '5432')
 
 
-DEFAULT_ENV_EXAMPLE = """# ===== Safe Cities Project -- Environment Configuration =====
-
-DEBUG=True
-SECRET_KEY=safe-cities-project-demo-CHANGE-THIS-IN-PRODUCTION-2026
-ALLOWED_HOSTS=*
+DEFAULT_ENV_EXAMPLE = """DEBUG=True
+SECRET_KEY=CHANGE-ME-generate-a-50-char-random-string
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=
 
 PG_DB=SAFE_CITIES_PROJECT
 PG_USER=postgres
-PG_PASSWORD=Admin@2026
+PG_PASSWORD=CHANGE-ME
 PG_HOST=127.0.0.1
 PG_PORT=5432
+
+SSL_REDIRECT=False
 
 ACCOUNT_LOCKOUT_THRESHOLD=5
 ACCOUNT_LOCKOUT_DURATION=900
@@ -50,7 +51,16 @@ EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=noreply@safecities.project
 
-CAMERA_WORKER_INTERVAL=5
+INTEGRATION_MODE=demo
+NADRA_API_URL=
+NADRA_API_KEY=
+EXCISE_API_URL=
+EXCISE_API_KEY=
+
+GUNICORN_BIND=0.0.0.0:8000
+GUNICORN_WORKERS=
+GUNICORN_THREADS=4
+GUNICORN_TIMEOUT=60
 """
 
 
@@ -549,6 +559,15 @@ def uvicorn_available(py: Path) -> bool:
     return r.returncode == 0
 
 
+def gunicorn_available(py: Path) -> bool:
+    try:
+        r = subprocess.run([str(py), '-m', 'gunicorn', '--version'],
+                           capture_output=True, cwd=str(ROOT))
+    except OSError:
+        return False
+    return r.returncode == 0
+
+
 def run_server(realtime: bool = False) -> None:
     banner('SAFE CITY FYP -- Run server')
     check_python_version()
@@ -575,6 +594,8 @@ def run_server(realtime: bool = False) -> None:
 
     postgres_preflight(py)
 
+    debug_env = os.environ.get('DEBUG', 'True').strip().lower() in ('1', 'true', 'yes', 'on', 'y', 't')
+
     step('Migrate (idempotent)')
     manage(py, 'migrate')
 
@@ -599,6 +620,19 @@ def run_server(realtime: bool = False) -> None:
         warn('uvicorn not installed -- falling back to the Django dev server.')
         print('        Enable realtime later with: '
               'pip install uvicorn  (then: python launcher.py realtime)')
+
+    if not debug_env:
+        if gunicorn_available(py):
+            workers = os.environ.get('GUNICORN_WORKERS', '').strip() or str(min(4, (os.cpu_count() or 2) * 2 + 1))
+            banner(f'Production server (gunicorn, {workers} workers) -- {os.environ.get("GUNICORN_BIND", "0.0.0.0:8000")}')
+            print('  Press CTRL+C to stop.\n')
+            env = dict(os.environ, GUNICORN_WORKERS=workers)
+            safe_run([str(py), '-m', 'gunicorn', '-c', 'deploy/gunicorn.conf.py',
+                      'wrongway_system.wsgi:application'],
+                     label='gunicorn', env=env)
+            return
+        warn('gunicorn not installed -- falling back to the Django dev server.')
+        print('        For production install it with: pip install gunicorn')
 
     banner('Starting Django dev server -- http://127.0.0.1:8000/')
     print('  Press CTRL+C to stop.\n')

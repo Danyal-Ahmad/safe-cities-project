@@ -45,6 +45,7 @@ def _env_list(name, default):
 SECRET_KEY = os.environ.get('SECRET_KEY', 'safe-cities-project-demo-CHANGE-THIS-IN-PRODUCTION-2026')
 DEBUG = _env_bool('DEBUG', True)
 ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', ['*'])
+CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS', [])
 
 if not DEBUG and SECRET_KEY.startswith('safe-cities-project-demo'):
     raise SystemExit(

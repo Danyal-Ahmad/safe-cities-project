@@ -95,24 +95,24 @@
   </div>
   {% endif %}
 
-  <div class="sc-main">
-
-    {% if user.is_authenticated %}
-    <header class="sc-topbar">
-      <div class="sc-topbar-left">
-        <div class="sc-topbar-brand">
-          <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
-          <span class="sc-topbar-brand-sep" aria-hidden="true"></span>
-          <img src="{% static 'img/university_logo.png' %}" alt="Partner">
-          <div class="sc-topbar-brand-text">
-            <span class="sc-topbar-brand-title">SAFE CITIES PROJECT</span>
-            <span class="sc-topbar-brand-sub">{{ user.role_label }} Portal</span>
-          </div>
+  <!-- Navbar: full width, exactly TWO logos + the project title. No role
+       names on the left side, no search bar. Profile / password / sign out
+       live ONLY in the circular profile dropdown on the right. TIME + DATE
+       is shown by the navbar clock - never on the pages themselves. -->
+  <header class="sc-topbar">
+    <div class="sc-topbar-left">
+      <a href="{% url 'challans:home' %}" class="sc-topbar-brand">
+        <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
+        <span class="sc-topbar-brand-sep" aria-hidden="true"></span>
+        <img src="{% static 'img/university_logo.png' %}" alt="Partner">
+        <div class="sc-topbar-brand-text">
+          <span class="sc-topbar-brand-title">SAFE CITIES PROJECT</span>
         </div>
-      </div>
-      <div class="sc-topbar-right">
-        <div class="sc-clock" id="scClock">--:--:--</div>
-        <div class="sc-user-menu">
+      </a>
+    </div>
+    <div class="sc-topbar-right">
+      <div class="sc-clock" id="scClock">--:--:--</div>
+      <div class="sc-user-menu">
           <button type="button" class="sc-user-btn" id="scUserBtn" aria-haspopup="true" aria-expanded="false">
             <img class="sc-user-avatar" src="{{ user.avatar_url }}" alt="{{ user.display_name }}">
             <span class="sc-user-ring" aria-hidden="true"></span>
@@ -161,38 +161,7 @@
       </div>
     </header>
 
-    {% if user.role != 'USER' %}
-    {% include '_partials/portal_ticker.html' %}
-    {% elif ticker_ads %}
-    <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
-      <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
-      <div class="sc-ticker-viewport"><div class="sc-ticker-track">
-        {% for ad in ticker_ads %}
-        <span class="sc-ticker-item" data-id="tick-{{ ad.id }}">
-          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
-          {% if ad.html_content %}<span class="sc-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
-        </span>
-        {% endfor %}
-      </div></div>
-    </div>
-    {% endif %}
-    {% endif %}
-
-    {% if messages %}
-    <div class="sc-messages">
-      {% for m in messages %}
-      <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
-        <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
-        <div class="sc-msg-body">{{ m }}</div>
-        <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <main class="sc-content">
-      {% block content %}{% endblock %}
-    </main>
+  {% endif %}
 
   <!-- Body: the sidebar hangs from the navbar and rests on the footer.
        The sidebar head no longer repeats a role name - group titles carry

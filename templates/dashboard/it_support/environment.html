@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Environment (.env){% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-environment.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-file-earmark-lock2 me-2"></i>Environment &amp; Connectivity</h1>
+    <p class="sc-lead">Direct view of the live <span class="sc-mono">.env</span> file with real connectivity probes against PostgreSQL, SMTP and platform services. Secrets are masked; tests open real connections.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:system_health' %}" class="sc-btn sc-btn-outline"><i class="bi bi-heart-pulse me-1"></i>System Health</a>
+    <button type="button" class="sc-btn sc-btn-primary" data-env-run>
+      <i class="bi bi-broadcast-pin me-1"></i>Run Live Connectivity Test
+    </button>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi {% if env_exists %}sc-kpi-ok{% else %}sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-file-earmark-text"></i></div>
+    <div class="sc-kpi-label">.env File</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">{% if env_exists %}Loaded{% else %}Missing{% endif %}</div>
+    <div class="sc-kpi-foot sc-mono it-env-truncate">{{ env_path }}</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-key-fill"></i></div>
+    <div class="sc-kpi-label">Keys In File</div>
+    <div class="sc-kpi-value">{{ env_key_count }}</div>
+    <div class="sc-kpi-foot">values read directly from disk</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-envelope-at"></i></div>
+    <div class="sc-kpi-label">Email Backend</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">{{ email_effective_backend }}</div>
+    <div class="sc-kpi-foot">SMTP used only when EMAIL_HOST is set</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
+    <div class="sc-kpi-label">Last Live Test</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;" data-env-last>Not run yet</div>
+    <div class="sc-kpi-foot">results appear below after a run</div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  {% for category in catalog %}
+  <div class="col-lg-6">
+    <div class="sc-card it-env-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi {{ category.icon }}"></i>
+        <span>{{ category.title }}</span>
+        <span class="ms-auto sc-badge sc-badge-ok">{{ category.rows|length }} keys</span>
+      </div>
+      <div class="sc-card-body">
+        {% for row in category.rows %}
+        <div class="it-env-row">
+          <span class="sc-mono it-env-key">{{ row.key }}</span>
+          <span class="d-flex align-items-center gap-2">
+            {% if row.empty %}
+            <span class="sc-mono sc-text-sm it-env-value">not set</span>
+            <span class="sc-badge sc-badge-red">missing</span>
+            {% elif row.in_file %}
+            <span class="sc-mono sc-text-sm it-env-value">{{ row.masked }}</span>
+            <span class="sc-badge sc-badge-ok">.env</span>
+            {% else %}
+            <span class="sc-mono sc-text-sm it-env-value">{{ row.masked }}</span>
+            <span class="sc-badge sc-badge-amber">default</span>
+            {% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="sc-card it-env-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-activity"></i>
+    <span>Live Connectivity Results</span>
+    <span class="ms-auto sc-badge" data-env-summary hidden></span>
+  </div>
+  <div class="sc-card-body" data-env-results>
+    <p class="sc-text-muted mb-0">Press <strong>Run Live Connectivity Test</strong> to open real connections to the services configured in <span class="sc-mono">.env</span>. Each probe reports status, latency and server response.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-environment.js' %}" defer></script>
+{% endblock %}

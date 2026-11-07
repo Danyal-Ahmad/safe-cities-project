@@ -73,7 +73,17 @@ The home page carries the navbar brand, the citizen sign-in button, two labelled
 
 ## Performance
 
-Tuned for ~60 req/s per 2-vCPU node (9 ms median home, 49 ms p99 search).
+Load-tested with the bundled high-traffic runner (`performance/loadtest.py`):
+
+| profile | throughput | p50 | p95 | p99 | errors |
+|---|---|---|---|---|---|
+| 30 concurrent VUs / 60s | 96.3 req/s | 187 ms | 510 ms | 715 ms | 0 |
+| 100 concurrent VUs / 45s | ~75 req/s | 849 ms | 1853 ms | 3894 ms | 0 (saturation) |
+
+Zero application errors at every level; 429 responses under aggressive same-IP
+search are the rate limiter working as designed. Scale by raising
+`GUNICORN_WORKERS` / `GUNICORN_THREADS` in `.env` and running PostgreSQL on
+dedicated hardware. Reports land in `performance/reports/`.
 
 ## Challan Studio & Audit Documents
 
@@ -142,13 +152,14 @@ Full reset (destructive): `python launcher.py fresh`
 ## Tests
 
 ```bash
-python manage.py test detections accounts auth_portal challans video_processor
+python manage.py test
 ```
 
-Covers the full pipeline (all-pass issuance, each failing check, duplicate
-blocking, tamper-evident hashing), RBAC and portal isolation for every role,
-IDOR scoping, PII masking, payment integrity, XSS/SQLi/CSRF hardening, and an
-end-to-end video dry run.
+68 tests covering the full pipeline (all-pass issuance, each failing check,
+duplicate blocking, tamper-evident hashing), RBAC and portal isolation for
+every role, IDOR scoping, PII masking, payment integrity (including: an
+unconfigured gateway must NEVER mark a challan paid), XSS/SQLi/CSRF hardening,
+and an end-to-end video dry run.
 
 ## Configuration
 
@@ -158,6 +169,7 @@ Copy `.env.example` to `.env` and set:
 DEBUG=True
 SECRET_KEY=<generate a strong key>
 ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=<https://your-domain>
 PG_DB=SAFE_CITIES_PROJECT
 PG_USER=postgres
 PG_PASSWORD=<your password>
@@ -165,29 +177,54 @@ PG_HOST=127.0.0.1
 PG_PORT=5432
 ```
 
-Government integrations (Excise, NADRA, payments) run in **sandbox mode** by
-default; configure live endpoints in IT Support → System Settings. Payment
-settlement only happens through the signed gateway webhook or the
-CSRF-protected checkout - no view can mark a challan PAID on its own.
+IT Support can inspect the live `.env` (secrets masked) and run real
+connectivity probes against PostgreSQL, SMTP, cache, static assets, AI models,
+migrations and disk at **/portal/it/environment/** - every run is audit-logged.
+
+Government integrations (Excise, NADRA, payments) are **truth-only**: with no
+live API configured they report `unconfigured` and never fabricate identities
+or payment results. Configure live endpoints in IT Support → System Settings.
+Payment settlement only happens through the signed gateway webhook - no view
+can mark a challan PAID on its own.
+
+## Production Deployment
+
+```bash
+python launcher.py setup          # venv + deps + migrate + collectstatic + DIG admin
+# edit .env: DEBUG=False, strong SECRET_KEY, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS, SSL_REDIRECT=True
+python launcher.py run            # serves via gunicorn (deploy/gunicorn.conf.py) + WhiteNoise
+```
+
+Checklist when going live:
+- `DEBUG=False` (launcher refuses to serve with the demo SECRET_KEY)
+- `ALLOWED_HOSTS` + `CSRF_TRUSTED_ORIGINS` set to the real domain
+- TLS terminated at nginx/caddy; `SSL_REDIRECT=True` enables HSTS + secure
+  cookies automatically
+- `python manage.py check --deploy` reports no security issues
+- serve `/media/` (uploads) from the proxy without executable content types
+- SMTP credentials in `.env` (`EMAIL_NOTIFICATIONS_ENABLED=True`) so citizen
+  notifications deliver for real
 
 ## Project Layout
 
 ```
 accounts/        Users, roles, permissions, profiles
 admin/           DIG / SSP / Supervisor / Officer / Audit / IT portals
+ai_models/       ONNX AI models
 appeals/         Challan appeal workflow
 auth_portal/     Login / signup / password reset
 camera_worker/   RTSP camera enrollment & worker daemon
 cameras/         Camera registry & health
 challans/        E-challan lifecycle, PDF service, public portal
 citizen/         Citizen portal
+deploy/          gunicorn production config
 detections/      AI engine, enforcement pipeline, evidence chain
-integrations/    Excise / NADRA / payment gateways
-models/          ONNX AI models
-payments/        Payment webhooks & checkout
+integrations/    Excise / NADRA / payment gateways (truth-only)
+payments/        Payment webhooks
+performance/     High-traffic load test runner + reports
 realtime/        Live tracking JSON APIs + shared chart endpoints
 static/          Design system + per-page CSS/JS (no inline styles)
-templates/       All UI templates
+templates/       All UI templates (comment-free)
 video_processor/ Batch video upload & processing
 wrongway_system/ Django project settings & security
 ```

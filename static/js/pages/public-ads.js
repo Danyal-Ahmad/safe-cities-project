@@ -1,91 +1,72 @@
-/* Public popup ad dismiss - extracted from templates/challan/_public_ads.html */
+/* Public home ads + ticker behavior.
+   - Ticker (placement='ticker', rendered in the public header): a seamless
+     infinite right-to-left marquee. The item set is repeated until the
+     track's original half is at least as wide as the viewport, then a CSS
+     translateX(-50%) animation loops it forever. The copy count is kept odd
+     so the -50% shift lands exactly on a set boundary (no jump).
+   - The homepage shows exactly ONE large banner ad (see _public_ads.html);
+     there are no popups and no small ad chips anymore. */
 (function () {
   'use strict';
 
-  var SEEN_KEY = 'scAdPopupSeen';
+  var MAX_COPIES = 12;
 
-  function seenIds() {
-    try { return JSON.parse(sessionStorage.getItem(SEEN_KEY) || '[]'); } catch (e) { return []; }
-  }
-
-  function markSeen(id) {
-    try {
-      var seen = seenIds();
-      if (seen.indexOf(id) === -1) { seen.push(id); sessionStorage.setItem(SEEN_KEY, JSON.stringify(seen)); }
-    } catch (e) { /* storage unavailable: fall back to once per page view */ }
-  }
-
-  /* ---- popup channel ---- */
-  function initPopup() {
-    var popup = document.getElementById('psPopup');
-    if (!popup) return;
-    var adId = parseInt(popup.getAttribute('data-ad-id'), 10);
-    var seen = seenIds();
-    if (seen.indexOf(adId) !== -1) return;
-
-    function close() {
-      markSeen(adId);
-      popup.classList.remove('is-open');
-    }
-    popup.addEventListener('click', function (ev) {
-      if (ev.target.hasAttribute('data-ps-popup-close')) { close(); }
-    });
-    document.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Escape' && popup.classList.contains('is-open')) { close(); }
-    });
-    window.setTimeout(function () {
-      popup.classList.add('is-open');
-    }, 900);
-  }
-
-  /* ---- ticker channel ---- */
   function initTicker() {
     var track = document.getElementById('psTickerTrack');
-    if (!track) return;
-    var items = track.children.length;
-    if (items < 1) return;
-    if (items < 2) return;
+    var viewport = track ? track.parentElement : null;
+    var bar = viewport ? viewport.parentElement : null;
+    if (!track || !viewport || !bar) return;
+    if (!track.children.length) return;
 
-    var viewport = track.parentElement;
-    function contentWidth() {
-      return Math.max(1, track.scrollWidth - viewport.clientWidth);
-    }
-    var pos = 0;
-    var speed = 0.4;
-    var last = performance.now();
-    var paused = false;
-    viewport.addEventListener('mouseenter', function () { paused = true; });
-    viewport.addEventListener('mouseleave', function () { paused = false; });
+    var CLONE_FLAG = 'data-ticker-clone';
 
-    function step(now) {
-      var dt = Math.min(64, now - last);
-      last = now;
-      if (!paused) {
-        pos += speed * dt / 16.6667;
-        var max = contentWidth();
-        if (pos >= max) { pos = 0; }
-        track.style.transform = 'translateX(' + (-pos) + 'px)';
+    function originals() {
+      var out = [];
+      for (var i = 0; i < track.children.length; i++) {
+        var n = track.children[i];
+        if (n.nodeType === 1 && !n.hasAttribute(CLONE_FLAG)) out.push(n);
       }
-      requestAnimationFrame(step);
+      return out;
     }
-    requestAnimationFrame(step);
-  }
 
-  /* ---- hidden static post staging (index -100) ---- */
-  function initStaging() {
-    var staging = document.getElementById('psAdStaging');
-    if (!staging) return;
-    if (staging.getAttribute('data-index') !== '-100') return;
-    if (!staging.hasAttribute('hidden')) { staging.setAttribute('hidden', ''); }
+    var items = originals();
+
+    // Width of one item set (items carry their own spacing via margins/gap).
+    var setWidth = 0;
+    for (var i = 0; i < items.length; i++) {
+      setWidth += items[i].offsetWidth;
+    }
+    var gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 48;
+    setWidth += gap * items.length;
+    if (setWidth < 1) return;
+
+    // Repeat the set so the first half covers the viewport; keep the copy
+    // count odd so the track holds an even number of identical sets.
+    var needed = Math.max(1, Math.ceil((viewport.clientWidth + 60) / setWidth));
+    if (needed % 2 === 0) needed += 1;
+    var copies = Math.min(needed, MAX_COPIES);
+    if (copies % 2 === 0) copies -= 1;
+    if (copies < 1) copies = 1;
+
+    for (var c = 0; c < copies; c++) {
+      for (var j = 0; j < items.length; j++) {
+        var clone = items[j].cloneNode(true);
+        clone.setAttribute(CLONE_FLAG, 'true');
+        clone.setAttribute('aria-hidden', 'true');
+        track.appendChild(clone);
+      }
+    }
+
+    var halfWidth = track.scrollWidth / 2;
+    var seconds = Math.max(18, Math.round(halfWidth / 55));
+    bar.style.setProperty('--ps-ticker-duration', seconds + 's');
+    bar.classList.add('is-scrolling');
   }
 
   function ready(fn) {
     if (document.readyState !== 'loading') { fn(); }
     else { document.addEventListener('DOMContentLoaded', fn); }
   }
-  ready(function () {
-    initStaging();
-    initPopup();
-    initTicker();
-  });
+  ready(initTicker);
+  window.addEventListener('load', initTicker);
 })();

@@ -5,8 +5,8 @@
 <div class="sc-page-hero"><div><h1>Audit log</h1><p class="lead">Every action logged with actor, IP, and details.</p></div></div>
 <div class="card">
 {% if entries %}
-  <div class="overflow-x-auto">
-  <table>
+  <div class="table-responsive">
+  <table class="table table-hover mb-0">
     <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>IP</th><th>Details</th></tr></thead>
     <tbody>
     {% for a in entries %}
@@ -25,7 +25,11 @@
   </table>
   </div>
 {% else %}
-  <div class="empty">No audit entries.</div>
+  <div class="sc-empty-state">
+    <i class="bi bi-journal-check"></i>
+    <h3>No audit entries yet</h3>
+    <p>System actions will appear here as staff operate the portal.</p>
+  </div>
 {% endif %}
 </div>
 {% endblock %}

@@ -166,6 +166,22 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.timestamp:%Y-%m-%d %H:%M} | {self.actor} - {self.action}"
 
+    @staticmethod
+    def parse_device(ua_str):
+        """Parse a user-agent string into (device_summary, device_type)."""
+        try:
+            import user_agents
+            ua = user_agents.parse(ua_str or '')
+            browser = getattr(ua.browser, 'family', '') or 'Unknown'
+            os_name = getattr(ua.os, 'family', '') or 'Unknown'
+            dtype = 'mobile' if ua.is_mobile else ('tablet' if ua.is_tablet else 'desktop')
+            if dtype == 'desktop' and not ua.is_pc:
+                dtype = 'other'
+            summary = f"{browser} on {os_name}"
+            return summary, dtype
+        except Exception:
+            return 'Unknown device', 'other'
+
     @classmethod
     def write(cls, request, action, target_model='', target_id=None, **details):
         actor = None

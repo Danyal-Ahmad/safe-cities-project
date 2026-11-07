@@ -7,8 +7,8 @@
   <a href="{% url 'dig:admin_add' %}" class="btn btn-primary">+ Add staff</a>
 </div>
 <div class="card">
-  <div class="overflow-x-auto">
-  <table>
+  <div class="card-body p-0 table-responsive">
+  <table class="table table-hover mb-0">
     <thead><tr><th>Username</th><th>Display name</th><th>Role</th><th>Department</th><th>Status</th><th>Last login</th></tr></thead>
     <tbody>
     {% for u in admins %}
@@ -21,7 +21,7 @@
         <td class="small">{{ u.last_login|date:"d M H:i"|default:"-" }}</td>
       </tr>
     {% empty %}
-      <tr><td colspan="6" class="empty">No staff accounts.</td></tr>
+      <tr><td colspan="6" style="padding:28px;text-align:center;color:var(--sc-text-muted);">No staff accounts.</td></tr>
     {% endfor %}
     </tbody>
   </table>

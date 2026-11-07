@@ -220,10 +220,11 @@ class LiveTrackingService:
         return None
 
     def enforce_officer_one_camera(self) -> None:
-        """If officer has >1 active assignment, keep newest only."""
-        if self.user.role != User.OFFICER:
-            return
-        qs = CameraAssignment.objects.filter(officer=self.user, is_active=True).order_by('-assigned_at', '-id')
-        keep = qs.first()
-        if keep:
-            qs.exclude(pk=keep.pk).update(is_active=False)
+        """Deprecated no-op kept for API compatibility.
+
+        Officers legitimately hold multiple concurrent camera assignments
+        (zone coverage); the live-tracking workstation lets them switch
+        cameras via the filter select. Assignment lifecycle is owned by
+        DIG / IT Support only.
+        """
+        return None

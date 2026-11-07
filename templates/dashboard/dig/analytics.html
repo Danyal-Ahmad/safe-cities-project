@@ -4,7 +4,7 @@
 {% block title %}Analytics{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+<script src="{% static 'vendor/chart.js/chart.umd.min.js' %}" defer onerror="this.remove()"></script>
 {% endblock %}
 {% block content %}
 <div class="sc-page-hero">

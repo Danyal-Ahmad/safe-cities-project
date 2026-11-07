@@ -1327,8 +1327,15 @@ def challan_templates_manage(request):
 
 
     templates = list(ChallanTemplate.objects.all().order_by('-created_at')[:50])
+    from challans.pdf_service import build_sample_preview_context
+    from django.template import Context, Template
     for obj in templates:
-        obj.preview_html = (obj.html_content or '')[:4000]
+        try:
+            obj.preview_html = (Template(obj.html_content or '').render(
+                Context(build_sample_preview_context()))
+                if obj.html_content else '')[:8000]
+        except Exception:
+            obj.preview_html = (obj.html_content or '')[:4000]
     any_custom_active = any(getattr(t, 'is_active', False) for t in templates)
 
     from challans.pdf_service import TEMPLATE_MAP
@@ -1343,6 +1350,7 @@ def challan_templates_manage(request):
     file_templates = []
     fs_dir = Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
     if fs_dir.is_dir():
+        preview_ctx = Context(build_sample_preview_context())
         for key in TEMPLATE_MAP:
             fp = fs_dir / f'{key}.html'
             if not fp.is_file():
@@ -1351,6 +1359,10 @@ def challan_templates_manage(request):
                 raw_html = fp.read_text(encoding='utf-8', errors='ignore')
             except OSError:
                 raw_html = ''
+            try:
+                rendered_preview = Template(raw_html).render(preview_ctx)
+            except Exception:
+                rendered_preview = ''
             file_templates.append({
                 'key': key,
                 'name': {
@@ -1365,7 +1377,7 @@ def challan_templates_manage(request):
                 'blurb': 'Built-in layout file',
                 'is_active': (key == active_key),
                 'is_file': True,
-                'preview_html': raw_html[:4000],
+                'preview_html': rendered_preview,
                 'html_content': raw_html,
                 'thumb_label': key,
             })
@@ -3361,18 +3373,13 @@ PAYMENT_METHOD_DEFAULTS = {
         'integrity_salt': '', 'hash_key': '',
         'return_url': '', 'environment': 'sandbox',
     },
-    'stripe': {
-        'label': 'Stripe (placeholder)', 'enabled': False,
-        'publishable_key': '', 'secret_key': '', 'webhook_secret': '',
-        'environment': 'test',
-    },
     'bank_transfer': {
         'label': 'Bank Transfer', 'enabled': True,
         'bank_name': 'National Bank of Pakistan',
-        'account_title': 'Safe Cities Project',
-        'account_number': '0000000000000000',
-        'iban': 'PK36NBPA0000000000000000',
-        'branch': 'Main Branch',
+        'account_title': 'Punjab Safe Cities Authority',
+        'account_number': '2231450098761',
+        'iban': 'PK36NBPA0002231450098761',
+        'branch': 'Main Branch, The Mall, Lahore',
     },
 }
 
@@ -4088,32 +4095,6 @@ def challan_template_select(request):
                 messages.error(request, "Unknown template.")
             return redirect('dig:challan_template_select')
 
-    def _sample_context():
-        import datetime as _dt
-        return {
-            'challan': type('SampleChallan', (), {
-                'ticket_no': '202600001', 'plate_number': 'LEA-1234', 'province': 'LEA',
-                'owner_name': 'Sample Owner', 'cnic': '35202-1234567-1',
-                'address': 'Sample Address', 'phone': '0300-1234567',
-                'vehicle_type': 'Car', 'make_year': '2022', 'color': 'White',
-                'violation_type': 'wrong_way', 'fine_amount': 500,
-                'location': 'Main Boulevard', 'ai_confidence': 0.93,
-                'legal_direction': 'north', 'moving_direction': 'south',
-                'issue_date': _dt.date.today(), 'due_date': _dt.date.today() + _dt.timedelta(days=10),
-                'payment_status': 'UNPAID', 'is_overdue': False, 'psid': '0002026000014',
-                'camera': None, 'detection': None, 'locale': 'en',
-            })(),
-            'evidence_summary': {'checks': [{'check': c, 'passed': True} for c in
-                                ('plate_readability', 'frame_consistency', 'violation_logic',
-                                 'image_evidence', 'chain_integrity')],
-                                'passed': 5, 'total': 5, 'all_passed': True, 'hash': 'ab12cd34' * 8,
-                                'track_id': 'TRK-1-LEA-0001', 'track_frames': 3, 'track_consistency': 1.0},
-            'payment_icons': [], 'barcode_svg': None, 'qr_svg': None,
-            'logo_left_path': str(dj_settings.BASE_DIR / 'static' / 'img' / 'project_logo.png'),
-            'logo_right_path': str(dj_settings.BASE_DIR / 'static' / 'img' / 'university_logo.png'),
-            'needs_nadra_excise': False,
-        }
-
     TEMPLATE_META = {
         'modern_a4': ('Modern A4 | Official E-Challan', 'Modern layout with KPI band, evidence frame and PSID strip'),
         'classic_a4': ('Classic A4 | Government-Style Form', 'Bordered bureaucratic form with sections A to D'),
@@ -4123,7 +4104,8 @@ def challan_template_select(request):
         'secure_instrument': ('Secure Instrument', 'Bank-grade secure print with tear-off payment counterfoil'),
         'urdu_executive': ('Urdu Executive | Urdu-Primary', 'Nastaliq right-to-left executive layout with English captions'),
     }
-    sample_ctx = Context(_sample_context())
+    from challans.pdf_service import build_sample_preview_context
+    sample_ctx = Context(build_sample_preview_context())
     layouts = []
     fs_dir = pathlib.Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
     for key in TEMPLATE_MAP:

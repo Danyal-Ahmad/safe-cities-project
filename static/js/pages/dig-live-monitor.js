@@ -188,7 +188,7 @@
   var consoleBar = document.getElementById('cctvZoomConsole');
   var noteBox = document.getElementById('cctvZoomNote');
   var zoomClock = document.getElementById('cctvZoomClock');
-  var seekBar = document.getElementById('cctvSeek');
+  var seekBar = document.getElementById('czSeek');
   var timeCurrent = document.getElementById('czTimeCurrent');
   var timeTotal = document.getElementById('czTimeTotal');
   var playBtn = document.getElementById('czPlay');

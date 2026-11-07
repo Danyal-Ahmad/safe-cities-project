@@ -4,7 +4,7 @@
 {% block title %}Violation Heatmap{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="{% static 'css/pages/dig-heatmap.css' %}">
 {% endblock %}
 
@@ -70,7 +70,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" crossorigin="anonymous"></script>
+<script src="/static/vendor/leaflet/leaflet.js" crossorigin="anonymous"></script>
+<script src="/static/vendor/leaflet/leaflet-heat.js" crossorigin="anonymous"></script>
 <script src="{% static 'js/pages/dig-heatmap.js' %}" defer></script>
 {% endblock %}

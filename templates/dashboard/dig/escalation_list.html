@@ -11,8 +11,8 @@
 
 <div class="card">
 {% if escalations %}
-  <div class="overflow-x-auto">
-  <table>
+  <div class="table-responsive">
+  <table class="table table-hover mb-0">
     <thead><tr><th>#</th><th>Challan</th><th>Plate</th><th>Stage</th><th>Status</th><th>When</th></tr></thead>
     <tbody>
     {% for a in escalations %}
@@ -25,13 +25,13 @@
         <td class="small">{{ a.escalated_at|date:"d M H:i"|default:"-" }}</td>
       </tr>
     {% empty %}
-      <tr><td colspan="6" class="empty">No escalations.</td></tr>
+      <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--sc-text-muted,#5B6B85);">No escalations.</td></tr>
     {% endfor %}
     </tbody>
   </table>
   </div>
 {% else %}
-  <div class="empty">No escalations.</div>
+  <div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No escalations.</h3></div>
 {% endif %}
 </div>
 {% endblock %}

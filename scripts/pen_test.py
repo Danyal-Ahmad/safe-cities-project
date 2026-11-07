@@ -7,7 +7,7 @@ client against the REAL settings module with DEBUG forced off, so the
 production code paths (CSP, secure cookies, rate limits, auth gates) are
 exercised exactly as a browser/attacker would see them.
 
-Proofs covered (see docs/SECURITY_AUDIT.md for the full findings matrix):
+Proofs covered by this harness:
 
   T1  Anonymous /challan/<id>/pdf/ is blocked (IDOR) - no token, ticket_no
       as token, numeric id as token and tampered signatures all 403; only a

@@ -46,81 +46,23 @@
     }
 
     const ctxActivity = document.getElementById('officerActivityChart');
-    if (ctxActivity && window.Chart) {
-      new Chart(ctxActivity, {
-        type: 'line',
-        data: {
-          labels: daysLabels.length ? daysLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [{
-            label: 'Reviewed Violations',
-            data: daysCounts.length ? daysCounts : [0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#1d4ed8',
-            backgroundColor: 'rgba(29, 78, 216, 0.08)',
-            fill: true,
-            tension: 0.35,
-            borderWidth: 2.5,
-            pointBackgroundColor: '#1d4ed8',
-            pointRadius: 4,
-            pointHoverRadius: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              padding: 10,
-              cornerRadius: 8,
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { precision: 0 },
-              grid: { color: 'rgba(226, 232, 240, 0.6)' }
-            },
-            x: {
-              grid: { display: false }
-            }
-          }
-        }
-      });
+    if (ctxActivity && window.scCharts) {
+      window.scCharts.line(ctxActivity.id,
+        daysLabels.length ? daysLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        [{ label: 'Reviewed Violations', data: daysCounts.length ? daysCounts : [0, 0, 0, 0, 0, 0, 0] }],
+        { emptyMessage: 'No reviews recorded this week' });
     }
 
     // 4. Decision Distribution Doughnut
     // Counts are supplied on the canvas via data-confirmed / data-rejected
     // (previously inlined with {{ confirmed_total }} / {{ rejected_total }}).
     const ctxDoughnut = document.getElementById('officerDoughnutChart');
-    if (ctxDoughnut && window.Chart) {
+    if (ctxDoughnut && window.scCharts) {
       const confCount = Number(ctxDoughnut.dataset.confirmed || 0);
       const rejcCount = Number(ctxDoughnut.dataset.rejected || 0);
-      new Chart(ctxDoughnut, {
-        type: 'doughnut',
-        data: {
-          labels: ['Confirmed', 'Rejected'],
-          datasets: [{
-            data: [confCount || (rejcCount ? 0 : 1), rejcCount],
-            backgroundColor: ['#10b981', '#ef4444'],
-            borderWidth: 2,
-            borderColor: '#ffffff',
-            hoverOffset: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '72%',
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              padding: 10,
-              cornerRadius: 8,
-            }
-          }
-        }
+      window.scCharts.doughnut(ctxDoughnut.id, ['Confirmed', 'Rejected'], [confCount, rejcCount], {
+        colors: ['#22A45D', '#E23B4E'],
+        emptyMessage: 'No decisions recorded yet'
       });
     }
 

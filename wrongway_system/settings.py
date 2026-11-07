@@ -90,6 +90,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # DEBUG only: stop browsers heuristically caching stale /static/ assets
+    # between edits (see wrongway_system/dev_static_cache.py). Must sit ABOVE
+    # WhiteNoise so it can stamp headers on the responses WhiteNoise serves
+    # when the dev server runs with --nostatic. No effect in production,
+    # where WhiteNoise serves fingerprinted immutable files.
+    'wrongway_system.dev_static_cache.DevStaticNoCacheMiddleware',
     # WhiteNoise: compressed static serving with immutable cache headers.
     # Wired 2026 hardening pass - previously a requirements.txt-only dependency.
     # Must sit directly after SecurityMiddleware (see whitenoise docs).

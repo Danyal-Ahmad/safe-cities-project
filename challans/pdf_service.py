@@ -437,3 +437,64 @@ def save_challan_pdf(challan, force=False):
     name = f"{getattr(challan, 'ticket_no', challan.pk) or challan.pk}.pdf".replace('/', '-')
     challan.pdf_file.save(name, ContentFile(pdf_bytes), save=True)
     return challan.pdf_file
+
+
+def build_sample_preview_context():
+    """Sample context for rendering challan layout PREVIEWS in the browser
+    (DIG template-select and IT Challan Studio registry cards). Uses static
+    asset URLs so sandboxed preview iframes resolve images over HTTP."""
+    import datetime as _dt
+    from django.conf import settings as dj_settings
+
+    class _SampleChallan:
+        ticket_no = '202600001'
+        plate_number = 'LEA-1234'
+        province = 'LEA'
+        owner_name = 'Ahmad Raza'
+        cnic = '35202-7481936-4'
+        address = 'House 23, Street 4, DHA Phase 5, Lahore'
+        phone = '0300-8452197'
+        vehicle_type = 'Car'
+        make_year = '2022'
+        color = 'White'
+        violation_type = 'wrong_way'
+        fine_amount = 500
+        location = 'Main Boulevard Gulberg'
+        ai_confidence = 0.93
+        legal_direction = 'north'
+        moving_direction = 'south'
+        issue_date = _dt.date.today()
+        due_date = _dt.date.today() + _dt.timedelta(days=10)
+        payment_status = 'UNPAID'
+        is_overdue = False
+        psid = '0002026000014'
+        camera = None
+        detection = None
+        locale = 'en'
+
+        @property
+        def violation_type_display(self):
+            return 'Wrong Way'
+
+        @property
+        def confidence_percent(self):
+            return 93.0
+
+    return {
+        'challan': _SampleChallan(),
+        'evidence_summary': {
+            'checks': [{'check': c, 'passed': True} for c in (
+                'plate_readability', 'frame_consistency', 'violation_logic',
+                'image_evidence', 'chain_integrity')],
+            'passed': 5, 'total': 5, 'all_passed': True,
+            'hash': 'ab12cd34' * 8,
+            'track_id': 'TRK-1-LEA-0001', 'track_frames': 3, 'track_consistency': 1.0,
+        },
+        'payment_icons': [],
+        'barcode_svg': _make_barcode('202600001')[0],
+        'qr_svg': None,
+        'logo_left_path': '/static/img/project_logo.png',
+        'logo_right_path': '/static/img/university_logo.png',
+        'evidence_image_path': '/static/img/sample_evidence.jpg',
+        'needs_nadra_excise': False,
+    }

@@ -275,6 +275,10 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  /* Soft fade at both edges so items glide in/out instead of hard-clipping
+     against the label pill and the card border. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 18px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 18px), transparent 100%);
 }
 
 .sc-ticker-track {

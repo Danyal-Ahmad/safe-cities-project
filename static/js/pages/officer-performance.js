@@ -1,64 +1,46 @@
-/* Officer performance page - extracted from templates/dashboard/officer/performance.html
- * NOTE: loaded WITHOUT `defer` on purpose. The original inline <script> executed
- * during HTML parsing, BEFORE the deferred Chart.js CDN script loaded, so its
- * chart initialization threw (Chart undefined) and the canvases stayed untouched.
- * Loading this file synchronously preserves that exact original behavior. */
+/* Officer performance page - review activity bar + decision doughnut.
+ * Chart series are supplied on the canvases via data-* attributes. */
 (function () {
   'use strict';
-  if (typeof window.Chart === 'undefined') { return; }
 
-  // Chart series are supplied on the canvases via data-* attributes
-  // (previously inlined with {{ activity_labels|safe }} etc.).
-  const actCanvas = document.getElementById('activityChart');
-  let actLabels = [];
-  let actData = [];
-  if (actCanvas) {
-    try { actLabels = JSON.parse(actCanvas.dataset.activityLabels || '[]'); } catch(e) { actLabels = []; }
-    try { actData = JSON.parse(actCanvas.dataset.activityData || '[]'); } catch(e) { actData = []; }
+  function readJSON(value) {
+    try { return JSON.parse(value || '[]'); } catch (e) { return []; }
   }
 
-  const decCanvas = document.getElementById('decisionChart');
-  const confirmed = decCanvas ? Number(decCanvas.dataset.confirmed || 0) : 0;
-  const rejected  = decCanvas ? Number(decCanvas.dataset.rejected || 0) : 0;
-  const flagged   = decCanvas ? Number(decCanvas.dataset.flagged || 0) : 0;
+  function render() {
+    if (typeof window.Chart === 'undefined' || !window.scCharts) return;
 
-  if (actCanvas) {
-    new Chart(actCanvas, {
-      type: 'bar',
-      data: {
-        labels: actLabels.length ? actLabels : ['No data'],
-        datasets: [{
-          label: 'Reviews',
-          data: actData.length ? actData : [0],
-          backgroundColor: 'rgba(30,64,175,0.7)',
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    const actCanvas = document.getElementById('activityChart');
+    if (actCanvas) {
+      const actLabels = readJSON(actCanvas.dataset.activityLabels);
+      const actData = readJSON(actCanvas.dataset.activityData);
+      window.scCharts.bar(actCanvas.id, actLabels,
+        [{ label: 'Reviews', data: actData }], {
+          emptyMessage: 'No review activity recorded yet'
+        });
+    }
+
+    const decCanvas = document.getElementById('decisionChart');
+    if (decCanvas) {
+      const confirmed = parseInt(decCanvas.dataset.confirmed || '0', 10) || 0;
+      const rejected = parseInt(decCanvas.dataset.rejected || '0', 10) || 0;
+      const flagged = parseInt(decCanvas.dataset.flagged || '0', 10) || 0;
+      if (confirmed || rejected || flagged) {
+        window.scCharts.doughnut(decCanvas.id, ['Confirmed', 'Rejected', 'Flagged'],
+          [confirmed, rejected, flagged], {
+            colors: ['#22A45D', '#E23B4E', '#F5A623'],
+            emptyMessage: 'No decisions recorded yet'
+          });
+      } else {
+        const body = decCanvas.closest('.sc-card-body');
+        if (body) body.innerHTML = '<p class="sc-empty">No decisions recorded yet.</p>';
       }
-    });
+    }
   }
 
-  if (decCanvas && (confirmed || rejected || flagged)) {
-    new Chart(decCanvas, {
-      type: 'doughnut',
-      data: {
-        labels: ['Confirmed', 'Rejected', 'Flagged'],
-        datasets: [{
-          data: [confirmed, rejected, flagged],
-          backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-  } else if (decCanvas) {
-    decCanvas.closest('.sc-card-body').innerHTML =
-      '<p class="sc-empty">No review data yet.</p>';
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
   }
 })();

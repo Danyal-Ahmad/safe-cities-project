@@ -32,7 +32,7 @@
         return; // already initialised; never connect twice
     }
 
-    var SOCKET_IO_CDN = 'https://cdn.jsdelivr.net/npm/socket.io@4.7.5/dist/socket.io.min.js';
+    var SOCKET_IO_CDN = '/static/vendor/socket.io/socket.io.min.js';
     var SOCKET_PATH = '/ws/socket.io';
 
     // ------------------------------------------------------------------

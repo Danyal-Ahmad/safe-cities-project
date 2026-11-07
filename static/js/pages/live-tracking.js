@@ -7,7 +7,7 @@
   const ctx = canvas ? canvas.getContext('2d') : null;
   const stageContainer = document.getElementById('stageContainer');
   const videoPlayer = document.getElementById('liveVideoPlayer');
-  let simulatedDetections = [];
+  let liveDetections = [];
 
   // Camera context supplied by the server on #stageContainer
   // (previously inlined with {{ selected_camera_id }} / {{ selected_camera.camera_id }}).
@@ -38,12 +38,14 @@
     const w = canvas.width;
     const h = canvas.height;
 
-    simulatedDetections.forEach((det, idx) => {
-      // Relative coordinates or randomized demo boxes if coordinates not strictly bounded
-      let bx = (det.bbox && det.bbox[0]) ? (det.bbox[0] * w) : (w * 0.25 + (idx * 60) % (w * 0.5));
-      let by = (det.bbox && det.bbox[1]) ? (det.bbox[1] * h) : (h * 0.35 + (idx * 40) % (h * 0.3));
-      let bw = (det.bbox && det.bbox[2]) ? (det.bbox[2] * w) : 180;
-      let bh = (det.bbox && det.bbox[3]) ? (det.bbox[3] * h) : 120;
+    liveDetections.forEach((det, idx) => {
+      // Only draw detections that carry real bounding-box coordinates from the
+      // AI pipeline; detections without a bbox are not rendered.
+      if (!det.bbox || !det.bbox[0] || !det.bbox[1] || !det.bbox[2] || !det.bbox[3]) return;
+      const bx = det.bbox[0] * w;
+      const by = det.bbox[1] * h;
+      const bw = det.bbox[2] * w;
+      const bh = det.bbox[3] * h;
 
       // Draw vehicle bounding box (Cyan / Emerald)
       ctx.strokeStyle = '#00F0FF';
@@ -80,7 +82,6 @@
     const inspectorCamera = document.getElementById('inspectorCamera');
     const inspectorImage = document.getElementById('inspectorImage');
     const targetBadge = document.getElementById('targetStatusBadge');
-    const btnStudio = document.getElementById('btnSendToStudio');
     const btnDetail = document.getElementById('btnDetailLink');
 
     if (inspectorId) inspectorId.textContent = '#' + id;
@@ -90,8 +91,6 @@
     if (targetBadge) targetBadge.textContent = status || 'PENDING';
     if (inspectorImage && imgUrl) inspectorImage.src = imgUrl;
 
-    const camId = selectedCameraPk;
-    if (btnStudio) btnStudio.href = `/portal/officer/manual/?camera_id=${camId}&focus=${id}`;
     if (btnDetail) btnDetail.href = `/portal/officer/detection/${id}/`;
 
     // Highlight selected target in feed
@@ -150,7 +149,7 @@
       .then(res => res.json())
       .then(data => {
         if (data && data.items && data.items.length) {
-          simulatedDetections = data.items;
+          liveDetections = data.items;
           document.getElementById('hudDetectionCount').textContent = `AI Targets: ${data.items.length}`;
           drawBoxes();
         }

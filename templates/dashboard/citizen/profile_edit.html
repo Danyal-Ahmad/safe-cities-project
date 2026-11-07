@@ -3,103 +3,79 @@
 {% load humanize %}
 {% block title %}My Profile{% endblock %}
 {% block content %}
-<div class="sc-page-hero">
-<div>
-<h1>My profile</h1>
-<p class="sc-lead">Photo and password. Identity details are locked.</p>
+<div class="sc-card" style="max-width:640px;">
+<div class="sc-card-head">Personal information</div>
+<div class="sc-form-group">
+<label for="cnic">CNIC</label>
+<input type="text" id="cnic" value="{{ user.cnic|default:'Not on record' }}" disabled readonly>
 </div>
+<div class="sc-form-group">
+<label for="username">Username</label>
+<input type="text" id="username" value="{{ user.username }}" disabled readonly>
+</div>
+<div class="sc-form-group">
+<label for="fullName">Full name</label>
+<input type="text" id="fullName" value="{{ user.get_full_name|default:'-' }}" disabled readonly>
+</div>
+<div class="sc-form-group">
+<label for="phone">Phone</label>
+<input type="tel" id="phone" value="{{ user.phone|default:'Not on record' }}" disabled readonly>
+</div>
+<div class="sc-form-group">
+<label for="email">Email</label>
+<input type="email" id="email" value="{{ user.email|default:'Not on record' }}" disabled readonly>
+</div>
+<div class="sc-form-group">
+<label for="address">Address</label>
+<textarea id="address" rows="3" disabled readonly>{{ user.address|default:'Not on record' }}</textarea>
+</div>
+<div class="sc-text-xs sc-text-muted"><i class="bi bi-lock-fill"></i> Identity details are verified against your CNIC and managed by the traffic police. They cannot be edited here. Contact the nearest traffic police office for corrections.</div>
 </div>
 
-{% if messages %}
-<div class="sc-card sc-mb-3">
-  {% for m in messages %}<div class="sc-alert sc-alert-{{ m.tags|default:'info' }}"><i class="bi bi-info-circle"></i> {{ m }}</div>{% endfor %}
+<div class="sc-card" style="max-width:640px;">
+<div class="sc-card-head">Profile photo</div>
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<input type="hidden" name="action" value="avatar">
+<div class="sc-form-group">
+<label for="avatar">Photo</label>
+<input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp">
+<div class="sc-text-xs sc-text-muted">Square JPG/PNG/GIF/WEBP, max 2 MB.</div>
+</div>
+{% if user.avatar %}
+<div class="sc-form-group">
+<label>Current photo</label>
+<img src="{{ user.avatar.url }}" alt="Profile photo" style="max-width:96px;max-height:96px;border-radius:8px;object-fit:cover;border:1px solid var(--sc-border);">
 </div>
 {% endif %}
+<div class="sc-flex sc-gap-2">
+<button type="submit" class="sc-btn sc-btn-primary">Upload photo</button>
+<a href="{% url 'citizen_portal:home' %}" class="sc-btn">Cancel</a>
+</div>
+</form>
+</div>
 
-<div class="sc-grid sc-grid-3" style="gap:16px;align-items:start;">
-  <div class="sc-card" style="grid-column:span 1;">
-    <div style="text-align:center;padding:8px 0 16px;">
-      {% if user.avatar %}
-        <img src="{{ user.avatar.url }}" alt="Profile photo" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--sc-accent);">
-      {% else %}
-        <div style="width:120px;height:120px;border-radius:50%;background:{{ user.avatar_color }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:800;margin:0 auto;border:3px solid var(--sc-accent);">
-          {% if user.first_name %}{{ user.first_name|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}
-        </div>
-      {% endif %}
-      <div style="margin-top:10px;font-weight:700;">{{ user.get_full_name|default:user.username }}</div>
-      <div class="sc-text-sm sc-text-muted">{{ user.get_role_display }}</div>
-      <div class="sc-text-sm sc-text-muted">Citizen account</div>
-    </div>
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="avatar">
-      <div class="sc-form-group">
-        <label>Profile photo</label>
-        <input type="file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" class="w-full">
-        <div class="sc-text-xs sc-text-muted">Square JPG/PNG/GIF/WEBP, max 2 MB.</div>
-      </div>
-      <button type="submit" class="sc-btn sc-btn-primary" style="width:100%;"><i class="bi bi-camera"></i> Upload photo</button>
-    </form>
-  </div>
-
-  <div class="sc-card" style="grid-column:span 2;">
-    <h2><i class="bi bi-person-lock"></i> Identity details</h2>
-    <p class="sc-text-sm sc-text-muted">Your identity is verified against your CNIC and managed by the traffic police. These details cannot be edited from the citizen portal. Contact the nearest traffic police office or call the helpline for corrections.</p>
-    <div class="sc-grid sc-grid-2">
-      <div class="sc-form-group">
-        <label>CNIC</label>
-        <input type="text" value="{{ user.cnic|default:'Not on record' }}" disabled readonly class="w-full">
-      </div>
-      <div class="sc-form-group">
-        <label>Username</label>
-        <input type="text" value="{{ user.username }}" disabled readonly class="w-full">
-      </div>
-    </div>
-    <div class="sc-grid sc-grid-2">
-      <div class="sc-form-group">
-        <label>Full name</label>
-        <input type="text" value="{{ user.get_full_name|default:'-' }}" disabled readonly class="w-full">
-      </div>
-      <div class="sc-form-group">
-        <label>Phone</label>
-        <input type="text" value="{{ user.phone|default:'Not on record' }}" disabled readonly class="w-full">
-      </div>
-    </div>
-    <div class="sc-grid sc-grid-2">
-      <div class="sc-form-group">
-        <label>Email</label>
-        <input type="email" value="{{ user.email|default:'Not on record' }}" disabled readonly class="w-full">
-      </div>
-      <div class="sc-form-group">
-        <label>Address</label>
-        <input type="text" value="{{ user.address|default:'Not on record' }}" disabled readonly class="w-full">
-      </div>
-    </div>
-    <div class="sc-text-xs sc-text-muted" style="margin-top:4px;"><i class="bi bi-lock-fill"></i> Locked fields are protected server-side; any attempt to modify them is rejected and logged.</div>
-  </div>
-
-  <div class="sc-card" style="grid-column:span 3;">
-    <h2><i class="bi bi-key"></i> Change password</h2>
-    <form method="post" class="sc-grid sc-grid-3" style="gap:12px;align-items:end;">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="password">
-      <div class="sc-form-group">
-        <label>Current password</label>
-        <input type="password" name="old_password" required autocomplete="current-password" class="w-full">
-      </div>
-      <div class="sc-form-group">
-        <label>New password</label>
-        <input type="password" name="new_password1" required minlength="12" autocomplete="new-password" class="w-full">
-        <div class="sc-text-xs sc-text-muted">Minimum 12 characters.</div>
-      </div>
-      <div class="sc-form-group">
-        <label>Confirm new password</label>
-        <input type="password" name="new_password2" required minlength="12" autocomplete="new-password" class="w-full">
-      </div>
-      <div style="grid-column:span 3;">
-        <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-repeat"></i> Update password</button>
-      </div>
-    </form>
-  </div>
+<div class="sc-card" style="max-width:480px;">
+<div class="sc-card-head">Change password</div>
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="action" value="password">
+<div class="sc-form-group">
+<label for="oldPassword">Current password *</label>
+<input type="password" id="oldPassword" name="old_password" required autocomplete="current-password">
+</div>
+<div class="sc-form-group">
+<label for="newPassword1">New password * (12+ chars)</label>
+<input type="password" id="newPassword1" name="new_password1" minlength="12" required autocomplete="new-password">
+</div>
+<div class="sc-form-group">
+<label for="newPassword2">Confirm new password *</label>
+<input type="password" id="newPassword2" name="new_password2" minlength="12" required autocomplete="new-password">
+</div>
+<div class="sc-flex sc-gap-2">
+<button type="submit" class="sc-btn sc-btn-primary">Update password</button>
+<a href="{% url 'citizen_portal:home' %}" class="sc-btn">Cancel</a>
+</div>
+</form>
 </div>
 {% endblock %}

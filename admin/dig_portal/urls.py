@@ -1,4 +1,5 @@
 from admin.officer_portal import views as officer_views
+from admin.shared import make_timeline_view as shared_timeline
 from django.urls import path
 from . import views
 
@@ -45,6 +46,10 @@ path('analytics/',                    views.analytics,               name='analy
     path('admins/',                       views.admin_list,              name='admin_list'),
     path('admins/add/',                   views.admin_add,               name='admin_add'),
     path('admins/<int:user_id>/',         views.admin_edit,              name='admin_edit'),
+    path('admins/<int:user_id>/toggle/',  views.admin_toggle,            name='admin_toggle'),
+    path('admins/<int:user_id>/toggle-active/', views.admin_toggle,    name='admin_toggle_active'),
+    path('users/<int:user_id>/toggle/',   views.admin_toggle,            name='citizen_toggle'),
+    path('admins/<int:user_id>/delete/',  views.admin_delete,            name='admin_delete'),
     path('admins/set-password/',           views.staff_set_password,      name='staff_set_password'),
 
     path('reports/',                      views.reports,                 name='reports'),
@@ -104,7 +109,7 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('live-monitor/',                 views.live_monitor,            name='live_monitor'),
     path('live-monitor/feed/',            views.live_monitor_feed,       name='live_monitor_feed'),
-    path('live-tracking/timeline/',       officer_views.frame_timeline,  name='live_tracking_timeline'),
+    path('live-tracking/timeline/',       shared_timeline('DIG'),        name='live_tracking_timeline'),
 
 
     path('cameras/',                      views.camera_list,             name='camera_list'),

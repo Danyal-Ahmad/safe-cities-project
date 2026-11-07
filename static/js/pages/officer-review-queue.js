@@ -99,3 +99,63 @@
     if (btn) selectSlot(btn.dataset.frameSlot);
   });
 })();
+
+// --- live queue telemetry: poll /realtime/queue-count/ + realtime events ---
+(function () {
+  'use strict';
+
+  var POLL_MS = 20000;
+  var lastCount = null;
+  var timer = null;
+
+  function paint(count) {
+    var pendingEls = document.querySelectorAll('[data-rq-pending]');
+    var countEls = document.querySelectorAll('[data-rq-count]');
+    var items = document.querySelectorAll('#queueItemsList .rq-item').length;
+
+    if (typeof count === 'number' && !isNaN(count)) {
+      if (lastCount !== null && count > lastCount) {
+        pendingEls.forEach(function (el) {
+          el.classList.remove('flash-increase');
+          void el.offsetWidth;
+          el.classList.add('flash-increase');
+        });
+      }
+      lastCount = count;
+      pendingEls.forEach(function (el) { el.textContent = String(count); });
+      countEls.forEach(function (el) {
+        el.textContent = (typeof count === 'number' && count > 0 ? count : items) + ' items';
+      });
+    }
+  }
+
+  function refresh() {
+    var panel = document.querySelector('[data-rq-panel]');
+    var api = panel ? panel.getAttribute('data-queue-api') : null;
+    if (!api) { return; }
+    fetch(api, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && typeof d.count === 'number') { paint(d.count); } })
+      .catch(function () { /* offline: keep last values */ });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var panel = document.querySelector('[data-rq-panel]');
+    if (!panel) { return; }
+    try {
+      panel.setAttribute('data-queue-api', new URL('/realtime/queue-count/', window.location.href).href);
+    } catch (e) {
+      panel.setAttribute('data-queue-api', '/realtime/queue-count/');
+    }
+    var initial = document.querySelector('[data-rq-pending]');
+    if (initial) {
+      var n = parseInt(initial.textContent || '', 10);
+      if (!isNaN(n)) { lastCount = n; }
+    }
+    timer = setInterval(refresh, POLL_MS);
+    window.addEventListener('beforeunload', function () { clearInterval(timer); });
+  });
+
+  document.addEventListener('safecity:notification', function () { refresh(); });
+  window.addEventListener('safecity:notification', function () { refresh(); });
+})();

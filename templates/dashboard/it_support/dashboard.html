@@ -20,14 +20,10 @@
         <div class="scr-rail-kicker">Safe Cities Project · Infrastructure &amp; Platform</div>
         <div class="scr-rail-title">
           IT Infrastructure Command
-          <span class="scr-rail-tag {% if ai_available %}scr-rail-tag--success{% else %}scr-rail-tag--danger{% endif %}">
-            <i class="bi bi-cpu"></i> AI Engine {% if ai_available %}Operational{% else %}Degraded{% endif %}
-          </span>
         </div>
         <div class="scr-rail-sub">Surveillance hardware, AI inference pipelines, gateway integrations and server telemetry health.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"system_health" %}
         <a href="{% url 'it_support_portal:system_health' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-heart-pulse"></i> Telemetry</a>
         {% endif %}
@@ -82,7 +78,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Camera Ingestion Rate (7 Days)</div>
-        <span class="md-badge md-badge-secondary">Frame Stream</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="detChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
@@ -94,7 +89,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-receipt"></i> Legal Enforcement Inflow (7 Days)</div>
-        <span class="md-badge md-badge-secondary">Generated Challans</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="chalChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="bar"></canvas>

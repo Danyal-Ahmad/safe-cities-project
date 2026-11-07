@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% comment %}V37: shift assignment is now auto-only (round-robin/least-busy)
+ - DIG picks a start/end time and the system assigns whichever eligible
+   officer has the fewest shifts in the trailing 7 days. No manual officer
+   picker anymore.{% endcomment %}
 {% block title %}Shift Roster{% endblock %}
 
 {% block extra_head %}
@@ -51,9 +54,9 @@
         <label class="form-label">Shift Slot <span class="req" style="color:#E23B4E">*</span></label>
         <select class="form-select form-control-sm" name="slot" required onchange="applySlot(this)">
           <option value="">Select slot…</option>
-          <option value="morning">Morning (06:00 - 14:00)</option>
-          <option value="evening">Evening (14:00 - 22:00)</option>
-          <option value="night">Night (22:00 - 06:00)</option>
+          <option value="morning">Morning (06:00 – 14:00)</option>
+          <option value="evening">Evening (14:00 – 22:00)</option>
+          <option value="night">Night (22:00 – 06:00)</option>
           <option value="custom">Custom</option>
         </select>
       </div>

@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from admin.dig_portal import views as dig_views
-from admin.officer_portal.views import frame_timeline as officer_frame_timeline
+from admin.shared import make_timeline_view
 
 app_name = 'ssp_portal'
 
@@ -59,6 +59,6 @@ urlpatterns = [
 
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
-    path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),
+    path('live-tracking/timeline/', make_timeline_view(['SSP', 'DIG']), name='live_tracking_timeline'),
 
 ]

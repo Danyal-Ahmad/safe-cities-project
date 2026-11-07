@@ -404,8 +404,34 @@ def blacklist_add(request):
 
 @it_required
 def challan_templates_manage(request):
-    from ..models import ChallanTemplate
+    """IT Support: challan template registry.
+
+    2026-11 redesign: previews are the REAL rendered PDF (inline sample
+    endpoint + rasterised first-page thumbnail). Raw template code is never
+    displayed, edited or uploaded through this page - layouts live in
+    templates/challan/challan_templates/ and are versioned with the code.
+    The only upload path is a finished PDF file.
+    """
+    from ..models import ChallanTemplate, SystemSettings
+    from challans.pdf_service import (
+        TEMPLATE_MAP, DEFAULT_TEMPLATE_KEY, build_sample_context,
+        generate_sample_pdf, preview_png_data_uri, _render_html_to_pdf,
+    )
     sys_settings = SystemSettings.get()
+
+    # GET ?sample=<key> -> inline sample PDF of the real layout
+    sample_key = (request.GET.get('sample') or '').strip()
+    if sample_key:
+        valid = {k for k in TEMPLATE_MAP} | {f'db:{t.pk}' for t in ChallanTemplate.objects.all()}
+        if sample_key not in valid:
+            return HttpResponse('Unknown template key.', status=404)
+        pdf = generate_sample_pdf(sample_key)
+        if not pdf:
+            return HttpResponse('PDF engine unavailable.', status=503)
+        resp = HttpResponse(pdf, content_type='application/pdf')
+        resp['Content-Disposition'] = (
+            'inline; filename="challan_sample_%s.pdf"' % sample_key.replace(':', '_'))
+        return resp
 
     if request.method == 'POST':
         action = request.POST.get('action') or ''
@@ -415,41 +441,14 @@ def challan_templates_manage(request):
             if not pdf_file:
                 messages.error(request, "Please choose a PDF file to upload.")
                 return redirect('it_support_portal:challan_templates')
-            ct = ChallanTemplate(
-                name=name,
-                uploaded_by=request.user,
-                is_active=False,
-                html_content='',
-            )
+            ct = ChallanTemplate(name=name, uploaded_by=request.user, is_active=False, html_content='')
             ct.file.save(pdf_file.name, pdf_file, save=True)
             ct.save()
-            AuditLog.write(
-                request, 'challan_template.upload_pdf', 'ChallanTemplate', ct.id,
-                name=ct.name, file=ct.file.name if ct.file else '',
-            )
+            AuditLog.write(request, 'challan_template.upload_pdf', 'ChallanTemplate', ct.id,
+                           name=ct.name, file=ct.file.name if ct.file else '')
             messages.success(request, f"PDF template '{ct.name}' uploaded.")
             return redirect('it_support_portal:challan_templates')
 
-        if action in ('upload_challan_template', 'save_challan_template'):
-            name = (request.POST.get('template_name') or '').strip() or 'Template'
-            html = (request.POST.get('html_content') or '').strip()
-            tid = request.POST.get('template_id') or ''
-            if not html:
-                messages.error(request, "Template HTML content is required.")
-                return redirect('it_support_portal:challan_templates')
-            if tid:
-                obj = ChallanTemplate.objects.filter(pk=tid).first()
-                if not obj:
-                    messages.error(request, "Template not found.")
-                    return redirect('it_support_portal:challan_templates')
-                obj.name = name
-                obj.html_content = html
-                obj.save()
-                messages.success(request, f"Template '{obj.name}' updated.")
-            else:
-                obj = ChallanTemplate.objects.create(name=name, html_content=html, uploaded_by=request.user, file=None)
-                messages.success(request, f"Template '{obj.name}' created.")
-            return redirect('it_support_portal:challan_templates')
         if action == 'delete_challan_template':
             tid = request.POST.get('template_id')
             obj = ChallanTemplate.objects.filter(pk=tid).first()
@@ -458,6 +457,7 @@ def challan_templates_manage(request):
                 obj.delete()
                 messages.success(request, f"Template '{nm}' deleted.")
             return redirect('it_support_portal:challan_templates')
+
         if action == 'set_challan_template':
             tid = request.POST.get('active_template')
             if tid and tid != 'default':
@@ -470,108 +470,96 @@ def challan_templates_manage(request):
                     messages.success(request, f"Active template set to '{obj.name}'.")
             else:
                 ChallanTemplate.objects.update(is_active=False)
-                sys_settings.pdf_template = 'standard_a4'
+                sys_settings.pdf_template = DEFAULT_TEMPLATE_KEY
                 sys_settings.save(update_fields=['pdf_template'])
-                messages.success(request, "Default official template activated.")
+                messages.success(request, "Default official layout activated.")
             return redirect('it_support_portal:challan_templates')
+
         if action == 'activate_file_template':
             key = (request.POST.get('template_key') or '').strip()
-            from pathlib import Path
-            from django.conf import settings as dj_settings
-            fs_path = Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates' / f'{key}.html'
-            if not key or not fs_path.is_file():
+            if key not in TEMPLATE_MAP:
                 messages.error(request, "Template layout not found.")
                 return redirect('it_support_portal:challan_templates')
             ChallanTemplate.objects.update(is_active=False)
             sys_settings.pdf_template = key
             sys_settings.save(update_fields=['pdf_template'])
-            messages.success(request, f"Active layout set to '{key.replace('_', ' ').title()}'.")
-            return redirect('it_support_portal:challan_templates')
-        if action == 'save_file_template':
-            key = (request.POST.get('template_key') or '').strip()
-            html = request.POST.get('html_content') or ''
-            from pathlib import Path
-            from django.conf import settings as dj_settings
-            fs_dir = Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
-            fs_path = fs_dir / f'{key}.html'
-            if not key or '/' in key or '\\' in key or '..' in key or not fs_path.resolve().is_relative_to(fs_dir.resolve()):
-                messages.error(request, "Invalid template key.")
-                return redirect('it_support_portal:challan_templates')
-            if not html.strip():
-                messages.error(request, "Template HTML content is required.")
-                return redirect('it_support_portal:challan_templates')
-            try:
-                fs_path.write_text(html, encoding='utf-8')
-                AuditLog.write(request, 'challan_template.edit', 'ChallanTemplateFile', 0, key=key)
-                messages.success(request, f"Layout '{key.replace('_', ' ').title()}' saved.")
-            except OSError as e:
-                messages.error(request, f"Could not save layout: {e}")
+            messages.success(request, f"Active layout set to '{key}'.")
             return redirect('it_support_portal:challan_templates')
 
+        messages.error(request, 'Unrecognised action.')
+        return redirect('it_support_portal:challan_templates')
+
+    active_key = getattr(sys_settings, 'pdf_template', None) or DEFAULT_TEMPLATE_KEY
+    if active_key not in TEMPLATE_MAP and not active_key.startswith('db:'):
+        active_key = DEFAULT_TEMPLATE_KEY
+
+    TEMPLATE_META = {
+        'standard_a4': ('Standard A4 | Bilingual Official Layout',
+                        'Two-logo bilingual sheet: navy identity bar, three info panels, evidence + fine block, four payment channels and the officer counter-signature.'),
+        'government_grid_a4': ('Government Grid A4 | Citation Matrix',
+                        'Navy command header with QR title row, citation matrix (vehicle / violation / payment), annotated evidence grid and the traffic-rules strip.'),
+        'notice_classic_a4': ('Notice Classic A4 | Red-Label Citation',
+                        'Classic notice layout with the e-Challan label band, red challan-number block, evidence row, bilingual notice and barcode counter-signature.'),
+    }
+    file_templates = []
+    for key in TEMPLATE_MAP:
+        if key not in TEMPLATE_META:
+            continue  # aliases & overflow guards are not selectable layouts
+        file_templates.append({
+            'key': key,
+            'name': TEMPLATE_META[key][0],
+            'blurb': TEMPLATE_META[key][1],
+            'is_active': (key == active_key),
+            'is_file': True,
+            'preview_png': preview_png_data_uri(key),
+            'sample_url': f'?sample={key}',
+        })
 
     templates = list(ChallanTemplate.objects.all().order_by('-created_at')[:50])
-    for obj in templates:
-        obj.preview_html = (obj.html_content or '')[:4000]
-    any_custom_active = any(getattr(t, 'is_active', False) for t in templates)
-
-    from challans.pdf_service import TEMPLATE_MAP
-    active_key = sys_settings.pdf_template or 'modern_a4'
-    if active_key not in TEMPLATE_MAP and not active_key.startswith('db:'):
-        active_key = 'modern_a4'
-        sys_settings.pdf_template = active_key
-        sys_settings.save(update_fields=['pdf_template'])
-
-    from django.conf import settings as dj_settings
-    from pathlib import Path
-    file_templates = []
-    fs_dir = Path(dj_settings.BASE_DIR) / 'templates' / 'challan' / 'challan_templates'
-    if fs_dir.is_dir():
-        for key in TEMPLATE_MAP:
-            fp = fs_dir / f'{key}.html'
-            if not fp.is_file():
-                continue
-            try:
-                raw_html = fp.read_text(encoding='utf-8', errors='ignore')
-            except OSError:
-                raw_html = ''
-            file_templates.append({
-                'key': key,
-                'name': {
-                    'modern_a4': 'Modern A4 | Official Safe City E-Challan',
-                    'classic_a4': 'Classic A4 | Government-Style Form',
-                    'legal_notice_99a': 'Legal Notice 99-A | Motor Vehicles Ordinance 1965',
-                    'digital_slip': 'Digital Slip | Modern Compact E-Challan',
-                    'command_brief': 'Command Brief | Executive Enforcement Layout',
-                    'secure_instrument': 'Secure Instrument | Bank-Grade Counterfoil',
-                    'urdu_executive': 'Urdu Executive | Nastaliq RTL Layout',
-                }.get(key, key.replace('_', ' ').title()),
-                'blurb': 'Built-in layout file',
-                'is_active': (key == active_key),
-                'is_file': True,
-                'preview_html': raw_html[:4000],
-                'html_content': raw_html,
-                'thumb_label': key,
-            })
-
     card_templates = []
     for t in templates:
+        db_key = f'db:{t.id}'
+        if t.file:
+            preview, sample_url = None, t.file.url
+        else:
+            preview, sample_url = None, None
+            try:
+                from django.template import Context as _Ctx, Template as _Tpl
+                _ctx = _Ctx(build_sample_context())
+                _ctx.use_l10n = False
+                html = _Tpl(t.html_content or '').render(_ctx) if t.html_content else ''
+                pdf = _render_html_to_pdf(html) if html else None
+                if pdf:
+                    import base64 as _b64, subprocess as _sp, tempfile as _tf
+                    import pathlib as _pl
+                    with _tf.NamedTemporaryFile(suffix='.pdf', delete=False) as _fh:
+                        _fh.write(pdf)
+                    _prefix = _fh.name[:-4] + '_png'
+                    _sp.run(['pdftoppm', '-r', '110', '-png', '-f', '1', '-l', '1',
+                             _fh.name, _prefix], check=True, capture_output=True, timeout=30)
+                    _cands = sorted(_pl.Path(_prefix).parent.glob(_pl.Path(_prefix).name + '-*.png'))
+                    if _cands:
+                        preview = 'data:image/png;base64,' + _b64.b64encode(_cands[-1].read_bytes()).decode('ascii')
+                        _cands[-1].unlink(missing_ok=True)
+                    _pl.Path(_fh.name).unlink(missing_ok=True)
+            except Exception:
+                preview, sample_url = None, None
         card_templates.append({
-            'key': str(t.id),
+            'key': db_key,
             'name': t.name,
             'blurb': 'Database template',
-            'is_active': (active_key == f'db:{t.id}'),
+            'is_active': (active_key == db_key),
             'is_file': False,
             'id': t.id,
             'file_url': (t.file.url if t.file else None),
-            'preview_html': getattr(t, 'preview_html', None) or (t.html_content or '')[:4000],
-            'html_content': t.html_content or '',
-            'thumb_label': t.name,
+            'preview_png': preview,
+            'sample_url': sample_url,
         })
 
     return render(request, 'dashboard/it_support/challan_templates.html', {
         'challan_templates': templates,
         'templates': card_templates + file_templates,
-        'any_custom_active': any_custom_active,
+        'any_custom_active': any(getattr(t, 'is_active', False) for t in templates),
         'active_template_key': active_key,
     })
 

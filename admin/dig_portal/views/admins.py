@@ -528,3 +528,42 @@ def regional_access(request):
     return render(request, 'dashboard/dig/regional_access.html', {
         'ssp_users': ssp_users, 'supervisor_users': supervisor_users,
     })
+
+
+@staff_required
+def admin_toggle(request, user_id):
+    target = get_object_or_404(User, pk=user_id)
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
+    if target.role == User.DIG and User.objects.filter(role=User.DIG, is_active=True).count() == 1 and target.is_active:
+        messages.error(request, "Cannot deactivate the last active DIG account.")
+        return redirect(next_url if next_url.startswith('/') else 'dig:admin_list')
+    target.is_active = not target.is_active
+    target.save()
+    AuditLog.write(request, 'admin.toggle', 'User', target.id, active=target.is_active)
+    label = 'Citizen' if target.role == User.USER else 'Admin'
+    messages.success(request, f"{label} {target.display_name} {'activated' if target.is_active else 'blocked'}.")
+    if next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect('dig:citizen_users_list' if target.role == User.USER else 'dig:admin_list')
+
+
+@dig_required
+def admin_delete(request, user_id):
+    target = get_object_or_404(User, pk=user_id)
+    if target.id == request.user.id:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect('dig:admin_list')
+    if target.role == User.DIG and User.objects.filter(role=User.DIG, is_active=True).count() <= 1:
+        messages.error(request, "Cannot delete the last DIG account.")
+        return redirect('dig:admin_list')
+    next_url = request.POST.get('next') or ''
+    uid, email, role = target.id, target.email, target.role
+    target.delete()
+    try:
+        AuditLog.write(request, 'admin.delete', 'User', uid, email=email)
+    except Exception:
+        pass
+    messages.success(request, f"Account deleted ({email}).")
+    if next_url.startswith('/'):
+        return redirect(next_url)
+    return redirect('dig:citizen_users_list' if role == User.USER else 'dig:admin_list')

@@ -1,6 +1,6 @@
 # E2E Role Matrix Test Report
 
-**Date:** 2026-11-07 05:27
+**Date:** 2026-11-07 06:05
 **Users covered:** 27 across 7 roles 
 **Result: 237 passed / 0 failed / 237 total**
 
@@ -178,7 +178,7 @@
 - [PASS] officer live-tracking page (200)
 - [PASS] officer live-tracking camera filter CAM-001 (200)
 - [PASS] officer vehicle-tracking plate search (200)
-- [PASS] officer live-tracking timeline JSON (items=40)
+- [PASS] officer live-tracking timeline JSON (items=48)
 - [PASS] supervisor@safecity.fyp live-tracking (200)
 - [PASS] ssp2@safecity.fyp live-tracking (200)
 - [PASS] dig2@safecity.fyp live-tracking (200)
@@ -196,7 +196,7 @@
 ## PHASE E | Real AI pipeline on the uploaded traffic video (via UI)
 
 - [PASS] UI upload accepted (redirect) (302)
-- [PASS] VideoUpload record created (#17)
+- [PASS] VideoUpload record created (#19)
 - [PASS] upload bound to CAM-001 (cam=6)
 - [PASS] upload sha256 recorded (-)
 - [PASS] pipeline completed (status=completed err=)
@@ -204,7 +204,7 @@
 - [PASS] real detections created by pipeline (12 detections)
 - [PASS] pipeline stats persisted (plates=3 ignored=11)
 - [PASS] no false-positive challans on normal traffic (challans=0 violations=0)
-- [PASS] LiveFeed created from upload (feed=14)
+- [PASS] LiveFeed created from upload (feed=16)
 - [PASS] camera marked online (online)
 - [PASS] officer review queue renders (200)
 - [PASS] officer detections list renders (200)
@@ -260,7 +260,7 @@
 - [PASS] audit PDF export compliance (200)
 - [PASS] audit PDF export auth_events (200)
 - [PASS] DIG audit log page (200)
-- [PASS] end-to-end audit trail present (31 entries)
+- [PASS] end-to-end audit trail present (35 entries)
 
 ## Failures
 

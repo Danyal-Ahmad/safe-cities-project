@@ -1,4 +1,11 @@
+/* ==========================================================================
+   CAMERAS STATUS + CAMERA HEALTH (unified light theme)
+   templates/dashboard/dig/cameras_status.html
+   templates/dashboard/dig/camera_health.html
 
+   Re-themed to the shared light design system so every portal page reads
+   consistently; semantic colors stay (live red, ok green, warn amber).
+   ========================================================================== */
 
 .cams-dark {
   --cd-bg: transparent;
@@ -25,6 +32,7 @@
   min-height: 50vh;
 }
 
+/* Light-theme card surfaces for the panels */
 .cams-dark .cd-hero,
 .cams-dark .cd-kpis .cd-kpi {
   border: 1px solid var(--cd-line);
@@ -33,6 +41,8 @@
 }
 
 .cams-dark [hidden] { display: none !important; }
+
+/* ---------- Hero ---------- */
 
 .cd-hero {
   display: flex;
@@ -70,6 +80,8 @@
   gap: 8px;
 }
 
+/* ---------- Buttons ---------- */
+
 .cd-btn {
   display: inline-flex;
   align-items: center;
@@ -97,6 +109,8 @@
 .cd-btn-primary:hover { background: #2f6fe0; }
 
 .cd-btn-sm { padding: 6px 11px; font-size: 0.68rem; }
+
+/* ---------- KPI chips ---------- */
 
 .cd-kpis {
   display: grid;
@@ -151,6 +165,8 @@
 
 .cd-kpi-value-time { font-size: 1rem; letter-spacing: 0.04em; }
 
+/* Pulsing dot for the online KPI (same animation family as the wall) */
+
 .cd-kpi-dot {
   width: 8px;
   height: 8px;
@@ -164,6 +180,8 @@
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
   50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
 }
+
+/* ---------- Filter bar (GET form + instant client filter) ---------- */
 
 .cd-filter-bar {
   display: flex;
@@ -211,6 +229,8 @@
 
 .cd-filter-select:focus { border-color: var(--cd-accent); }
 
+/* ---------- Server search notice ---------- */
+
 .cd-server-note {
   display: flex;
   align-items: center;
@@ -237,6 +257,8 @@
 }
 
 .cd-server-note a:hover { text-decoration: underline; }
+
+/* ---------- Table ---------- */
 
 .cd-table-wrap {
   overflow-x: auto;
@@ -290,6 +312,8 @@
   color: var(--cd-muted);
   white-space: nowrap;
 }
+
+/* ---------- Status chips ---------- */
 
 .cd-chip {
   display: inline-flex;
@@ -368,6 +392,8 @@
   background: rgba(94, 112, 147, 0.16);
 }
 
+/* ---------- Empty states ---------- */
+
 .cd-empty {
   display: flex;
   flex-direction: column;
@@ -401,6 +427,8 @@
 
 .cd-empty-link:hover { text-decoration: underline; }
 
+/* ---------- Foot note ---------- */
+
 .cd-foot-note {
   margin: 0;
   color: var(--cd-faint);
@@ -412,6 +440,8 @@
 }
 
 .cd-foot-note i { margin-top: 1px; color: var(--cd-muted); }
+
+/* ---------- Responsive ---------- */
 
 @media (max-width: 760px) {
   .cd-hero { flex-direction: column; align-items: flex-start; }

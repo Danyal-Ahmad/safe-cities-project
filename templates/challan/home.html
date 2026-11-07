@@ -12,34 +12,38 @@
 
   <div class="scpub-inner">
 
+    <!-- Hero band: dual logos + title on a navy card with the landmark
+         artwork blended in from the right (approved reference style).
+         Bright-white page canvas, single accent colour, no pills. -->
     <section class="ph-hero">
-      <div class="scpub-brand">
+      <div class="ph-hero-art" aria-hidden="true"></div>
+      <div class="ph-hero-brand">
         <div class="scpub-logos">
           <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
-          <span class="scpub-logos-sep" aria-hidden="true">|</span>
-          <img src="{% static 'img/university_logo.png' %}" alt="University">
+          <span class="scpub-logos-sep" aria-hidden="true"></span>
+          <img src="{% static 'img/university_logo.png' %}" alt="University partner">
         </div>
         <div class="scpub-brand-text">
-          <h1 class="scpub-brand-title ph-brand-title">SAFE CITIES PROJECT</h1>
-          <p class="scpub-brand-sub">E-CHALLAN CITIZEN PORTAL</p>
+          <h1 class="scpub-brand-title">SAFE CITIES PROJECT</h1>
+          <p class="scpub-brand-sub">E-Challan Citizen Portal</p>
+          <p class="ph-hero-urdu" lang="ur" dir="rtl">اپنا چالان یہاں تلاش کریں</p>
         </div>
       </div>
     </section>
 
+    <!-- Search card: BOTH inputs + button inline on a single line.
+         No label rows, no <br>, no full-width button under the fields. -->
     <section class="ph-search-card scpub-card">
       <form method="get" action="{% url 'challans:home' %}" class="scpub-form" role="search">
         <div class="ph-fields">
-          <div class="scpub-field">
-            <label for="phPlate">Number Plate</label>
-            <input class="scpub-input" id="phPlate" type="text" name="plate" placeholder="Number Plate (e.g. LEA-1234)" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
-          </div>
-          <div class="scpub-field">
-            <label for="phCnic">CNIC</label>
-            <input class="scpub-input" id="phCnic" type="text" inputmode="numeric" name="cnic" placeholder="CNIC (13 digits)" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
-          </div>
+          <input class="scpub-input ph-inline-input" id="phPlate" type="text" name="plate"
+                 aria-label="Number Plate" placeholder="Number Plate (e.g. LEA-1234)"
+                 value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
+          <input class="scpub-input ph-inline-input" id="phCnic" type="text" inputmode="numeric" name="cnic"
+                 aria-label="CNIC" placeholder="CNIC (13 digits)"
+                 value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
+          <button type="submit" class="scpub-btn ph-search-btn"><i class="bi bi-search"></i> Search Challan</button>
         </div>
-        <button type="submit" class="scpub-btn"><i class="bi bi-search"></i> Search Challan</button>
-        <p class="ph-urdu-hint" lang="ur" dir="rtl">اپنا چالان یہاں تلاش کریں</p>
       </form>
 
       {% if searched and not challans %}
@@ -47,6 +51,7 @@
       {% endif %}
     </section>
 
+    <!-- Results below the search card (server rendered) -->
     {% if searched and challans %}
     <section class="ph-results">
       <div class="ph-results-head">
@@ -95,6 +100,33 @@
     </section>
     {% endif %}
 
+    <!-- How it works: three numbered steps, plain text (no pills, no cards) -->
+    <section class="ph-steps" aria-label="How it works">
+      <div class="ph-step">
+        <span class="ph-step-no">01</span>
+        <div class="ph-step-body">
+          <b>Verify</b>
+          <span>Enter your number plate or CNIC to find every e-challan issued against your vehicle.</span>
+        </div>
+      </div>
+      <div class="ph-step">
+        <span class="ph-step-no">02</span>
+        <div class="ph-step-body">
+          <b>View &amp; Pay</b>
+          <span>Open the official challan, inspect the evidence and pay online, at a bank or via mobile wallet.</span>
+        </div>
+      </div>
+      <div class="ph-step">
+        <span class="ph-step-no">03</span>
+        <div class="ph-step-body">
+          <b>Resolve</b>
+          <span>Dispute a challan with supporting evidence - appeals are reviewed by the enforcement desk.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- BANNER ADS: one large banner (edge-to-edge, no border, no rounded
+         corners). Content managed from the DIG portal banner manager. -->
     {% if static_post_ads %}
     <section class="ph-ads" aria-label="Banner advertisement">
       {% include 'challan/_public_ads.html' %}

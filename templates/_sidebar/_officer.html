@@ -1,4 +1,12 @@
 {% load perm_tags %}
+{% comment %} ============================================================
+   Officer - enforcement &amp; live operations sidebar
+
+   Camera access for officers is limited to the two approved
+   capabilities: REVIEW QUEUE + LIVE TRACKING. Every other camera
+   surface (capture wall, frame timeline, vehicle tracking, video
+   upload) belongs to the senior/technical portals.
+   ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -19,15 +27,8 @@
   <div class="sc-nav-title">Live Operations</div>
   {% if request.user|has_perm:"live_tracking" %}
   <a href="{% url 'officer_portal:live_tracking' %}" class="sc-nav-link {% if request.path == '/portal/officer/live-tracking/' %}sc-active{% endif %}"><i class="bi bi-camera-video"></i> <span class="sc-nav-link-text">Live Tracking</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"live_tracking_timeline" %}
-  <a href="{% url 'officer_portal:frame_timeline' %}" class="sc-nav-link {% if request.path == '/portal/officer/timeline/' or '/live-tracking/timeline/' in request.path %}sc-active{% endif %}"><i class="bi bi-clock"></i> <span class="sc-nav-link-text">Frame Timeline</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"vehicle_tracking" %}
-  <a href="{% url 'officer_portal:vehicle_tracking' %}" class="sc-nav-link {% if request.path == '/portal/officer/vehicle-tracking/' %}sc-active{% endif %}"><i class="bi bi-geo-alt"></i> <span class="sc-nav-link-text">Vehicle Tracking</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"camera_video_upload" %}
-  <a href="{% url 'video_processor:upload_video' %}" class="sc-nav-link {% if request.path == '/portal/video/upload/' %}sc-active{% endif %}"><i class="bi bi-cloud-upload"></i> <span class="sc-nav-link-text">Upload Video</span></a>
+  <a href="{% url 'officer_portal:vehicle_tracking' %}" class="sc-nav-link {% if request.path == '/portal/officer/vehicle-tracking/' %}sc-active{% endif %}"><i class="bi bi-search"></i> <span class="sc-nav-link-text">Vehicle Tracking</span></a>
+  <a href="{% url 'officer_portal:camera_feed' %}" class="sc-nav-link {% if request.path == '/portal/officer/camera-feed/' %}sc-active{% endif %}"><i class="bi bi-camera"></i> <span class="sc-nav-link-text">Camera Feed</span></a>
   {% endif %}
 </div>
 
@@ -47,13 +48,4 @@
   <a href="{% url 'officer_portal:performance' %}" class="sc-nav-link {% if request.path == '/portal/officer/performance/' %}sc-active{% endif %}"><i class="bi bi-graph-up"></i> <span class="sc-nav-link-text">Performance</span></a>
   {% endif %}
   <a href="{% url 'officer_portal:self_profile' %}" class="sc-nav-link {% if request.path == '/portal/officer/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-link-text">Profile</span></a>
-</div>
-
-<div class="sc-nav-bottom">
-  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
-    {% csrf_token %}
-    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
-      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
-    </button>
-  </form>
 </div>

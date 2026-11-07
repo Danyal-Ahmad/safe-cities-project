@@ -142,10 +142,27 @@ def review_queue(request):
         model_info = get_model_info()
     except Exception:
         model_info = {}
+
+    pendings = list(qs[:200])
+    confidences = [d.ai_confidence for d in pendings if d.ai_confidence]
+    avg_conf = (sum(confidences) / len(confidences)) if confidences else None
+    oldest = pendings[0] if pendings else None
+    oldest_age_min = None
+    if oldest is not None:
+        delta = timezone.localtime(timezone.now()) - timezone.localtime(oldest.created_at)
+        oldest_age_min = max(0, int(delta.total_seconds() // 60))
+    cameras_active = len({d.camera_id for d in pendings if d.camera_id})
+    plates_pending = len({(d.ai_plate_text or '').strip().upper()
+                           for d in pendings if (d.ai_plate_text or '').strip()})
+
     return render(request, 'dashboard/officer/review_queue.html', {
         'detections': qs[:50], 'selected': selected, 'queue_count': qs.count(),
         'model_info': model_info,
         'ai_threshold': SystemSettings.get().ai_confidence_threshold,
+        'avg_confidence': avg_conf,
+        'oldest_age_min': oldest_age_min,
+        'cameras_active': cameras_active,
+        'plates_pending': plates_pending,
     })
 
 

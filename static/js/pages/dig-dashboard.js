@@ -1,13 +1,15 @@
-
+/* DIG Command Center dashboard - extracted from templates/dashboard/dig/dashboard.html */
 (function () {
   'use strict';
 
+  // "wrong_way" -> "Wrong Way" for chart/category labels coming from API keys.
   function prettyLabel(s) {
     return String(s === undefined || s === null ? '' : s)
       .replace(/[_-]+/g, ' ')
       .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
+  // Live clock
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -20,6 +22,7 @@
   updateClock();
   setInterval(updateClock, 1000);
 
+  // Fetch helper (CSRF-safe)
   async function scFetch(url, options={}){
     const resp = await fetch(url, {
       ...options,
@@ -29,8 +32,10 @@
     return resp.json();
   }
 
+  // KPI real-time loading
   async function loadKPIs(){
-
+    // The KPI card exposes the dashboard KPI API endpoint via data-api-url
+    // (previously injected inline with {% url 'dig:api_dashboard_kpis' %}).
     const card = document.querySelector('.scr-stat-value[data-api-url]');
     if(!card) return;
     try {
@@ -50,6 +55,9 @@
     } catch(e) { console.warn('KPI load failed:', e); }
   }
 
+  // Generic Chart.js from API, routed through the themed scCharts engine
+  // (rounded bars, smooth gradient lines, padded single-value axes, value
+  // labels, unified legends and friendly empty states).
   async function initChartFromAPI(canvas){
     if (typeof Chart === 'undefined' || !window.scCharts) return;
     try {
@@ -70,7 +78,7 @@
       } else if (indexAxis === 'y') {
         window.scCharts.horizontalBar(canvas.id, (json.labels || []).map(prettyLabel), json.datasets || []);
       } else {
-
+        // Trend-style payloads (tension/fill) render as smooth lines.
         const lineish = Array.isArray(json.datasets) && json.datasets.some(function (d) {
           return d && (d.tension !== undefined || d.fill !== undefined);
         });
@@ -83,10 +91,13 @@
     } catch(e) { console.warn('Chart init failed:', e); }
   }
 
+  // Recent detections table renderer
   async function initRecentDetections(){
     const tbl = document.getElementById('recent-detections-table');
     if(!tbl) return;
 
+    // Rows are supplied by the server via data-recent-detections (JSON)
+    // (previously inlined by the Django template loop).
     let recent = [];
     try { recent = JSON.parse(tbl.dataset.recentDetections || '[]'); } catch(e) { recent = []; }
 

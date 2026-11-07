@@ -1,3 +1,1 @@
 Method,Name,Error,Occurrences,First Seen,Last Seen
-POST,POST /auth/admin/login/,HTTPError('403 Client Error: Forbidden for url: POST /auth/admin/login/'),32,2026-11-04T23:49:57Z,2026-11-04T23:50:00Z
-POST,POST /auth/admin/login/,HTTPError('429 Client Error: Too Many Requests for url: POST /auth/admin/login/'),68,2026-11-04T23:49:59Z,2026-11-04T23:50:05Z

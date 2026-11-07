@@ -9,7 +9,9 @@ against a running server.
 Start the production server first:
 
 ```bash
-python launcher.py run          # gunicorn when DEBUG=False, else dev server
+# gunicorn when DEBUG=False in .env, else the Django dev server:
+run.bat                                      # Windows
+.venv/bin/python -m gunicorn -c deploy/gunicorn.conf.py wrongway_system.wsgi:application   # Linux/macOS
 ```
 
 Then drive load:

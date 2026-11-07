@@ -115,8 +115,8 @@ with actor, IP and device.
 
 ### Setup (Windows)
 ```bat
-setup.bat     :: creates .venv, installs deps, runs migrations
-run.bat       :: starts the dev server at http://127.0.0.1:8000/
+setup.bat     :: creates .venv, installs deps (GPU if available, else CPU), migrates, seeds DIG admin
+run.bat       :: dev server when DEBUG=True, gunicorn production server when DEBUG=False
 ```
 
 ### Setup (Linux / macOS)
@@ -126,11 +126,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # then edit DB credentials
 python manage.py migrate
+python manage.py collectstatic --noinput
 python manage.py create_dig_admin
-python manage.py runserver
+python manage.py runserver --nostatic
 ```
 
-Full reset (destructive): `python launcher.py fresh`
+Full reset (destructive): drop and recreate the database, then re-run the
+setup steps above.
 
 ## URL Map
 
@@ -190,13 +192,14 @@ can mark a challan PAID on its own.
 ## Production Deployment
 
 ```bash
-python launcher.py setup          # venv + deps + migrate + collectstatic + DIG admin
-# edit .env: DEBUG=False, strong SECRET_KEY, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS, SSL_REDIRECT=True
-python launcher.py run            # serves via gunicorn (deploy/gunicorn.conf.py) + WhiteNoise
+# 1. setup: venv + deps + migrate + collectstatic + DIG admin (see Quick Start)
+# 2. edit .env: DEBUG=False, strong SECRET_KEY, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS, SSL_REDIRECT=True
+# 3. serve via gunicorn + WhiteNoise:
+.venv/bin/python -m gunicorn -c deploy/gunicorn.conf.py wrongway_system.wsgi:application
 ```
 
 Checklist when going live:
-- `DEBUG=False` (launcher refuses to serve with the demo SECRET_KEY)
+- `DEBUG=False` (the production startup refuses to serve with the demo SECRET_KEY)
 - `ALLOWED_HOSTS` + `CSRF_TRUSTED_ORIGINS` set to the real domain
 - TLS terminated at nginx/caddy; `SSL_REDIRECT=True` enables HSTS + secure
   cookies automatically
@@ -235,6 +238,38 @@ See [SECURITY.md](SECURITY.md). Highlights: Argon2 password hashing, rate
 limits on auth and public search, RBAC driven by `accounts/permissions.py`, portal
 isolation middleware, PII masking for anonymous visitors, signed links for
 public challan PDFs, and server-side settlement of every payment.
+
+### AI inference: GPU first, CPU fallback
+
+The ONNX plate detector / side classifier sessions request
+`CUDAExecutionProvider` (or TensorRT) first and fall back to `CPUExecutionProvider`
+automatically when no GPU is present or the GPU build fails to load. EasyOCR
+initializes with CUDA when torch reports `cuda.is_available()`, PaddleOCR when
+its runtime is CUDA-compiled - both silently degrade to CPU. The active device
+is logged at startup and shown on the IT-Support environment page. On Windows,
+`setup.bat` installs `onnxruntime-gpu` when CUDA is detected and uninstalls it
+back to CPU onnxruntime otherwise.
+
+### Adversarial security testing
+
+`security/pentest.py` is a dependency-free adversarial suite (68 checks) that
+runs against a live server:
+
+- anonymous access to every portal and staff page
+- cross-portal role escalation (citizen/officer against DIG/SSP/IT/audit URLs)
+- REST API abuse: camera ingest/enroll/heartbeat with missing or forged keys
+- payment webhook signature forgery and forged checkout references
+- AI pipeline abuse: unauthenticated or wrong-role video upload
+- IDOR: paying/appealing other citizens' challans, foreign-CNIC data leakage
+- CSRF: POST without token and with forged token
+- SQL injection and XSS payloads against the public search
+- path traversal on `/static` and `/media`
+- debug/env/source disclosure, `.git` exposure
+- security headers, session cookie flags
+- brute-force lockout and rate limiting (429)
+
+Run it with the production server up: `python security/pentest.py`
+(current reference run: **68/68 SECURE, 0 vulnerabilities**).
 
 ## What's New (V14 overhaul)
 

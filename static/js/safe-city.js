@@ -69,13 +69,19 @@
 
     function closeUserMenu() {
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.remove('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (dd) dd.classList.remove('show', 'open');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
     function scToggleUserMenu(e) {
         if (e) e.stopPropagation();
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.toggle('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (!dd) return;
+        const isOpen = dd.classList.toggle('show');
+        dd.classList.toggle('open', isOpen);
+        if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     }
 
     function initUserMenu() {

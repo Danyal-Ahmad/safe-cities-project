@@ -413,7 +413,8 @@ table { border-collapse: collapse; border-spacing: 0; }
   z-index: 100000;
 }
 
-.sc-user-dropdown.open { display: block; }
+.sc-user-dropdown.open,
+.sc-user-dropdown.show { display: block; }
 
 .sc-user-dropdown-header {
   display: flex;

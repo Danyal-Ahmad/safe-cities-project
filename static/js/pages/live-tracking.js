@@ -7,7 +7,11 @@
   const ctx = canvas ? canvas.getContext('2d') : null;
   const stageContainer = document.getElementById('stageContainer');
   const videoPlayer = document.getElementById('liveVideoPlayer');
-  let simulatedDetections = [];
+  // Real detections from /realtime/api/live/recent-detections/ - each item
+  // carries the TRUE geometry from the ONNX plate detector run
+  // (bbox_norm / vehicle_bbox normalized to the source frame). Items
+  // without a stored box draw NOTHING: no placeholder boxes are invented.
+  let trackedDetections = [];
 
   // Camera context supplied by the server on #stageContainer
   // (previously inlined with {{ selected_camera_id }} / {{ selected_camera.camera_id }}).
@@ -38,20 +42,36 @@
     const w = canvas.width;
     const h = canvas.height;
 
-    simulatedDetections.forEach((det, idx) => {
-      // Relative coordinates or randomized demo boxes if coordinates not strictly bounded
-      let bx = (det.bbox && det.bbox[0]) ? (det.bbox[0] * w) : (w * 0.25 + (idx * 60) % (w * 0.5));
-      let by = (det.bbox && det.bbox[1]) ? (det.bbox[1] * h) : (h * 0.35 + (idx * 40) % (h * 0.3));
-      let bw = (det.bbox && det.bbox[2]) ? (det.bbox[2] * w) : 180;
-      let bh = (det.bbox && det.bbox[3]) ? (det.bbox[3] * h) : 120;
+    trackedDetections.forEach(function (det) {
+      // Vehicle box (expanded geometry around the plate). Falls back to the
+      // plate box when only that was stored. Detections without any stored
+      // geometry are skipped entirely - the overlay only ever draws REAL
+      // AI output.
+      let box = det.vehicle_bbox && det.vehicle_bbox[2] > det.vehicle_bbox[0]
+        ? det.vehicle_bbox : det.bbox;
+      if (!box || box.length !== 4) { return; }
 
-      // Draw vehicle bounding box (Cyan / Emerald)
+      const bx = box[0] * w;
+      const by = box[1] * h;
+      const bw = Math.max(24, (box[2] - box[0]) * w);
+      const bh = Math.max(18, (box[3] - box[1]) * h);
+
+      // Vehicle bounding box (cyan)
       ctx.strokeStyle = '#00F0FF';
       ctx.lineWidth = 2.5;
       ctx.strokeRect(bx, by, bw, bh);
 
+      // Plate box (amber) - the tight geometry the detector actually found
+      if (det.bbox && det.bbox.length === 4) {
+        ctx.strokeStyle = '#F5A623';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(det.bbox[0] * w, det.bbox[1] * h,
+                       Math.max(14, (det.bbox[2] - det.bbox[0]) * w),
+                       Math.max(10, (det.bbox[3] - det.bbox[1]) * h));
+      }
+
       // Corner targeting brackets
-      const cLen = 14;
+      const cLen = Math.min(16, bw * 0.22);
       ctx.strokeStyle = '#10B981';
       ctx.lineWidth = 3.5;
       // Top-left
@@ -64,11 +84,13 @@
       ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cLen); ctx.stroke();
 
       // Plate Tag Label
+      const label = (det.plate || 'UNREADABLE') + ' (' + Math.round((det.confidence || 0) * 100) + '%)';
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.fillRect(bx, by - 24, Math.max(120, bw * 0.7), 24);
-      ctx.fillStyle = '#00F0FF';
+      const labelW = Math.max(130, Math.min(bw, w - bx) * 0.9);
+      ctx.fillRect(bx, Math.max(0, by - 24), labelW, 24);
+      ctx.fillStyle = det.plate ? '#00F0FF' : '#F5A623';
       ctx.font = 'bold 12px monospace';
-      ctx.fillText(`${det.plate || 'TARGET'} (${Math.round((det.confidence || 0.85) * 100)}%)`, bx + 6, by - 7);
+      ctx.fillText(label, bx + 6, Math.max(16, by - 7));
     });
   }
 
@@ -76,23 +98,21 @@
   function selectDetection(id, plate, conf, camera, status, imgUrl) {
     const inspectorId = document.getElementById('inspectorId');
     const inspectorPlate = document.getElementById('inspectorPlate');
-    const inspectorConf = document.getElementById('inspectorConfidence');
+    const inspectorConfidence = document.getElementById('inspectorConfidence');
     const inspectorCamera = document.getElementById('inspectorCamera');
     const inspectorImage = document.getElementById('inspectorImage');
     const targetBadge = document.getElementById('targetStatusBadge');
-    const btnStudio = document.getElementById('btnSendToStudio');
     const btnDetail = document.getElementById('btnDetailLink');
 
     if (inspectorId) inspectorId.textContent = '#' + id;
     if (inspectorPlate) inspectorPlate.textContent = plate || 'UNREADABLE';
-    if (inspectorConf) inspectorConf.textContent = conf;
+    if (inspectorConfidence) inspectorConfidence.textContent = conf;
     if (inspectorCamera) inspectorCamera.textContent = camera || 'Camera';
     if (targetBadge) targetBadge.textContent = status || 'PENDING';
     if (inspectorImage && imgUrl) inspectorImage.src = imgUrl;
 
     const camId = selectedCameraPk;
-    if (btnStudio) btnStudio.href = `/portal/officer/manual/?camera_id=${camId}&focus=${id}`;
-    if (btnDetail) btnDetail.href = `/portal/officer/detection/${id}/`;
+    if (btnDetail) btnDetail.href = '/portal/officer/detection/' + id + '/';
 
     // Highlight selected target in feed
     document.querySelectorAll('.md-feed-item').forEach(el => el.classList.remove('active'));
@@ -143,17 +163,22 @@
     bindImgError(img, function () { img.style.visibility = 'hidden'; });
   });
 
-  // Real-Time Polling: Connects HTML -> CSS -> JS -> Python API
+  // Real-Time Polling: connects the overlay to the live detections API.
+  // Only detections with REAL stored geometry drive the canvas; the count
+  // badge reflects every streamed detection.
   function pollRealtimeStream() {
     const camId = selectedCameraId;
-    fetch(`/realtime/api/live/recent-detections/?camera_id=${encodeURIComponent(camId)}&limit=15`)
+    fetch('/realtime/api/live/recent-detections/?camera_id=' + encodeURIComponent(camId) + '&limit=15')
       .then(res => res.json())
       .then(data => {
-        if (data && data.items && data.items.length) {
-          simulatedDetections = data.items;
-          document.getElementById('hudDetectionCount').textContent = `AI Targets: ${data.items.length}`;
-          drawBoxes();
+        if (!data || !Array.isArray(data.items)) { return; }
+        trackedDetections = data.items;
+        const withBox = data.items.filter(it => it.bbox || it.vehicle_bbox).length;
+        const counter = document.getElementById('hudDetectionCount');
+        if (counter) {
+          counter.textContent = 'AI Targets: ' + withBox + (data.items.length ? ' / ' + data.items.length + ' frames' : '');
         }
+        drawBoxes();
       })
       .catch(() => {});
   }

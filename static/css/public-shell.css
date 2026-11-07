@@ -110,7 +110,7 @@ select.ps-input option { color: #0f1c46; background: #fff; }
 .ps-results-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
 .ps-results-head h2 { font-size: 17px; font-weight: 800; color: #F0F4F8; display: flex; align-items: center; gap: 8px; }
 .ps-results-head a { color: #93C5FD; text-decoration: none; font-size: 13px; font-weight: 600; }
-.ps-results-head a:hover { text-decoration: underline; }
+.ps-results-head a:hover { text-decoration: none; }
 .ps-table-wrap { overflow-x: auto; border-radius: 8px; }
 .ps-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
 .ps-table thead th {

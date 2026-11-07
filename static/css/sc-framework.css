@@ -690,7 +690,6 @@ select.form-select {
 .text-lowercase { text-transform: lowercase !important; }
 .text-capitalize { text-transform: capitalize !important; }
 .text-decoration-none { text-decoration: none !important; }
-.text-decoration-underline { text-decoration: underline !important; }
 .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .text-break { word-wrap: break-word; word-break: break-word; }
 .text-wrap { white-space: normal !important; }

@@ -44,7 +44,7 @@
   letter-spacing: 0.03em;
 }
 
-.cam-server-note a:hover { text-decoration: underline; }
+.cam-server-note a:hover { text-decoration: none; }
 
 .cam-filter-search {
   flex: 1 1 240px;

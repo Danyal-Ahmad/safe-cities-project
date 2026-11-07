@@ -159,6 +159,40 @@ def api_tables_detections(request):
     })
 
 
+def _normalized_bbox(detection, key='bbox'):
+    """Plate/vehicle box from the stored AI run, normalized to 0-1.
+
+    The AI pipeline stores both geometries in ai_raw_response:
+      'bbox' / 'bbox_norm' - the plate box (absolute px / already 0-1)
+      'vehicle_bbox'        - the expanded vehicle box (absolute px)
+      'image_size'          - source frame (w, h)
+    The overlay canvas needs relative coordinates, so absolute boxes are
+    divided by the frame size. Returns None when the box or the frame
+    size is missing (legacy seeded rows) - the caller must then draw
+    NOTHING for that detection: placeholder boxes are never fabricated.
+    """
+    raw = getattr(detection, 'ai_raw_response', None) or {}
+    try:
+        if key == 'bbox':
+            norm = raw.get('bbox_norm')
+            if norm and len(norm) == 4:
+                return [max(0.0, min(1.0, float(v))) for v in norm]
+            box, size = raw.get('bbox'), raw.get('image_size')
+        elif key == 'vehicle_bbox':
+            box, size = raw.get('vehicle_bbox'), raw.get('image_size')
+        else:
+            box, size = raw.get(key), raw.get('image_size')
+        if not box or not size:
+            return None
+        w, h = float(size[0]), float(size[1])
+        if w <= 0 or h <= 0:
+            return None
+        x1, y1, x2, y2 = (float(v) for v in box)
+        return [max(0.0, x1 / w), max(0.0, y1 / h), min(1.0, x2 / w), min(1.0, y2 / h)]
+    except (TypeError, ValueError, IndexError):
+        return None
+
+
 @require_GET
 @staff_required
 def api_live_recent_detections(request):
@@ -176,7 +210,12 @@ def api_live_recent_detections(request):
             'camera': d.camera.camera_id if d.camera else '',
             'status': d.status,
             'confidence': round(d.ai_confidence or 0, 2),
-            'bbox': None,
+            # REAL geometry from the ONNX plate detector run, normalized to
+            # 0-1 relative to the source frame so the canvas overlay scales
+            # to any stage size. None when this detection has no stored box
+            # (legacy seeded rows) - the overlay then draws nothing for it.
+            'bbox': _normalized_bbox(d),
+            'vehicle_bbox': _normalized_bbox(d, key='vehicle_bbox'),
             'created_at': d.created_at.isoformat(),
             'thumb_url': d.raw_image.url if d.raw_image else None,
         } for d in qs],

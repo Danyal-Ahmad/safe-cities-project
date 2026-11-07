@@ -45,7 +45,7 @@
 }
 
 .it-tpl-blurb a { color: var(--sc-primary, #2563EB); text-decoration: none; }
-.it-tpl-blurb a:hover { text-decoration: underline; }
+.it-tpl-blurb a:hover { text-decoration: none; }
 
 /* Sandboxed preview frame (mini browser chrome + iframe) */
 .it-tpl-frame {

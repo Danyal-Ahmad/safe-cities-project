@@ -256,7 +256,7 @@
   letter-spacing: 0.04em;
 }
 
-.cd-server-note a:hover { text-decoration: underline; }
+.cd-server-note a:hover { text-decoration: none; }
 
 /* ---------- Table ---------- */
 
@@ -425,7 +425,7 @@
   letter-spacing: 0.04em;
 }
 
-.cd-empty-link:hover { text-decoration: underline; }
+.cd-empty-link:hover { text-decoration: none; }
 
 /* ---------- Foot note ---------- */
 

@@ -298,6 +298,35 @@
           </div>
         </div>
 
+        {% if detection.status == 'pending_review' %}
+        <form method="post" action="{% url 'officer_portal:confirm_detection' detection.id %}"
+              class="sc-action-form sc-action-form-confirm"
+              data-notes-form data-notes-min="20"
+              data-confirm-title="Confirm plate and issue challan?"
+              data-confirm-text="The detection will be marked CONFIRMED with the plate you enter. The evidence chain is sealed and a challan is issued through the standard pipeline."
+              data-confirm-button="Yes, confirm plate">
+          {% csrf_token %}
+          <div class="sc-form-group">
+            <label class="sc-form-label" for="confirmPlate"><i class="bi bi-check2-circle sc-text-success"></i> Confirm Plate | Read Manually</label>
+            <input id="confirmPlate" type="text" name="plate" maxlength="12" required
+                   class="sc-form-control sc-mono"
+                   placeholder="e.g. LEA-1100"
+                   value="{{ detection.ai_plate_text|default:'' }}"
+                   oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
+            <div class="sc-hint">OCR could not read this plate. Verify the footage and enter the plate as read.</div>
+          </div>
+          <div class="sc-form-group">
+            <textarea name="notes" rows="3" class="sc-form-control" required
+                      placeholder="Justification for the manual plate read. e.g. &quot;Plate box tracked across 3 frames at 0.87 confidence - OCR failed on glare. Plate reads LEA-1100 from the evidence frame.&quot;"
+                      data-notes-input data-notes-min="20"></textarea>
+            <div class="sc-hint"><span data-notes-counter>0</span>/20 characters minimum</div>
+          </div>
+          <button type="submit" class="sc-btn sc-btn-success sc-btn-block">
+            <i class="bi bi-check2-circle-fill"></i> Confirm & Issue Challan
+          </button>
+        </form>
+        {% endif %}
+
         <form method="post" action="{% url 'officer_portal:reject_detection' detection.id %}"
               class="sc-action-form" data-notes-form data-notes-min="20"
               data-confirm-title="Reject this detection?"

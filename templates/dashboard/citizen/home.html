@@ -91,7 +91,7 @@
         <span class="md-badge md-badge-secondary">Monthly Trend</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
-        <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"
+        <canvas id="chart-citizen-trend"
                 data-month-labels='[{% for m in month_labels %}"{{ m|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                 data-month-counts='[{% for m in month_counts %}{{ m }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
@@ -103,7 +103,7 @@
         <span class="md-badge md-badge-secondary">Category Share</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
-        <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"
+        <canvas id="chart-citizen-types"
                 data-violation-labels='[{% for v in violation_labels %}"{{ v|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                 data-violation-counts='[{% for v in violation_counts %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>

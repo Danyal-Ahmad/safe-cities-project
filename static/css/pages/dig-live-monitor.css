@@ -196,7 +196,7 @@
   letter-spacing: 0.04em;
 }
 
-.cctv-filter-note a:hover { text-decoration: underline; }
+.cctv-filter-note a:hover { text-decoration: none; }
 
 /* ---------- Activity ticker ---------- */
 
@@ -463,7 +463,7 @@
   letter-spacing: 0.04em;
 }
 
-.cctv-empty-link:hover { text-decoration: underline; }
+.cctv-empty-link:hover { text-decoration: none; }
 
 .cctv-grid-empty[hidden] { display: none; }
 

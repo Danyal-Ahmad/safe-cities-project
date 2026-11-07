@@ -12,6 +12,7 @@ urlpatterns = [
     path('detection/<int:detection_id>/reject/',   views.reject_detection,    name='reject_detection'),
     path('detection/<int:detection_id>/flag/',     views.flag_detection,      name='flag_detection'),
     path('detection/<int:detection_id>/note/',     views.add_review_note,     name='add_review_note'),
+    path('detection/<int:detection_id>/confirm/',  views.confirm_detection,  name='confirm_detection'),
 
     path('camera-feed/',                           views.camera_feed,         name='camera_feed'),
     path('detections/',                            views.detections_list,     name='detections_list'),

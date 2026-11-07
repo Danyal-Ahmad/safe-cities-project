@@ -14,3 +14,4 @@ class Migration(migrations.Migration):
             field=models.ImageField(blank=True, help_text='Optional profile picture upload.', null=True, upload_to='avatars/'),
         ),
     ]
+

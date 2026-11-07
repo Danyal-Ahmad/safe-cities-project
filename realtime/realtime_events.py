@@ -1,25 +1,3 @@
-"""Realtime push service for the SAFE CITIES PROJECT e-challan platform.
-
-Thin Socket.IO layer that pushes new detections, challans and portal
-notifications to the role dashboards the moment they happen, so portals no
-longer need to poll JSON endpoints for updates.
-
-    detections/pipeline.py (sync Django code)
-        -> emit_detection_event(detection, action)
-        -> _schedule_emit() hops onto the ASGI event loop
-        -> sio.emit('detection:new', payload, room='portal:<role>')
-
-The server is mounted by wrongway_system/asgi.py at ``/ws/socket.io`` and
-must run in a SINGLE process (uvicorn --workers 1) so in-process emits
-reach connected clients. Multi-worker deployments should front this with Redis.
-message-queue option.
-
-Security note: the Socket.IO handshake does not carry the Django session,
-so the role string supplied by the client is used ONLY to route the socket
-into a role room. Events pushed on this channel carry non-sensitive fields
-only (ids, plates, statuses, coarse confidence). Full evidence packages and
-personal data stay behind the authenticated portal HTTP views.
-"""
 from __future__ import annotations
 
 import asyncio
@@ -32,11 +10,7 @@ from django.utils import timezone
 
 logger = logging.getLogger('wrongway.realtime')
 
-# ---------------------------------------------------------------------------
-# Rooms and role routing
-# ---------------------------------------------------------------------------
 
-#: Every staff portal room (DIG, SSP, SUPERVISOR, OFFICER, AUDIT, IT).
 STAFF_ROOMS = (
     'portal:dig',
     'portal:ssp',
@@ -46,10 +20,8 @@ STAFF_ROOMS = (
     'portal:it',
 )
 
-#: Rooms used for challan lifecycle pushes (staff + citizen portal).
 CHALLAN_ROOMS = STAFF_ROOMS + ('portal:citizen',)
 
-#: Map of Django role keys (see accounts.User.ROLE_CHOICES) to rooms.
 ROLE_ROOMS = {
     'DIG': 'portal:dig',
     'SSP': 'portal:ssp',
@@ -63,12 +35,10 @@ ROLE_ROOMS = {
     'USER': 'portal:citizen',
 }
 
-#: Roles that additionally join the aggregate 'staff' room.
 STAFF_ROLE_KEYS = frozenset({
     'DIG', 'SSP', 'SUPERVISOR', 'SUPV', 'OFFICER', 'AUDIT', 'IT', 'IT_SUPPORT',
 })
 
-#: Audience names accepted by emit_portal_notification() -> rooms.
 AUDIENCE_ROOMS = {
     'all': ('everyone',),
     'everyone': ('everyone',),
@@ -86,19 +56,11 @@ AUDIENCE_ROOMS = {
 
 
 def _cors_allowed_origins():
-    """Permissive in DEBUG, strict same-origin when DEBUG=False.
-
-    python-socketio maps ``None`` to "only the request's own origin is
-    allowed" (engine.io derives the allowed origin from the Host header),
-    which is the strict same-origin behaviour required in production.
-    """
     if getattr(settings, 'DEBUG', False):
         return '*'
     return None
 
 
-#: The Socket.IO server. AsyncServer is the ASGI-mode variant of the
-#: python-socketio Server (the sync Server class has no 'asgi' async mode).
 sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins=_cors_allowed_origins(),
@@ -106,16 +68,12 @@ sio = socketio.AsyncServer(
     engineio_logger=False,
 )
 
-# ---------------------------------------------------------------------------
-# Event-loop bridge: sync pipeline code -> async Socket.IO server
-# ---------------------------------------------------------------------------
 
 _event_loop = None
 _loop_lock = threading.Lock()
 
 
 def _capture_event_loop():
-    """Remember the running ASGI event loop so sync code can emit."""
     global _event_loop
     try:
         loop = asyncio.get_running_loop()
@@ -132,10 +90,6 @@ def _get_event_loop():
 
 
 def on_asgi_startup():
-    """ASGI lifespan hook: capture the event loop for in-process emitters.
-
-    Wired in wrongway_system/asgi.py via ``socketio.ASGIApp(on_startup=...)``.
-    """
     loop = _capture_event_loop()
     logger.info(
         'realtime push layer started (event loop %s, cors=%s)',
@@ -145,7 +99,6 @@ def on_asgi_startup():
 
 
 async def _emit_to_rooms(event, payload, rooms):
-    """Coroutine that performs the actual room-by-room emit."""
     for room in rooms:
         try:
             await sio.emit(event, payload, room=room)
@@ -154,12 +107,6 @@ async def _emit_to_rooms(event, payload, rooms):
 
 
 def _schedule_emit(event, payload, rooms):
-    """Fire-and-forget emit, callable from ANY thread (sync Django included).
-
-    Returns True when the emit was scheduled, False when it was skipped
-    (no ASGI event loop yet, e.g. plain WSGI/runserver deployments).
-    Never raises.
-    """
     try:
         loop = _get_event_loop()
         if loop is None or loop.is_closed():
@@ -173,10 +120,8 @@ def _schedule_emit(event, payload, rooms):
         except RuntimeError:
             running = None
         if running is loop:
-            # Called from inside the event loop thread (async context).
             asyncio.ensure_future(coro)
         else:
-            # Called from a worker thread (sync Django view / pipeline).
             asyncio.run_coroutine_threadsafe(coro, loop)
         return True
     except Exception:
@@ -184,20 +129,9 @@ def _schedule_emit(event, payload, rooms):
         return False
 
 
-# ---------------------------------------------------------------------------
-# Connection handling
-# ---------------------------------------------------------------------------
-
-
 @sio.event
 async def connect(sid, environ, auth=None):
-    """Join the socket into its role room based on the auth dict.
-
-    The Socket.IO handshake has no Django session, so the role is accepted
-    as a routing hint only; pushed payloads stay non-sensitive (see the
-    module docstring). Unknown or missing roles join 'everyone' only.
-    """
-    _capture_event_loop()  # fallback loop capture if lifespan never fired
+    _capture_event_loop()
 
     role = ''
     if isinstance(auth, dict):
@@ -225,11 +159,6 @@ async def connect(sid, environ, auth=None):
 @sio.event
 async def disconnect(sid):
     logger.info('socket %s disconnected', sid)
-
-
-# ---------------------------------------------------------------------------
-# Payload builders (non-sensitive fields only)
-# ---------------------------------------------------------------------------
 
 
 def _detection_payload(detection, action):
@@ -285,7 +214,6 @@ def _challan_payload(challan, event):
 
 
 def _audiences_to_rooms(audiences):
-    """Normalize the audiences argument to a de-duplicated room tuple."""
     if audiences is None:
         audiences = ()
     elif isinstance(audiences, str):
@@ -298,25 +226,7 @@ def _audiences_to_rooms(audiences):
     return tuple(rooms) or ('staff',)
 
 
-# ---------------------------------------------------------------------------
-# Public emit API (safe to call from anywhere; never raises)
-# ---------------------------------------------------------------------------
-
-
 def emit_detection_event(detection, action):
-    """Push a pipeline detection outcome to the portal dashboards.
-
-    Called by detections/pipeline.py as::
-
-        from realtime.realtime_events import emit_detection_event
-        emit_detection_event(detection, action)
-
-    with action in {'challan_issued', 'queued_review', 'ignored'}.
-    Only 'challan_issued' and 'queued_review' are pushed to the staff
-    rooms; 'ignored' (auto-rejected false positives) is logged and skipped.
-    Failures are swallowed: realtime problems must never break the
-    enforcement pipeline.
-    """
     try:
         action = str(action or '')
         if action not in ('challan_issued', 'queued_review'):
@@ -340,13 +250,6 @@ def emit_detection_event(detection, action):
 
 
 def emit_portal_notification(title, message, severity='info', audiences=('staff',)):
-    """Push a portal notification toast to the mapped rooms.
-
-    audiences: single string or iterable of audience names, e.g.
-    'all', 'staff', 'dig', 'ssp', 'supervisor', 'officer', 'audit', 'it',
-    'citizen'. Unknown names are ignored; when nothing valid remains the
-    notification falls back to the 'staff' room. Defaults to 'staff'.
-    """
     try:
         rooms = _audiences_to_rooms(audiences)
         payload = {
@@ -368,11 +271,6 @@ def emit_portal_notification(title, message, severity='info', audiences=('staff'
 
 
 def emit_challan_event(challan, event):
-    """Push a challan lifecycle event (issued/paid/voided/...) to portals.
-
-    Emitted as 'challan:updated' to every staff room plus 'portal:citizen'.
-    Payload is non-sensitive (ticket number, plate, status, amount).
-    """
     try:
         payload = _challan_payload(challan, event)
         scheduled = _schedule_emit('challan:updated', payload, CHALLAN_ROOMS)
@@ -385,3 +283,4 @@ def emit_challan_event(challan, event):
     except Exception:
         logger.exception('emit_challan_event failed')
         return False
+

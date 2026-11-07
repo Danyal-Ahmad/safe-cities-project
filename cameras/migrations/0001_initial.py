@@ -43,3 +43,4 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['enrollment_token'], name='cameras_cam_enrollmen_idx'),
         ),
     ]
+

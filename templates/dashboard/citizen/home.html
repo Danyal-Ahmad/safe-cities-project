@@ -11,16 +11,10 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     CITIZEN PORTAL SCREEN · one cohesive surface
-     Large image-blend hero card (no buttons on the card) + live stat
-     strip + unified workspace. Time + date live in the navbar only.
-     ==================================================================== -->
+
 <div class="scr">
 
-  <!-- Large hero card: blended landmark artwork on the right, exactly as
-       the approved reference. No action buttons on the card itself - pay
-       and view actions live in the ledger rows below. -->
+
   <section class="cz-hero" aria-label="Citizen E-Challan Portal">
     <div class="cz-hero-text">
       <div class="cz-hero-kicker">Safe Cities Project &middot; Citizen Services</div>
@@ -35,7 +29,7 @@
     <div class="cz-hero-art" aria-hidden="true"></div>
   </section>
 
-  <!-- Fused stat strip -->
+
   <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
     {% if request.user|has_perm:"view_own_challans" %}
     <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
@@ -70,7 +64,7 @@
     {% endif %}
   </div>
 
-  <!-- Unified workspace -->
+
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_own_challans" and challans %}

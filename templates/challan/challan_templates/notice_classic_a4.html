@@ -1,21 +1,4 @@
-{% comment %}
-  SAFE CITIES PROJECT — notice_classic_a4.html
-  "Notice Classic" red-label citation layout (single A4 page, print-exact).
 
-  Ported from the approved "challan-template-3" reference sheet and
-  re-adjusted to the project print contract:
-    - ONE A4 page, @page margin 0, .sheet fixed 210 x 297 mm (overflow
-      hidden) so a second page is structurally impossible.
-    - No page numbers, no localhost/site URLs anywhere on the sheet.
-    - Urdu set in Noto Nastaliq Urdu via @font-face (static/fonts/).
-    - Payment logos render from the real static/img/payment icons.
-
-  Layout uses CSS tables (WeasyPrint-deterministic), never flexbox.
-  Height budget (mm): padding 3 + 7 | hd 38 | tr 24 | info 74 | ev 68
-  | nb 48 | internal gaps 2 x 2.4 = 4.8 | ft 16 | margins 3 x 2.6 = 7.8
-  => total 290.6
-  ====================================================================
-{% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,7 +169,7 @@
 <body>
 <div class="sheet">
 
-  <!-- ========== HEADER ========== -->
+
   <header class="hd">
     <div class="lg">
       {% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Safe Cities Project">{% endif %}
@@ -205,7 +188,7 @@
     </div>
   </header>
 
-  <!-- ========== TITLE ROW ========== -->
+
   <section class="tr">
     <div class="lb">e-Challan</div>
     <div class="md">
@@ -219,7 +202,7 @@
     </div>
   </section>
 
-  <!-- ========== MAIN FRAME ========== -->
+
   <section class="frame">
 
     <div class="info">
@@ -317,7 +300,7 @@
     </div>
   </section>
 
-  <!-- ========== FOOTER ========== -->
+
   <footer class="ft">
     <div class="c">Safe Cities Project<small>سیف سٹیز پروجیکٹ</small></div>
     <div class="c">Helpline 15<small>ہیلپ لائن 15</small></div>

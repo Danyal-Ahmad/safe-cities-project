@@ -86,7 +86,7 @@ def api_dashboard_kpis(request):
                 {'label': 'My appeals', 'value': ChallanAppeal.objects.filter(challan__created_by=request.user).count(), 'icon': 'bi-shield-fill'},
             ],
         })
-    else:  
+    else:
         return JsonResponse({'role': role, 'kpis': []})
 
 
@@ -155,17 +155,6 @@ def api_tables_detections(request):
 
 
 def _normalized_bbox(detection, key='bbox'):
-    """Plate/vehicle box from the stored AI run, normalized to 0-1.
-
-    The AI pipeline stores both geometries in ai_raw_response:
-      'bbox' / 'bbox_norm' - the plate box (absolute px / already 0-1)
-      'vehicle_bbox'        - the expanded vehicle box (absolute px)
-      'image_size'          - source frame (w, h)
-    The overlay canvas needs relative coordinates, so absolute boxes are
-    divided by the frame size. Returns None when the box or the frame
-    size is missing (legacy seeded rows) - the caller must then draw
-    NOTHING for that detection: placeholder boxes are never fabricated.
-    """
     raw = getattr(detection, 'ai_raw_response', None) or {}
     try:
         if key == 'bbox':
@@ -204,10 +193,6 @@ def api_live_recent_detections(request):
             'camera': d.camera.camera_id if d.camera else '',
             'status': d.status,
             'confidence': round(d.ai_confidence or 0, 2),
-            # REAL geometry from the ONNX plate detector run, normalized to
-            # 0-1 relative to the source frame so the canvas overlay scales
-            # to any stage size. None when this detection has no stored box
-            # (legacy seeded rows) - the overlay then draws nothing for it.
             'bbox': _normalized_bbox(d),
             'vehicle_bbox': _normalized_bbox(d, key='vehicle_bbox'),
             'created_at': d.created_at.isoformat(),
@@ -286,3 +271,4 @@ def api_chart_violation_distribution_shared(request):
             'backgroundColor': '#dc2626',
         }],
     })
+

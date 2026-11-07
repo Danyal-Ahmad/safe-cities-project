@@ -49,7 +49,6 @@ guaranteed to fit a **single A4 page** (page-count verified with pypdf).
 - Citizens self-register at `/auth/citizen/signup/`
 - Staff accounts are created by DIG / IT Support via the Staff Directory
 - Bootstrap the first DIG admin: `python manage.py create_dig_admin`
-- Optional demo accounts for development: `python manage.py seed_demo_accounts --yes`
 
 ## Advertising & Notification Channels
 

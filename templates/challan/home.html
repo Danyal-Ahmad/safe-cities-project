@@ -8,12 +8,7 @@
 
   <div class="scpub-inner psca-container">
 
-    {% comment %}
-      SEARCH PAGE - shown while there are no results. The moment a search
-      returns challans this whole block is skipped and only the RESULTS
-      PAGE below renders (the search form hides itself): the challan list
-      appears as its own next page, never stacked under the form.
-    {% endcomment %}
+
     {% if not searched or not challans %}
     <div id="searchPage">
       <div class="text-center" style="margin-top: 15px;">
@@ -35,17 +30,12 @@
         </div>
       </form>
 
-      <!-- NO RECORD FOUND -->
+
       {% if searched and not challans %}
       <div class="psca-no-record"><i class="bi bi-exclamation-circle-fill"></i> No record found. Please check your plate number or CNIC and try again.</div>
       {% endif %}
 
-      {% comment %}
-        BANNER - rendered ONLY when DIG / IT-Support has published a real
-        banner (placement = static post). No placeholder box and no label
-        text: the section stays hidden until a banner exists, then shows
-        by itself.
-      {% endcomment %}
+
       {% if static_post_ads %}
       <hr class="psca-sep">
       <section class="psca-banner" aria-label="Public service announcement">
@@ -56,11 +46,7 @@
     </div>
     {% endif %}
 
-    {% comment %}
-      RESULTS PAGE - the challan ledger on its own page. Back returns to
-      the search form. Download opens the official PDF; Review opens the
-      full challan detail (evidence, pay, appeal for a mistaken challan).
-    {% endcomment %}
+
     {% if searched and challans %}
     <div id="resultsPage">
       <div class="psca-results-head">

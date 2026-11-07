@@ -20,3 +20,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(normalize_statuses, migrations.RunPython.noop),
     ]
+

@@ -229,3 +229,4 @@ class Migration(migrations.Migration):
             options={'db_table': 'sc_citizen_profiles', 'verbose_name': 'Citizen profile', 'verbose_name_plural': 'Citizen profiles'},
         ),
     ]
+

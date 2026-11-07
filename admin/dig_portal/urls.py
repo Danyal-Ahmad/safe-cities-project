@@ -24,10 +24,10 @@ urlpatterns = [
     path('challans/bulk-fine-adjust/',                views.bulk_fine_adjust,       name='bulk_fine_adjust'),
 
 path('analytics/',                    views.analytics,               name='analytics'),
-    
+
     path('shifts/',                       views.shift_management,        name='shift_management'),
     path('shifts/add/',                   views.shift_add,               name='shift_add'),
-    
+
     path('penalty-config/',               views.penalty_config,          name='penalty_config'),
 
     path('cameras/<int:camera_id>/snapshot/', views.camera_snapshot,      name='camera_snapshot'),
@@ -140,3 +140,4 @@ path('analytics/',                    views.analytics,               name='analy
     path('api/charts/officer-kpi/',            views.api_chart_officer_kpi,            name='api_chart_officer_kpi'),
     path('api/tables/recent-detections/',      views.api_table_recent_detections,      name='api_table_recent_detections'),
 ]
+

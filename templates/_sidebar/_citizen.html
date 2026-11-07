@@ -1,7 +1,5 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   Citizen - minimal sidebar
-   ============================================================ {% endcomment %}
+
 
 <div class="sc-nav-section" data-section="My Account">
   <div class="sc-nav-title">My Account</div>
@@ -26,4 +24,3 @@
   <a href="{% url 'citizen_portal:password_change' %}" class="sc-nav-link {% if request.path == '/portal/citizen/password/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Change Password</span></a>
   {% endif %}
 </div>
-

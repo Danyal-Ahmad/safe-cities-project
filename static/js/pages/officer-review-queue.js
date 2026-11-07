@@ -100,7 +100,7 @@
   });
 })();
 
-// --- live queue telemetry: poll /realtime/queue-count/ + realtime events ---
+
 (function () {
   'use strict';
 
@@ -136,7 +136,7 @@
     fetch(api, { credentials: 'same-origin' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { if (d && typeof d.count === 'number') { paint(d.count); } })
-      .catch(function () { /* offline: keep last values */ });
+      .catch(function () {  });
   }
 
   document.addEventListener('DOMContentLoaded', function () {

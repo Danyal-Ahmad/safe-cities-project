@@ -51,3 +51,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(repair_ai_config, unapply),
     ]
+

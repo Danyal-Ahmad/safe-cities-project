@@ -1,14 +1,9 @@
-/* DIG Analytics page - extracted from templates/dashboard/dig/analytics.html
- * NOTE: loaded WITHOUT `defer` on purpose. The original inline <script> executed
- * during HTML parsing, BEFORE the deferred Chart.js CDN script loaded, so its
- * chart initialization threw (Chart undefined) and the canvases stayed untouched.
- * Loading this file synchronously preserves that exact original behavior. */
+
 (function () {
   'use strict';
   if (typeof window.Chart === 'undefined') { return; }
 
-  // Chart series are supplied on the canvases via data-* attributes
-  // (previously inlined with {{ trend_labels|safe }} etc.).
+
   const trendsCanvas = document.getElementById('trendsChart');
   let trendsLabels = [];
   let trendsData = [];

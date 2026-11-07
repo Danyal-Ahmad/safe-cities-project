@@ -362,16 +362,11 @@ def audit_export(request):
     return resp
 
 
-# ---------------------------------------------------------------------------
-# Audit report PDF export (single A4 page, template-driven)
-# ---------------------------------------------------------------------------
-
 PDF_EXPORT_MAX_REQUESTS = 10
-PDF_EXPORT_WINDOW = 60  # seconds
+PDF_EXPORT_WINDOW = 60
 
 
 def _check_pdf_export_rate(request) -> bool:
-    """Simple per-user cache counter (same pattern as challan search rate limit)."""
     from django.core.cache import cache
     if request.user.is_authenticated:
         ident = f"u{request.user.pk}"
@@ -390,7 +385,6 @@ def _check_pdf_export_rate(request) -> bool:
 
 @role_required(*AUDIT_ROLES)
 def export_pdf(request, kind):
-    """GET /portal/audit/export/pdf/<kind>/ -> downloadable audit report PDF."""
     from django.http import HttpResponse
 
     from .audit_pdf import KIND_LABELS, generate_audit_pdf, normalize_kind
@@ -423,8 +417,6 @@ def export_pdf(request, kind):
 
 @role_required(*AUDIT_ROLES)
 def templates_select(request):
-    """Audit staff (AUDIT + DIG) select the active audit PDF template.
-    IT Support manages the full template designer from its own portal."""
     from django.contrib import messages
     from django.shortcuts import redirect, render
 
@@ -432,7 +424,6 @@ def templates_select(request):
                             get_active_template_key, get_audit_templates,
                             get_template_preview_html)
 
-    # GET ?sample=<template_key> -> inline sample PDF (middleware-safe preview)
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         from django.http import HttpResponse
@@ -483,13 +474,8 @@ def templates_select(request):
     })
 
 
-
-# ---------------------------------------------------------------------------
-# Login/device tracking and upload audit (ported from the parallel branch)
-# ---------------------------------------------------------------------------
 @role_required(*AUDIT_ROLES)
 def login_events(request):
-    """Every authentication attempt with account, IP and device fingerprint."""
     from admin.dig_portal.models import LoginEvent
     from django.utils import timezone as tz
     import datetime as _dt
@@ -556,8 +542,6 @@ def login_events_export(request):
 
 @role_required(*AUDIT_ROLES)
 def uploads_log(request):
-    """Audit of every upload: videos (with tamper-evident hashes) and template
-    uploads, signature uploads and backup downloads."""
     from video_processor.models import VideoUpload
     from admin.dig_portal.models import ChallanTemplate
 
@@ -590,3 +574,4 @@ def uploads_log(request):
         'video_count': video_count,
         'template_count': template_count,
     })
+

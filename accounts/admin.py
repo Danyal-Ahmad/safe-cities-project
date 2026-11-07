@@ -71,3 +71,4 @@ class VehicleRegistrationAdmin(admin.ModelAdmin):
 class PasswordResetTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'token', 'created_at', 'used_at', 'ip_address')
     search_fields = ('user__username', 'token')
+

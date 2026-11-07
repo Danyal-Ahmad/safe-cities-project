@@ -1,11 +1,4 @@
-/* Public home ads + ticker behavior.
-   - Ticker (placement='ticker', rendered in the public header): a seamless
-     infinite right-to-left marquee. The item set is repeated until the
-     track's original half is at least as wide as the viewport, then a CSS
-     translateX(-50%) animation loops it forever. The copy count is kept odd
-     so the -50% shift lands exactly on a set boundary (no jump).
-   - The homepage shows exactly ONE large banner ad (see _public_ads.html);
-     there are no popups and no small ad chips anymore. */
+
 (function () {
   'use strict';
 
@@ -31,7 +24,7 @@
 
     var items = originals();
 
-    // Width of one item set (items carry their own spacing via margins/gap).
+
     var setWidth = 0;
     for (var i = 0; i < items.length; i++) {
       setWidth += items[i].offsetWidth;
@@ -40,8 +33,7 @@
     setWidth += gap * items.length;
     if (setWidth < 1) return;
 
-    // Repeat the set so the first half covers the viewport; keep the copy
-    // count odd so the track holds an even number of identical sets.
+
     var needed = Math.max(1, Math.ceil((viewport.clientWidth + 60) / setWidth));
     if (needed % 2 === 0) needed += 1;
     var copies = Math.min(needed, MAX_COPIES);

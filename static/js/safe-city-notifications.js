@@ -59,7 +59,7 @@
     if (Notification.permission !== 'granted') return;
     try {
       new Notification('Safe Cities Project', { body: item.title, tag: 'sc-push-' + item.id });
-    } catch (e) { /* notification construction failed */ }
+    } catch (e) {  }
   }
 
   function markAllSeen(items) {
@@ -124,7 +124,7 @@
   var lastItems = [];
   function currentItems() { return lastItems; }
   function storeItems(items) { lastItems = items; }
-  /* ---- ticker ---- */
+
   function initTicker() {
     var track = document.querySelector('#scTicker .sc-ticker-track');
     if (!track) return;

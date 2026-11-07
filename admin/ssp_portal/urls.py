@@ -68,3 +68,4 @@ urlpatterns = [
     path('escalations/', dig_views.appeals_queue, name='escalation_list'),
     path('notifications/feed/', dig_views.notifications, name='notifications_feed'),
 ]
+

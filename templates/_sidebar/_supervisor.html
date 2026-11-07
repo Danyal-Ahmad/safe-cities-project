@@ -1,7 +1,5 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   Supervisor sidebar
-   ============================================================ {% endcomment %}
+
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -34,4 +32,3 @@
   <a href="{% url 'supervisor_portal:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-graph-up"></i> <span class="sc-nav-link-text">Performance</span></a>
   {% endif %}
 </div>
-

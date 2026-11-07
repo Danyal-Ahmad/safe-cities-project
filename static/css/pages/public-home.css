@@ -1,20 +1,4 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Public pages design system (light professional)
 
-   One light, wide, table-first design for every public page:
-   home, challan detail, guest pay, pay redirect, signed-link expired.
-
-   Structure of this file:
-     1. .pub-*  shell classes (navbar, messages, footer) - shared with
-        public_base.html, which also loads sc-ticker.css for the unified
-        announcement bar above the navbar.
-     2. .scpub-* shared page primitives (light cards, buttons, badges).
-     3. .psca-* home page components: labelled search form, next-page
-        results table, banner area (only rendered when a real banner
-        exists - never a placeholder).
-   ============================================================================ */
-
-/* ===== 1. PUB SHELL ====================================================== */
 
 body.pub {
   background: #F4F6FA;
@@ -33,7 +17,7 @@ body.pub {
 }
 .pub-main { flex: 1 0 auto; width: 100%; }
 
-/* ---- Navbar: the ONLY place the logos appear on public pages ---- */
+
 .pub-nav {
   background: #1d4f7c;
   background-image:
@@ -117,7 +101,7 @@ body.pub {
   box-shadow: none;
 }
 
-/* ---- flash messages ---- */
+
 .pub-messages {
   width: 100%;
   max-width: 1890px;
@@ -146,7 +130,7 @@ body.pub {
 .pub-msg-warning { border-left-color: #F5A623; }
 .pub-msg-warning i { color: #F5A623; }
 
-/* ---- footer ---- */
+
 .pub-footer {
   flex-shrink: 0;
   margin-top: auto;
@@ -164,10 +148,9 @@ body.pub {
 .pub-footer b { color: #1d4f7c; font-weight: 700; }
 .pub-footer-help { font-family: 'Noto Nastaliq Urdu', 'Inter', serif; }
 
-/* ===== 2. SCPUB SHARED PRIMITIVES (light) ================================ */
 
 .scpub { position: relative; width: 100%; }
-.scpub-bg { display: none; } /* retired dark photo backdrop */
+.scpub-bg { display: none; }
 .scpub-inner {
   width: 100%;
   max-width: 1560px;
@@ -178,7 +161,7 @@ body.pub {
   flex: 1;
 }
 
-/* Light card */
+
 .scpub-card {
   background: #fff;
   border: 1px solid #E4E8EF;
@@ -189,7 +172,7 @@ body.pub {
   text-align: left;
 }
 
-/* Buttons and badges (shared by detail / pay pages) */
+
 .scpub-btn {
   display: inline-flex;
   align-items: center;
@@ -244,7 +227,6 @@ body.pub {
 .scpub-note-danger { background: #FDF2F4; border-color: #F3C6CD; color: #B02A37; }
 .scpub-note-info { background: #F1F6FE; border-color: #C8DAF7; color: #1D4F7C; }
 
-/* ===== 3. PSCA HOME COMPONENTS =========================================== */
 
 .psca-container {
   width: 100%;
@@ -253,7 +235,7 @@ body.pub {
   padding: 10px 30px 60px;
 }
 
-/* Search heading */
+
 .psca-heading {
   text-align: center;
   font-size: 44px;
@@ -265,8 +247,7 @@ body.pub {
 .psca-divider { border: none; border-top: 1px solid #ccc; margin: 0 0 25px; }
 .psca-sep { border: none; border-top: 1px solid rgba(204, 204, 204, 0.45); margin: 28px 0 0; }
 
-/* Search form: labels with guides sit ABOVE the inputs, the row is fitted
-   to the wide container (not a narrow centered column). */
+
 .psca-row {
   display: flex;
   gap: 25px;
@@ -337,7 +318,7 @@ input:-webkit-autofill:focus {
 }
 .psca-search-btn:hover { background: #268049; }
 
-/* No record found */
+
 .psca-no-record {
   text-align: center;
   color: #c0392b;
@@ -347,9 +328,7 @@ input:-webkit-autofill:focus {
   padding: 10px 0;
 }
 
-/* Banner area: rendered ONLY when DIG / IT-Support has published a real
-   banner (placement=static post). No placeholder, no label text - the
-   section appears by itself the moment a banner exists. */
+
 .psca-banner {
   width: 1402px;
   max-width: 100%;
@@ -388,7 +367,7 @@ input:-webkit-autofill:focus {
   font-weight: 700;
 }
 
-/* Results page (search form is hidden once results exist) */
+
 .psca-results-head {
   display: flex;
   align-items: center;
@@ -467,7 +446,7 @@ input:-webkit-autofill:focus {
 .psca-btn-review { background: #d9534f; }
 .psca-btn-review:hover { background: #c9302c; text-decoration: none; color: #fff; }
 
-/* ===== RESPONSIVE ===== */
+
 @media (max-width: 1600px) {
   .psca-field input { width: 600px; }
   .psca-container { padding: 10px 24px 50px; }

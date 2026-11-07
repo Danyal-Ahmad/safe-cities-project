@@ -36,3 +36,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"Camera {cam.camera_id} timed out -> marked offline"))
 
         self.stdout.write(self.style.SUCCESS(f"Heartbeat scan complete: {count} cameras marked offline."))
+

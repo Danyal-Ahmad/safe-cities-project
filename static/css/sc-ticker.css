@@ -1,11 +1,4 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | sc-ticker.css
-   ONE announcement ticker, identical on every page:
-   staff portals, citizen portal and the public home.
-   Flat full-width bar (no radius, no margin), navy command styling,
-   sits ABOVE the navbar everywhere. Loaded by base.html AND public_base.html.
-   Behavior pairs with static/js/pages/portal-ticker.js.
-   ============================================================================ */
+
 
 .sc-ticker {
   position: relative;
@@ -20,7 +13,7 @@
   overflow: hidden;
 }
 
-/* Label chip: fixed at the left edge, square corners (no left rounding) */
+
 .sc-ticker-label {
   display: inline-flex;
   align-items: center;
@@ -49,8 +42,7 @@
 .sc-ticker-track {
   display: flex;
   align-items: center;
-  flex: 0 0 auto; /* track box must stay as wide as its content so the
-                     translateX(-50%) loop moves exactly one item set */
+  flex: 0 0 auto;
   will-change: transform;
 }
 
@@ -58,7 +50,7 @@
   animation: sc-ticker-marquee var(--sc-ticker-duration, 40s) linear infinite;
 }
 
-/* Pause on hover and keyboard focus */
+
 .sc-ticker-viewport:hover .sc-ticker-track,
 .sc-ticker-viewport:focus-within .sc-ticker-track {
   animation-play-state: paused;
@@ -69,7 +61,7 @@
   to   { transform: translate3d(-50%, 0, 0); }
 }
 
-/* Items: severity is a colored left edge, text stays on one line */
+
 .sc-ticker-item {
   display: inline-flex;
   align-items: center;
@@ -111,7 +103,7 @@
 }
 .sc-ticker-item a:hover { color: #C4E1FF; text-decoration: none; }
 
-/* Live item + NEW chip */
+
 .sc-ticker-item-live { background: rgba(255, 255, 255, 0.05); }
 .sc-ticker-item-new {
   display: inline-block;
@@ -125,7 +117,7 @@
   letter-spacing: 0.1em;
 }
 
-/* Flash pulse when a live notification lands */
+
 .sc-ticker.is-flashing { animation: sc-ticker-pulse 1.2s ease; }
 @keyframes sc-ticker-pulse {
   0%   { background-color: #0F2557; }

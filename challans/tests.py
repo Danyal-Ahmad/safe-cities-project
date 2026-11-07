@@ -201,3 +201,4 @@ class CsrfTests(TestCase):
         c = Client(enforce_csrf_checks=True)
         r = c.post('/challan/1/', {'action': 'submit_appeal', 'reason': 'x' * 40})
         self.assertEqual(r.status_code, 403)
+

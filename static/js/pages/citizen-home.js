@@ -1,8 +1,8 @@
-/* Citizen Portal home - extracted from templates/dashboard/citizen/home.html */
+
 (function () {
   'use strict';
 
-  // Live clock
+
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -15,7 +15,7 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Fetch helper (CSRF-safe)
+
   async function scFetch(url, options={}){
     const resp = await fetch(url, {
       ...options,

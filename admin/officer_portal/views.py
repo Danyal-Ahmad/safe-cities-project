@@ -227,21 +227,10 @@ def flag_detection(request, detection_id):
 
 @officer_or_dig_required
 def confirm_detection(request, detection_id):
-    """Human-in-the-loop plate confirmation.
-
-    When the plate detector finds the vehicle but OCR cannot read the plate
-    text (angle, glare, small plates), the detection lands in the review
-    queue with an unreadable plate. The reviewing officer verifies the
-    footage, enters the correct plate, and confirms: the detection becomes
-    CONFIRMED with the officer-read plate, the evidence chain is sealed
-    and the challan is issued through the standard pipeline (registry
-    owner lookup, PDF, notification). Every step is audit-logged.
-    """
     if request.method != 'POST':
         raise Http404
     detection = get_object_or_404(Detection, pk=detection_id)
 
-    # Officer IDOR guard: same scope rule as detection_detail.
     if request.user.role == 'OFFICER':
         allowed = officer_camera_ids(request.user)
         if detection.camera_id is not None and detection.camera_id not in allowed:
@@ -278,9 +267,6 @@ def confirm_detection(request, detection_id):
             notes=notes,
         )
 
-    # Seal the evidence chain (annotated frame) and issue the challan
-    # through the standard pipeline. Failures never lose the confirmation;
-    # they are logged and surfaced to the officer.
     challan = None
     try:
         from detections.evidence_annotator import store_annotated_evidence
@@ -620,3 +606,4 @@ def officer_profile(request):
         messages.success(request, 'Profile updated.')
         return redirect('officer_portal:profile')
     return render(request, 'dashboard/officer/profile.html', {'profile_user': user})
+

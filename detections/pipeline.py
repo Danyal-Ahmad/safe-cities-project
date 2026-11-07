@@ -359,10 +359,6 @@ def issue_challan(detection, camera, user=None):
                 created_by=user,
             )
     except IntegrityError:
-        # 2026 audit (P5): the OneToOne constraint on Challan.detection makes
-        # the database the final arbiter against double-issue. A concurrent
-        # finalisation that loses the race joins the winner instead of
-        # crashing the pipeline.
         existing = Challan.objects.filter(detection=detection).first()
         if existing:
             return existing
@@ -512,3 +508,4 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
 
 def finalize_detection_from_ai(detection, result: dict, camera=None, system_user=None):
     return process_detection(detection, result, camera=camera, system_user=system_user)
+

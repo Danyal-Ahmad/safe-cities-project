@@ -1,12 +1,4 @@
-{% comment %}
-  Public banner partial (included only by challan/home.html, inside the
-  .psca-banner section which is rendered ONLY when a real banner exists -
-  placement='static_post', context: static_post_ads from
-  admin.dig_portal.context_processors.ads_delivery).
-  Exactly ONE banner: the highest-priority active row. No label text, no
-  placeholder: the moment DIG / IT-Support publishes a banner it appears
-  on the home page by itself.
-{% endcomment %}
+
 {% if static_post_ads %}
   {% with ad=static_post_ads.0 %}
   <div class="psca-banner-media" aria-label="Public service announcement">

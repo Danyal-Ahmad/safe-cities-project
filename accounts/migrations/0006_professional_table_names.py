@@ -8,3 +8,4 @@ class Migration(migrations.Migration):
         migrations.AlterModelTable(name='vehicleregistration', table='sc_vehicle_registrations'),
         migrations.AlterModelTable(name='passwordresettoken', table='sc_password_reset_tokens'),
     ]
+

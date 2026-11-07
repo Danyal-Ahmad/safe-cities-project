@@ -40,3 +40,4 @@ class Migration(migrations.Migration):
             field=models.JSONField(blank=True, default=dict, help_text='V7.1: Stores JazzCash, EasyPaisa, Stripe, Bank Transfer config.'),
         ),
     ]
+

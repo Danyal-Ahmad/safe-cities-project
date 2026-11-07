@@ -39,3 +39,4 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='challans_created', to=settings.AUTH_USER_MODEL),
         ),
     ]
+

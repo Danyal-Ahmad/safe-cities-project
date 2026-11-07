@@ -16,3 +16,4 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('officer', 'Officer Review'), ('ssp', 'SSP Review'), ('dig', 'DIG Review')], default='ssp', max_length=10),
         ),
     ]
+

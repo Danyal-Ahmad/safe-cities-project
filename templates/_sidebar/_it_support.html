@@ -1,7 +1,5 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   IT Support - infrastructure &amp; system admin sidebar
-   ============================================================ {% endcomment %}
+
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -70,4 +68,3 @@
   <a href="{% url 'it_support_portal:staff_list' %}" class="sc-nav-link {% if request.path == '/portal/it/staff/' %}sc-active{% endif %}"><i class="bi bi-people-fill"></i> <span class="sc-nav-link-text">Staff Directory</span></a>
   {% endif %}
 </div>
-

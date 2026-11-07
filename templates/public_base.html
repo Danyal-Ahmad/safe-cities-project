@@ -19,18 +19,12 @@
 </head>
 <body class="pub {% block body_class %}{% endblock %}">
 
-{% comment %}
-  Unified announcement ticker. ONE component, identical to the staff and
-  citizen portals: flat, full-width, rendered ABOVE the navbar on every
-  page. Sources Banner rows (placement='ticker') managed by DIG / IT
-  Support. Nothing renders when there are no announcements.
-{% endcomment %}
+
 {% include '_partials/portal_ticker.html' %}
 
 <div class="pub-shell">
 
-  <!-- ===== NAVBAR: the single brand surface. The logo lives HERE ONLY -
-       no other section on any public page repeats it. -->
+
   <header class="pub-nav">
     <div class="pub-nav-inner">
       <div class="pub-nav-brand">

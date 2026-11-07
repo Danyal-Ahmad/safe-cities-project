@@ -66,3 +66,4 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['plate_detected', 'auto_processed'], name='video_pro_pla_det_aut_idx'),
         ),
     ]
+

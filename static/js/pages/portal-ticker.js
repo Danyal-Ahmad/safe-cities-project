@@ -1,27 +1,4 @@
-/*!
- * SAFE CITIES PROJECT - portal-ticker.js
- * Behavior for the unified announcement ticker bar rendered by
- * templates/_partials/portal_ticker.html. Loaded on EVERY page
- * (base.html and public_base.html).
- *
- * Responsibilities:
- *   1. Continuous marquee: the item set is duplicated until the track is
- *      at least twice the viewport width, then a CSS translateX(-50%)
- *      marquee scrolls it right-to-left in a seamless infinite loop.
- *   2. Phase persistence: the marquee position is anchored to wall-clock
- *      time in sessionStorage, so a page refresh or an in-app redirect
- *      resumes the scroll exactly where it left off instead of restarting.
- *      The state is keyed by a content hash - if the announcement set
- *      changed between pages the marquee simply starts fresh.
- *   3. Pause on hover is handled in CSS (animation-play-state: paused).
- *   4. Listen for the DOM CustomEvent 'safecity:notification' (dispatched
- *      by static/js/realtime-socket.js) and prepend the new item live.
- *
- * The event payload is read defensively because it comes from another
- * module: {title|heading, message|body|text, severity|level|type} or a
- * plain string. All inserted text uses textContent, never innerHTML, so a
- * hostile payload cannot inject markup.
- */
+
 (function () {
   'use strict';
 
@@ -30,14 +7,14 @@
   var track = document.getElementById('scTickerTrack');
   if (!bar || !viewport || !track) { return; }
 
-  var MAX_ITEMS = 10;       // hard cap, live items included
-  var PX_PER_SECOND = 55;   // marquee scrolling speed
-  var MIN_DURATION_S = 18;  // never scroll faster than this
+  var MAX_ITEMS = 10;
+  var PX_PER_SECOND = 55;
+  var MIN_DURATION_S = 18;
   var CLONE_FLAG = 'data-ticker-clone';
   var RESIZE_DELAY_MS = 200;
-  var MAX_COPIES = 12;      // safety cap when repeating very short sets
+  var MAX_COPIES = 12;
   var STORE_KEY = 'scTickerPhase';
-  var SAVE_TICK_MS = 1500;  // periodic phase save interval
+  var SAVE_TICK_MS = 1500;
 
   var resizeTimer = null;
   var lastEvent = null;
@@ -45,7 +22,6 @@
   var currentDuration = 0;
   var currentHash = '';
 
-  /* ------------------------------ helpers -------------------------------- */
 
   function originalItems() {
     var nodes = track.children;
@@ -75,11 +51,7 @@
     return parts.join('|');
   }
 
-  /* ------------------------- phase persistence --------------------------- */
 
-  // Current marquee progress in seconds, read from the LIVE animated
-  // transform (browsers return the in-flight animated matrix from
-  // getComputedStyle). 0..duration over one seamless loop.
   function currentPhaseSeconds() {
     if (!currentDuration) { return null; }
     try {
@@ -118,12 +90,10 @@
         duration: currentDuration,
         hash: currentHash
       }));
-    } catch (e) { /* storage unavailable - persistence is best-effort */ }
+    } catch (e) {  }
   }
 
-  // Resume the marquee exactly where the previous page left it: the saved
-  // phase plus the time the browser spent loading this page, applied as a
-  // negative animation-delay so the loop starts mid-scroll.
+
   function applyPhase() {
     var state = loadPhase();
     if (!state || state.hash !== currentHash || !currentDuration) {
@@ -137,12 +107,7 @@
     track.style.setProperty('animation-delay', '-' + offset.toFixed(2) + 's');
   }
 
-  /* --------------------------- marquee control --------------------------- */
 
-  // Measures the track and activates the seamless right-to-left marquee.
-  // The item set is duplicated until the ORIGINAL half of the track is at
-  // least as wide as the viewport, which guarantees the translateX(-50%)
-  // loop is seamless no matter how few items there are.
   function ensureMarquee() {
     removeClones();
     track.style.removeProperty('animation-delay');
@@ -151,7 +116,7 @@
     var items = originalItems();
     if (!items.length) { return; }
 
-    // Width of one original item set.
+
     var setWidth = 0;
     for (var w = 0; w < items.length; w++) {
       setWidth += items[w].offsetWidth;
@@ -162,10 +127,7 @@
     }
     if (setWidth < 1) { return; }
 
-    // Repeat the set enough times that the original half covers the
-    // viewport (plus a buffer), then mirror it for the -50% loop. The copy
-    // count must be ODD so the track holds an even number of identical
-    // sets and translateX(-50%) lands exactly on a set boundary.
+
     var needed = Math.max(1, Math.ceil((viewport.clientWidth + 80) / setWidth));
     if (needed % 2 === 0) { needed += 1; }
     var copies = Math.min(needed, MAX_COPIES);
@@ -188,11 +150,10 @@
     bar.style.setProperty('--sc-ticker-duration', currentDuration + 's');
     bar.classList.add('is-scrolling');
 
-    // Resume where the previous page left off (refresh / redirect safe).
+
     applyPhase();
   }
 
-  /* --------------------------- live notifications ------------------------ */
 
   function severityClass(raw) {
     switch (String(raw || '').toLowerCase()) {
@@ -222,13 +183,13 @@
 
   function flash() {
     bar.classList.remove('is-flashing');
-    void bar.offsetWidth; // force restyle so the animation restarts
+    void bar.offsetWidth;
     bar.classList.add('is-flashing');
   }
 
   function onNotification(event) {
-    // The same event object can arrive via both the document and window
-    // listeners (it bubbles through both); process it exactly once.
+
+
     if (event === lastEvent) { return; }
     lastEvent = event;
 
@@ -270,18 +231,16 @@
   document.addEventListener('safecity:notification', onNotification);
   window.addEventListener('safecity:notification', onNotification);
 
-  /* ------------------------------- wiring -------------------------------- */
 
   window.addEventListener('resize', function () {
     if (resizeTimer) { clearTimeout(resizeTimer); }
     resizeTimer = setTimeout(ensureMarquee, RESIZE_DELAY_MS);
   });
 
-  // Re-measure once webfonts have settled.
+
   window.addEventListener('load', ensureMarquee);
 
-  // Persist the marquee phase continuously and on page unload so the next
-  // page (refresh or redirect) resumes the scroll instead of restarting.
+
   if (saveTimer) { clearInterval(saveTimer); }
   saveTimer = setInterval(savePhase, SAVE_TICK_MS);
   window.addEventListener('pagehide', savePhase);

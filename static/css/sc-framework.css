@@ -1,22 +1,4 @@
-/* ==========================================================================
-   SAFE CITIES PROJECT — sc-framework.css
-   Bootstrap-free UI framework: modern utilities + components, token driven.
-   Replaces Bootstrap 5 CSS entirely. Loaded after the Tailwind Play CDN
-   script tag and before the project design-system stylesheets, so project
-   rules keep winning the cascade.
 
-   Layers:
-     1. Component classes used across templates (btn, form-*, card, table,
-        modal, alert, badge, progress, list-group, btn-group)
-     2. Utility classes (spacing, flex, display, grid row/col-*, text, bg,
-        sizing, borders) — Bootstrap-compatible names so the 140+ templates
-        keep working unchanged, but re-drawn with the Safe City design
-        tokens: Inter type, 10-14px radii, soft shadows, light surfaces.
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   1. BASE NORMALIZATION (defensive; safe-city.css has the full reboot)
-   -------------------------------------------------------------------------- */
 
 button, [type="button"], [type="submit"], [type="reset"] { cursor: pointer; }
 button:disabled, [type="button"]:disabled, [type="submit"]:disabled { cursor: not-allowed; }
@@ -25,9 +7,6 @@ a:hover { text-decoration: none; }
 img { max-width: 100%; }
 hr { border: 0; border-top: 1px solid var(--sc-border, #E4E8EF); margin: 1rem 0; }
 
-/* --------------------------------------------------------------------------
-   2. BUTTONS
-   -------------------------------------------------------------------------- */
 
 .btn {
   --btn-bg: var(--sc-surface, #FFFFFF);
@@ -141,7 +120,7 @@ hr { border: 0; border-top: 1px solid var(--sc-border, #E4E8EF); margin: 1rem 0;
 .btn-group > .btn:last-child { border-top-right-radius: var(--sc-radius-sm, 10px); border-bottom-right-radius: var(--sc-radius-sm, 10px); }
 .btn-group-sm > .btn { padding: 4px 10px; font-size: 0.75rem; }
 
-/* Bootstrap close button (used inside modals/alerts) */
+
 .btn-close {
   width: 30px;
   height: 30px;
@@ -167,9 +146,6 @@ hr { border: 0; border-top: 1px solid var(--sc-border, #E4E8EF); margin: 1rem 0;
 .btn-close:hover { background: var(--sc-danger-bg, #FDF3F5); }
 .btn-close:hover::before, .btn-close:hover::after { background: var(--sc-danger, #E23B4E); }
 
-/* --------------------------------------------------------------------------
-   3. FORMS
-   -------------------------------------------------------------------------- */
 
 .form-label {
   display: block;
@@ -240,9 +216,6 @@ select.form-select {
   border-radius: var(--sc-radius-sm);
 }
 
-/* --------------------------------------------------------------------------
-   4. BADGES
-   -------------------------------------------------------------------------- */
 
 .badge {
   display: inline-flex;
@@ -277,9 +250,6 @@ select.form-select {
 .badge.bg-light { background: #F1F4F9 !important; color: var(--sc-navy) !important; }
 .badge.bg-dark { background: var(--sc-navy-deep) !important; color: #fff !important; }
 
-/* --------------------------------------------------------------------------
-   5. CARDS
-   -------------------------------------------------------------------------- */
 
 .card {
   position: relative;
@@ -313,9 +283,6 @@ select.form-select {
 .card-subtitle { font-size: 0.8rem; color: var(--sc-text-muted); margin-bottom: 10px; }
 .card-text { font-size: 0.875rem; color: var(--sc-text); }
 
-/* --------------------------------------------------------------------------
-   6. TABLES
-   -------------------------------------------------------------------------- */
 
 .table-responsive { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .table {
@@ -352,10 +319,9 @@ select.form-select {
 .table-sm thead th { padding: 8px 10px; font-size: 0.66rem; }
 .table-sm tbody td { padding: 7px 10px; font-size: 0.8rem; }
 .table-striped tbody tr:nth-of-type(odd) { background: rgba(232, 238, 247, 0.45); }
-.table > :not(caption) > * > * { padding: inherit; } /* keep specificity low */
+.table > :not(caption) > * > * { padding: inherit; }
 
-/* Safety net: any remaining bare <table> (no class) inside a scroll wrapper
-   or card still gets the modern table styling. */
+
 .overflow-x-auto > table:not([class]),
 .card > table:not([class]),
 .card-body > table:not([class]),
@@ -390,9 +356,6 @@ select.form-select {
   vertical-align: middle;
 }
 
-/* --------------------------------------------------------------------------
-   7. MODALS (custom JS in safe-city.js drives these; no Bootstrap JS)
-   -------------------------------------------------------------------------- */
 
 .modal {
   position: fixed;
@@ -454,9 +417,6 @@ select.form-select {
 .fade { transition: opacity 0.15s linear; }
 .fade:not(.show) { opacity: 0; }
 
-/* --------------------------------------------------------------------------
-   8. ALERTS
-   -------------------------------------------------------------------------- */
 
 .alert {
   display: flex;
@@ -478,9 +438,6 @@ select.form-select {
 .alert-heading { font-weight: 700; margin-bottom: 4px; }
 .alert .btn-close { margin-left: auto; flex: 0 0 auto; }
 
-/* --------------------------------------------------------------------------
-   9. PROGRESS + LIST GROUP + PAGINATION
-   -------------------------------------------------------------------------- */
 
 .progress {
   display: flex;
@@ -531,9 +488,6 @@ select.form-select {
 .page-item.active .page-link { background: var(--sc-primary); border-color: var(--sc-primary); color: #fff; }
 .page-item.disabled .page-link { opacity: 0.45; pointer-events: none; }
 
-/* --------------------------------------------------------------------------
-   10. SPACING UTILITIES (Bootstrap scale: 1=.25rem 2=.5rem 3=1rem 4=1.5rem 5=3rem)
-   -------------------------------------------------------------------------- */
 
 .m-0 { margin: 0 !important; } .m-1 { margin: 0.25rem !important; } .m-2 { margin: 0.5rem !important; }
 .m-3 { margin: 1rem !important; } .m-4 { margin: 1.5rem !important; } .m-5 { margin: 3rem !important; }
@@ -577,9 +531,6 @@ select.form-select {
 
 .gap-1 { gap: 0.25rem !important; } .gap-2 { gap: 0.5rem !important; } .gap-3 { gap: 1rem !important; }
 
-/* --------------------------------------------------------------------------
-   11. DISPLAY / FLEX UTILITIES
-   -------------------------------------------------------------------------- */
 
 .d-none { display: none !important; }
 .d-inline { display: inline !important; }
@@ -607,9 +558,6 @@ select.form-select {
 .text-start { text-align: left !important; }
 .text-end { text-align: right !important; }
 
-/* --------------------------------------------------------------------------
-   12. GRID (row / col-*)
-   -------------------------------------------------------------------------- */
 
 .row {
   display: flex;
@@ -668,9 +616,6 @@ select.form-select {
   .col-xl-3, .col-xl-4 { flex: 0 0 auto; width: 100%; }
 }
 
-/* --------------------------------------------------------------------------
-   13. TEXT / TYPOGRAPHY UTILITIES
-   -------------------------------------------------------------------------- */
 
 .small, small { font-size: 0.86em; }
 .fw-normal { font-weight: 400 !important; }
@@ -707,9 +652,6 @@ select.form-select {
 .text-white { color: #FFFFFF !important; }
 .text-light { color: rgba(232, 240, 255, 0.85) !important; }
 
-/* --------------------------------------------------------------------------
-   14. BACKGROUND / SURFACE UTILITIES
-   -------------------------------------------------------------------------- */
 
 .bg-primary { background: var(--sc-primary, #2563EB) !important; color: #fff; }
 .bg-success { background: var(--sc-success, #22A45D) !important; color: #fff; }
@@ -724,9 +666,6 @@ select.form-select {
 .bg-soft { background: var(--sc-bg-soft, #F1F4F9) !important; }
 .bg-opacity-10 { opacity: 0.1; }
 
-/* --------------------------------------------------------------------------
-   15. SIZING / BORDER / POSITION / OVERFLOW UTILITIES
-   -------------------------------------------------------------------------- */
 
 .w-100 { width: 100% !important; }
 .w-75 { width: 75% !important; }
@@ -770,9 +709,6 @@ select.form-select {
 .float-end { float: right !important; }
 .clearfix::after { content: ''; display: table; clear: both; }
 
-/* --------------------------------------------------------------------------
-   16. MISC SHARED
-   -------------------------------------------------------------------------- */
 
 .container { width: 100%; padding-right: 16px; padding-left: 16px; margin-right: auto; margin-left: auto; }
 .container-fluid { width: 100%; padding-right: 16px; padding-left: 16px; }
@@ -798,7 +734,7 @@ select.form-select {
 @keyframes sc-spin { to { transform: rotate(360deg); } }
 .toast { background: var(--sc-surface); border: 1px solid var(--sc-border); border-radius: 12px; box-shadow: var(--sc-shadow-lg); padding: 14px 18px; }
 
-/* Tooltip (custom JS replaces Bootstrap's) */
+
 .sc-tooltip {
   position: absolute;
   z-index: 100001;
@@ -821,7 +757,6 @@ select.form-select {
 }
 
 
-/* sc-avatar: initials circle (officer lists) */
 .sc-avatar {
   display: inline-flex;
   align-items: center;

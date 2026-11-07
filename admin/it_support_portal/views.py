@@ -860,4 +860,3 @@ def reset_requests(request):
         'total_count': AdminPasswordResetRequest.objects.count(),
     })
 
-

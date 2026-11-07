@@ -1,10 +1,4 @@
-/*!
- * SAFE CITIES PROJECT - public-messages.js
- * Temporary inline notifications on public pages: exactly the same behavior
- * as the portal sc-messages strips - inline below the header (never toast
- * style, never floating), auto-faded after a few seconds, dismissible by
- * the close button. Loaded by templates/public_base.html.
- */
+
 (function () {
   'use strict';
 

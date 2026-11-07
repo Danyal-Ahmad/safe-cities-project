@@ -541,7 +541,6 @@ def _env_flag(name: str) -> bool:
 
 
 def uvicorn_available(py: Path) -> bool:
-    """True when the ASGI server (uvicorn) is importable in the venv."""
     try:
         r = subprocess.run([str(py), '-c', 'import uvicorn'],
                            capture_output=True, cwd=str(ROOT))
@@ -582,10 +581,6 @@ def run_server(realtime: bool = False) -> None:
     step('Collect static (idempotent)')
     manage(py, 'collectstatic', '--noinput')
 
-    # Realtime mode (--realtime flag or REALTIME=1 env): serve the ASGI app
-    # (Django + Socket.IO at /ws/socket.io) with uvicorn. SINGLE WORKER is
-    # REQUIRED: the pipeline emits Socket.IO events in-process, so the
-    # server and the emits must share one process (single-process realtime mode).
     if realtime or _env_flag('REALTIME'):
         if uvicorn_available(py):
             port = os.environ.get('PORT', '').strip() or '8000'
@@ -608,11 +603,6 @@ def run_server(realtime: bool = False) -> None:
     banner('Starting Django dev server -- http://127.0.0.1:8000/')
     print('  Press CTRL+C to stop.\n')
 
-    # --nostatic: staticfiles' runserver handler serves /static/ OUTSIDE the
-    # middleware chain, which defeats DevStaticNoCacheMiddleware and lets
-    # browsers cache stale CSS/JS between edits. With --nostatic WhiteNoise
-    # serves them inside the chain, so every asset carries
-    # Cache-Control: no-store in DEBUG and a normal reload is always fresh.
     safe_run([str(py), 'manage.py', 'runserver', '--nostatic'], label='runserver')
 
 
@@ -680,8 +670,23 @@ def fresh() -> None:
     print('  Next: python launcher.py run')
 
 
+HELP_TEXT = """
+Safe Cities Project - Punjab Police e-Challan Platform
+======================================================
+
+Usage:
+    python launcher.py setup    Create venv, install deps, reset DB, migrate, seed DIG admin
+    python launcher.py run      Start the production server (gunicorn)
+    python launcher.py dev      Start the development server (runserver)
+    python launcher.py reset    Drop + recreate the public schema, then migrate
+    python launcher.py check    Run Django system checks
+
+Requires PostgreSQL running and a .env file (see .env.example).
+"""
+
+
 def show_help() -> None:
-    print(__doc__)
+    print(HELP_TEXT)
 
 
 def main() -> None:

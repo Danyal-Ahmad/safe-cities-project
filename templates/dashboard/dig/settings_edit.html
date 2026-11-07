@@ -28,7 +28,7 @@
   </div>
 </div>
 
-<!-- Section quick-nav -->
+
 <nav class="set-nav" aria-label="Settings sections">
   <a href="#set-fines" class="set-nav-chip"><i class="bi bi-cash-coin"></i>Fines</a>
   <a href="#set-deadlines" class="set-nav-chip"><i class="bi bi-calendar-event"></i>Deadlines &amp; Ops</a>
@@ -42,7 +42,7 @@
 <form method="post" action="{% url portal_ns|add:':settings_edit' %}" id="settingsForm" novalidate>
   {% csrf_token %}
 
-  <!-- ================= VIOLATIONS & FINES ================= -->
+
   <section class="sc-card" id="set-fines">
     <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span class="d-flex align-items-center gap-2"><i class="bi bi-cash-coin"></i>Violations &amp; Fines</span>
@@ -75,7 +75,7 @@
     </div>
   </section>
 
-  <!-- ================= DEADLINES & LIVE OPS ================= -->
+
   <section class="sc-card" id="set-deadlines">
     <div class="sc-card-header d-flex align-items-center gap-2">
       <i class="bi bi-calendar-event"></i>Deadlines &amp; Live Operations
@@ -140,7 +140,7 @@
     </div>
   </section>
 
-  <!-- ================= AI CONFIGURATION ================= -->
+
   <section class="sc-card" id="set-ai">
     <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span class="d-flex align-items-center gap-2"><i class="bi bi-cpu"></i>AI Configuration</span>
@@ -267,7 +267,7 @@
     </div>
   </section>
 
-  <!-- ================= NADRA / EXCISE INTEGRATION ================= -->
+
   <section class="sc-card" id="set-integrations">
     <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span class="d-flex align-items-center gap-2"><i class="bi bi-plug"></i>NADRA / Excise Integration</span>
@@ -340,7 +340,7 @@
     </div>
   </section>
 
-  <!-- ================= CHALLAN BRANDING ================= -->
+
   <section class="sc-card" id="set-branding">
     <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span class="d-flex align-items-center gap-2"><i class="bi bi-card-heading"></i>Challan Branding</span>
@@ -387,7 +387,7 @@
     </div>
   </section>
 
-  <!-- ================= NOTIFICATIONS ================= -->
+
   <section class="sc-card" id="set-notifications">
     <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span class="d-flex align-items-center gap-2"><i class="bi bi-envelope"></i>Notifications | Email &amp; SMS</span>
@@ -532,7 +532,7 @@
     </div>
   </section>
 
-  <!-- ================= AUTO-BLACKLIST ================= -->
+
   <section class="sc-card" id="set-blacklist">
     <div class="sc-card-header d-flex align-items-center gap-2">
       <i class="bi bi-slash-circle"></i>Automatic Blacklisting
@@ -573,7 +573,7 @@
     </div>
   </section>
 
-  <!-- ================= STICKY SAVE BAR ================= -->
+
   <div class="set-savebar" data-savebar>
     <div class="set-savebar-meta">
       <i class="bi bi-clock-history"></i>

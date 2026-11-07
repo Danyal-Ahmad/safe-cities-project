@@ -188,7 +188,7 @@ def live_monitor_feed(request):
     })
 
 
-@permission_required('live_tracking')  
+@permission_required('live_tracking')
 def live_tracking(request):
     from admin.shared import LiveTrackingService
     from detections.models import Detection
@@ -293,3 +293,4 @@ def camera_snapshot(request, camera_id):
                     pass
 
     return HttpResponse(status=204)
+

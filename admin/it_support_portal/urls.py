@@ -68,3 +68,4 @@ urlpatterns = [
     path('profile/', dig_views.self_profile, name='self_profile'),
     path('change-password/', dig_views.staff_change_password, name='change_password'),
 ]
+

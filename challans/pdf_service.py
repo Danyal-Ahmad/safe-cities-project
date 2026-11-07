@@ -1,15 +1,3 @@
-"""Challan PDF generation service.
-
-Guarantees:
-- Every challan renders as EXACTLY ONE A4 page (page-count verified with pypdf;
-  overflow re-renders through the compact template, then the ReportLab
-  single-page fallback).
-- Exactly ONE large evidence image: the annotated full-frame capture with the
-  violation box, plate box and direction arrow (Detection.annotated_image,
-  falling back to the raw frame).
-- Payment channels are rendered as ICONS (static/img/payment/*.svg), not text.
-- Only the selected template plus its data is rendered, never extra data.
-"""
 import logging
 import os
 import re
@@ -25,25 +13,19 @@ logger = logging.getLogger('wrongway.pdf')
 LOGO_LEFT = Path(settings.BASE_DIR) / 'static' / 'img' / 'project_logo.png'
 LOGO_RIGHT = Path(settings.BASE_DIR) / 'static' / 'img' / 'university_logo.png'
 
-# The three official layouts (approved reference sheets, single-page A4):
-#   standard_a4         - bilingual official layout (default)
-#   government_grid_a4  - citation matrix with evidence grid
-#   notice_classic_a4   - red-label classic notice
 TEMPLATE_MAP = {
     'standard_a4': 'challan/challan_templates/standard_a4.html',
     'government_grid_a4': 'challan/challan_templates/government_grid_a4.html',
     'notice_classic_a4': 'challan/challan_templates/notice_classic_a4.html',
-    'compact_a4': 'challan/challan_templates/standard_a4.html',  # overflow guard
+    'compact_a4': 'challan/challan_templates/standard_a4.html',
     'safecityfyp_classic': 'challan/challan_templates/standard_a4.html',
-    # Legacy keys (pre-2026-11 layouts) keep rendering their own design so
-    # stale SystemSettings/DB rows and portal links stay working.
     'classic_a4': 'challan/challan_templates/classic_a4.html',
     'legal_notice_99a': 'challan/challan_templates/legal_notice_99a.html',
     'digital_slip': 'challan/challan_templates/digital_slip.html',
     'command_brief': 'challan/challan_templates/command_brief.html',
     'secure_instrument': 'challan/challan_templates/secure_instrument.html',
     'urdu_executive': 'challan/challan_templates/urdu_executive.html',
-    'modern_a4': 'challan/challan_templates/standard_a4.html',  # replaced by the approved port
+    'modern_a4': 'challan/challan_templates/standard_a4.html',
 }
 
 DEFAULT_TEMPLATE_KEY = 'standard_a4'
@@ -86,7 +68,6 @@ def _make_barcode(ticket_no: str):
 
 
 def _make_qr_svg(payload: str):
-    """Server-side QR code as an inline SVG string (WeasyPrint cannot run JS)."""
     try:
         import qrcode
         import qrcode.image.svg as qr_svg
@@ -105,7 +86,6 @@ def _resolve_static(path_rel: str):
 
 
 def _evidence_image(challan):
-    """The ONE evidence image used by every template: annotated frame first."""
     det = getattr(challan, 'detection', None)
     if det is None:
         return None, None
@@ -122,7 +102,6 @@ def _evidence_image(challan):
 
 
 def _file_field_path(obj, field_name):
-    """Absolute filesystem path for a FileField, or None. Never raises."""
     img = getattr(obj, field_name, None)
     if img is None or not hasattr(img, 'name') or not img.name:
         return None
@@ -134,7 +113,6 @@ def _file_field_path(obj, field_name):
 
 
 def _plate_image(challan):
-    """Plate close-up crop for the evidence panels, when present."""
     det = getattr(challan, 'detection', None)
     if det is None:
         return None
@@ -150,9 +128,6 @@ def _pdf_page_count(pdf_bytes: bytes) -> int:
 
 
 def _needs_nadra_excise_integration(challan) -> bool:
-    """True when owner identity could not be resolved because NADRA/Excise
-    registry integration is not configured. Drives the red PDF warning text.
-    """
     if getattr(challan, 'owner_name', None):
         return False
     try:
@@ -167,7 +142,6 @@ def _needs_nadra_excise_integration(challan) -> bool:
 
 
 def _fallback_reportlab_pdf(challan) -> bytes:
-    """Single-page A4 PDF when WeasyPrint is unavailable."""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.colors import HexColor, black
     from reportlab.pdfgen import canvas
@@ -239,7 +213,6 @@ def _fallback_reportlab_pdf(challan) -> bytes:
 
 
 def _minimal_pdf_bytes(ticket_no: str) -> bytes:
-    """Tiny valid PDF with no external deps (last resort)."""
     label = f'Challan {ticket_no or ""}'.replace('(', ' ').replace(')', ' ')[:60]
     content = f'BT /F1 12 Tf 50 750 Td ({label}) Tj ET'
     body = content.encode('latin-1', errors='ignore')
@@ -274,11 +247,10 @@ def _minimal_pdf_bytes(ticket_no: str) -> bytes:
     return pdf
 
 
-_WEASYPRINT_STATE = None  # None = untested, True = ok, False = broken
+_WEASYPRINT_STATE = None
 
 
 def _render_html_to_pdf(html_string):
-    """HTML -> PDF via WeasyPrint, then xhtml2pdf, then None (caller falls back)."""
     global _WEASYPRINT_STATE
     if _WEASYPRINT_STATE is not False:
         try:
@@ -435,18 +407,12 @@ def _render_template_to_html(tpl_key, context):
 
 
 def render_template_html(tpl_key, context=None):
-    """Public: render a template key to HTML (used by the live PDF previews)."""
     if context is None:
         context = build_sample_context()
     return _render_template_to_html(tpl_key, context)
 
 
 def generate_sample_pdf(tpl_key):
-    """Render a template with the shared SAMPLE context to real PDF bytes.
-
-    Used by the DIG/IT 'live PDF preview' endpoints: the portal cards show
-    the true printed output — never raw template code.
-    """
     ctx = build_sample_context()
     html = _render_template_to_html(tpl_key, ctx)
     if not html:
@@ -457,18 +423,10 @@ def generate_sample_pdf(tpl_key):
     return pdf
 
 
-# ---- live PNG preview cache (key, template-file mtime) -> data URI --------
 _PREVIEW_CACHE = {}
 
 
 def preview_png_data_uri(tpl_key, dpi=110):
-    """First-page PNG of the sample render as a data: URI (for portal cards).
-
-    Cached per template key + template-file mtime, so editing a layout
-    invalidates its preview automatically. Returns None when the PDF engine
-    or the rasterizer is unavailable (the template then falls back to the
-    plain 'Open PDF' link).
-    """
     import base64
     import subprocess
     import tempfile
@@ -495,7 +453,7 @@ def preview_png_data_uri(tpl_key, dpi=110):
              pdf_file, out_prefix],
             check=True, capture_output=True, timeout=30)
         png_path = Path(out_prefix + '-1.png')
-        if not png_path.exists():  # pdftoppm names vary (-01, -001)
+        if not png_path.exists():
             cands = sorted(Path(out_prefix).parent.glob(Path(out_prefix).name + '-*.png'))
             if cands:
                 png_path = cands[-1]
@@ -512,14 +470,7 @@ def preview_png_data_uri(tpl_key, dpi=110):
     return uri
 
 
-
 def build_sample_context():
-    """Shared preview context: realistic placeholder data + REAL assets.
-
-    Used by the DIG/IT live PDF preview endpoints so the preview cards show
-    the true printed output (fonts, logos, QR, barcode, payment icons, and
-    when available a real annotated evidence frame from the pipeline).
-    """
     import datetime as _dt
     from detections.models import Detection
 
@@ -622,7 +573,6 @@ def build_sample_context():
 
 
 def generate_challan_pdf(challan):
-    """Render the challan PDF, guaranteeing a ONE A4 page document."""
     from admin.dig_portal.models import SystemSettings
 
     sys_settings = SystemSettings.get()
@@ -645,7 +595,6 @@ def generate_challan_pdf(challan):
                 'Challan %s rendered %d pages with template %s | re-rendering compact',
                 getattr(challan, 'ticket_no', challan.pk), pages, tpl_key,
             )
-            # Overflow guard: re-render with the compact one-page template.
             compact_html = _render_template_to_html('compact_a4', context)
             if compact_html:
                 compact_bytes = _render_html_to_pdf(compact_html)
@@ -655,7 +604,7 @@ def generate_challan_pdf(challan):
                 return _fallback_reportlab_pdf(challan)
             except Exception as e:
                 logger.warning('ReportLab fallback failed: %s', e)
-                return pdf_bytes  # best effort: keep multi-page over no challan
+                return pdf_bytes
 
     try:
         return _fallback_reportlab_pdf(challan)
@@ -674,9 +623,6 @@ def save_challan_pdf(challan, force=False):
 
 
 def build_sample_preview_context():
-    """Sample context for rendering challan layout PREVIEWS in the browser
-    (DIG template-select and IT Challan Studio registry cards). Uses static
-    asset URLs so sandboxed preview iframes resolve images over HTTP."""
     import datetime as _dt
     from django.conf import settings as dj_settings
 
@@ -732,3 +678,4 @@ def build_sample_preview_context():
         'evidence_image_path': '/static/img/sample_evidence.jpg',
         'needs_nadra_excise': False,
     }
+

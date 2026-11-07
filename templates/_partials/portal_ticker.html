@@ -1,23 +1,4 @@
-{% comment %}
-  SAFE CITIES PROJECT - unified announcement ticker bar.
 
-  ONE component, identical on every page: staff portals (base.html) and
-  the public pages (public_base.html). It always renders ABOVE the navbar
-  and is flat and full-width (styles: static/css/sc-ticker.css, behavior:
-  static/js/pages/portal-ticker.js - marquee phase survives page refresh
-  and redirects via sessionStorage).
-
-  Item sources, merged in order:
-    1. active_alerts  - staff operational announcements (Alert model,
-       admin/dig_portal/context_processors.active_alerts). Empty for
-       citizens and anonymous visitors.
-    2. ticker_ads      - Banner rows with placement='ticker' managed from
-       the DIG / IT-Support alerts hub (audience-scoped: all, citizens,
-       staff). On the public home these are the announcements citizens see.
-
-  The partial renders nothing when both sources are empty, so pages with
-  no announcements show no bar at all.
-{% endcomment %}
 {% if active_alerts or ticker_ads %}
 <div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Announcements">
   <div class="sc-ticker-label">

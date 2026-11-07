@@ -57,3 +57,4 @@ urlpatterns = [
     path('violation-stats/', dig_views.violation_stats, name='violation_stats'),
     path('heatmap/', dig_views.regional_heatmap, name='heatmap'),
 ]
+

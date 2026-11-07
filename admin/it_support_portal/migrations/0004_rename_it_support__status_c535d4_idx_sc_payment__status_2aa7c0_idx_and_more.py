@@ -36,3 +36,4 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('wallet', 'Mobile Wallet'), ('card', 'Card Payment'), ('gateway', 'Payment Gateway')], default='wallet', max_length=20),
         ),
     ]
+

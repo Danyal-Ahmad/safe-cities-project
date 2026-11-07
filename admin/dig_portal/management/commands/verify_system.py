@@ -63,3 +63,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f'Result: {ok} ok, {fail} FAILED'))
         else:
             self.stdout.write(self.style.SUCCESS(f'Result: all {ok} checks passed'))
+

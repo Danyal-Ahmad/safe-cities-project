@@ -3,7 +3,7 @@
 
 {% if detection %}
 <div class="md-detail-container">
-  
+
   <div class="sc-flex sc-items-center sc-justify-between sc-mb-3" style="border-bottom: 1px solid var(--md-border); padding-bottom: 0.75rem;">
     <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
       <span class="md-badge md-badge-dark" style="font-family: monospace; font-size: 0.85rem;">TARGET #{{ detection.id }}</span>
@@ -70,7 +70,7 @@
     </div>
 
     <div>
-      
+
       <div style="background: linear-gradient(135deg, #0b192c 0%, #172554 100%); border-radius: var(--md-radius-md); padding: 1rem; color: #ffffff; text-align: center; margin-bottom: 1rem; border: 1px solid #1e3a8a; box-shadow: var(--md-shadow-sm);">
         <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #93c5fd; margin-bottom: 0.25rem;">
           Detected Registration Plate
@@ -106,9 +106,9 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          
+
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            
+
             <button type="submit" id="btnRejectTriage" formaction="{% url 'officer_portal:reject_detection' detection.id %}"
                     class="md-btn md-btn-danger md-btn-sm" style="justify-content: space-between;">
               <span><i class="bi bi-x-circle"></i> Reject</span>

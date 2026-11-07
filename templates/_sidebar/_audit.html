@@ -1,7 +1,5 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   Audit sidebar
-   ============================================================ {% endcomment %}
+
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -42,4 +40,3 @@
   <a href="{% url 'audit_portal:auth_events' %}" class="sc-nav-link {% if request.path == '/portal/audit/auth-events/' %}sc-active{% endif %}"><i class="bi bi-shield-lock"></i> <span class="sc-nav-link-text">Auth Events</span></a>
   {% endif %}
 </div>
-

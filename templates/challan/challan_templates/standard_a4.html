@@ -1,22 +1,4 @@
-{% comment %}
-  SAFE CITIES PROJECT — standard_a4.html
-  Default bilingual official e-challan layout (single A4 page, print-exact).
 
-  Ported from the approved "challan-template-2" reference sheet and
-  re-adjusted to the project print contract:
-    - ONE A4 page, @page margin 0, .sheet fixed 210 x 297 mm (overflow
-      hidden) so a second page is structurally impossible.
-    - No page numbers, no localhost/site URLs anywhere on the sheet.
-    - Data comes exclusively from the pdf_service context (challan.*,
-      logo paths, evidence image, payment icons, barcode/QR inline SVG).
-    - Urdu set in Noto Nastaliq Urdu via @font-face (static/fonts/) so
-      WeasyPrint embeds real Nastaliq glyphs (fontconfig fallback too).
-
-  Layout uses CSS tables (WeasyPrint-deterministic), never flexbox.
-  Height budget (mm): padding 3 + 7 | hd 34 | bar 8.6 | info 66 | row2 64
-  | paym 40 | low 46 | ft 9.6 | margins 6 x 2.4 = 14.4 => total 292.6
-  ====================================================================
-{% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,7 +178,7 @@
 <body>
 <div class="sheet">
 
-  <!-- ========== HEADER ========== -->
+
   <header class="hd">
     <div class="lg">
       {% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Safe Cities Project">{% endif %}
@@ -214,14 +196,14 @@
     </div>
   </header>
 
-  <!-- ========== NAVY IDENTITY BAR ========== -->
+
   <div class="bar">
     <span>Challan No: {{ challan.ticket_no }}</span>
     <span>Issued: {{ challan.issue_date|date:"d M Y" }} &nbsp;{{ challan.created_at|date:"H:i" }}</span>
     <span>Vehicle No: {{ challan.plate_number|default:"—" }}</span>
   </div>
 
-  <!-- ========== INFO PANELS ========== -->
+
   <section class="info">
     <div class="p p-vehicle">
       <div class="ph"><span>Vehicle Information <em>/</em> <span class="ur">گاڑی کی معلومات</span></span></div>
@@ -258,7 +240,7 @@
     </div>
   </section>
 
-  <!-- ========== EVIDENCE + FINE ========== -->
+
   <section class="row2">
     <div class="p evi">
       <div class="ph"><span>Evidence <em>/</em> <span class="ur">ثبوت</span></span></div>
@@ -304,7 +286,7 @@ CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif 
     </div>
   </section>
 
-  <!-- ========== PAYMENT METHODS ========== -->
+
   <section class="paym">
     <div class="ph"><span>Payment Methods <em>/</em> <span class="ur">ادائیگی کے طریقے</span></span></div>
     <div class="grid">
@@ -331,7 +313,7 @@ CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif 
     </div>
   </section>
 
-  <!-- ========== INSTRUCTIONS + OFFICER ========== -->
+
   <section class="low">
     <div class="ins">
       <div class="ih"><i class="i">i</i>Important Instructions <span style="font-weight:400">/</span> <span class="ur">اہم ہدایات</span></div>
@@ -359,7 +341,7 @@ CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif 
     </div>
   </section>
 
-  <!-- ========== FOOTER ========== -->
+
   <footer class="ft">
     <div>Helpline: 15</div>
     <div>Safe Cities Project — Citizen Portal</div>

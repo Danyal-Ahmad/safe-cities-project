@@ -1,7 +1,5 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   DIG (Deputy Inspector General) - full-privilege sidebar
-   ============================================================ {% endcomment %}
+
 
 <div class="sc-nav-section" data-section="Command &amp; Control">
   <div class="sc-nav-title">Command &amp; Control</div>
@@ -101,4 +99,3 @@
   {% endif %}
   <a href="{% url 'dig:admin_reset_request_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/admin-resets/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Password Resets</span></a>
 </div>
-

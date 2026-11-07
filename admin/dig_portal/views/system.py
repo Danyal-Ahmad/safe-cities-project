@@ -417,3 +417,4 @@ def self_profile(request):
         'date_joined': date_joined,
         'is_locked': getattr(user, 'is_locked', False),
     })
+

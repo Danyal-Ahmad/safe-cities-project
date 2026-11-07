@@ -1,15 +1,5 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Live CCTV Wall (dig/ssp/supervisor/it portals)
 
-   Redesigned to match the standard portal design language: light page
-   canvas (no dark slab background), white cards with the shared border /
-   radius / shadow tokens, navy accents. The video viewport inside each
-   tile stays dark - that is the footage, not a background.
-   Functional hooks (IDs and data-* attributes) are unchanged:
-   static/js/pages/dig-live-monitor.js depends on them.
-   ============================================================================ */
 
-/* ===== Wall canvas: transparent - the app shell page shows through ===== */
 #cctvWall {
   width: 100%;
   margin: 0 auto;
@@ -18,7 +8,7 @@
   gap: 14px;
 }
 
-/* ===== Toolbar: identity + counters + search (standard page hero) ===== */
+
 .cctv-toolbar {
   display: flex;
   align-items: center;
@@ -153,7 +143,7 @@
   font-size: 0.85rem;
 }
 
-/* ===== Recent activity strip ===== */
+
 .cctv-ticker {
   display: flex;
   align-items: center;
@@ -206,7 +196,7 @@
 }
 .cctv-ticker-time { color: #7A8699; font-size: 0.75rem; }
 
-/* ===== Wall grid ===== */
+
 .cctv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -233,7 +223,7 @@
   outline: none;
 }
 
-/* Tile head: channel chip, area, LED, clock */
+
 .cctv-head {
   display: flex;
   align-items: center;
@@ -289,7 +279,7 @@
   color: #7A8699;
 }
 
-/* Video viewport: the footage itself is dark - not a page background */
+
 .cctv-feed {
   position: relative;
   background: #0A0E14;
@@ -332,7 +322,7 @@
 }
 .cctv-nosignal i { font-size: 1.5rem; }
 
-/* Tile footer */
+
 .cctv-meta {
   padding: 9px 14px;
   font-size: 0.72rem;
@@ -344,7 +334,7 @@
   text-overflow: ellipsis;
 }
 
-/* ===== Empty states ===== */
+
 .cctv-empty {
   grid-column: 1 / -1;
   display: flex;
@@ -372,7 +362,7 @@
   color: #7A8699;
 }
 
-/* ===== Responsive ===== */
+
 @media (max-width: 900px) {
   .cctv-toolbar { flex-direction: column; align-items: stretch; }
   .cctv-toolbar-right { justify-content: space-between; }
@@ -385,7 +375,7 @@
   .cctv-title { font-size: 1rem; }
 }
 
-/* ===== Review console (zoom overlay, built by dig-live-monitor.js) ===== */
+
 .cctv-zoom {
   position: fixed;
   inset: 0;

@@ -40,3 +40,4 @@ urlpatterns = [
     path('notifications/mark-read/',                dig_views.notification_mark_read,    name='notification_mark_read'),
     path('notifications/clear-all/',                dig_views.notification_clear_all,    name='notification_clear_all'),
 ]
+

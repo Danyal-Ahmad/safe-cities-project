@@ -73,3 +73,4 @@ def notification_clear_all(request):
         Notification.objects.filter(recipient=request.user).delete()
         request.session['dismissed_alerts'] = []
     return JsonResponse({'status': 'ok', 'unread_count': 0})
+

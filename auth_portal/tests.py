@@ -103,3 +103,4 @@ class AdminResetSecurityTests(TestCase):
         body = r.content.decode()
         if req.token:
             self.assertNotIn(req.token, body)
+

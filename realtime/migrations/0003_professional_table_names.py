@@ -6,3 +6,4 @@ class Migration(migrations.Migration):
         migrations.AlterModelTable(name='livefeed', table='sc_live_feeds'),
         migrations.AlterModelTable(name='cameraassignment', table='sc_camera_assignments'),
     ]
+

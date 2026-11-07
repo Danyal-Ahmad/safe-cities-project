@@ -49,3 +49,4 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['target_user', 'status'], name='sc_admin_pa_target__27cb3f_idx'),
         ),
     ]
+

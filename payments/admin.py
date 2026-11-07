@@ -8,3 +8,4 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
     list_filter = ('status', 'provider', 'created_at')
     search_fields = ('ticket_no', 'txn_ref', 'gateway_ref')
     readonly_fields = ('created_at', 'updated_at')
+

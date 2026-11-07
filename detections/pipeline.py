@@ -1,14 +1,3 @@
-"""Safe City core enforcement pipeline.
-
-Flow (fully automated, no manual/officer annotation anywhere):
-
-    DETECTION  ->  FRAME TRACKING  ->  EVIDENCE (5 hard security checks)  ->  CHALLAN
-
-Every challan is issued exclusively through this pipeline. A challan can only
-be generated when all five evidence security checks pass. Any failure blocks
-issuance: hard failures are rejected outright, ambiguous cases are parked in
-the Officer Portal review queue.
-"""
 from __future__ import annotations
 
 import datetime
@@ -16,7 +5,7 @@ import hashlib
 import logging
 import re
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 
 from detections.models import Detection
@@ -71,16 +60,7 @@ def _doubt_floor(auto_thr: float) -> float:
     return max(0.35, auto_thr - 0.25)
 
 
-
 def frame_tracking(detection, camera) -> dict:
-    """Build the cross-frame vehicle track for a detection.
-
-    Strict evidence policy: a challan-grade track requires the same plate
-    confirmed across at least EVIDENCE_FRAMES_REQUIRED frames (3-frame
-    evidence, checked one-by-one). Single-frame observations are never
-    corroborated, regardless of confidence: they park in the Officer Portal
-    review queue.
-    """
     plate = _normalize_plate(detection.ai_plate_text)
     raw = detection.ai_raw_response or {}
     side_conf = float(raw.get('side_confidence') or 0.0)
@@ -157,9 +137,7 @@ def frame_tracking(detection, camera) -> dict:
     return track
 
 
-
 def _check_plate_readability(detection, raw) -> dict:
-    """Check 1 - Pakistan plate format + HD OCR quality (per-frame, 1-by-1)."""
     plate = (detection.ai_plate_text or '').strip().upper()
     ocr_conf = float(raw.get('ocr_confidence') or 0.0)
     norm = _normalize_plate(plate)
@@ -175,8 +153,6 @@ def _check_plate_readability(detection, raw) -> dict:
 
 
 def _check_frame_consistency(detection, track) -> dict:
-    """Check 2 - strict 3-frame evidence: same full plate verified across at
-    least EVIDENCE_FRAMES_REQUIRED frames, each checked one-by-one."""
     mode = track.get('mode')
     frames = int(track.get('frames') or 0)
     consistency = float(track.get('consistency') or 0.0)
@@ -204,7 +180,6 @@ def _check_frame_consistency(detection, track) -> dict:
 
 
 def _check_violation_logic(detection, camera, raw) -> dict:
-    """Check 3 - violation logic + strict car-only gate (model is car-trained)."""
     side = detection.ai_side_classification
     side_conf = float(raw.get('side_confidence') or 0.0)
     violation_side = (getattr(camera, 'violation_side', None) or 'back') if camera else 'back'
@@ -223,8 +198,6 @@ def _check_violation_logic(detection, camera, raw) -> dict:
 
 
 def _check_image_evidence(detection) -> dict:
-    """Check 4 - full-plate image evidence: raw frame + complete plate crop
-    (no half / edge-clipped plates) at usable resolution."""
     has_raw = bool(detection.raw_image and hasattr(detection.raw_image, 'name'))
     crop = detection.effective_plate_image
     has_crop = bool(crop and hasattr(crop, 'name'))
@@ -273,10 +246,6 @@ def _check_chain_integrity(detection, checks, camera) -> dict:
 
 
 def build_evidence_hash(detection, checks, camera) -> str:
-    """SHA-256 over the full evidence chain: camera, plate, timestamps, both
-    evidence images and the first four check results. Tampering with any part
-    of the chain invalidates the digest stored on the detection record.
-    """
     try:
         def _img_digest(field):
             if not field or not hasattr(field, 'name'):
@@ -318,16 +287,7 @@ def build_evidence(detection, track, camera) -> tuple[list, str]:
     return checks, evidence_hash
 
 
-
 def conclude_violation_type(detection):
-    """Conclude the violation type FROM THE ANALYSIS of this detection.
-
-    The catalog contains multiple violation types (see Challan.VIOLATION_CHOICES);
-    the analysis layer decides which one applies. The conclusion is then gated
-    against Challan.ENABLED_VIOLATIONS, the set of types that are live for
-    enforcement. Types that exist in the catalog but are not live never
-    auto-issue a challan; they park in the Officer Portal review queue.
-    """
     from challans.models import Challan
     analyzed = getattr(detection, 'effective_violation_type', None)
     if not analyzed:
@@ -349,9 +309,7 @@ def issue_challan(detection, camera, user=None):
     if existing:
         return existing
 
-    # The violation type is picked from the analysis conclusion. It is never
-    # defaulted: if the analysis does not conclude a live type, no challan is
-    # issued from the pipeline.
+
     violation_type = conclude_violation_type(detection)
     if not violation_type:
         logger.info(
@@ -373,38 +331,54 @@ def issue_challan(detection, camera, user=None):
         owner_data = {}
 
     legal = (getattr(camera, 'legal_direction', None) or '') if camera else ''
-    with transaction.atomic():
-        challan = Challan.objects.create(
-            detection=detection,
-            ticket_no=ticket_no,
-            plate_number=plate,
-            province=detection.ai_province,
-            owner_name=owner_data.get('owner_name'),
-            cnic=owner_data.get('cnic'),
-            address=owner_data.get('address'),
-            phone=owner_data.get('phone'),
-            vehicle_type=owner_data.get('vehicle_type') or 'car',
-            make_year=owner_data.get('make_year'),
-            color=owner_data.get('color'),
-            chassis_no=owner_data.get('chassis_no'),
-            violation_type=violation_type,
-            fine_amount=sys_settings.get_fine(violation_type),
-            location=camera.location if camera else 'AI Detection',
-            camera=camera,
-            ai_confidence=detection.ai_confidence,
-            moving_direction=opposite_direction(legal) if legal else None,
-            legal_direction=legal or None,
-            issue_date=datetime.date.today(),
-            due_date=datetime.date.today() + datetime.timedelta(days=sys_settings.due_date_days),
-            payment_status=Challan.UNPAID,
-            created_by=user,
-        )
+    try:
+        with transaction.atomic():
+            challan = Challan.objects.create(
+                detection=detection,
+                ticket_no=ticket_no,
+                plate_number=plate,
+                province=detection.ai_province,
+                owner_name=owner_data.get('owner_name'),
+                cnic=owner_data.get('cnic'),
+                address=owner_data.get('address'),
+                phone=owner_data.get('phone'),
+                vehicle_type=owner_data.get('vehicle_type') or 'car',
+                make_year=owner_data.get('make_year'),
+                color=owner_data.get('color'),
+                chassis_no=owner_data.get('chassis_no'),
+                violation_type=violation_type,
+                fine_amount=sys_settings.get_fine(violation_type),
+                location=camera.location if camera else 'AI Detection',
+                camera=camera,
+                ai_confidence=detection.ai_confidence,
+                moving_direction=opposite_direction(legal) if legal else None,
+                legal_direction=legal or None,
+                issue_date=datetime.date.today(),
+                due_date=datetime.date.today() + datetime.timedelta(days=sys_settings.due_date_days),
+                payment_status=Challan.UNPAID,
+                created_by=user,
+            )
+    except IntegrityError:
+        # 2026 audit (P5): the OneToOne constraint on Challan.detection makes
+        # the database the final arbiter against double-issue. A concurrent
+        # finalisation that loses the race joins the winner instead of
+        # crashing the pipeline.
+        existing = Challan.objects.filter(detection=detection).first()
+        if existing:
+            return existing
+        raise
 
     try:
         from detections.evidence_annotator import store_annotated_evidence
         store_annotated_evidence(detection, camera)
     except Exception as e:
         logger.warning('evidence annotation deferred: %s', e)
+
+    try:
+        from admin.dig_portal.views import run_auto_blacklist
+        run_auto_blacklist(challan.plate_number)
+    except Exception as e:
+        logger.warning('auto blacklist check skipped: %s', e)
 
     try:
         from challans.pdf_service import save_challan_pdf
@@ -429,31 +403,7 @@ def issue_challan(detection, camera, user=None):
     return challan
 
 
-
-def _emit_realtime(detection, action: str):
-    """Push a detection event to the Socket.IO portal rooms (best effort)."""
-    try:
-        from realtime.realtime_events import emit_detection_event
-        emit_detection_event(detection, action)
-    except Exception:
-        pass
-
-
 def process_detection(detection, result: dict, camera=None, system_user=None):
-    """Run the full enforcement pipeline for one detection record.
-
-    Strict policy (5 hard security checks):
-      1. plate_readability   - Pakistan plate format + HD OCR confidence
-      2. frame_consistency   - 3-frame evidence verified one-by-one (90fps burst)
-      3. violation_logic     - wrong-way logic + strict car-only gate
-      4. image_evidence      - full (non-clipped) plate crop at usable size
-      5. chain_integrity     - SHA-256 tamper-evident chain, no duplicates
-
-    Returns (detection, challan_or_None, action) where action is one of:
-      'challan_issued'   - all five evidence checks passed, challan created
-      'queued_review'    - evidence incomplete; parked in the Officer Portal review queue
-      'ignored'          - hard failure; rejected
-    """
     raw = result.get('raw_ai_response') or detection.ai_raw_response or {}
     conf = float(result.get('confidence') or detection.ai_confidence or 0.0)
     has_plate_box = bool(
@@ -530,9 +480,8 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
                 challan.violation_type,
             )
             return detection, challan, 'challan_issued'
-        # The analysis did not conclude a violation type that is live for
-        # enforcement. The event is parked for an officer decision instead of
-        # being auto-confirmed with an assumed type.
+
+
         detection.status = Detection.PENDING
         detection.reviewed_at = None
         detection.review_notes = (
@@ -562,7 +511,4 @@ def process_detection(detection, result: dict, camera=None, system_user=None):
 
 
 def finalize_detection_from_ai(detection, result: dict, camera=None, system_user=None):
-    """Backwards-compatible entry point used by the camera worker and the
-    video upload processor. Delegates to process_detection.
-    """
     return process_detection(detection, result, camera=camera, system_user=system_user)

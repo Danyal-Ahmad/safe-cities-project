@@ -1,4 +1,3 @@
-"""Add avatar ImageField to User."""
 from django.db import migrations, models
 
 

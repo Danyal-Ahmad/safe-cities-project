@@ -1,16 +1,27 @@
+import json
 import platform
 
+from django.conf import settings as django_settings
+from django.core.mail import EmailMessage, get_connection
+from django.core.paginator import Paginator
+from django.db import connection
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.http import urlencode
+from datetime import timedelta
 
-from accounts.models import User
-from accounts.decorators import it_required
+from accounts.models import AdminPasswordResetRequest, User
+from accounts.decorators import it_required, role_required
 from challans.models import Challan
 from detections.models import Detection
 from cameras.models import Camera
-from admin.dig_portal.models import AuditLog
+from admin.dig_portal.models import AuditLog, Notification, SystemSettings
 from detections.ai import is_models_available, get_model_info
+from payments.models import PaymentTransaction
 
 from .models import PaymentMethod
 
@@ -91,7 +102,12 @@ def dashboard(request):
     payment_methods_count = PaymentMethod.objects.count()
     payment_methods_active = PaymentMethod.objects.filter(status='active').count()
 
+    db_status = _db_status()
+    gateway_status = _gateway_status()
+
     return render(request, 'dashboard/it_support/dashboard.html', {
+        'db_status': db_status,
+        'gateway_status': gateway_status,
         'cameras_total': cameras_total, 'cameras_online': cameras_online,
         'cameras_offline': cameras_offline, 'cameras_streaming': cameras_streaming,
         'cameras_active': cameras_active, 'cameras_with_issues': cameras_with_issues,
@@ -116,10 +132,8 @@ def dashboard(request):
 
 @it_required
 def pdf_settings(request):
-    """Legacy URL - PDF settings live under System Settings tab."""
     from django.shortcuts import redirect
     return redirect('/portal/it/settings/?tab=pdf-settings')
-
 
 
 @it_required
@@ -293,7 +307,6 @@ def staff_list(request):
     })
 
 
-
 from django.http import JsonResponse
 from accounts.decorators import permission_required, it_required
 
@@ -301,7 +314,6 @@ from accounts.decorators import permission_required, it_required
 @it_required
 @permission_required('live_tracking')
 def live_tracking(request):
-    """IT Support Live Vehicle Tracking (full camera access)."""
     from cameras.models import Camera
     from realtime.models import LiveFeed
     from admin.shared import LiveTrackingService
@@ -348,7 +360,6 @@ def live_tracking(request):
 @it_required
 @permission_required('live_tracking_timeline')
 def live_tracking_timeline(request):
-    """JSON timeline for IT Live Tracking."""
     from admin.shared import LiveTrackingService
 
     plate = (request.GET.get('plate') or '').strip()
@@ -376,7 +387,6 @@ def live_tracking_timeline(request):
 
 @it_required
 def audit_templates_manage(request):
-    """IT Support: full control over audit report PDF templates (Canva-lite)."""
     from admin.audit_portal.audit_pdf import (BUILTIN_TEMPLATES,
                                               generate_audit_pdf,
                                               get_active_template_key,
@@ -385,7 +395,7 @@ def audit_templates_manage(request):
     from admin.dig_portal.models import (AuditPDFTemplate, AuditLog,
                                          SystemSettings)
 
-    # GET ?sample=<template_key> -> inline sample PDF (portal-isolation safe)
+
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         if sample_key not in {t['key'] for t in get_audit_templates()}:
@@ -484,6 +494,370 @@ def audit_templates_manage(request):
         'active_template_key': get_active_template_key(),
         'builtin_count': len(BUILTIN_TEMPLATES),
         'db_count': len(db_templates),
+    })
+
+
+def _db_status():
+    engine = connection.settings_dict['ENGINE'].split('.')[-1]
+    labels = {
+        'postgresql': 'PostgreSQL',
+        'sqlite3': 'SQLite',
+        'mysql': 'MySQL',
+        'oracle': 'Oracle',
+    }
+    label = labels.get(engine, engine)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+            cursor.fetchone()
+        return {'engine': engine, 'label': label, 'ok': True, 'error': ''}
+    except Exception as exc:
+        return {'engine': engine, 'label': label, 'ok': False, 'error': str(exc)}
+
+
+def _gateway_status():
+    try:
+        sys_settings = SystemSettings.get()
+        mode = sys_settings.integration_mode
+    except Exception:
+        mode = 'demo'
+    methods = PaymentMethod.objects.filter(status=PaymentMethod.STATUS_ACTIVE).count()
+    return {'mode': mode, 'methods': methods}
+
+
+def _age_text(delta_minutes):
+    if delta_minutes is None:
+        return 'Never'
+    if delta_minutes < 1:
+        return f'{max(1, int(delta_minutes * 60))}s ago'
+    if delta_minutes < 60:
+        return f'{int(delta_minutes)}m ago'
+    hours = delta_minutes / 60.0
+    if hours < 24:
+        return f'{int(hours)}h {int(delta_minutes % 60)}m ago'
+    return f'{int(hours // 24)}d {int(hours % 24)}h ago'
+
+
+def _camera_freshness_stats():
+    now = timezone.now()
+    cameras = list(Camera.objects.all().order_by('camera_id'))
+    buckets = {'fresh': [], 'stale': [], 'dead': [], 'never': []}
+    for cam in cameras:
+        if cam.last_frame_at:
+            frame_age = (now - cam.last_frame_at).total_seconds() / 60.0
+            if frame_age < 5:
+                bucket = 'fresh'
+            elif frame_age <= 60:
+                bucket = 'stale'
+            else:
+                bucket = 'dead'
+        else:
+            frame_age = None
+            bucket = 'never'
+        health_age = (
+            (now - cam.last_health_check).total_seconds() / 60.0
+            if cam.last_health_check else None
+        )
+        cam.it_frame_age_minutes = frame_age
+        cam.it_frame_age_text = _age_text(frame_age)
+        cam.it_frame_bucket = bucket
+        cam.it_health_age_text = _age_text(health_age)
+        buckets[bucket].append(cam)
+    severity = {'dead': 0, 'never': 1, 'stale': 2, 'fresh': 3}
+    cameras.sort(key=lambda c: (severity[c.it_frame_bucket], c.camera_id))
+    total = len(cameras)
+    fresh = len(buckets['fresh'])
+    return {
+        'cameras': cameras,
+        'buckets': buckets,
+        'total': total,
+        'fresh': fresh,
+        'stale': len(buckets['stale']),
+        'dead': len(buckets['dead']),
+        'never': len(buckets['never']),
+        'fresh_pct': round(fresh * 100.0 / total, 1) if total else 0,
+    }
+
+
+def _run_camera_heartbeat_scan(timeout_seconds=120):
+    cutoff = timezone.now() - timedelta(seconds=timeout_seconds)
+    stale = Camera.objects.filter(is_active=True, health_status='online').filter(
+        Q(last_health_check__lt=cutoff) | Q(last_health_check__isnull=True)
+    )
+    return stale.update(health_status='offline')
+
+
+@role_required('IT', 'DIG')
+def payment_transactions(request):
+    transactions = PaymentTransaction.objects.select_related('challan').order_by('-created_at')
+
+    status_filter = (request.GET.get('status') or '').strip()
+    provider_filter = (request.GET.get('provider') or '').strip()
+    q = (request.GET.get('q') or '').strip()
+
+    if status_filter:
+        transactions = transactions.filter(status=status_filter)
+    if provider_filter:
+        transactions = transactions.filter(provider__iexact=provider_filter)
+    if q:
+        transactions = transactions.filter(
+            Q(txn_ref__icontains=q) | Q(ticket_no__icontains=q) | Q(gateway_ref__icontains=q)
+        )
+
+    paginator = Paginator(transactions, 50)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    query_params = {}
+    if status_filter:
+        query_params['status'] = status_filter
+    if provider_filter:
+        query_params['provider'] = provider_filter
+    if q:
+        query_params['q'] = q
+    filter_qs = urlencode(query_params)
+
+    last_7d = timezone.now() - timedelta(days=7)
+    success_total = PaymentTransaction.objects.filter(
+        status=PaymentTransaction.STATUS_SUCCESS
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    failed_7d = PaymentTransaction.objects.filter(
+        status=PaymentTransaction.STATUS_FAILED, created_at__gte=last_7d
+    ).count()
+    provider_breakdown = list(
+        PaymentTransaction.objects.values('provider')
+        .annotate(count=Count('id'), volume=Sum('amount'))
+        .order_by('-count')
+    )
+    status_counts = {
+        code: PaymentTransaction.objects.filter(status=code).count()
+        for code, _label in PaymentTransaction.STATUS_CHOICES
+    }
+    status_rows = [
+        {'code': code, 'label': label, 'count': status_counts.get(code, 0)}
+        for code, label in PaymentTransaction.STATUS_CHOICES
+    ]
+
+    return render(request, 'dashboard/it_support/payment_transactions.html', {
+        'page_obj': page_obj,
+        'transactions': page_obj.object_list,
+        'status_filter': status_filter,
+        'provider_filter': provider_filter,
+        'q': q,
+        'filter_qs': filter_qs,
+        'status_choices': PaymentTransaction.STATUS_CHOICES,
+        'status_rows': status_rows,
+        'status_counts': status_counts,
+        'success_total': success_total,
+        'failed_7d': failed_7d,
+        'provider_breakdown': provider_breakdown,
+        'pending_count': status_counts.get(PaymentTransaction.STATUS_PENDING, 0),
+        'total_count': PaymentTransaction.objects.count(),
+    })
+
+
+@role_required('IT', 'DIG')
+def payment_transaction_detail(request, txn_id):
+    txn = get_object_or_404(
+        PaymentTransaction.objects.select_related('challan'), pk=txn_id
+    )
+
+    if request.method == 'POST':
+        if (request.POST.get('action') or '').strip() == 'mark_failed':
+            if txn.status != PaymentTransaction.STATUS_PENDING:
+                messages.error(
+                    request,
+                    f"Only pending transactions can be marked as failed. Current status: {txn.get_status_display()}."
+                )
+                return redirect('it_support_portal:payment_transaction_detail', txn_id=txn.id)
+            txn.status = PaymentTransaction.STATUS_FAILED
+            txn.save(update_fields=['status', 'updated_at'])
+            AuditLog.write(
+                request, 'payment.mark_failed', 'PaymentTransaction', txn.id,
+                ticket_no=txn.ticket_no, txn_ref=txn.txn_ref,
+                provider=txn.provider, amount=str(txn.amount),
+            )
+            detail_url = reverse('dig:payment_list')
+            Notification.objects.bulk_create([
+                Notification(
+                    recipient=dig_user,
+                    title='Payment transaction marked failed',
+                    message=(
+                        f"IT Support marked transaction {txn.txn_ref or txn.ticket_no} "
+                        f"({txn.provider}, PKR {txn.amount}) as failed."
+                    ),
+                    category='system',
+                    target_url=detail_url,
+                )
+                for dig_user in User.objects.filter(role='DIG', is_active=True)
+            ])
+            messages.success(
+                request,
+                f"Transaction {txn.txn_ref or txn.ticket_no} marked as failed. DIG office notified."
+            )
+        return redirect('it_support_portal:payment_transaction_detail', txn_id=txn.id)
+
+    raw_response_pretty = ''
+    if txn.raw_response:
+        try:
+            raw_response_pretty = json.dumps(txn.raw_response, indent=2, default=str)
+        except Exception:
+            raw_response_pretty = str(txn.raw_response)
+
+    return render(request, 'dashboard/it_support/payment_transaction_detail.html', {
+        'txn': txn,
+        'raw_response_pretty': raw_response_pretty,
+        'can_mark_failed': txn.status == PaymentTransaction.STATUS_PENDING,
+    })
+
+
+@role_required('IT', 'DIG')
+def camera_heartbeats(request):
+    stats = _camera_freshness_stats()
+    bucket_filter = (request.GET.get('bucket') or '').strip()
+    cameras = stats['cameras']
+    if bucket_filter in ('fresh', 'stale', 'dead', 'never'):
+        cameras = stats['buckets'][bucket_filter]
+    return render(request, 'dashboard/it_support/camera_heartbeats.html', {
+        'stats': stats,
+        'cameras': cameras,
+        'bucket_filter': bucket_filter,
+    })
+
+
+@role_required('IT', 'DIG')
+def camera_heartbeat_run(request):
+    if request.method != 'POST':
+        return redirect('it_support_portal:camera_heartbeats')
+    marked = _run_camera_heartbeat_scan()
+    AuditLog.write(request, 'camera.healthcheck_run', 'Camera', None, marked_offline=marked)
+    if marked:
+        messages.success(request, f"Heartbeat scan complete: {marked} camera(s) marked offline.")
+    else:
+        messages.success(request, "Heartbeat scan complete: every online camera has a fresh heartbeat.")
+    return redirect('it_support_portal:camera_heartbeats')
+
+
+@it_required
+def system_health(request):
+    camera_stats = _camera_freshness_stats()
+    db_status = _db_status()
+    gateway_status = _gateway_status()
+    sys_settings = SystemSettings.get()
+    tc = sys_settings.template_config or {}
+    smtp_config = {
+        'host': (tc.get('smtp_host') or '').strip(),
+        'port': tc.get('smtp_port') or 587,
+        'user': (tc.get('smtp_user') or '').strip(),
+        'from': (tc.get('smtp_from') or '').strip(),
+        'tls': str(tc.get('smtp_tls', '1')) not in ('0', 'false', 'False', 'no', ''),
+    }
+    return render(request, 'dashboard/it_support/system_health.html', {
+        'db_challans': Challan.objects.count(),
+        'db_detections': Detection.objects.count(),
+        'db_users': User.objects.count(),
+        'db_cameras': Camera.objects.count(),
+        'db_status': db_status,
+        'gateway_status': gateway_status,
+        'camera_stats': camera_stats,
+        'ai_available': is_models_available(),
+        'model_info': get_model_info(),
+        'email_enabled': sys_settings.email_enabled,
+        'smtp_config': smtp_config,
+        'python_version': platform.python_version(),
+        'platform': platform.platform(),
+        'integration_mode': sys_settings.integration_mode,
+    })
+
+
+@it_required
+def smtp_test(request):
+    if request.method != 'POST':
+        return redirect('it_support_portal:settings_edit')
+
+    sys_settings = SystemSettings.get()
+    recipient = (request.user.email or '').strip()
+    if not recipient:
+        messages.error(request, "Your account has no email address on file, so a test email cannot be sent.")
+        return redirect('it_support_portal:settings_edit')
+
+    tc = sys_settings.template_config or {}
+    host = (tc.get('smtp_host') or '').strip()
+    try:
+        port = int(tc.get('smtp_port') or 587)
+    except (TypeError, ValueError):
+        port = 587
+    username = (tc.get('smtp_user') or '').strip()
+    password = tc.get('smtp_password') or ''
+    from_email = (tc.get('smtp_from') or '').strip() or django_settings.DEFAULT_FROM_EMAIL
+    use_tls = str(tc.get('smtp_tls', '1')) not in ('0', 'false', 'False', 'no', '')
+
+    subject = 'Safe City SMTP test'
+    body = (
+        'This is a test email sent from the IT Support portal.\n\n'
+        f'SMTP host: {host or "default Django email backend"}\n'
+        f'SMTP port: {port}\n'
+        f'TLS: {"yes" if use_tls else "no"}\n'
+        f'Triggered by: {request.user.display_name} ({request.user.username})\n'
+    )
+
+    try:
+        if host:
+            mail_connection = get_connection(
+                'django.core.mail.backends.smtp.EmailBackend',
+                host=host, port=port,
+                username=username or None, password=password or None,
+                use_tls=use_tls, timeout=10, fail_silently=False,
+            )
+        else:
+            mail_connection = get_connection()
+        email = EmailMessage(subject, body, from_email, [recipient], connection=mail_connection)
+        email.send()
+        AuditLog.write(
+            request, 'settings.smtp_test', 'SystemSettings', sys_settings.id,
+            host=host or 'default', recipient=recipient, outcome='sent',
+        )
+        messages.success(
+            request,
+            f"Test email sent to {recipient} via {host or 'the default email backend'}."
+        )
+    except Exception as exc:
+        AuditLog.write(
+            request, 'settings.smtp_test', 'SystemSettings', sys_settings.id,
+            host=host or 'default', recipient=recipient, outcome='failed', error=str(exc)[:300],
+        )
+        messages.error(request, f"SMTP connection failed: {exc}")
+
+    return redirect('it_support_portal:settings_edit')
+
+
+@role_required('IT', 'DIG')
+def reset_requests(request):
+    valid_statuses = [code for code, _label in AdminPasswordResetRequest.STATUS_CHOICES]
+    status_filter = (request.GET.get('status') or '').strip()
+
+    requests_qs = AdminPasswordResetRequest.objects.select_related('target_user', 'resolved_by')
+    if status_filter in valid_statuses:
+        requests_qs = requests_qs.filter(status=status_filter)
+    requests_qs = requests_qs.order_by('-created_at')
+
+    status_counts = {
+        code: AdminPasswordResetRequest.objects.filter(status=code).count()
+        for code in valid_statuses
+    }
+    status_rows = [
+        {'code': code, 'label': label, 'count': status_counts.get(code, 0)}
+        for code, label in AdminPasswordResetRequest.STATUS_CHOICES
+    ]
+    return render(request, 'dashboard/it_support/reset_requests.html', {
+        'requests': requests_qs[:200],
+        'status_filter': status_filter,
+        'status_choices': AdminPasswordResetRequest.STATUS_CHOICES,
+        'status_rows': status_rows,
+        'status_counts': status_counts,
+        'pending_count': status_counts.get(AdminPasswordResetRequest.STATUS_PENDING, 0),
+        'resolved_count': status_counts.get(AdminPasswordResetRequest.STATUS_RESOLVED, 0),
+        'cancelled_count': status_counts.get(AdminPasswordResetRequest.STATUS_CANCELLED, 0),
+        'total_count': AdminPasswordResetRequest.objects.count(),
     })
 
 

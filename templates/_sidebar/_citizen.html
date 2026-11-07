@@ -10,13 +10,10 @@
   <a href="{% url 'challans:home' %}" class="sc-nav-link {% if request.path == '/portal/challan/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">My Challans</span></a>
   {% endif %}
   {% if request.user|has_perm:"submit_appeals" %}
-  <a href="{% url 'citizen_portal:submit_appeal' 0 %}" class="sc-nav-link"><i class="bi bi-chat-left-text"></i> <span class="sc-nav-link-text">Submit Appeal</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"escalate_appeals" %}
-  <a href="{% url 'citizen_portal:appeal_tracker' %}" class="sc-nav-link {% if request.path == '/portal/citizen/appeals/' %}sc-active{% endif %}"><i class="bi bi-search"></i> <span class="sc-nav-link-text">Appeal Tracker</span></a>
+  <a href="{% url 'citizen_portal:appeal_tracker' %}" class="sc-nav-link {% if request.path == '/portal/citizen/appeals/' %}sc-active{% endif %}"><i class="bi bi-chat-left-text"></i> <span class="sc-nav-link-text">My Appeals</span></a>
   {% endif %}
   {% if request.user|has_perm:"pay_own_challans" %}
-  <a href="{% url 'citizen_portal:pay_challan' 0 %}" class="sc-nav-link"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Pay Challan</span></a>
+  <a href="{% url 'citizen_portal:home' %}" class="sc-nav-link {% if request.path == '/portal/citizen/' %}sc-active{% endif %}"><i class="bi bi-credit-card"></i> <span class="sc-nav-link-text">Pay Challan</span></a>
   {% endif %}
 </div>
 

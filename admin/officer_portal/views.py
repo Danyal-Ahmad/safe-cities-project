@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Count
 
-from accounts.decorators import officer_or_dig_required, role_required
+from accounts.decorators import officer_or_dig_required, role_required, permission_required
 from detections.models import Detection, DetectionReviewNote
 from challans.models import Challan
 from appeals.models import ChallanAppeal
@@ -19,8 +19,6 @@ log = logging.getLogger('wrongway.officer')
 
 
 def officer_camera_ids(user):
-    """Camera IDs the user may see. Officers are limited to their active
-    CameraAssignment rows; senior staff (DIG/SSP/SUPV) see everything."""
     if user.role == 'OFFICER':
         from realtime.models import CameraAssignment
         ids = list(
@@ -144,18 +142,35 @@ def review_queue(request):
         model_info = get_model_info()
     except Exception:
         model_info = {}
+
+    pendings = list(qs[:200])
+    confidences = [d.ai_confidence for d in pendings if d.ai_confidence]
+    avg_conf = (sum(confidences) / len(confidences)) if confidences else None
+    oldest = pendings[0] if pendings else None
+    oldest_age_min = None
+    if oldest is not None:
+        delta = timezone.localtime(timezone.now()) - timezone.localtime(oldest.created_at)
+        oldest_age_min = max(0, int(delta.total_seconds() // 60))
+    cameras_active = len({d.camera_id for d in pendings if d.camera_id})
+    plates_pending = len({(d.ai_plate_text or '').strip().upper()
+                           for d in pendings if (d.ai_plate_text or '').strip()})
+
     return render(request, 'dashboard/officer/review_queue.html', {
         'detections': qs[:50], 'selected': selected, 'queue_count': qs.count(),
         'model_info': model_info,
         'ai_threshold': SystemSettings.get().ai_confidence_threshold,
+        'avg_confidence': avg_conf,
+        'oldest_age_min': oldest_age_min,
+        'cameras_active': cameras_active,
+        'plates_pending': plates_pending,
     })
 
 
 @officer_or_dig_required
 def detection_detail(request, detection_id):
     detection = get_object_or_404(Detection, pk=detection_id)
-    # Officer IDOR guard: officers may only open detections from their
-    # assigned cameras (senior staff see everything).
+
+
     if request.user.role == 'OFFICER':
         allowed = officer_camera_ids(request.user)
         if detection.camera_id is not None and detection.camera_id not in allowed:
@@ -359,7 +374,6 @@ def review_history(request):
 
 
 def lookup_owner_by_plate(plate_number):
-    """Resolve plate to owner via local registration then the Excise registry."""
     logger = logging.getLogger('wrongway.excise')
     plate = (plate_number or '').strip().upper()
     if not plate or plate == 'UNKNOWN':
@@ -456,7 +470,6 @@ def lookup_owner_by_plate(plate_number):
 def appeal_list(request):
     appeals = ChallanAppeal.objects.filter(
         status=ChallanAppeal.PENDING,
-        current_stage=ChallanAppeal.STAGE_OFFICER,
     ).order_by('created_at')
     return render(request, 'dashboard/officer/appeal_list.html', {
         'appeals': appeals,
@@ -500,8 +513,6 @@ def performance(request):
 
 @role_required('OFFICER')
 def live_tracking(request):
-    """Officer Live Tracking - camera-scoped to this officer's active
-    CameraAssignment rows only. Uses LiveTrackingService for consistent data."""
     from admin.shared import LiveTrackingService
 
     service = LiveTrackingService(
@@ -574,9 +585,8 @@ def vehicle_tracking(request):
     })
 
 
-@role_required('OFFICER', 'IT')
+@permission_required('live_tracking_timeline')
 def frame_timeline(request):
-    """JSON feed for officer Live Tracking trail - camera-assignment scoped."""
     from admin.shared import LiveTrackingService
 
     service = LiveTrackingService(

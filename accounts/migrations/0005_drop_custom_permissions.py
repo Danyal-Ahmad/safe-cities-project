@@ -1,9 +1,3 @@
-"""Drop orphan custom_permissions column.
-
-Runs on PostgreSQL (production) and SQLite (USE_SQLITE_DRY_RUN / CI sandbox).
-Table-existence checks and DDL are branched per-vendor since SQLite has no
-information_schema and no "DROP COLUMN IF EXISTS" support.
-"""
 from django.db import migrations
 
 
@@ -43,7 +37,7 @@ def forward_drop_custom_permissions(apps, schema_editor):
             if not _column_exists(cur, vendor, table, 'custom_permissions'):
                 continue
             if vendor == 'sqlite':
-                # SQLite (>=3.35) supports DROP COLUMN but not IF EXISTS.
+
                 cur.execute(f'ALTER TABLE "{table}" DROP COLUMN "custom_permissions";')
             else:
                 cur.execute(

@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG | E-Challan Register  (dashboard/dig/challan_list.html)
-   ========================================================================== */
 
-/* ---------- Filter card ---------- */
 
 .ch-filter-card { margin-bottom: 14px; }
 .ch-filter-card .sc-card-body { padding-top: 4px; }
@@ -63,8 +59,6 @@
   margin-left: auto;
 }
 
-/* ---------- Summary strip ---------- */
-
 .ch-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -113,8 +107,6 @@
 
 .ch-summary-voided .ch-summary-label,
 .ch-summary-voided .ch-summary-value { color: var(--sc-info, #2E5FB7); }
-
-/* ---------- Table details ---------- */
 
 .ch-fine { white-space: nowrap; color: var(--sc-navy-deep, #0F2557); }
 

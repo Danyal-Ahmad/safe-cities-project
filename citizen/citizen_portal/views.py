@@ -25,7 +25,6 @@ from admin.dig_portal.models import AuditLog
 
 
 def _normalize_cnic(value):
-    """Strip dashes/spaces so 35202-1234567-1 matches 3520212345671."""
     if not value:
         return ''
     return ''.join(ch for ch in str(value) if ch.isdigit())
@@ -35,7 +34,7 @@ def _user_plates(user):
     try:
         from accounts.models import VehicleRegistration
         return list(
-            VehicleRegistration.objects.filter(user=user)
+            VehicleRegistration.objects.filter(owner=user)
             .values_list('plate_number', flat=True)
         )
     except Exception:
@@ -65,7 +64,7 @@ def home(request):
         digits = _normalize_cnic(user.cnic)
         if digits:
             q |= Q(cnic=digits)
-            q |= Q(cnic__icontains=digits[:5])  # broad safety; filtered below
+            q |= Q(cnic__icontains=digits[:5])  
     if user.phone:
         q |= Q(phone=user.phone)
     plates = _user_plates(user)
@@ -170,16 +169,19 @@ def submit_appeal(request, challan_id):
         if len(reason) < 30:
             messages.error(request, "Reason must be at least 30 characters.")
         else:
-            if evidence and (not evidence.content_type or not evidence.content_type.startswith('image/')):
-                messages.error(request, "Evidence must be an image file.")
-                return redirect('citizen_portal:submit_appeal', challan_id=challan.id)
-            if evidence and evidence.size > 5 * 1024 * 1024:
-                messages.error(request, "Evidence file exceeds 5 MB limit.")
-                return redirect('citizen_portal:submit_appeal', challan_id=challan.id)
+            if evidence:
+                # 2026 audit (P4): extension whitelist + PIL sniff + 5 MB cap.
+                # The old content_type check was client-spoofable and allowed a
+                # renamed .html to be stored and later served from /media/ as
+                # same-origin text/html (stored XSS against appeal reviewers).
+                from challans.views import _validate_evidence_file
+                ok_ev, ev_err = _validate_evidence_file(evidence)
+                if not ok_ev:
+                    messages.error(request, ev_err)
+                    return redirect('citizen_portal:submit_appeal', challan_id=challan.id)
             appeal = ChallanAppeal.objects.create(
                 challan=challan, submitted_by=request.user,
                 reason=reason, evidence_file=evidence if evidence else None,
-                current_stage=ChallanAppeal.STAGE_SSP,
             )
 
             from accounts.models import User
@@ -229,21 +231,15 @@ def submit_appeal(request, challan_id):
                     target_url=reverse('ssp_portal:decide_appeal', args=[appeal.id]),
                 )
 
-            for dig in User.objects.filter(role=User.DIG, is_active=True):
-                Notification.objects.create(
-                    recipient=dig,
-                    title=f"[Info] Appeal submitted | {challan.ticket_no}",
-                    message=detail_msg + "\n\n(Directly routed to SSP for decision)",
-                    category='appeal_pending',
-                    target_url=reverse('ssp_portal:dashboard'),
-                )
-
             AuditLog.write(request, 'appeal.submit', 'ChallanAppeal', appeal.id,
                            challan=challan.ticket_no,
                            routed_to='ssp (direct transfer per V13 spec)')
             messages.success(request, "Appeal submitted. Directly routed to SSP for review. You will be notified of the decision.")
             return redirect('citizen_portal:appeal_tracker')
-    return render(request, 'dashboard/citizen/submit_appeal.html', {'challan': challan})
+    return render(request, 'dashboard/citizen/submit_appeal.html', {
+        'challan': challan,
+        'has_active': ChallanAppeal.has_active_appeal(challan),
+    })
 
 
 @login_required
@@ -251,31 +247,6 @@ def submit_appeal(request, challan_id):
 def appeal_tracker(request):
     appeals = ChallanAppeal.objects.filter(submitted_by=request.user).order_by('-created_at')
     return render(request, 'dashboard/citizen/appeal_tracker.html', {'appeals': appeals})
-
-
-@login_required
-@user_only_required
-def escalate_appeal(request, appeal_id):
-    appeal = get_object_or_404(ChallanAppeal, pk=appeal_id, submitted_by=request.user)
-    if appeal.status != ChallanAppeal.REJECTED:
-        messages.error(request, "Only rejected appeals can be escalated.")
-        return redirect('citizen_portal:appeal_tracker')
-    if request.method == 'POST':
-        reason = (request.POST.get('escalation_reason') or '').strip()
-        if len(reason) < 30:
-            messages.error(request, "Escalation reason must be at least 30 characters.")
-            return redirect('citizen_portal:appeal_tracker')
-        appeal.status = ChallanAppeal.ESCALATED
-        appeal.current_stage = ChallanAppeal.STAGE_DIG
-        appeal.is_escalated = True
-        appeal.escalated_at = timezone.now()
-        appeal.escalation_reason = reason
-        appeal.save()
-        AuditLog.write(request, 'appeal.escalate', 'ChallanAppeal', appeal.id,
-                       challan=appeal.challan.ticket_no)
-        messages.success(request, "Appeal escalated to DIG. You will receive a final decision soon.")
-        return redirect('citizen_portal:appeal_tracker')
-    return render(request, 'dashboard/citizen/escalate_appeal.html', {'appeal': appeal})
 
 
 @login_required
@@ -440,13 +411,11 @@ def pay_challan(request, challan_id):
         'payment_methods': payment_methods,
         'psid': challan.psid,
         'qr_payload': challan.payment_qr_payload,
+        'has_active': ChallanAppeal.has_active_appeal(challan),
     })
 
 
-
 def _citizen_challans_qs(user):
-    """All challans matching this citizen (CNIC / phone / registered plates),
-    strict ownership filtered - same rules as the dashboard home view."""
     q = Q()
     if user.cnic:
         q |= Q(cnic=user.cnic)
@@ -469,7 +438,6 @@ def _citizen_challans_qs(user):
 @login_required
 @user_only_required
 def api_citizen_kpis(request):
-    """KPIs scoped to the logged-in citizen: their own challans, appeals, payments."""
     user = request.user
     my_challans = _citizen_challans_qs(user)
     return JsonResponse({
@@ -481,7 +449,6 @@ def api_citizen_kpis(request):
             'total_due':       float(my_challans.filter(payment_status=Challan.UNPAID).aggregate(t=Sum('fine_amount'))['t'] or 0),
             'total_paid':      float(my_challans.filter(payment_status=Challan.PAID).aggregate(t=Sum('fine_amount'))['t'] or 0),
             'open_appeals':    ChallanAppeal.objects.filter(submitted_by=user, status=ChallanAppeal.PENDING).count(),
-            'escalated':       ChallanAppeal.objects.filter(submitted_by=user, status=ChallanAppeal.ESCALATED).count(),
             'resolved_appeals': ChallanAppeal.objects.filter(
                 submitted_by=user, status__in=[ChallanAppeal.APPROVED, ChallanAppeal.REJECTED]).count(),
         },
@@ -491,7 +458,6 @@ def api_citizen_kpis(request):
 @login_required
 @user_only_required
 def api_citizen_challans(request):
-    """DataTables server-side endpoint for the citizen's own challans."""
     try:
         draw   = int(request.GET.get('draw', 1))
         start  = int(request.GET.get('start', 0))
@@ -515,8 +481,5 @@ def api_citizen_challans(request):
     return JsonResponse({
         'draw': draw, 'recordsTotal': total, 'recordsFiltered': total, 'data': data,
     })
-
-
-
 
 

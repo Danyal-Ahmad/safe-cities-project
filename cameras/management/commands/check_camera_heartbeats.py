@@ -1,9 +1,3 @@
-"""
-Automated camera heartbeat monitor management command.
-
-Scans all active cameras and marks any camera whose last_health_check or
-last_frame_at exceeds the timeout threshold as 'offline'.
-"""
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta

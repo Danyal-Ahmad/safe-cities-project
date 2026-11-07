@@ -90,15 +90,23 @@ table { border-collapse: collapse; border-spacing: 0; }
    APP SHELL
    ========================================================================== */
 
-/* ---------- App shell: fixed-height frame. The sidebar never scrolls;
+/* ---------- App shell: fixed-height frame. The ticker strip sits at the
+   very top (above the navbar); .sc-body is the sidebar + main row and
    .sc-main is the ONLY scroll container so the topbar (sticky top) and
    footer (sticky bottom) stay permanently visible. ---------- */
 
 .sc-app {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background: var(--sc-bg);
+}
+
+.sc-body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
 }
 
 /* ---------- Sidebar (white floating card, full height, never scrolls) ---------- */

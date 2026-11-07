@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Transaction {{ txn.ticket_no }}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-payment-monitor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-receipt me-2"></i>Transaction {{ txn.txn_ref|default:txn.ticket_no }}</h1>
+    <p class="sc-lead">Full gateway record for challan {{ txn.ticket_no }} - status, provider references and the raw gateway response.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:payment_transactions' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-left me-1"></i>Back to Monitor</a>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-cash"></i></div>
+    <div class="sc-kpi-label">Amount</div>
+    <div class="sc-kpi-value">PKR {{ txn.amount|floatformat:0|intcomma }}</div>
+    <div class="sc-kpi-foot">{{ txn.provider|default:"demo" }} provider</div>
+  </div>
+  <div class="sc-kpi {% if txn.status == 'success' %}sc-kpi-ok{% elif txn.status == 'failed' %}sc-kpi-danger{% else %}sc-kpi-amber{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-flag"></i></div>
+    <div class="sc-kpi-label">Status</div>
+    <div class="sc-kpi-value">{{ txn.get_status_display }}</div>
+    <div class="sc-kpi-foot">updated {{ txn.updated_at|date:"d M Y H:i" }}</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-link-45deg"></i></div>
+    <div class="sc-kpi-label">Linked Challan</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">
+      {% if txn.challan %}<a class="it-pm-link" href="{% url 'challans:challan_detail' txn.challan.id %}">{{ txn.ticket_no }}</a>
+      {% else %}{{ txn.ticket_no }}{% endif %}
+    </div>
+    <div class="sc-kpi-foot">{% if txn.challan %}payment status: {{ txn.challan.get_payment_status_display|default:txn.challan.payment_status }}{% else %}challan record removed{% endif %}</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-clock-history"></i></div>
+    <div class="sc-kpi-label">Created</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">{{ txn.created_at|date:"d M Y H:i" }}</div>
+    <div class="sc-kpi-foot">transaction id #{{ txn.id }}</div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-card-checklist"></i>
+    <span>Gateway Record</span>
+    {% if can_mark_failed %}
+    <form method="post" action="{% url 'it_support_portal:payment_transaction_detail' txn.id %}" class="ms-auto" data-it-confirm="Mark transaction {{ txn.txn_ref|default:txn.ticket_no }} as failed? The DIG office will be notified.">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="mark_failed">
+      <button type="submit" class="sc-btn sc-btn-danger sc-btn-sm"><i class="bi bi-x-circle me-1"></i>Mark Failed</button>
+    </form>
+    {% else %}
+    <span class="ms-auto sc-badge sc-badge-gray"><i class="bi bi-lock"></i>Only pending transactions can be marked failed</span>
+    {% endif %}
+  </div>
+  <div class="sc-card-body p-0">
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <tbody>
+          <tr><th>Transaction ID</th><td class="sc-mono">#{{ txn.id }}</td></tr>
+          <tr><th>Challan Ticket</th><td class="sc-mono">{{ txn.ticket_no }}</td></tr>
+          <tr><th>Linked Challan</th>
+            <td>
+              {% if txn.challan %}
+              <a class="it-pm-link" href="{% url 'challans:challan_detail' txn.challan.id %}">{{ txn.challan.ticket_no }}</a>
+              <span class="sc-text-xs sc-text-muted">plate {{ txn.challan.plate_number }}, {{ txn.challan.get_payment_status_display|default:txn.challan.payment_status }}</span>
+              {% else %}
+              <span class="sc-text-muted">No linked challan record</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr><th>Provider</th><td><span class="sc-badge sc-badge-blue">{{ txn.provider|default:"demo" }}</span></td></tr>
+          <tr><th>Amount</th><td class="sc-mono">PKR {{ txn.amount|floatformat:2 }}</td></tr>
+          <tr><th>Status</th><td>
+            {% if txn.status == 'success' %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Success</span>
+            {% elif txn.status == 'failed' %}<span class="sc-badge sc-badge-red"><i class="bi bi-x-circle"></i>Failed</span>
+            {% elif txn.status == 'refunded' %}<span class="sc-badge sc-badge-amber"><i class="bi bi-arrow-counterclockwise"></i>Refunded</span>
+            {% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-hourglass"></i>Pending</span>{% endif %}
+          </td></tr>
+          <tr><th>Txn Reference</th><td class="sc-mono">{{ txn.txn_ref|default:"-" }}</td></tr>
+          <tr><th>Gateway Reference</th><td class="sc-mono">{{ txn.gateway_ref|default:"-" }}</td></tr>
+          <tr><th>Created At</th><td>{{ txn.created_at|date:"d M Y H:i:s" }}</td></tr>
+          <tr><th>Updated At</th><td>{{ txn.updated_at|date:"d M Y H:i:s" }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-braces"></i>
+    <span>Raw Gateway Response</span>
+  </div>
+  <div class="sc-card-body">
+    {% if raw_response_pretty %}
+    <pre class="it-pm-raw">{{ raw_response_pretty }}</pre>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-braces"></i>
+      <p class="mb-1">No raw gateway response stored for this transaction.</p>
+      <p class="sc-hint mb-0">The payload appears here once the gateway callback is received.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/it-payment-monitor.js' %}" defer></script>
+{% endblock %}

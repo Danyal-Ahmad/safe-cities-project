@@ -1,7 +1,3 @@
-"""accounts migration 0001 - User + OfficerProfile + VehicleRegistration models.
-
-This migration was regenerated after the project restructure.
-"""
 import django.contrib.auth.models
 import django.db.models.deletion
 import django.utils.timezone

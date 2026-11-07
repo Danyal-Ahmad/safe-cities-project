@@ -1,9 +1,5 @@
-/* ==========================================================================
-   Video Upload page | file picker, camera select, recent uploads
-   Loaded by templates/dashboard/video/upload.html
-   ========================================================================== */
 
-/* ===== Upload form layout ===== */
+
 .vp-form {
   display: grid;
   gap: 6px;
@@ -14,7 +10,6 @@
   font-weight: 700;
 }
 
-/* ===== Custom file picker (label wraps a visually-hidden native input) ===== */
 .vp-file-box {
   position: relative;
   display: flex;
@@ -67,12 +62,10 @@
   color: var(--sc-text-muted, #5B6B85);
 }
 
-/* ===== Camera select tweak ===== */
 .vp-camera-select {
   font-size: 0.9rem;
 }
 
-/* ===== Pipeline steps (side card) ===== */
 .vp-steps {
   list-style: none;
   margin: 0;
@@ -112,7 +105,6 @@
   color: var(--sc-text-muted, #5B6B85);
 }
 
-/* ===== Progress bar for recent uploads (CSS-only, bucketed widths) ===== */
 .vp-progress {
   width: 100%;
   min-width: 110px;
@@ -124,7 +116,7 @@
 
 .vp-progress-bar {
   height: 100%;
-  width: 0; /* default: empty bar - bucket classes below raise the fill */
+  width: 0;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--sc-banner-a, #1E4E9C), var(--sc-banner-b, #3B6FC4));
   transition: width 0.3s ease;

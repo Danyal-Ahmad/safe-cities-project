@@ -6,13 +6,11 @@
 {% block title %}IT Infrastructure Command{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+<script src="{% static 'vendor/chart.js/chart.umd.min.js' %}" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     IT INFRASTRUCTURE COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -22,14 +20,10 @@
         <div class="scr-rail-kicker">Safe Cities Project · Infrastructure &amp; Platform</div>
         <div class="scr-rail-title">
           IT Infrastructure Command
-          <span class="scr-rail-tag {% if ai_available %}scr-rail-tag--success{% else %}scr-rail-tag--danger{% endif %}">
-            <i class="bi bi-cpu"></i> AI Engine {% if ai_available %}Operational{% else %}Degraded{% endif %}
-          </span>
         </div>
         <div class="scr-rail-sub">Surveillance hardware, AI inference pipelines, gateway integrations and server telemetry health.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"system_health" %}
         <a href="{% url 'it_support_portal:system_health' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-heart-pulse"></i> Telemetry</a>
         {% endif %}
@@ -39,7 +33,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_camera_health" %}
       <div class="scr-stat scr-stat--success">
@@ -79,14 +72,12 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_detections" %}
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Camera Ingestion Rate (7 Days)</div>
-        <span class="md-badge md-badge-secondary">Frame Stream</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="detChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
@@ -98,7 +89,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-receipt"></i> Legal Enforcement Inflow (7 Days)</div>
-        <span class="md-badge md-badge-secondary">Generated Challans</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="chalChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="bar"></canvas>
@@ -159,7 +149,10 @@
       <div class="scr-panel-body">
         <div class="md-stat-row">
           <span class="md-stat-label">Primary Database Engine</span>
-          <span class="md-stat-value"><span class="md-badge md-badge-success">PostgreSQL (Connected)</span></span>
+          <span class="md-stat-value">
+            {% if db_status.ok %}<span class="md-badge md-badge-success">{{ db_status.label }} (Connected)</span>
+            {% else %}<span class="md-badge md-badge-danger">{{ db_status.label }} (Down)</span>{% endif %}
+          </span>
         </div>
         <div class="md-stat-row">
           <span class="md-stat-label">Computer Vision Pipeline</span>
@@ -178,7 +171,13 @@
         </div>
         <div class="md-stat-row">
           <span class="md-stat-label">Payment Gateway Status</span>
-          <span class="md-stat-value"><span class="md-badge md-badge-cyan">Sandbox / Ready</span></span>
+          <span class="md-stat-value">
+            {% if gateway_status.methods %}
+            <span class="md-badge {% if gateway_status.mode == 'real' %}md-badge-success{% else %}md-badge-cyan{% endif %}">{% if gateway_status.mode == 'real' %}Real{% else %}Sandbox{% endif %} / {{ gateway_status.methods }} Active</span>
+            {% else %}
+            <span class="md-badge md-badge-danger">No Active Method</span>
+            {% endif %}
+          </span>
         </div>
       </div>
     </section>

@@ -1,10 +1,5 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Public pages support styles
-   The public home is self-contained (inline CSS in the template).
-   This file only: neutralizes the app shell + styles DB banner frames/popup.
-   ============================================================================ */
 
-/* ═══ Neutralize the app shell - public pages are standalone, light ═══ */
+
 body.public-home {
   background: #f0f2f5;
   font-size: 13px;
@@ -23,7 +18,6 @@ body.public-home .sc-content {
 }
 body.public-home .sc-footer { display: none; }
 
-/* ═══════════════ POPUP AD modal ═══════════════ */
 .scf-popup-overlay {
   position: fixed;
   inset: 0;
@@ -73,7 +67,6 @@ body.public-home .sc-footer { display: none; }
 }
 .scf-popup-body { padding: 0; }
 
-/* ═══════════════ Announcement banner frames (DB banners) ═══════════════ */
 .scf-public-ads-banner { width: 100%; }
 .scf-ad-chip {
   display: block;

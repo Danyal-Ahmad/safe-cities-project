@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}System Health{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-system-health.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-heart-pulse me-2"></i>System Health</h1>
+    <p class="sc-lead">Live telemetry for the platform - database connectivity, camera stream freshness, payment gateway, AI pipeline and email delivery.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <a href="{% url 'it_support_portal:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-speedometer2 me-1"></i>Command Center</a>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi {% if db_status.ok %}sc-kpi-ok{% else %}sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-database"></i></div>
+    <div class="sc-kpi-label">Database</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">{{ db_status.label }}</div>
+    <div class="sc-kpi-foot">{% if db_status.ok %}SELECT 1 live check passed{% else %}unreachable{% endif %}</div>
+  </div>
+  <div class="sc-kpi {% if gateway_status.methods %}sc-kpi-ok{% else %}sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-credit-card"></i></div>
+    <div class="sc-kpi-label">Payment Gateway</div>
+    <div class="sc-kpi-value" style="font-size:1.05rem;">{% if gateway_status.mode == 'real' %}Real Mode{% else %}Sandbox Mode{% endif %}</div>
+    <div class="sc-kpi-foot">{{ gateway_status.methods }} active payment method{{ gateway_status.methods|pluralize }}</div>
+  </div>
+  <div class="sc-kpi {% if camera_stats.fresh_pct >= 80 %}sc-kpi-ok{% elif camera_stats.fresh_pct >= 40 %}sc-kpi-amber{% else %}sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-broadcast"></i></div>
+    <div class="sc-kpi-label">Camera Freshness</div>
+    <div class="sc-kpi-value">{{ camera_stats.fresh_pct|default:0 }}%</div>
+    <div class="sc-kpi-foot">{{ camera_stats.fresh }} fresh of {{ camera_stats.total }} cameras</div>
+  </div>
+  <div class="sc-kpi {% if ai_available %}sc-kpi-ok{% else %}sc-kpi-danger{% endif %}">
+    <div class="sc-kpi-icon"><i class="bi bi-cpu"></i></div>
+    <div class="sc-kpi-label">AI Pipeline</div>
+    <div class="sc-kpi-value">{% if ai_available %}ONLINE{% else %}DEGRADED{% endif %}</div>
+    <div class="sc-kpi-foot">plate detector + side classifier</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="sc-card it-sh-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-database-gear"></i>
+        <span>Database</span>
+        {% if db_status.ok %}<span class="ms-auto sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Connected</span>
+        {% else %}<span class="ms-auto sc-badge sc-badge-red"><i class="bi bi-x-circle"></i>Down</span>{% endif %}
+      </div>
+      <div class="sc-card-body">
+        <div class="it-sh-row"><span>Engine</span><span class="sc-mono sc-text-sm">{{ db_status.engine }}</span></div>
+        <div class="it-sh-row"><span>Live Check</span><span class="sc-text-sm">{% if db_status.ok %}<span class="sc-badge sc-badge-ok">SELECT 1 OK</span>{% else %}<span class="sc-badge sc-badge-red">failed</span>{% endif %}</span></div>
+        {% if not db_status.ok %}<div class="it-sh-row"><span>Error</span><span class="sc-text-xs sc-text-muted">{{ db_status.error|truncatechars:80 }}</span></div>{% endif %}
+        <div class="it-sh-row"><span>Challans</span><span class="sc-mono sc-text-sm">{{ db_challans|default:0|intcomma }}</span></div>
+        <div class="it-sh-row"><span>Detections</span><span class="sc-mono sc-text-sm">{{ db_detections|default:0|intcomma }}</span></div>
+        <div class="it-sh-row"><span>Users</span><span class="sc-mono sc-text-sm">{{ db_users|default:0|intcomma }}</span></div>
+        <div class="it-sh-row"><span>Cameras</span><span class="sc-mono sc-text-sm">{{ db_cameras|default:0|intcomma }}</span></div>
+        <div class="it-sh-row"><span>Python</span><span class="sc-mono sc-text-sm">{{ python_version }}</span></div>
+        <div class="it-sh-row"><span>Platform</span><span class="sc-text-xs">{{ platform|truncatechars:48 }}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sc-card it-sh-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-camera-video"></i>
+        <span>Camera Stream Freshness</span>
+        <a href="{% url 'it_support_portal:camera_heartbeats' %}" class="ms-auto sc-btn sc-btn-sm"><i class="bi bi-heart-pulse me-1"></i>Heartbeat Board</a>
+      </div>
+      <div class="sc-card-body">
+        <div class="it-sh-row"><span>Fresh (under 5 min)</span><span class="sc-badge sc-badge-ok">{{ camera_stats.fresh }}</span></div>
+        <div class="it-sh-row"><span>Stale (5 to 60 min)</span><span class="sc-badge sc-badge-amber">{{ camera_stats.stale }}</span></div>
+        <div class="it-sh-row"><span>Dead (over 60 min)</span><span class="sc-badge sc-badge-red">{{ camera_stats.dead }}</span></div>
+        <div class="it-sh-row"><span>Never reported</span><span class="sc-badge sc-badge-gray">{{ camera_stats.never }}</span></div>
+        <div class="it-sh-row"><span>Fresh ratio</span><span class="sc-mono sc-text-sm">{{ camera_stats.fresh_pct }}%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sc-card it-sh-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-credit-card-2-front"></i>
+        <span>Payment Gateway</span>
+        <a href="{% url 'it_support_portal:payment_transactions' %}" class="ms-auto sc-btn sc-btn-sm"><i class="bi bi-activity me-1"></i>Payment Monitor</a>
+      </div>
+      <div class="sc-card-body">
+        <div class="it-sh-row"><span>Integration Mode</span><span>{% if gateway_status.mode == 'real' %}<span class="sc-badge sc-badge-ok">Real</span>{% else %}<span class="sc-badge sc-badge-blue">Sandbox / Demo</span>{% endif %}</span></div>
+        <div class="it-sh-row"><span>Active Methods</span><span class="sc-mono sc-text-sm">{{ gateway_status.methods }}</span></div>
+        <div class="it-sh-row"><span>Checkout State</span><span>{% if gateway_status.methods %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Open</span>{% else %}<span class="sc-badge sc-badge-red"><i class="bi bi-x-circle"></i>Closed</span>{% endif %}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sc-card it-sh-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-envelope-gear"></i>
+        <span>Settings &amp; Email (SMTP)</span>
+        <a href="{% url 'it_support_portal:settings_edit' %}" class="ms-auto sc-btn sc-btn-sm"><i class="bi bi-sliders me-1"></i>Edit Settings</a>
+      </div>
+      <div class="sc-card-body">
+        <div class="it-sh-row"><span>Email Notifications</span><span>{% if email_enabled %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Enabled</span>{% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>Disabled</span>{% endif %}</span></div>
+        <div class="it-sh-row"><span>SMTP Host</span><span class="sc-mono sc-text-sm">{{ smtp_config.host|default:"not configured" }}</span></div>
+        <div class="it-sh-row"><span>SMTP Port</span><span class="sc-mono sc-text-sm">{{ smtp_config.port }}</span></div>
+        <div class="it-sh-row"><span>SMTP User</span><span class="sc-mono sc-text-sm">{{ smtp_config.user|default:"-" }}</span></div>
+        <div class="it-sh-row"><span>From Address</span><span class="sc-mono sc-text-sm">{{ smtp_config.from|default:"-" }}</span></div>
+        <div class="it-sh-row"><span>TLS</span><span class="sc-text-sm">{% if smtp_config.tls %}yes{% else %}no{% endif %}</span></div>
+        <form method="post" action="{% url 'it_support_portal:smtp_test' %}" class="it-sh-smtp-form">
+          {% csrf_token %}
+          <button type="submit" class="sc-btn sc-btn-primary sc-btn-sm"><i class="bi bi-send me-1"></i>Send Test Email</button>
+          <span class="sc-text-xs sc-text-muted">sends to your account email and reports the real result</span>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2">
+    <i class="bi bi-cpu"></i>
+    <span>AI Pipeline Status</span>
+    {% if ai_available %}<span class="ms-auto sc-badge sc-badge-ok">LOADED</span>
+    {% else %}<span class="ms-auto sc-badge sc-badge-red">NOT LOADED</span>{% endif %}
+  </div>
+  <div class="sc-card-body">
+    {% if model_info %}
+    <pre class="it-sh-raw">{{ model_info|pprint }}</pre>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-cpu"></i>
+      <p class="mb-1">No model information available.</p>
+      <p class="sc-hint mb-0">Load the ONNX models to bring the detection pipeline online.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

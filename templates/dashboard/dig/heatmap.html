@@ -4,7 +4,7 @@
 {% block title %}Violation Heatmap{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="{% static 'css/pages/dig-heatmap.css' %}">
 {% endblock %}
 
@@ -25,7 +25,7 @@
 </div>
 
 <div class="row g-4 mt-1">
-  <!-- Map -->
+  
   <div class="col-lg-9">
     <div class="sc-card h-100">
       <div class="sc-card-header d-flex align-items-center gap-2">
@@ -38,7 +38,6 @@
     </div>
   </div>
 
-  <!-- Sidebar -->
   <div class="col-lg-3 d-flex flex-column gap-4">
     <div class="sc-card">
       <div class="sc-card-header"><i class="bi bi-list-ol me-1"></i>Top Locations</div>
@@ -70,7 +69,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" crossorigin="anonymous"></script>
+<script src="/static/vendor/leaflet/leaflet.js" crossorigin="anonymous"></script>
+<script src="/static/vendor/leaflet/leaflet-heat.js" crossorigin="anonymous"></script>
 <script src="{% static 'js/pages/dig-heatmap.js' %}" defer></script>
 {% endblock %}

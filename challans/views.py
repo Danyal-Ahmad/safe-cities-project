@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect, Http404
+from django.urls import reverse
 from django.contrib import messages
 from django.http import FileResponse, HttpResponseForbidden, HttpResponse
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
@@ -6,6 +7,8 @@ from django.db.models import Q
 from django.core.cache import cache
 
 from accounts.models import User
+from appeals.models import ChallanAppeal
+from admin.shared.net import client_ip
 
 from .models import Challan
 from .pdf_service import _needs_nadra_excise_integration
@@ -17,30 +20,24 @@ import re
 
 import os as _os
 
-# Per-IP public search guard. Tunable for deployments behind a trusted
-# proxy; defaults keep the public portal safe from single-source floods.
-RATE_LIMIT_MAX_REQUESTS = int(_os.environ.get('SEARCH_RATE_LIMIT', 20))
-RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))  # seconds
 
-# PDF download limit: 20/min per user (or per IP for guests). PDF generation
-# is the expensive operation here (regen=1 re-renders the document), so every
-# identity - staff included - gets its own bucket. Counted only AFTER the
-# auth/token gate passes, so rejected probes never consume budget.
+RATE_LIMIT_MAX_REQUESTS = int(_os.environ.get('SEARCH_RATE_LIMIT', 20))
+RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))  
+
+
 PDF_RATE_LIMIT = (20, 60)
 
-# Guest-appeal evidence uploads: extension whitelist + real image sniffing
-# (PIL) + size cap. Blocks .html/.php/polyglot uploads served from /media/.
+
 _EVIDENCE_EXT_WHITELIST = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
 _EVIDENCE_MAX_BYTES = 5 * 1024 * 1024
 
 
 def _pdf_rate_limited(request) -> bool:
-    """Sliding-window counter in the shared cache, keyed per user-or-IP."""
     if request.user.is_authenticated:
         ident = f'u{request.user.pk}'
     else:
         ident = 'i' + (
-            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            client_ip(request)
             or request.META.get('REMOTE_ADDR', '127.0.0.1')
         )
     key = f'challan_pdf_rl:{ident}'
@@ -52,12 +49,6 @@ def _pdf_rate_limited(request) -> bool:
 
 
 def _validate_evidence_file(f):
-    """Return (ok, error). Extension whitelist + PIL content sniff + 5 MB cap.
-
-    The extension check is what stops stored-XSS uploads (a .html file would
-    be served from /media/ as text/html on the same origin); the PIL sniff
-    rejects anything that is not a decodable raster image (polyglots).
-    """
     if f is None:
         return True, ''
     name = (getattr(f, 'name', '') or '').lower()
@@ -77,11 +68,10 @@ def _validate_evidence_file(f):
 
 
 def _check_rate_limit(request) -> bool:
-    """Return True if the request is within the rate limit, False if exceeded."""
     if request.user.is_authenticated and hasattr(request.user, 'role') and request.user.role != 'USER':
         return True
     ip = (
-        request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+        client_ip(request)
         or request.META.get('REMOTE_ADDR', '127.0.0.1')
     )
     cache_key = f"challan_search_rl:{ip}"
@@ -93,12 +83,6 @@ def _check_rate_limit(request) -> bool:
 
 
 def _resolve_officer(challan):
-    """Return the User who issued this challan: created_by, then detection officer.
-
-    H3 FIX: Detection only has ``reviewed_by`` - the previous code was reading
-    ``confirmed_by``, ``flagged_by``, ``auto_confirmed_by`` which don't exist on
-    the model, so it always fell through to None.
-    """
     created_by = getattr(challan, "created_by", None)
     if created_by is not None and getattr(created_by, "is_authenticated", True):
         return created_by
@@ -242,7 +226,6 @@ def home(request):
 
 
 def _citizen_owns_challan(user, challan):
-    """Match citizen to challan by CNIC (normalized), phone, or registered plates."""
     if not user or not user.is_authenticated or getattr(user, 'role', None) != 'USER':
         return False
     def _digits(v):
@@ -256,7 +239,7 @@ def _citizen_owns_challan(user, challan):
         from accounts.models import VehicleRegistration
         plates = {
             (p or '').upper().replace(' ', '').replace('-', '')
-            for p in VehicleRegistration.objects.filter(user=user).values_list('plate_number', flat=True)
+            for p in VehicleRegistration.objects.filter(owner=user).values_list('plate_number', flat=True)
         }
         plate = (challan.plate_number or '').upper().replace(' ', '').replace('-', '')
         if plate and plate in plates:
@@ -267,8 +250,6 @@ def _citizen_owns_challan(user, challan):
 
 
 def _mask_challan_pii(challan):
-    """In-memory PII masking for anonymous visitors. Never persisted -
-    masking happens after all POST validation, only for the response."""
     def _mask_name(name):
         if not name:
             return name
@@ -306,7 +287,7 @@ def challan_detail(request, challan_id):
     can_appeal = (
         challan.payment_status == Challan.UNPAID
         and not has_active
-    )  # guests allowed (CNIC verified on submit)
+    )  
     existing_appeals = list(
         ChallanAppeal.objects.filter(challan=challan).order_by('-created_at')[:5]
     )
@@ -355,7 +336,6 @@ def challan_detail(request, challan_id):
                 guest_cnic=guest_cnic,
                 guest_name=guest_name or (challan.owner_name or ''),
                 reason=reason,
-                current_stage=ChallanAppeal.STAGE_SSP,
                 status=ChallanAppeal.PENDING,
             )
         else:
@@ -366,11 +346,10 @@ def challan_detail(request, challan_id):
                 challan=challan,
                 submitted_by=request.user,
                 reason=reason,
-                current_stage=ChallanAppeal.STAGE_SSP,
                 status=ChallanAppeal.PENDING,
             )
         if request.FILES.get('evidence_file'):
-            # Authenticated path goes through the same whitelist + sniffing.
+
             evidence = request.FILES['evidence_file']
             ok, err = _validate_evidence_file(evidence)
             if not ok:
@@ -382,6 +361,27 @@ def challan_detail(request, challan_id):
             from admin.dig_portal.models import AuditLog
             AuditLog.write(request, 'appeal.submit', 'ChallanAppeal', appeal.id,
                            ticket=challan.ticket_no, guest=is_guest)
+        except Exception:
+            pass
+        try:
+            from accounts.models import User as _User
+            from admin.dig_portal.models import Notification
+            for ssp in _User.objects.filter(role=_User.SSP, is_active=True):
+                Notification.objects.create(
+                    recipient=ssp,
+                    title=f"[ACTION REQUIRED] New Appeal | {challan.ticket_no}",
+                    message=(
+                        f"NEW APPEAL SUBMITTED\n"
+                        f"Challan No: {challan.ticket_no}\n"
+                        f"Plate Number: {challan.plate_number}\n"
+                        f"Violation: {challan.get_violation_type_display()}\n"
+                        f"Fine: PKR {challan.fine_amount}\n"
+                        f"Submitted by: {guest_name or 'Guest (CNIC matched)'}\n"
+                        f"Reason: {reason}"
+                    ),
+                    category='appeal_submit',
+                    target_url=reverse('ssp_portal:decide_appeal', args=[appeal.id]),
+                )
         except Exception:
             pass
         messages.success(request, "Appeal submitted. SSP will review your case.")
@@ -411,7 +411,6 @@ def challan_detail(request, challan_id):
     })
 
 
-
 def challan_detail_signed(request, signed_token):
     signer = TimestampSigner()
     try:
@@ -422,6 +421,7 @@ def challan_detail_signed(request, signed_token):
     challan = get_object_or_404(Challan, pk=challan_id)
     return render(request, 'challan/detail.html', {
         'challan': challan, 'is_guest': True, 'can_appeal': False, 'from_signed_link': True,
+        'pdf_token': signed_token,
         'needs_nadra_excise': _needs_nadra_excise_integration(challan),
     })
 
@@ -450,9 +450,7 @@ def challan_pdf(request, challan_id):
 
     force = (request.GET.get('regen') or '') == '1'
 
-    # Rate limit the expensive part: PDF generation/download. Applied after
-    # the auth/token gate so unauthorised probes are free and NEVER consume
-    # the download budget of a legitimate identity.
+
     if _pdf_rate_limited(request):
         return rate_limit_response(request)
 
@@ -464,9 +462,12 @@ def challan_pdf(request, challan_id):
             save_challan_pdf(challan, force=True)
         challan.refresh_from_db()
     try:
+        # ?inline=1 streams the PDF for embedding (iframe/object on the
+        # detail page); the default remains a download attachment.
+        as_attachment = (request.GET.get('inline') or '') != '1'
         return FileResponse(
             challan.pdf_file.open('rb'),
-            as_attachment=True,
+            as_attachment=as_attachment,
             content_type='application/pdf',
             filename=f"challan_{challan.ticket_no}.pdf",
         )
@@ -475,12 +476,6 @@ def challan_pdf(request, challan_id):
 
 
 def guest_pay(request, challan_id):
-    """Public pay - no login. Digital methods only.
-
-    The visitor is ALWAYS routed through the payment gateway. In demo mode the
-    gateway is the local demo-checkout page where the visitor must explicitly
-    confirm (CSRF-protected). This view never marks a challan PAID by itself.
-    """
     from admin.it_support_portal.models import PaymentMethod
     from integrations.payments import initiate_payment
     from payments.models import PaymentTransaction
@@ -546,6 +541,7 @@ def guest_pay(request, challan_id):
                 'challan': challan,
                 'payment_methods': methods,
                 'bank_instructions': init.get('fields') or {},
+                'has_active': ChallanAppeal.has_active_appeal(challan),
             })
 
         messages.info(request, "Payment session started. Complete it at the gateway.")
@@ -554,15 +550,11 @@ def guest_pay(request, challan_id):
     return render(request, 'challan/guest_pay.html', {
         'challan': challan,
         'payment_methods': methods,
+        'has_active': ChallanAppeal.has_active_appeal(challan),
     })
 
 
 def guest_pay_done(request, challan_id):
-    """Gateway return URL - display only.
-
-    Payment status is mutated exclusively by the signed gateway webhook or the
-    CSRF-protected demo checkout confirmation. This view never writes.
-    """
     challan = get_object_or_404(Challan, pk=challan_id)
     if challan.payment_status == Challan.PAID:
         messages.success(request, f"Payment received. Challan {challan.ticket_no} is PAID.")

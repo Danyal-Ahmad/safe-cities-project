@@ -1,15 +1,14 @@
 from admin.officer_portal import views as officer_views
+from admin.shared import make_timeline_view as shared_timeline
 from django.urls import path
 from . import views
-from . import autocomplete
 
 app_name = 'dig'
 urlpatterns = [
     path('',                              views.dashboard,               name='dashboard'),
-    path('dashboard/',                    views.dashboard,               name='dashboard_alt'),
 
     path('violations/',                   views.violation_stats,         name='violation_stats'),
-    path('escalations/',                  views.escalation_list,         name='escalation_list'),
+    path('appeals/',                      views.appeals_queue,           name='appeals_queue'),
     path('vehicle-search/',               views.vehicle_search,          name='vehicle_search'),
     path('blacklist/',                    views.blacklist_list,          name='blacklist_list'),
     path('blacklist/add/',                views.blacklist_add,           name='blacklist_add'),
@@ -48,15 +47,19 @@ path('analytics/',                    views.analytics,               name='analy
     path('admins/add/',                   views.admin_add,               name='admin_add'),
     path('admins/<int:user_id>/',         views.admin_edit,              name='admin_edit'),
     path('admins/<int:user_id>/toggle/',  views.admin_toggle,            name='admin_toggle'),
-    path('admins/<int:user_id>/toggle-active/', views.admin_toggle,   name='admin_toggle_active'),
-    path('users/<int:user_id>/toggle/', views.admin_toggle,           name='citizen_toggle'),
-    path('admins/set-password/',           views.staff_set_password,      name='staff_set_password'),
+    path('admins/<int:user_id>/toggle-active/', views.admin_toggle,    name='admin_toggle_active'),
+    path('users/<int:user_id>/toggle/',   views.admin_toggle,            name='citizen_toggle'),
     path('admins/<int:user_id>/delete/',  views.admin_delete,            name='admin_delete'),
+    path('admins/set-password/',           views.staff_set_password,      name='staff_set_password'),
 
     path('reports/',                      views.reports,                 name='reports'),
     path('reports/generate/',             views.generate_report,         name='generate_report'),
     path('operational-reports/',          views.operational_reports,     name='operational_reports'),
     path('financial-reports/',            views.financial_reports,       name='financial_reports'),
+    path('evidence-integrity/',           views.evidence_integrity,      name='evidence_integrity'),
+    path('evidence-integrity/<int:detection_id>/verify/', views.evidence_integrity_verify, name='evidence_integrity_verify'),
+    path('login-events/',                 views.login_events,            name='login_events'),
+    path('login-events/export/',          views.login_events_export,     name='login_events_export'),
 
     path('payments/',                     views.payment_list,            name='payment_list'),
 
@@ -92,8 +95,8 @@ path('analytics/',                    views.analytics,               name='analy
 
     path('cameras-status/',               views.cameras_status,          name='cameras_status'),
 
-    path('case-escalation/',              views.case_escalation_tracker, name='case_escalation'),
-    path('case-escalation/tracker/',      views.case_escalation_tracker, name='case_escalation_tracker'),
+    path('case-escalation/',              views.appeals_queue,           name='case_escalation'),
+    path('case-escalation/tracker/',      views.appeals_queue,           name='case_escalation_tracker'),
     path('heatmap/',                      views.regional_heatmap,        name='heatmap'),
 
     path('officer-feedback/',             views.officer_feedback_list,   name='officer_feedback_list'),
@@ -104,19 +107,12 @@ path('analytics/',                    views.analytics,               name='analy
     path('regional-access/',              views.regional_access,         name='regional_access'),
 
 
-
-
-
-    path('autocomplete/',                 autocomplete.autocomplete,     name='autocomplete'),
-    path('check-duplicate/',              autocomplete.check_duplicate,  name='check_duplicate'),
-
     path('live-monitor/',                 views.live_monitor,            name='live_monitor'),
     path('live-monitor/feed/',            views.live_monitor_feed,       name='live_monitor_feed'),
-    path('live-tracking/timeline/',       officer_views.frame_timeline,  name='live_tracking_timeline'),
+    path('live-tracking/timeline/',       shared_timeline('DIG'),        name='live_tracking_timeline'),
 
 
     path('cameras/',                      views.camera_list,             name='camera_list'),
-    path('cameras/list/',                 views.camera_list,             name='camera_list_alt'),
     path('cameras/add/',                  views.camera_add,              name='camera_add'),
     path('cameras/<int:camera_id>/edit/', views.camera_edit,             name='camera_edit'),
     path('cameras/<int:camera_id>/delete/', views.camera_delete,         name='camera_delete'),

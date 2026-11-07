@@ -149,11 +149,27 @@
 
       <div class="pd-col-side">
 
+        <!-- Official rendered challan (the REAL PDF, embedded) -->
+        <section class="scpub-card pd-pdf-card">
+          <div class="scpub-card-title"><i class="bi bi-file-earmark-pdf"></i> Official E-Challan (PDF)</div>
+          {% if user.is_authenticated or pdf_token %}
+          <div class="pd-pdf-embed">
+            <iframe src="{% url 'challans:challan_pdf' challan.id %}?inline=1{% if is_guest and pdf_token %}&amp;token={{ pdf_token }}{% endif %}#toolbar=0&amp;navpanes=0&amp;view=FitH"
+                    title="Official challan PDF render" loading="lazy"></iframe>
+          </div>
+          <p class="pd-pdf-hint">This is the actual printed challan rendered by the active system template.</p>
+          {% else %}
+          <p class="pd-pdf-hint">Sign in (or open via the secure link from your search) to view the official PDF render.</p>
+          {% endif %}
+          <div class="pd-pdf-actions">
+            <a href="{% url 'challans:challan_pdf' challan.id %}{% if is_guest and pdf_token %}?token={{ pdf_token }}{% endif %}" class="scpub-btn"><i class="bi bi-download"></i> Download PDF</a>
+          </div>
+        </section>
+
         <!-- Actions -->
         <section class="scpub-card">
           <div class="scpub-card-title"><i class="bi bi-lightning-charge"></i> Actions</div>
           <div class="pd-actions">
-            <a href="{% url 'challans:challan_pdf' challan.id %}" class="scpub-btn"><i class="bi bi-download"></i> Download PDF</a>
             {% if challan.payment_status != 'PAID' and challan.payment_status != 'VOIDED' %}
             <a href="{% if is_owner %}{% url 'citizen_portal:pay_challan' challan.id %}{% else %}{% url 'challans:guest_pay' challan.id %}{% endif %}" class="scpub-btn scpub-btn-danger"><i class="bi bi-credit-card"></i> Pay Now</a>
             {% endif %}

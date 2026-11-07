@@ -264,10 +264,7 @@ class OfficerProfile(models.Model):
         return getattr(self, permission_name, False)
 
 
-
-
 class DigProfile(models.Model):
-    """DIG (Deputy Inspector General) - command authority profile."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='dig_profile',
                                 limit_choices_to={'role': User.DIG})
     badge_number = models.CharField(max_length=40, blank=True, default='')
@@ -296,7 +293,6 @@ class DigProfile(models.Model):
 
 
 class SspProfile(models.Model):
-    """SSP (Senior Superintendent of Police) - regional senior command."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ssp_profile',
                                 limit_choices_to={'role': User.SSP})
     badge_number = models.CharField(max_length=40, blank=True, default='')
@@ -326,7 +322,6 @@ class SspProfile(models.Model):
 
 
 class SupervisorProfile(models.Model):
-    """Shift Supervisor - team and shift oversight."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='supervisor_profile',
                                 limit_choices_to={'role': User.SUPERVISOR})
     badge_number = models.CharField(max_length=40, blank=True, default='')
@@ -355,7 +350,6 @@ class SupervisorProfile(models.Model):
 
 
 class ItProfile(models.Model):
-    """IT Support - systems, cameras, PDF, backups."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='it_profile',
                                 limit_choices_to={'role': User.IT_SUPPORT})
     employee_id = models.CharField(max_length=40, blank=True, default='')
@@ -385,7 +379,6 @@ class ItProfile(models.Model):
 
 
 class AuditorProfile(models.Model):
-    """Audit Officer - compliance and financial/operational audit."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='auditor_profile',
                                 limit_choices_to={'role': User.AUDIT})
     employee_id = models.CharField(max_length=40, blank=True, default='')
@@ -415,7 +408,6 @@ class AuditorProfile(models.Model):
 
 
 class CitizenProfile(models.Model):
-    """Registered citizen - owner details for challans and appeals."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='citizen_profile',
                                 limit_choices_to={'role': User.USER})
     father_name = models.CharField(max_length=120, blank=True, default='')
@@ -461,7 +453,6 @@ _ROLE_PROFILE_MAP = {
 
 @receiver(post_save, sender=User)
 def ensure_role_profile(sender, instance, created, **kwargs):
-    """Create matching role profile row; OfficerProfile uses related_name officer_profile."""
     mapping = _ROLE_PROFILE_MAP.get(instance.role)
     if not mapping:
         return
@@ -515,9 +506,6 @@ class PasswordResetToken(models.Model):
 
 
 class AdminPasswordResetRequest(models.Model):
-    """Request from a staff/admin who forgot their password.
-    The user is NOT allowed to reset their own password directly - instead, a
-    request is created and DIG is notified to perform the reset."""
 
     STATUS_PENDING = 'PENDING'
     STATUS_RESOLVED = 'RESOLVED'

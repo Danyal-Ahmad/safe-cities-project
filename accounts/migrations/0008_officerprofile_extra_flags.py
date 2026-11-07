@@ -2,8 +2,6 @@ from django.db import migrations, models
 
 
 def add_officer_extra_flags(apps, schema_editor):
-    """Idempotent ADD COLUMN. Production is PostgreSQL; SQLite is also supported
-    here so USE_SQLITE_DRY_RUN / CI can run this migration too."""
     connection = schema_editor.connection
     vendor = connection.vendor
     table = 'sc_officer_profiles'

@@ -45,11 +45,9 @@ def queue_count(request):
     })
 
 
-
 @require_GET
 @login_required
 def api_dashboard_kpis(request):
-    """Return KPIs for the current user's role dashboard."""
     role = getattr(request.user, 'role', 'USER')
     today = timezone.localdate()
     if role == 'DIG':
@@ -88,14 +86,13 @@ def api_dashboard_kpis(request):
                 {'label': 'My appeals', 'value': ChallanAppeal.objects.filter(challan__created_by=request.user).count(), 'icon': 'bi-shield-fill'},
             ],
         })
-    else:  # USER / SSP / SUPV / AUDIT
+    else:  
         return JsonResponse({'role': role, 'kpis': []})
 
 
 @require_GET
 @dig_required
 def api_charts_violation_distribution(request):
-    """Return Chart.js data for violation type distribution."""
     days = int(request.GET.get('days', 30))
     since = timezone.now() - datetime.timedelta(days=days)
     qs = (Detection.objects
@@ -114,7 +111,6 @@ def api_charts_violation_distribution(request):
 @require_GET
 @dig_required
 def api_charts_revenue(request):
-    """Return Chart.js data for daily revenue (last N days)."""
     days = int(request.GET.get('days', 14))
     out = []
     for d in range(days - 1, -1, -1):
@@ -131,7 +127,6 @@ def api_charts_revenue(request):
 @require_GET
 @dig_required
 def api_tables_detections(request):
-    """DataTables server-side data endpoint."""
     qs = Detection.objects.select_related('camera').order_by('-created_at')
     plate = request.GET.get('plate', '').strip().upper()
     status = request.GET.get('status', '').strip()
@@ -196,7 +191,6 @@ def _normalized_bbox(detection, key='bbox'):
 @require_GET
 @staff_required
 def api_live_recent_detections(request):
-    """Return recent detections for live tracking (polled by JS)."""
     camera_id = request.GET.get('camera_id', '').strip()
     limit = int(request.GET.get('limit', 30))
     qs = Detection.objects.order_by('-created_at')
@@ -226,7 +220,6 @@ def api_live_recent_detections(request):
 @require_GET
 @login_required
 def api_citizen_challans(request):
-    """Citizen's own challans as JSON."""
     from django.db.models import Q
     user = request.user
     qs = Challan.objects.filter(
@@ -249,11 +242,6 @@ def api_citizen_challans(request):
 @require_GET
 @staff_required
 def api_chart_activity_trend_shared(request):
-    """Activity trend (detections vs challans) for every staff dashboard.
-
-    Lives outside /portal/ so portal isolation never blocks cross-portal
-    chart fetches. Response shape matches the DIG dashboard charts."""
-    import datetime
     from datetime import timedelta as _td
     from challans.models import Challan
     rows = []
@@ -278,10 +266,6 @@ def api_chart_activity_trend_shared(request):
 @require_GET
 @staff_required
 def api_chart_violation_distribution_shared(request):
-    """Violation-type distribution for every staff dashboard.
-
-    Response shape matches the DIG dashboard charts (labels + datasets)."""
-    import datetime
     from django.db.models import Count as _Count
     from challans.models import Challan
     try:

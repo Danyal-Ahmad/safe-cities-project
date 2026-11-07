@@ -1,14 +1,12 @@
-/* AI Review Queue hotkeys - extracted from templates/dashboard/officer/review_queue.html */
+
 (function () {
   'use strict';
 
-  // Whether a detection is currently selected is flagged by the server on the
-  // triage grid via data-has-selected (previously an inline {% if selected %}).
   const triageGrid = document.querySelector('.md-triage-grid');
   const hasSelected = triageGrid ? triageGrid.dataset.hasSelected === '1' : false;
 
   document.addEventListener('keydown', function(e) {
-    // If user is focused on an input or textarea, do not trigger single-key hotkeys
+
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
       return;
@@ -16,7 +14,6 @@
 
     const key = e.key.toUpperCase();
 
-    // 'C' -> Confirm & Issue Challan
     if (key === 'C') {
       const btn = document.getElementById('btnConfirmTriage');
       if (btn) {
@@ -24,7 +21,7 @@
         btn.click();
       }
     }
-    // 'R' -> Reject False Positive
+
     else if (key === 'R') {
       const btn = document.getElementById('btnRejectTriage');
       if (btn) {
@@ -32,7 +29,7 @@
         btn.click();
       }
     }
-    // 'F' -> Flag for DIG Escalation
+
     else if (key === 'F') {
       const btn = document.getElementById('btnFlagTriage');
       if (btn) {
@@ -45,7 +42,7 @@
         e.preventDefault();
       }
     }
-    // Arrow Down / Arrow Up to navigate items in the queue
+
     else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       const queueLinks = Array.from(document.querySelectorAll('.md-queue-item'));
       if (queueLinks.length === 0) return;
@@ -63,8 +60,6 @@
     }
   });
 
-  // Queue thumbnails: fade out when the frame image fails to load
-  // (previously inline onerror="this.style.opacity='0.15';").
   document.querySelectorAll('#queueItemsList img').forEach(function (img) {
     const fade = function () { img.style.opacity = '0.15'; };
     img.addEventListener('error', fade);
@@ -72,7 +67,6 @@
   });
 })();
 
-// --- 3-frame sequential evidence viewer (shared triage partial) ---
 (function () {
   var main = document.getElementById('detailTargetImage');
   var strip = document.getElementById('seqFrameStrip');
@@ -104,4 +98,64 @@
     var btn = e.target.closest ? e.target.closest('.seq-frame-btn') : null;
     if (btn) selectSlot(btn.dataset.frameSlot);
   });
+})();
+
+// --- live queue telemetry: poll /realtime/queue-count/ + realtime events ---
+(function () {
+  'use strict';
+
+  var POLL_MS = 20000;
+  var lastCount = null;
+  var timer = null;
+
+  function paint(count) {
+    var pendingEls = document.querySelectorAll('[data-rq-pending]');
+    var countEls = document.querySelectorAll('[data-rq-count]');
+    var items = document.querySelectorAll('#queueItemsList .rq-item').length;
+
+    if (typeof count === 'number' && !isNaN(count)) {
+      if (lastCount !== null && count > lastCount) {
+        pendingEls.forEach(function (el) {
+          el.classList.remove('flash-increase');
+          void el.offsetWidth;
+          el.classList.add('flash-increase');
+        });
+      }
+      lastCount = count;
+      pendingEls.forEach(function (el) { el.textContent = String(count); });
+      countEls.forEach(function (el) {
+        el.textContent = (typeof count === 'number' && count > 0 ? count : items) + ' items';
+      });
+    }
+  }
+
+  function refresh() {
+    var panel = document.querySelector('[data-rq-panel]');
+    var api = panel ? panel.getAttribute('data-queue-api') : null;
+    if (!api) { return; }
+    fetch(api, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && typeof d.count === 'number') { paint(d.count); } })
+      .catch(function () { /* offline: keep last values */ });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var panel = document.querySelector('[data-rq-panel]');
+    if (!panel) { return; }
+    try {
+      panel.setAttribute('data-queue-api', new URL('/realtime/queue-count/', window.location.href).href);
+    } catch (e) {
+      panel.setAttribute('data-queue-api', '/realtime/queue-count/');
+    }
+    var initial = document.querySelector('[data-rq-pending]');
+    if (initial) {
+      var n = parseInt(initial.textContent || '', 10);
+      if (!isNaN(n)) { lastCount = n; }
+    }
+    timer = setInterval(refresh, POLL_MS);
+    window.addEventListener('beforeunload', function () { clearInterval(timer); });
+  });
+
+  document.addEventListener('safecity:notification', function () { refresh(); });
+  window.addEventListener('safecity:notification', function () { refresh(); });
 })();

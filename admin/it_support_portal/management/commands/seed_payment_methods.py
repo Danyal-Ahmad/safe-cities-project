@@ -29,14 +29,6 @@ METHODS = [
         },
         "transaction_settings": {"environment": "sandbox", "currency": "PKR", "min_amount": 100},
     },
-    {
-        "name": "Stripe / Card",
-        "provider": "Stripe",
-        "type": getattr(PaymentMethod, "TYPE_CARD", PaymentMethod.TYPE_WALLET),
-        "status": PaymentMethod.STATUS_DISABLED,
-        "config": {"secret_key": "", "publishable_key": ""},
-        "transaction_settings": {"environment": "sandbox", "currency": "PKR"},
-    },
 ]
 
 

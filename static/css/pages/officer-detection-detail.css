@@ -1,9 +1,4 @@
-/* ==========================================================================
-   Officer | Detection Detail (officer-detection-detail)
-   Evidence images, 5-check security panel, notes and officer actions.
-   ========================================================================== */
 
-/* ---- Evidence images ---------------------------------------------------- */
 
 .sc-evidence-grid {
   display: grid;
@@ -88,8 +83,6 @@
   padding: 8px 10px;
 }
 
-/* ---- 5-check hard security panel ---------------------------------------- */
-
 .sc-evidence-card {
   border-top: 3px solid var(--sc-primary);
 }
@@ -146,8 +139,6 @@
   word-break: break-word;
 }
 
-/* Track + hash meta strip under the checks */
-
 .sc-evidence-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -187,8 +178,6 @@
 .sc-evidence-hash {
   font-size: 0.72rem;
 }
-
-/* ---- Meta definition lists ------------------------------------------------ */
 
 .sc-meta-list {
   margin: 0;
@@ -241,8 +230,6 @@
   text-align: left;
 }
 
-/* ---- AI confidence meter ------------------------------------------------- */
-
 .sc-conf-meter {
   position: relative;
   width: 140px;
@@ -264,8 +251,6 @@
 .sc-conf-fill.sc-conf-high { background: var(--sc-success); }
 .sc-conf-fill.sc-conf-mid  { background: var(--sc-warning); }
 .sc-conf-fill.sc-conf-low  { background: var(--sc-danger); }
-
-/* ---- Review notes -------------------------------------------------------- */
 
 .sc-notes-list {
   list-style: none;
@@ -323,8 +308,6 @@
   margin-bottom: 6px;
 }
 
-/* ---- Officer actions ------------------------------------------------------ */
-
 .sc-actions-card {
   border-top: 3px solid var(--sc-navy);
 }
@@ -353,14 +336,11 @@
 .sc-text-danger { color: var(--sc-danger); }
 .sc-text-flag   { color: #D98E0B; }
 
-/* ---- Responsive ----------------------------------------------------------- */
-
 @media (max-width: 980px) {
   .sc-evidence-grid { grid-template-columns: 1fr; }
   .sc-evidence-meta { grid-template-columns: 1fr; }
 }
 
-/* --- 3-frame sequential evidence viewer --- */
 @keyframes scRecBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
 .seq-frame-btn { transition: border-color .15s ease; }
 .seq-frame-btn:hover img { opacity: 1 !important; }

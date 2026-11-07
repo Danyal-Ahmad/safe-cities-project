@@ -1,16 +1,9 @@
-/**
- * SafeCities Project - Form Handling Module
- * Provides validation rules, AJAX submit, password strength,
- * image preview, and CNIC/phone auto-formatting.
- */
+
+
 (function () {
     'use strict';
 
     const scForms = {};
-
-    // ============================================================
-    // CSRF helper
-    // ============================================================
 
     scForms.csrf = function () {
         if (window.scApp && typeof window.scApp.csrfToken === 'function') {
@@ -19,10 +12,6 @@
         const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
         return el ? el.value : '';
     };
-
-    // ============================================================
-    // Validation rules
-    // ============================================================
 
     scForms.rules = {
         required: function (val) {
@@ -73,10 +62,6 @@
         }
     };
 
-    // ============================================================
-    // Field error display
-    // ============================================================
-
     scForms.showError = function (field, message) {
         const el = (typeof field === 'string') ? document.getElementById(field) : field;
         if (!el) return;
@@ -111,10 +96,6 @@
         }
     };
 
-    // ============================================================
-    // Validation
-    // ============================================================
-
     scForms.validate = function (formId) {
         const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
         if (!form) return false;
@@ -140,10 +121,6 @@
         if (!valid) scForms.autoFocusFirstError(form);
         return valid;
     };
-
-    // ============================================================
-    // AJAX submit
-    // ============================================================
 
     scForms.submit = function (formId, options) {
         options = options || {};
@@ -188,10 +165,6 @@
         });
     };
 
-    // ============================================================
-    // Image preview
-    // ============================================================
-
     scForms.previewImage = function (fileInputId, imgPreviewId) {
         const input = document.getElementById(fileInputId);
         const preview = document.getElementById(imgPreviewId);
@@ -208,10 +181,6 @@
         });
     };
 
-    // ============================================================
-    // Toggle password visibility
-    // ============================================================
-
     scForms.togglePassword = function (inputId, toggleBtnId) {
         const input = document.getElementById(inputId);
         const btn = document.getElementById(toggleBtnId);
@@ -226,10 +195,6 @@
             }
         });
     };
-
-    // ============================================================
-    // Password strength meter
-    // ============================================================
 
     scForms.initPasswordStrength = function (inputId, meterId) {
         const input = document.getElementById(inputId);
@@ -263,10 +228,6 @@
         });
     };
 
-    // ============================================================
-    // CNIC auto-format: 35202-1234567-1
-    // ============================================================
-
     scForms.autoFormatCNIC = function (inputId) {
         const el = document.getElementById(inputId);
         if (!el) return;
@@ -278,10 +239,6 @@
         });
     };
 
-    // ============================================================
-    // Phone auto-format: 0300-1234567
-    // ============================================================
-
     scForms.autoFormatPhone = function (inputId) {
         const el = document.getElementById(inputId);
         if (!el) return;
@@ -291,10 +248,6 @@
             e.target.value = v;
         });
     };
-
-    // ============================================================
-    // Auto-init by data-* attribute
-    // ============================================================
 
     function autoInit() {
         document.querySelectorAll('[data-cnic]').forEach(function (el) { scForms.autoFormatCNIC(el.id); });

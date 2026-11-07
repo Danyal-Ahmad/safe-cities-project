@@ -25,7 +25,6 @@
       </div>
     </div>
     <div class="cctv-toolbar-right">
-      <div class="cctv-wallclock" id="cctvWallClock" title="Wall clock">--:--:--</div>
       <form method="get" class="cctv-search" role="search">
         <i class="bi bi-search" aria-hidden="true"></i>
         <input type="search" id="cctvSearch" name="q" value="{{ q }}" autocomplete="off"
@@ -42,21 +41,6 @@
     Showing {{ cameras|length }} camera{{ cameras|length|pluralize }} matching
     <strong>&quot;{{ q }}&quot;</strong>
     <a href="{{ request.path }}">Reset search</a>
-  </div>
-  {% endif %}
-
-  {% if recent_detections %}
-  <div class="cctv-ticker" aria-label="Recent detections">
-    <span class="cctv-ticker-label"><i class="bi bi-broadcast" aria-hidden="true"></i> ACTIVITY</span>
-    <div class="cctv-ticker-track" id="cctvTicker">
-      {% for d in recent_detections|slice:":8" %}
-      <span class="cctv-ticker-item">
-        <span class="cctv-ticker-cam">{{ d.camera.camera_id|default:"CAM" }}</span>
-        <span class="cctv-ticker-plate">{{ d.effective_plate|default:"UNKNOWN" }}</span>
-        <span class="cctv-ticker-time">{{ d.created_at|date:"H:i:s" }}</span>
-      </span>
-      {% endfor %}
-    </div>
   </div>
   {% endif %}
 
@@ -85,7 +69,6 @@
           {% else %}
           <span class="cctv-led cctv-led-off"><span class="cctv-led-dot"></span>OFFLINE</span>
           {% endif %}
-          <span class="cctv-clock" data-cctv-clock>--:--:--</span>
         </div>
         <div class="cctv-feed">
           {% if c.feed_kind == 'video' %}

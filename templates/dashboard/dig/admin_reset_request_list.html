@@ -50,9 +50,9 @@
   </div>
 {% else %}
   <div class="card">
-    <div class="empty-state">
-      <i class="bi bi-check-circle" style="font-size:40px;opacity:.3;display:block;margin-bottom:12px"></i>
-      No pending reset requests.
+    <div class="sc-empty-state">
+      <i class="bi bi-check-circle" style="font-size:40px;opacity:.3"></i>
+      <h3>No pending reset requests.</h3>
     </div>
   </div>
 {% endif %}
@@ -95,7 +95,10 @@
   </div>
 {% else %}
   <div class="card">
-    <div class="empty-state">No resolved requests yet.</div>
+    <div class="sc-empty-state">
+      <i class="bi bi-check2-all"></i>
+      <h3>No resolved requests yet.</h3>
+    </div>
   </div>
 {% endif %}
 {% endblock %}

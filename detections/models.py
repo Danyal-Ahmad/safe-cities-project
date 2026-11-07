@@ -27,9 +27,7 @@ class Detection(models.Model):
     raw_image = models.ImageField(upload_to='detections/raw/%Y/%m/%d/')
     plate_crop_image = models.ImageField(upload_to='detections/plate/%Y/%m/%d/', null=True, blank=True)
 
-    # Three-frame sequential evidence (90FPS style): the primary frame is
-    # raw_image; these hold the two immediately consecutive frames captured
-    # around the violation instant so reviewers can step through the sequence.
+
     evidence_frame_2 = models.ImageField(upload_to='detections/seq/%Y/%m/%d/', null=True, blank=True)
     evidence_frame_3 = models.ImageField(upload_to='detections/seq/%Y/%m/%d/', null=True, blank=True)
     evidence_frames_meta = models.JSONField(default=list, blank=True,
@@ -95,7 +93,6 @@ class Detection(models.Model):
 
     @property
     def violation_label_en(self):
-        """English label of the ANALYZED violation type (never a fixed default)."""
         analyzed = self.effective_violation_type
         if not analyzed:
             return None
@@ -104,7 +101,6 @@ class Detection(models.Model):
 
     @property
     def violation_label_ur(self):
-        """Limited targeted Urdu label of the ANALYZED violation type."""
         analyzed = self.effective_violation_type
         if not analyzed:
             return None
@@ -113,7 +109,6 @@ class Detection(models.Model):
 
     @property
     def confidence_percent(self):
-        """ai_confidence normalized to a 0-100 percent scale for display."""
         v = self.ai_confidence
         if v is None:
             return None
@@ -124,12 +119,6 @@ class Detection(models.Model):
         return self.plate_crop_image
 
     def evidence_frames(self):
-        """Return the sequential evidence frames (max 3) for officer review.
-
-        Frame 1 is always the primary raw capture. Frames 2 and 3 come from
-        the consecutive-frame capture for video uploads, or from the same
-        cross-frame vehicle track for live camera ingests.
-        """
         frames = [{
             'slot': 1,
             'label': 'FRAME 01',

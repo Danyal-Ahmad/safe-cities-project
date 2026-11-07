@@ -8,20 +8,20 @@
 <form method="post">
 {% csrf_token %}
 <div class="sc-form-group">
-<label>Display name *</label>
-<input type="text" name="first_name" value="{{ user.first_name }}" required>
+<label for="displayName">Display name *</label>
+<input type="text" id="displayName" name="first_name" value="{{ user.first_name }}" required>
 </div>
 <div class="sc-form-group">
-<label>Phone</label>
-<input type="tel" name="phone" value="{{ user.phone }}" placeholder="+92-300-1234567">
+<label for="phone">Phone</label>
+<input type="tel" id="phone" name="phone" value="{{ user.phone }}" placeholder="+92-300-1234567">
 </div>
 <div class="sc-form-group">
-<label>Email</label>
-<input type="email" name="email" value="{{ user.email }}">
+<label for="email">Email</label>
+<input type="email" id="email" name="email" value="{{ user.email }}">
 </div>
 <div class="sc-form-group">
-<label>Address</label>
-<textarea name="address" rows="3">{{ user.address|default:'' }}</textarea>
+<label for="address">Address</label>
+<textarea id="address" name="address" rows="3">{{ user.address|default:'' }}</textarea>
 </div>
 <div class="sc-flex sc-gap-2">
 <button type="submit" class="sc-btn sc-btn-primary">Save changes</button>

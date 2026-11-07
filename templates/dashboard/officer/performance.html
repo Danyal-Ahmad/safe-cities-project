@@ -3,7 +3,7 @@
 {% load humanize %}
 {% block title %}My Performance{% endblock %}
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+<script src="{% static 'vendor/chart.js/chart.umd.min.js' %}" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,6 @@
   </div>
 </div>
 
-<!-- KPI strip -->
 <div class="sc-kpi-grid mb-4">
   <div class="sc-kpi">
     <div class="sc-kpi-icon"><i class="bi bi-eye"></i></div>
@@ -41,7 +40,7 @@
 </div>
 
 <div class="row g-4">
-  <!-- Activity Chart -->
+  
   <div class="col-lg-8">
     <div class="sc-card h-100">
       <div class="sc-card-header d-flex align-items-center gap-2">
@@ -56,7 +55,6 @@
     </div>
   </div>
 
-  <!-- Action breakdown -->
   <div class="col-lg-4">
     <div class="sc-card h-100">
       <div class="sc-card-header d-flex align-items-center gap-2">
@@ -73,7 +71,6 @@
   </div>
 </div>
 
-<!-- Recent activity table -->
 <div class="sc-card mt-4">
   <div class="sc-card-header d-flex align-items-center gap-2">
     <i class="bi bi-clock-history"></i>

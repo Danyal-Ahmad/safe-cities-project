@@ -184,9 +184,8 @@ def citizen_signup(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.role = User.USER
-            # Found during the 2026 hardening pass: the form permits phone-only
-            # signup but sets email=None, while the DB column is NOT NULL -
-            # a phone-only signup 500'd with IntegrityError. Coerce to ''.
+
+
             if user.email is None:
                 user.email = ''
             user.save()
@@ -233,15 +232,6 @@ def admin_forgot_password(request):
 
 
 def forgot_password(request):
-    """Citizen forgot password.
-
-    Step 1: visitor submits a CNIC. If an active citizen account matches, a
-    single-use reset token is created and the reset link is DELIVERED to the
-    registered email address only. The token is never rendered into the
-    response, and the result message is identical whether or not the account
-    exists (anti-enumeration). Step 2 happens on /auth/citizen/reset/<token>/
-    (citizen_reset_confirm) after the visitor follows the emailed link.
-    """
     if request.method == 'POST':
         cnic = (request.POST.get('cnic') or '').strip()
         cnic_digits = ''.join(ch for ch in cnic if ch.isdigit())
@@ -306,12 +296,8 @@ def citizen_reset_confirm(request, token):
                     'step': '2', 'token': token, 'user_name': tok.user.display_name,
                     'cnic': tok.user.cnic or '',
                 })
-            # Atomically claim the token BEFORE setting the password. The old
-            # flow was check-then-act (`used_at is None` read in
-            # _get_valid_token, then written back after) - two concurrent
-            # requests sharing a token link could BOTH pass and reset the
-            # password twice. The guarded UPDATE makes single-use airtight:
-            # only the first claimant proceeds.
+
+
             claimed = PasswordResetToken.objects.filter(
                 pk=tok.pk, used_at__isnull=True,
             ).update(used_at=timezone.now())
@@ -350,7 +336,6 @@ def _get_valid_token(token_str):
 
 
 def _get_audit_log():
-    """Lazily resolve AuditLog to avoid circular imports."""
     try:
         from admin.dig_portal.models import AuditLog
         return AuditLog
@@ -359,7 +344,6 @@ def _get_audit_log():
 
 
 def _client_ip(request):
-    """Extract client IP from request, honouring X-Forwarded-For."""
     x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded:
         return x_forwarded.split(',')[0].strip()
@@ -367,11 +351,6 @@ def _client_ip(request):
 
 
 def _notify_dig_for_reset(request, user, req):
-    """Create in-app notifications for every active DIG.
-
-    Each notification links to the DIG-side reset action that lets the
-    DIG set a new password on behalf of the locked-out admin.
-    """
     try:
         from admin.dig_portal.models import Notification
     except Exception:
@@ -442,7 +421,6 @@ def logout_view(request):
     return redirect('challans:home')
 
 
-
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone as _tz
@@ -450,11 +428,6 @@ from django.utils import timezone as _tz
 
 @login_required
 def notifications_feed(request):
-    """JSON feed for the portal ticker + push notification bell.
-
-    Serves audience-scoped ticker ads and push notifications to
-    authenticated staff. Citizens get an empty feed.
-    """
     from admin.dig_portal.models import Banner
 
     data = {'ticker': [], 'push': []}

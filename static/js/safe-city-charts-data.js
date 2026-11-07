@@ -1,16 +1,9 @@
-/**
- * SafeCities Project - Chart Data & Helper Module
- * Reusable data shapes, color palettes, and formatters for charts
- * and KPI displays.
- */
+
+
 (function () {
     'use strict';
 
     const scChartsData = {};
-
-    // ============================================================
-    // Palettes (5 predefined)
-    // ============================================================
 
     scChartsData.palettes = {
         navy: ['#1f3b73', '#2d5aa0', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe', '#eff6ff'],
@@ -19,10 +12,6 @@
         cool: ['#0e7490', '#0891b2', '#06b6d4', '#22d3ee', '#67e8f9', '#a5f3fc', '#cffafe', '#ecfeff'],
         all:  ['#1f3b73', '#15803d', '#b91c1c', '#b45309', '#0e7490', '#7c3aed', '#db2777', '#475569']
     };
-
-    // ============================================================
-    // Common chart defaults
-    // ============================================================
 
     scChartsData.chartDefaults = {
         responsive: true,
@@ -52,10 +41,6 @@
         }
     };
 
-    // ============================================================
-    // Violation labels & colors
-    // ============================================================
-
     scChartsData.violationLabels = [
         'Red Light',
         'Speed',
@@ -68,19 +53,15 @@
     ];
 
     scChartsData.violationColors = [
-        '#b91c1c', // Red Light - red
-        '#f59e0b', // Speed - amber
-        '#0e7490', // Helmet - cyan
-        '#15803d', // Seat Belt - green
-        '#7c3aed', // Illegal Turn - purple
-        '#1f3b73', // Wrong Lane - navy
-        '#db2777', // Phone - pink
-        '#475569'  // Signal - gray
+        '#b91c1c',
+        '#f59e0b',
+        '#0e7490',
+        '#15803d',
+        '#7c3aed',
+        '#1f3b73',
+        '#db2777',
+        '#475569'
     ];
-
-    // ============================================================
-    // Status colors
-    // ============================================================
 
     scChartsData.statusColors = {
         PAID: '#15803d',
@@ -106,10 +87,6 @@
     scChartsData.getViolationColor = function (idx) {
         return scChartsData.violationColors[idx % scChartsData.violationColors.length];
     };
-
-    // ============================================================
-    // Number / KPI formatting
-    // ============================================================
 
     scChartsData.formatKPI = function (value, suffix) {
         if (value === null || value === undefined || isNaN(value)) return '-';
@@ -157,10 +134,6 @@
         return scChartsData.formatDate(dt) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
     };
 
-    // ============================================================
-    // Helpers
-    // ============================================================
-
     scChartsData.trend = function (current, previous) {
         if (current == null || previous == null || previous === 0) return null;
         return ((current - previous) / previous) * 100;
@@ -179,10 +152,6 @@
         if (delta < 0) return invert ? 'up' : 'down';
         return '';
     };
-
-    // ============================================================
-    // Color interpolation for gradients
-    // ============================================================
 
     scChartsData.makeGradient = function (ctx, area, fromColor, toColor) {
         if (!ctx || !area) return fromColor;

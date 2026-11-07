@@ -1,8 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | Anomaly Alerts (audit-anomalies)
-   ========================================================================== */
 
-/* Anomaly cards -------------------------------------------------------- */
 
 .audit-anomaly-card {
   display: flex;
@@ -44,8 +40,6 @@
   color: var(--sc-text-muted, #5B6B85);
   font-weight: 600;
 }
-
-/* Severity accents (severity values are uppercase: HIGH / MEDIUM / LOW) --- */
 
 .audit-sev-high {
   border-left: 4px solid var(--sc-danger, #E23B4E);

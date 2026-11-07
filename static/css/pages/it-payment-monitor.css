@@ -1,0 +1,35 @@
+.it-pm-link {
+  color: var(--sc-primary, #2563EB);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.it-pm-link:hover {
+  text-decoration: underline;
+}
+
+.it-pm-pager {
+  border-top: 1px solid var(--sc-border, #E4E8EF);
+}
+
+.it-pm-raw {
+  margin: 0;
+  padding: 14px;
+  background: #0F172A;
+  color: #D8E3F5;
+  border-radius: var(--sc-radius, 14px);
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-height: 420px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .it-pm-pager {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -1,4 +1,3 @@
-"""Add current_stage + SSP review fields to ChallanAppeal for officer→SSP→DIG routing."""
 from django.db import migrations, models
 import django.db.models.deletion
 from django.conf import settings

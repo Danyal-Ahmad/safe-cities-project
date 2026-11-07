@@ -1,0 +1,47 @@
+.it-sh-card {
+  border-top: 3px solid var(--sc-info-bg, #EEF3FC);
+}
+
+.it-sh-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--sc-border, #E4E8EF);
+  font-size: 0.85rem;
+}
+
+.it-sh-row:last-of-type {
+  border-bottom: none;
+}
+
+.it-sh-row > span:first-child {
+  color: var(--sc-text-muted, #64748B);
+  font-weight: 600;
+}
+
+.it-sh-smtp-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--sc-border, #E4E8EF);
+}
+
+.it-sh-raw {
+  margin: 0;
+  padding: 14px;
+  background: #0F172A;
+  color: #D8E3F5;
+  border-radius: var(--sc-radius, 14px);
+  font-family: var(--sc-mono, monospace);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-height: 420px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

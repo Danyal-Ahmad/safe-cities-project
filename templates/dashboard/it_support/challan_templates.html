@@ -10,7 +10,7 @@
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-file-earmark-ruled me-2"></i>Challan Print Templates</h1>
-    <p class="sc-lead">Activate and edit the built-in print layouts, or manage database templates used when generating e-challan PDFs.</p>
+    <p class="sc-lead">Activate the built-in print layouts, or manage uploaded PDF designs used when generating e-challans. Every preview is the real rendered PDF — raw template code is never displayed.</p>
   </div>
   <div class="sc-flex sc-gap-2">
     <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-btn sc-btn-primary"><i class="bi bi-palette me-1"></i>Open A4 Designer</a>
@@ -22,7 +22,7 @@
     <div class="sc-kpi-icon"><i class="bi bi-collection"></i></div>
     <div class="sc-kpi-label">Layouts &amp; Templates</div>
     <div class="sc-kpi-value">{{ templates|length|default:0|intcomma }}</div>
-    <div class="sc-kpi-foot">file layouts + database templates</div>
+    <div class="sc-kpi-foot">built-in layouts + database templates</div>
   </div>
   <div class="sc-kpi sc-kpi-amber">
     <div class="sc-kpi-icon"><i class="bi bi-database"></i></div>
@@ -41,12 +41,12 @@
 <div class="sc-card">
   <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
     <i class="bi bi-file-earmark-break"></i>
-    <span>Built-in File Layouts</span>
-    <form method="post" action="{% url 'it_support_portal:challan_templates' %}" class="ms-auto d-inline">
+    <span>Built-in File Layouts — Live PDF Previews</span>
+    <form method="post" action="{% url 'it_support_portal:challan_templates' %}" class="ms-auto d-inline" data-it-confirm="Restore the default official layout (standard_a4)?">
       {% csrf_token %}
       <input type="hidden" name="action" value="set_challan_template">
       <input type="hidden" name="active_template" value="default">
-      <button type="submit" class="sc-btn sc-btn-sm" data-it-confirm="Restore the default official layout (standard_a4)?">
+      <button type="submit" class="sc-btn sc-btn-sm">
         <i class="bi bi-arrow-counterclockwise me-1"></i>Restore Default
       </button>
     </form>
@@ -58,7 +58,7 @@
       <div class="col-md-6 col-xl-4">
         <div class="it-tpl-card{% if t.is_active %} it-tpl-card-active{% endif %}">
           <div class="it-tpl-head">
-            <span class="sc-mono sc-text-xs">{{ t.thumb_label }}</span>
+            <span class="sc-mono sc-text-xs">{{ t.key }}</span>
             {% if t.is_active %}
             <span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Active</span>
             {% else %}
@@ -67,7 +67,19 @@
           </div>
           <h3 class="it-tpl-name">{{ t.name }}</h3>
           <p class="it-tpl-blurb">{{ t.blurb }}</p>
-          <div class="it-tpl-frame" data-it-preview="{{ t.preview_html|default:'' }}" role="img" aria-label="Preview of {{ t.name }}"></div>
+          <div class="it-tpl-preview">
+            {% if t.preview_png %}
+            <a href="{{ t.sample_url }}" target="_blank" rel="noopener" title="Open the full rendered PDF">
+              <img src="{{ t.preview_png }}" alt="Rendered PDF preview of {{ t.name }}" loading="lazy">
+            </a>
+            {% elif t.sample_url %}
+            <a class="it-tpl-preview-fallback" href="{{ t.sample_url }}" target="_blank" rel="noopener">
+              <i class="bi bi-file-earmark-pdf"></i><span>Open rendered PDF preview</span>
+            </a>
+            {% else %}
+            <div class="it-tpl-preview-fallback"><i class="bi bi-file-earmark-x"></i><span>No renderable content</span></div>
+            {% endif %}
+          </div>
           <form method="post" action="{% url 'it_support_portal:challan_templates' %}" class="it-tpl-actions">
             {% csrf_token %}
             <input type="hidden" name="action" value="activate_file_template">
@@ -78,20 +90,6 @@
             <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
             {% endif %}
           </form>
-          <details class="it-tpl-edit">
-            <summary><i class="bi bi-code-square me-1"></i>Edit layout HTML</summary>
-            <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="save_file_template">
-              <input type="hidden" name="template_key" value="{{ t.key }}">
-              <label class="sc-text-xs sc-text-muted d-block mb-1">Layout source (Django template - saved to <span class="sc-mono">{{ t.key }}.html</span>)</label>
-              <textarea name="html_content" rows="10" class="form-control sc-mono it-code" spellcheck="false">{{ t.html_content }}</textarea>
-              <div class="sc-flex sc-gap-2 sc-mt-2">
-                <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-save me-1"></i>Save Layout</button>
-                <button type="reset" class="sc-btn sc-btn-sm">Reset</button>
-              </div>
-            </form>
-          </details>
         </div>
       </div>
       {% endif %}
@@ -142,10 +140,20 @@
           <p class="it-tpl-blurb">
             {% if ct.file %}
             <a href="{{ ct.file.url }}" target="_blank" rel="noopener"><i class="bi bi-file-earmark-pdf me-1"></i>Uploaded PDF</a>
-            {% elif ct.html_content %}HTML template{% else %}no content{% endif %}
+            {% else %}No file content{% endif %}
             &middot; added {{ ct.created_at|date:"d M Y" }}{% if ct.uploaded_by %} by {{ ct.uploaded_by.username }}{% endif %}
           </p>
-          <div class="it-tpl-frame" data-it-preview="{{ ct.preview_html|default:ct.html_content|default:'' }}" role="img" aria-label="Preview of {{ ct.name }}"></div>
+          <div class="it-tpl-preview">
+            {% if ct.file %}
+            <a href="{{ ct.file.url }}" target="_blank" rel="noopener" title="Open the uploaded PDF">
+              <object type="application/pdf" data="{{ ct.file.url }}" aria-hidden="true">
+                <div class="it-tpl-preview-fallback"><i class="bi bi-file-earmark-pdf"></i><span>Open uploaded PDF</span></div>
+              </object>
+            </a>
+            {% else %}
+            <div class="it-tpl-preview-fallback"><i class="bi bi-file-earmark-x"></i><span>No renderable content</span></div>
+            {% endif %}
+          </div>
           <div class="it-tpl-actions">
             <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
               {% csrf_token %}
@@ -164,26 +172,6 @@
               <button type="submit" class="sc-btn sc-btn-sm sc-btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
             </form>
           </div>
-          <details class="it-tpl-edit">
-            <summary><i class="bi bi-code-square me-1"></i>Edit HTML content</summary>
-            <form method="post" action="{% url 'it_support_portal:challan_templates' %}">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="save_challan_template">
-              <input type="hidden" name="template_id" value="{{ ct.id }}">
-              <div class="sc-form-group">
-                <label class="sc-text-xs sc-text-muted d-block mb-1">Template name</label>
-                <input type="text" name="template_name" value="{{ ct.name }}" class="form-control form-control-sm" required>
-              </div>
-              <div class="sc-form-group">
-                <label class="sc-text-xs sc-text-muted d-block mb-1">HTML content (Django template - challan.* fields are filled at print time)</label>
-                <textarea name="html_content" rows="10" class="form-control sc-mono it-code" spellcheck="false">{{ ct.html_content }}</textarea>
-              </div>
-              <div class="sc-flex sc-gap-2">
-                <button type="submit" class="sc-btn sc-btn-sm sc-btn-primary"><i class="bi bi-save me-1"></i>Save Changes</button>
-                <button type="reset" class="sc-btn sc-btn-sm">Reset</button>
-              </div>
-            </form>
-          </details>
         </div>
       </div>
       {% endwith %}
@@ -193,13 +181,12 @@
     <div class="sc-empty">
       <i class="bi bi-database-x"></i>
       <p class="mb-1">No database templates yet.</p>
-      <p class="sc-hint mb-0">Upload a PDF template above, or compose a layout in the A4 Designer.</p>
+      <p class="sc-hint mb-0">Upload a finished PDF template above, or activate one of the built-in layouts.</p>
     </div>
     {% endif %}
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script src="{% static 'js/pages/it-challan-templates.js' %}" defer></script>
 {% endblock %}

@@ -4,7 +4,6 @@ from collections import OrderedDict
 from typing import Iterable, Set
 
 
-
 PERMISSIONS = (
     'add_camera',
     'edit_camera',
@@ -44,7 +43,6 @@ PERMISSIONS = (
     'view_own_challans',
     'pay_own_challans',
     'submit_appeals',
-    'escalate_appeals',
     'edit_own_profile',
     'view_detections',
     'review_detections',
@@ -62,8 +60,6 @@ PERMISSIONS = (
     'view_appeals',
     'approve_appeal',
     'reject_appeal',
-    'escalate_appeal',
-    'override_appeal',
     'appeal_workflow',
     'view_cameras',
     'view_camera_health',
@@ -115,7 +111,6 @@ PERMISSIONS = (
 PERMISSION_SET: frozenset = frozenset(PERMISSIONS)
 
 
-
 _IT_PERMS = {
     'challan_studio_manage',
     'audit_template_manage',
@@ -144,8 +139,6 @@ _IT_PERMS = {
     'edit_challan_fine',
     'edit_own_profile',
     'edit_system_settings',
-    'escalate_appeal',
-    'escalate_appeals',
     'excise_integration',
     'export_audit_log',
     'external_api_manage',
@@ -227,6 +220,8 @@ _DIG_PERMS = {
     'view_evidence_hashes',
     'add_admin',
     'view_live_monitor',
+    'live_tracking',
+    'live_tracking_timeline',
     'add_officer_feedback',
     'add_review_note',
     'add_to_blacklist',
@@ -241,8 +236,6 @@ _DIG_PERMS = {
     'edit_own_profile',
     'edit_penalty_config',
     'edit_user',
-    'escalate_appeal',
-    'escalate_appeals',
     'export_audit_log',
     'flag_detection',
     'generate_reports',
@@ -253,7 +246,6 @@ _DIG_PERMS = {
     'mark_challan_paid',
     'officer_pki',
     'officer_profile_manage',
-    'override_appeal',
     'pay_own_challans',
     'record_payment',
     'reject_appeal',
@@ -298,18 +290,20 @@ _SSP_PERMS = {
     'view_evidence_hashes',
     'add_officer_feedback',
     'view_live_monitor',
+    'live_tracking_timeline',
+    'manage_shifts',
+    'view_revenue_dashboard',
+    'view_heatmap',
+    'live_tracking',
     'add_review_note',
     'add_to_blacklist',
     'approve_appeal',
     'approve_high_value_challan',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeal',
-    'escalate_appeals',
     'export_audit_log',
     'flag_detection',
     'generate_reports',
-    'override_appeal',
     'pay_own_challans',
     'reject_appeal',
     'submit_appeals',
@@ -339,25 +333,27 @@ _SSP_PERMS = {
 _SUPERVISOR_PERMS = {
     'view_evidence_hashes',
     'add_officer_feedback',
+    'live_tracking',
+    'live_tracking_timeline',
+    'view_cameras',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'generate_reports',
     'manage_shifts',
     'pay_own_challans',
     'submit_appeals',
     'view_blacklist',
-    'view_challans',      # H9 FIX: supervisor must view challans
-    'view_detections',    # H9 FIX: supervisor must view detections
-    'view_analytics',     # H9 FIX: supervisor must view analytics
-    'view_appeals',       # H9 FIX: supervisor must view appeals
-    'view_live_monitor',  # Senior-staff CCTV wall (supervisor portal re-exports the DIG live monitor route)
+    'view_challans',      
+    'view_detections',    
+    'view_analytics',     
+    'view_appeals',       
+    'view_live_monitor',  
     'view_notifications',
     'view_officer_activity',
     'view_officer_feedback',
     'view_officer_kpi',
     'view_own_challans',
-    'view_reports',       # H9 FIX: supervisor must view reports
+    'view_reports',       
     'view_shifts',
     'view_team_performance',
     'view_vehicle_search',
@@ -369,7 +365,6 @@ _OFFICER_PERMS = {
     'camera_feed',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'flag_detection',
     'live_tracking',
     'live_tracking_timeline',
@@ -398,7 +393,6 @@ _AUDIT_PERMS = {
     'view_regional_command',
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'export_audit_log',
     'generate_reports',
     'pay_own_challans',
@@ -435,7 +429,6 @@ _AUDIT_PERMS = {
 _CITIZEN_PERMS = {
     'change_own_password',
     'edit_own_profile',
-    'escalate_appeals',
     'pay_own_challans',
     'submit_appeals',
     'view_notifications',
@@ -554,19 +547,6 @@ def user_has_any_permission(user, permissions: Iterable[str]) -> bool:
     return any(p in user_perms for p in permissions)
 
 
-def user_has_all_permissions(user, permissions: Iterable[str]) -> bool:
-    if user is None or not getattr(user, 'is_authenticated', False):
-        return False
-    if getattr(user, 'is_superuser', False):
-        return True
-    user_perms = get_role_permissions(user.role)
-    return all(p in user_perms for p in permissions)
-
-
-def get_role_info(role: str) -> dict:
-    return ROLE_HIERARCHY.get(role, {})
-
-
 def get_reports_to(role: str) -> str | None:
     info = ROLE_HIERARCHY.get(role, {})
     return info.get('reports_to')
@@ -575,11 +555,6 @@ def get_reports_to(role: str) -> str | None:
 def get_manages(role: str) -> tuple:
     info = ROLE_HIERARCHY.get(role, {})
     return info.get('manages', ())
-
-
-def can_override_role(actor_role: str, target_role: str) -> bool:
-    info = ROLE_HIERARCHY.get(actor_role, {})
-    return target_role in info.get('can_override', ())
 
 
 def can_override_user(actor_user, target_user) -> bool:
@@ -596,27 +571,6 @@ def can_override_user(actor_user, target_user) -> bool:
     if actor_level <= 0 or target_level < 0:
         return False
     return actor_level > target_level
-
-
-APPEAL_ESCALATION_CHAIN: tuple = ('OFFICER', 'SUPV', 'SSP', 'DIG')
-
-
-def get_appeal_escalation_chain() -> tuple:
-    return APPEAL_ESCALATION_CHAIN
-
-
-def get_next_escalation_role(current_role: str) -> str | None:
-    chain = APPEAL_ESCALATION_CHAIN
-    if current_role not in chain:
-        return None
-    idx = chain.index(current_role)
-    if idx + 1 >= len(chain):
-        return None
-    return chain[idx + 1]
-
-
-def get_all_roles() -> list:
-    return list(ROLE_HIERARCHY.keys())
 
 
 def get_role_level(role: str) -> int:
@@ -640,204 +594,3 @@ def summarize_role(role: str) -> dict:
         'dashboard_url': info.get('dashboard_url', '/'),
         'login_url': info.get('login_url', '/auth/admin/login/'),
     }
-
-
-def summarize_all_roles() -> list:
-    return [summarize_role(r) for r in ROLE_HIERARCHY.keys()]
-
-
-def get_permission_groups() -> 'OrderedDict[str, list]':
-    groups = OrderedDict()
-    groups['Camera Infrastructure (IT Support only)'] = [
-        'add_camera',
-        'edit_camera',
-        'delete_camera',
-        'toggle_camera',
-        'manage_camera_assignments',
-        'live_monitor_quick_add',
-        ]
-
-    groups['System Configuration (IT only)'] = [
-        'edit_system_settings',
-        'manage_alerts',
-        'manage_banners',
-        'manage_smtp_sms',
-    ]
-
-    groups['Backups & Maintenance'] = [
-        'view_backups',
-        'manage_backups',
-    ]
-
-    groups['System Health & Monitoring'] = [
-        'system_health',
-        'system_health_monitoring',
-    ]
-
-    groups['AI/ML System (Technical)'] = [
-        'view_ai_status',
-        'view_ai_performance',
-        'view_ai_reports',
-        'ai_confidence_config',
-        'ai_model_testing',
-        'ai_detection_config',
-    'camera_video_upload',
-    'global_search',
-    'manage_faq',
-    'view_faq',
-    ]
-
-    groups['Payment Integration (IT only)'] = [
-        'payment_integration',
-        'payment_method_config',
-        'payment_gateway_config',
-    ]
-
-    groups['PDF & Templates (IT only)'] = [
-        'challan_template_manage',
-        'pdf_template_manage',
-        'pdf_settings',
-        'pdf_settings_manage',
-    ]
-
-    groups['External API Integration'] = [
-        'nadra_integration',
-        'excise_integration',
-        'external_api_manage',
-    ]
-
-    groups['Blacklist Rules (IT only)'] = [
-        'blacklist_rule_manage',
-    ]
-
-    groups['Citizen Self-Service'] = [
-        'view_own_challans',
-        'pay_own_challans',
-        'submit_appeals',
-        'escalate_appeals',
-        'edit_own_profile',
-    ]
-
-    groups['Detection Review (Officer)'] = [
-        'view_detections',
-        'review_detections',
-            'reject_detection',
-        'flag_detection',
-        'add_review_note',
-        'view_flagged_detections',
-        ]
-
-    groups['Challan Management'] = [
-        'view_challans',
-            'edit_challan_fine',
-        'delete_challan',
-        'mark_challan_paid',
-        'record_payment',
-        'bulk_fine_adjust',
-        'approve_high_value_challan',
-    ]
-
-    groups['Appeal Workflow'] = [
-        'view_appeals',
-        'approve_appeal',
-        'reject_appeal',
-        'escalate_appeal',
-        'override_appeal',
-        'appeal_workflow',
-    ]
-
-    groups['Camera Operations (Read-Only)'] = [
-        'view_cameras',
-        'view_camera_health',
-        'camera_feed',
-    ]
-
-    groups['Live Tracking'] = [
-        'live_tracking',
-        'live_tracking_timeline',
-        'view_live_monitor',
-    ]
-
-    groups['Vehicle Tracking'] = [
-        'vehicle_tracking',
-    ]
-
-    groups['Analytics & Reports'] = [
-        'view_analytics',
-        'view_reports',
-        'generate_reports',
-        'view_revenue_dashboard',
-        'view_heatmap',
-        'view_case_escalation',
-        'view_vehicle_search',
-        ]
-
-    groups['Blacklist Management'] = [
-        'view_blacklist',
-        'add_to_blacklist',
-    ]
-
-    groups['Admin Management'] = [
-        'view_admins',
-        'add_admin',
-        'edit_admin',
-        'toggle_admin',
-        'view_users',
-        'edit_user',
-        'toggle_user',
-        'delete_user',
-    ]
-
-    groups['Audit & Compliance'] = [
-        'view_audit_log',
-        'export_audit_log',
-        'view_operational_audit',
-        'view_financial_audit',
-        'view_compliance',
-        'view_anomaly_alerts',
-    ]
-
-    groups['Penalty Configuration'] = [
-        'view_penalty_config',
-        'edit_penalty_config',
-    ]
-
-    groups['Shifts & Team'] = [
-        'view_shifts',
-        'manage_shifts',
-        'view_team_performance',
-        'view_officer_feedback',
-        'add_officer_feedback',
-        'view_officer_kpi',
-        'view_officer_activity',
-    ]
-
-    groups['Regional Command'] = [
-        'view_regional_command',
-        'manage_regional_access',
-    ]
-
-    groups['FAQ'] = [
-            ]
-
-    groups['Notifications & Profile'] = [
-        'view_notifications',
-        'change_own_password',
-    ]
-
-    groups['Live Monitor'] = [
-        'live_monitor',
-    ]
-
-    groups['Officer Tools'] = [
-        'officer_pki',
-        'officer_profile_manage',
-        'view_team_performance',
-    ]
-
-    groups['Banner/Alerts (DIG + IT)'] = [
-        'manage_alerts',
-        'manage_banners',
-    ]
-
-    return groups

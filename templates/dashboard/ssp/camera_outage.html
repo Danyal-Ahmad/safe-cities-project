@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+
+{% block title %}Camera Outage Accountability{% endblock %}
+
+{% block content %}
+<div class="scr">
+
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-camera-video-off"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · District Oversight</div>
+        <div class="scr-rail-title">
+          Camera Outage Accountability
+          <span class="scr-rail-tag"><i class="bi bi-heart-pulse"></i> Enforcement Impact</span>
+        </div>
+        <div class="scr-rail-sub">Frame freshness for every camera in the district, outage age and the 7-day enforcement impact of cameras that are currently down. Online means a frame within 15 minutes, degraded within 1 hour, offline beyond that.</div>
+      </div>
+      <div class="scr-rail-actions">
+        {% if request.user|has_perm:"view_camera_health" %}
+        <a href="{% url 'ssp_portal:camera_health' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-heart-pulse"></i> Camera Health</a>
+        <a href="{% url 'ssp_portal:cameras_status' %}" class="scr-rail-btn"><i class="bi bi-broadcast"></i> Status Board</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="scr-stats">
+      <div class="scr-stat">
+        <div class="scr-stat-label">Total Cameras</div>
+        <div class="scr-stat-value">{{ total_cameras|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">{{ online_count|default:0 }} online · {{ degraded_count|default:0 }} degraded</div>
+      </div>
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Offline Now</div>
+        <div class="scr-stat-value">{{ offline_count|default:0 }}</div>
+        <div class="scr-stat-foot">{{ never_seen_count|default:0 }} never seen</div>
+      </div>
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Avg Detections / Camera</div>
+        <div class="scr-stat-value">{{ avg_detections_7d|floatformat:1 }}</div>
+        <div class="scr-stat-foot">Last 7 days</div>
+      </div>
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Enforcement Loss Estimate</div>
+        <div class="scr-stat-value">{{ enforcement_loss|default:0 }} challans</div>
+        <div class="scr-stat-foot">7-day challans from offline cameras</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="scr-grid">
+
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-list-columns"></i> Camera Outage Board</div>
+        <span class="md-badge md-badge-danger">Offline and never-seen first</span>
+      </div>
+      {% if rows %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>Camera</th><th>Location</th><th>Active</th><th>Status</th><th>Outage Age</th>
+              <th>Last Frame</th><th>Last Health Check</th><th>Detections (7d)</th><th>Challans (7d)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ r.camera.camera_id }}</td>
+              <td>{{ r.camera.location|default:'-' }}</td>
+              <td>{% if r.camera.is_active %}<span class="md-badge md-badge-success">Active</span>{% else %}<span class="md-badge md-badge-secondary">Inactive</span>{% endif %}</td>
+              <td>
+                {% if r.bucket == 'online' %}<span class="md-badge md-badge-success">Online</span>
+                {% elif r.bucket == 'degraded' %}<span class="md-badge md-badge-warning">Degraded</span>
+                {% elif r.bucket == 'offline' %}<span class="md-badge md-badge-danger">Offline</span>
+                {% else %}<span class="md-badge md-badge-dark">Never Seen</span>{% endif %}
+              </td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ r.outage_age_text }}</td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{% if r.camera.last_frame_at %}{{ r.camera.last_frame_at|date:"d M Y H:i" }}{% else %}Never{% endif %}</td>
+              <td style="font-size: 0.8rem; color: var(--md-text-muted);">{% if r.camera.last_health_check %}{{ r.camera.last_health_check|date:"d M Y H:i" }}{% else %}Never{% endif %}</td>
+              <td style="font-family: var(--sc-mono);">{{ r.detections_7d }}</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700;">{{ r.challans_7d }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 3.5rem 1.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-camera-video-off" style="font-size: 3rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--md-text-title);">No Cameras Enrolled</div>
+        <p style="font-size: 0.85rem; margin: 0.25rem 0 0 0;">There are no cameras in the district registry, so there is no outage data to report.</p>
+      </div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+{% endblock %}

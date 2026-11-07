@@ -380,7 +380,6 @@ def _crop_and_save(image: Image.Image, bbox, save_path: Path):
         return None
 
 
-
 import re as _re
 
 _PK_PLATE_RE = _re.compile(
@@ -407,7 +406,6 @@ PK_KNOWN_SERIES = {
 
 
 def normalize_pk_plate(raw: str) -> str:
-    """Normalize raw OCR text to a strict Pakistani plate: AAA-1234."""
     if not raw:
         return ''
     s = _re.sub(r'[^A-Za-z0-9]', '', str(raw)).upper()
@@ -420,7 +418,6 @@ def normalize_pk_plate(raw: str) -> str:
 
 
 def is_valid_pk_plate(plate: str) -> bool:
-    """Strict Pakistan number-plate format check (letters-digits, valid length)."""
     if not plate:
         return False
     return bool(PK_PLATE_PATTERN.match(plate))
@@ -442,7 +439,6 @@ _easyocr_reader = None
 
 
 def _get_paddle_ocr():
-    """Lazy-load PaddleOCR (preferred plate reader)."""
     global _paddle_ocr
     if _paddle_ocr is not None:
         return _paddle_ocr
@@ -463,7 +459,6 @@ def _get_paddle_ocr():
 
 
 def _get_easyocr():
-    """Lazy-load EasyOCR reader (secondary plate reader)."""
     global _easyocr_reader
     if _easyocr_reader is not None:
         return _easyocr_reader if _easyocr_reader is not False else None
@@ -482,12 +477,6 @@ OCR_HD_MIN_HEIGHT = 96
 
 
 def _preprocess_plate_for_ocr(pil_image):
-    """High-definition multi-pass OCR preprocessing.
-
-    Plate crops are upscaled to at least OCR_HD_MIN_HEIGHT px (HD OCR), then
-    enhanced with CLAHE + bilateral filtering and adaptive thresholding so
-    every pass reads a clean, high-resolution rendering of the full plate.
-    """
     import numpy as np
     variants = []
     try:
@@ -520,14 +509,7 @@ def _preprocess_plate_for_ocr(pil_image):
 
 
 def _ocr_plate_image(pil_image) -> tuple:
-    """Return (plate_text, ocr_confidence 0..1, engine_name).
-
-    Engine order (best for PK plates):
-      1) PaddleOCR
-      2) EasyOCR
-      3) pytesseract (optional fallback)
-    """
-    candidates = []  # (text, conf, engine)
+    candidates = []  
     variants = _preprocess_plate_for_ocr(pil_image)
 
     paddle = _get_paddle_ocr()
@@ -559,7 +541,6 @@ def _ocr_plate_image(pil_image) -> tuple:
     if not candidates or max(c[1] for c in candidates) < 0.55:
         reader = _get_easyocr()
         if reader:
-            import numpy as np
             for img in variants:
                 try:
                     out = reader.readtext(
@@ -606,10 +587,6 @@ def _ocr_plate_image(pil_image) -> tuple:
 
 
 def _plate_completeness(image, bbox) -> dict:
-    """Full-plate check: the plate box must sit fully inside the frame with a
-    Pakistan-valid aspect ratio (roughly 2:1 to 6:1) and a usable crop size.
-    Half / edge-clipped / squashed plates are rejected as incomplete.
-    """
     if not bbox:
         return {'complete': False, 'edge_clipped': True, 'aspect_ok': False,
                 'min_size_ok': False, 'aspect': 0.0}

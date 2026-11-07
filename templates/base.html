@@ -43,8 +43,9 @@
 
   <!-- Icon and effect libraries (Bootstrap Icons / Font Awesome are icon
        fonts only - no Bootstrap framework CSS/JS is loaded anywhere). -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/animate.css/animate.min.css' %}">
 
   <!-- Framework-free UI stack: sc-framework.css provides every utility and
        component class the templates need (btn/form/table/modal/grid/...),
@@ -73,9 +74,10 @@
   flat, no radius. Behavior: static/js/pages/portal-ticker.js; the marquee
   phase survives refresh and redirects via sessionStorage.
 {% endcomment %}
-{% include '_partials/portal_ticker.html' %}
 
 <div class="sc-app">
+{% include '_partials/portal_ticker.html' %}
+<div class="sc-body">
 
   {% if user.is_authenticated %}
   <aside class="sc-sidebar">
@@ -237,22 +239,23 @@
       <span>v1.0 &middot; SAFE CITIES PROJECT</span>
     </footer>
     {% endif %}
-  </div>
+</div>
+</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
+<script src="{% static 'vendor/chart.js/chart.umd.min.js' %}" defer></script>
+<script src="{% static 'vendor/chartjs-plugin-datalabels/chartjs-plugin-datalabels.min.js' %}" defer></script>
 
-<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/relativeTime.js" defer></script>
+<script src="{% static 'vendor/dayjs/dayjs.min.js' %}" defer></script>
+<script src="{% static 'vendor/dayjs/plugin/relativeTime.js' %}" defer></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js" defer></script>
+<script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}" defer></script>
 
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
+<script src="{% static 'vendor/html5-qrcode/html5-qrcode.min.js' %}" defer></script>
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" defer></script>
+<script src="{% static 'vendor/jsbarcode/JsBarcode.all.min.js' %}" defer></script>
 
 <script src="{% static 'js/safe-city.js' %}" defer></script>
 <script src="{% static 'js/safe-city-charts.js' %}" defer></script>
@@ -271,7 +274,7 @@
 {% if user.is_authenticated %}
 <!-- Realtime layer: Socket.IO client plus the project socket wrapper. The
      wrapper reads document.body.dataset.userRole set above. -->
-<script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.5/dist/socket.io.min.js"></script>
+<script src="{% static 'vendor/socket.io/socket.io.min.js' %}"></script>
 <script src="{% static 'js/realtime-socket.js' %}" defer></script>
 {% endif %}
 

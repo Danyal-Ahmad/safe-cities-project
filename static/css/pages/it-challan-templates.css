@@ -1,5 +1,7 @@
 /* ==========================================================================
    IT SUPPORT | Challan Templates (it-challan-templates)
+   Cards show the REAL rendered PDF (rasterised first page / uploaded PDF).
+   No raw template code anywhere on the page.
    ========================================================================== */
 
 .it-tpl-card {
@@ -47,101 +49,68 @@
 .it-tpl-blurb a { color: var(--sc-primary, #2563EB); text-decoration: none; }
 .it-tpl-blurb a:hover { text-decoration: none; }
 
-/* Sandboxed preview frame (mini browser chrome + iframe) */
-.it-tpl-frame {
+/* Real PDF preview: rasterised first page at A4 ratio. */
+.it-tpl-preview {
   position: relative;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  margin-bottom: 10px;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+.it-tpl-preview a { display: block; width: 100%; height: 100%; }
+.it-tpl-preview img,
+.it-tpl-preview object {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #FFFFFF;
+}
+.it-tpl-preview object { pointer-events: none; }
+.it-tpl-preview-fallback {
   display: flex;
   flex-direction: column;
-  height: 224px;
-  overflow: hidden;
-  border: 1px solid var(--sc-border, #E4E8EF);
-  border-radius: 10px;
-  background: #FFFFFF;
-}
-
-.it-tpl-frame::before {
-  content: '';
-  flex: 0 0 18px;
-  border-bottom: 1px solid var(--sc-border, #E4E8EF);
-  background: #F1F4F9;
-  background-image: radial-gradient(circle, #C4CEDF 2.5px, transparent 3px);
-  background-size: 34px 100%;
-  background-position: 10px center;
-  background-repeat: repeat-x;
-}
-
-.it-tpl-frame:empty::after {
-  content: 'Preview renders here';
-  flex: 1 1 auto;
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  color: var(--sc-text-faint, #8A94B0);
-}
-
-.it-tpl-frame iframe {
-  flex: 1 1 auto;
+  gap: 6px;
   width: 100%;
-  border: 0;
-  background: #FFFFFF;
-  display: block;
+  height: 100%;
+  color: var(--sc-primary, #2563EB);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 1rem;
 }
+.it-tpl-preview-fallback i { font-size: 2.2rem; color: #94a3b8; }
+.it-tpl-preview-fallback:hover { color: #1d4ed8; text-decoration: underline; }
 
-/* Card action rows */
+/* Action row: aligned, full-width buttons with even spacing. */
 .it-tpl-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+  margin-top: auto;
 }
+.it-tpl-actions form { display: flex; flex: 1 1 auto; }
+.it-tpl-actions .sc-btn { width: 100%; }
 
-.it-tpl-actions form { margin: 0; }
-
-/* Collapsible editors */
-.it-tpl-edit {
-  margin-top: 10px;
-  border-top: 1px dashed var(--sc-border-strong, #D3DAE7);
-  padding-top: 10px;
-}
-
-.it-tpl-edit > summary {
-  list-style: none;
-  cursor: pointer;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--sc-primary, #2563EB);
-  user-select: none;
-}
-
-.it-tpl-edit > summary::-webkit-details-marker { display: none; }
-.it-tpl-edit > summary::after { content: ' \203A'; font-weight: 800; }
-.it-tpl-edit[open] > summary::after { content: ' \2039'; }
-.it-tpl-edit > summary:hover { color: var(--sc-primary-hover, #1D4ED8); }
-
-.it-tpl-edit form { margin-top: 10px; }
-
-.it-code {
-  font-size: 0.72rem;
-  line-height: 1.4;
-  min-height: 120px;
-}
-
-/* Header upload widget */
+/* Upload disclosure */
+.it-upload { position: relative; }
 .it-upload > summary { list-style: none; }
 .it-upload > summary::-webkit-details-marker { display: none; }
-
 .it-upload-form {
-  max-width: 380px;
-  margin-top: 10px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  width: 300px;
   padding: 14px;
-  border: 1px dashed var(--sc-border-strong, #D3DAE7);
-  border-radius: 10px;
-  background: #F8FAFD;
-}
-
-@media (max-width: 576px) {
-  .it-tpl-frame { height: 190px; }
-  .it-tpl-actions .sc-btn { flex: 1 1 auto; justify-content: center; }
+  border: 1px solid var(--sc-border, #E4E8EF);
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 18px 40px rgba(15, 37, 87, 0.16);
 }

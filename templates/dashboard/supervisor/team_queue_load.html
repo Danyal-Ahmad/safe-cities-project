@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load perm_tags %}
+
+{% block title %}Team Queue Load{% endblock %}
+
+{% block content %}
+<div class="scr">
+
+  <header class="scr-head">
+    <div class="scr-rail">
+      <div class="scr-rail-icon"><i class="bi bi-layers-fill"></i></div>
+      <div class="scr-rail-titles">
+        <div class="scr-rail-kicker">Safe Cities Project · Field Supervision</div>
+        <div class="scr-rail-title">
+          Team Review Queue Load
+          <span class="scr-rail-tag"><i class="bi bi-list-check"></i> Review Backlog Board</span>
+        </div>
+        <div class="scr-rail-sub">Pending review queue per officer, workload balance and backlog age across assigned cameras.</div>
+      </div>
+      <div class="scr-rail-actions">
+        {% if request.user|has_perm:"view_team_performance" %}
+        <a href="{% url 'supervisor_portal:team_performance' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-trophy"></i> Team Performance</a>
+        {% endif %}
+        <a href="{% url 'supervisor_portal:dashboard' %}" class="scr-rail-btn"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <div class="scr-stats">
+      <div class="scr-stat scr-stat--warning">
+        <div class="scr-stat-label">Team Pending Total</div>
+        <div class="scr-stat-value">{{ team_pending|default:0|intcomma }}</div>
+        <div class="scr-stat-foot">Awaiting review on assigned cameras</div>
+      </div>
+      <div class="scr-stat scr-stat--danger">
+        <div class="scr-stat-label">Oldest Pending Item</div>
+        <div class="scr-stat-value">{% if oldest_pending_label %}{{ oldest_pending_label }}{% else %}-{% endif %}</div>
+        <div class="scr-stat-foot">Age of the oldest queued detection</div>
+      </div>
+      <div class="scr-stat scr-stat--purple">
+        <div class="scr-stat-label">Most Loaded Officer</div>
+        <div class="scr-stat-value" style="font-size: 1.3rem;">{% if most_loaded %}{{ most_loaded.officer.display_name|default:most_loaded.officer.username }}{% else %}-{% endif %}</div>
+        <div class="scr-stat-foot">{% if most_loaded %}{{ most_loaded.pending }} pending in queue{% else %}No active officers{% endif %}</div>
+      </div>
+      <div class="scr-stat scr-stat--info">
+        <div class="scr-stat-label">Avg Load Per Officer</div>
+        <div class="scr-stat-value">{{ avg_load|floatformat:1 }}</div>
+        <div class="scr-stat-foot">Across {{ officer_count|default:0 }} active officers</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="scr-grid">
+
+    <section class="scr-panel">
+      <div class="scr-panel-head">
+        <div class="scr-panel-title"><i class="bi bi-person-lines-fill"></i> Officer Queue Load Board</div>
+        <span class="md-badge md-badge-secondary">Assigned Cameras</span>
+      </div>
+      {% if rows %}
+      <div class="scr-panel-body scr-panel-body--flush" style="overflow-x: auto;">
+        <table class="md-table">
+          <thead>
+            <tr><th>Officer</th><th>Username</th><th>Pending Queue</th><th>Reviewed Today</th><th>Flagged</th><th>Confirmed</th><th>Rejected</th><th>Oldest Pending</th><th>Decision Accuracy</th></tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr>
+              <td><b>{{ r.officer.display_name|default:r.officer.username }}</b></td>
+              <td style="font-family: var(--sc-mono); font-size: 0.8rem; color: var(--md-text-muted);">{{ r.officer.username }}</td>
+              <td style="font-family: var(--sc-mono); font-weight: 700; color: {% if r.pending > 0 %}#b45309{% else %}var(--md-text-muted){% endif %};">{{ r.pending|intcomma }}</td>
+              <td style="font-family: var(--sc-mono); font-weight: 600;">{{ r.reviewed_today|intcomma }}</td>
+              <td style="color: #f59e0b; font-weight: 600;">{{ r.flagged|intcomma }}</td>
+              <td style="color: #10b981; font-weight: 600;">{{ r.confirmed|intcomma }}</td>
+              <td style="color: #ef4444;">{{ r.rejected|intcomma }}</td>
+              <td>
+                {% if r.oldest_age_label %}
+                  <span class="md-badge {% if r.oldest_age >= 24 %}md-badge-danger{% elif r.oldest_age >= 8 %}md-badge-warning{% else %}md-badge-secondary{% endif %}">{{ r.oldest_age_label }}</span>
+                {% else %}<span style="color: var(--md-text-muted);">-</span>{% endif %}
+              </td>
+              <td>
+                {% if r.confirmed or r.rejected %}
+                  <span class="md-badge {% if r.accuracy >= 80 %}md-badge-success{% elif r.accuracy >= 50 %}md-badge-warning{% else %}md-badge-danger{% endif %}">{{ r.accuracy|floatformat:1 }}%</span>
+                {% else %}<span style="color: var(--md-text-muted);">-</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="scr-panel-body" style="padding: 2.5rem; text-align: center; color: var(--md-text-muted);">
+        <i class="bi bi-people" style="font-size: 2.5rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+        No active officers to measure queue load.
+      </div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+{% endblock %}

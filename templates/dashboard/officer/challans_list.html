@@ -3,7 +3,7 @@
 {% load humanize %}
 {% block title %}Challan Register{% endblock %}
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer onerror="this.remove()"></script>
+<script src="{% static 'vendor/chart.js/chart.umd.min.js' %}" defer onerror="this.remove()"></script>
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,6 @@
   </div>
 </div>
 
-<!-- KPI strip -->
 <div class="sc-kpi-grid mb-4">
   <div class="sc-kpi">
     <div class="sc-kpi-icon"><i class="bi bi-receipt"></i></div>
@@ -38,7 +37,6 @@
   </div>
 </div>
 
-<!-- Filter bar -->
 <div class="sc-card mb-4">
   <div class="sc-card-body">
     <form method="get" class="row g-2 align-items-end">
@@ -69,7 +67,6 @@
   </div>
 </div>
 
-<!-- Challans Table -->
 <div class="sc-card">
   <div class="sc-card-header d-flex align-items-center gap-2">
     <i class="bi bi-list-ul"></i>

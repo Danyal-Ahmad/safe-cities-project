@@ -1,8 +1,4 @@
-/* ==========================================================================
-   DIG | Vehicle Search  (dashboard/dig/vehicle_search.html)
-   ========================================================================== */
 
-/* ---------- Search card ---------- */
 
 .vs-search-card { margin-bottom: 16px; }
 
@@ -82,8 +78,6 @@
 
 .vs-example-chip:hover { border-style: solid; background: #E2EBFA; }
 
-/* ---------- Result banner ---------- */
-
 .vs-result-banner { align-items: center; }
 
 .vs-result-banner .sc-mono {
@@ -91,8 +85,6 @@
   border-radius: 6px;
   padding: 1px 8px;
 }
-
-/* ---------- Confidence cell ---------- */
 
 .vs-conf-cell {
   display: flex;
@@ -110,13 +102,9 @@
   white-space: nowrap;
 }
 
-/* ---------- Fines / dues ---------- */
-
 .vs-fine { white-space: nowrap; color: var(--sc-navy-deep, #0F2557); }
 
 .vs-due-overdue { color: var(--sc-danger, #E23B4E); font-weight: 700; }
-
-/* ---------- Empty state CTA ---------- */
 
 .vs-empty-cta { padding: 56px 24px; }
 

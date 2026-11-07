@@ -285,10 +285,10 @@
       <div class="sc-form-group">
         <label for="id-integration-mode">Integration mode <span class="set-req">*</span></label>
         <select name="integration_mode" id="id-integration-mode" data-mode-select>
-          <option value="demo" {% if settings.integration_mode != 'real' %}selected{% endif %}>Demo | sandboxed responses</option>
+          <option value="demo" {% if settings.integration_mode != 'real' %}selected{% endif %}>Demo | registry lookups disabled</option>
           <option value="real" {% if settings.integration_mode == 'real' %}selected{% endif %}>Real | live endpoints</option>
         </select>
-        <p class="sc-hint">Demo mode serves deterministic sandbox data for demos and training. Real mode calls the configured endpoints below.</p>
+        <p class="sc-hint">Demo mode disables live registry calls and reports unconfigured lookups honestly. Real mode calls the configured endpoints below.</p>
       </div>
 
       <div class="row g-3">

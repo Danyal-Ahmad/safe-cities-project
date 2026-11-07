@@ -352,7 +352,7 @@ def pay_challan(request, challan_id):
             PaymentTransaction.objects.create(
                 ticket_no=challan.ticket_no,
                 challan=challan,
-                provider=(init.get('provider') or payment_method.name or 'demo'),
+                provider=(init.get('provider') or payment_method.name or 'gateway'),
                 amount=challan.fine_amount,
                 status=PaymentTransaction.STATUS_PENDING,
                 txn_ref=init.get('reference'),
@@ -366,8 +366,6 @@ def pay_challan(request, challan_id):
                     'init': init,
                     'payment_method': payment_method,
                 })
-            if init.get('mode') == 'demo':
-                return redirect(init.get('action_url') or reverse('citizen_portal:pay_challan', kwargs={'challan_id': challan.id}))
             messages.info(request, init.get('message') or 'Use manual transaction reference.')
 
         if not method_id:

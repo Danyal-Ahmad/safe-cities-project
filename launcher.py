@@ -608,7 +608,12 @@ def run_server(realtime: bool = False) -> None:
     banner('Starting Django dev server -- http://127.0.0.1:8000/')
     print('  Press CTRL+C to stop.\n')
 
-    safe_run([str(py), 'manage.py', 'runserver'], label='runserver')
+    # --nostatic: staticfiles' runserver handler serves /static/ OUTSIDE the
+    # middleware chain, which defeats DevStaticNoCacheMiddleware and lets
+    # browsers cache stale CSS/JS between edits. With --nostatic WhiteNoise
+    # serves them inside the chain, so every asset carries
+    # Cache-Control: no-store in DEBUG and a normal reload is always fresh.
+    safe_run([str(py), 'manage.py', 'runserver', '--nostatic'], label='runserver')
 
 
 def auto() -> None:

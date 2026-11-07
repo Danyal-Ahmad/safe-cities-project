@@ -47,39 +47,18 @@
       fallback(el);
       return;
     }
-    if (typeof Chart === 'undefined') {
+    if (!window.scCharts) {
       fallback(el);
       return;
     }
     var colors = labels.map(function (label, i) {
       return colorFor(label, i);
     });
-    new Chart(el, {
-      type: 'doughnut',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: values,
-          backgroundColor: colors,
-          borderWidth: 2,
-          borderColor: '#FFFFFF'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '62%',
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              boxWidth: 12,
-              usePointStyle: true,
-              font: { size: 11 }
-            }
-          }
-        }
-      }
+    // Themed engine: stat ring for single categories, synced legend,
+    // friendly empty state for all-zero data.
+    window.scCharts.doughnut(el.id, labels, values, {
+      colors: colors,
+      emptyMessage: 'No data available for this chart yet'
     });
   }
 

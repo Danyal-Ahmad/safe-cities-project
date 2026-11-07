@@ -12,53 +12,17 @@
   const actCanvas = document.getElementById('activityChart');
   let actLabels = [];
   let actData = [];
-  if (actCanvas) {
-    try { actLabels = JSON.parse(actCanvas.dataset.activityLabels || '[]'); } catch(e) { actLabels = []; }
-    try { actData = JSON.parse(actCanvas.dataset.activityData || '[]'); } catch(e) { actData = []; }
-  }
-
-  const decCanvas = document.getElementById('decisionChart');
-  const confirmed = decCanvas ? Number(decCanvas.dataset.confirmed || 0) : 0;
-  const rejected  = decCanvas ? Number(decCanvas.dataset.rejected || 0) : 0;
-  const flagged   = decCanvas ? Number(decCanvas.dataset.flagged || 0) : 0;
-
-  if (actCanvas) {
-    new Chart(actCanvas, {
-      type: 'bar',
-      data: {
-        labels: actLabels.length ? actLabels : ['No data'],
-        datasets: [{
-          label: 'Reviews',
-          data: actData.length ? actData : [0],
-          backgroundColor: 'rgba(30,64,175,0.7)',
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-      }
+  if (actCanvas && window.scCharts) {
+    window.scCharts.bar(actCanvas.id, actLabels, [{ label: 'Reviews', data: actData }], {
+      emptyMessage: 'No review activity recorded yet'
     });
   }
 
-  if (decCanvas && (confirmed || rejected || flagged)) {
-    new Chart(decCanvas, {
-      type: 'doughnut',
-      data: {
-        labels: ['Confirmed', 'Rejected', 'Flagged'],
-        datasets: [{
-          data: [confirmed, rejected, flagged],
-          backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-  } else if (decCanvas) {
-    decCanvas.closest('.sc-card-body').innerHTML =
-      '<p class="sc-empty">No review data yet.</p>';
+  if (decCanvas && window.scCharts && (confirmed || rejected || flagged)) {
+    window.scCharts.doughnut(decCanvas.id, ['Confirmed', 'Rejected', 'Flagged'],
+      [confirmed, rejected, flagged], {
+        colors: ['#22A45D', '#E23B4E', '#F5A623'],
+        emptyMessage: 'No decisions recorded yet'
+      });
   }
 })();

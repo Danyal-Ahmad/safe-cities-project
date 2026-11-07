@@ -501,69 +501,80 @@ body.public-home .sc-msg-close { color: rgba(232, 240, 255, 0.45); }
   }
 }
 
-/* Hidden static ad strip: behind the layout, subtle chips row */
+/* ===== BANNER ADS section: exactly ONE large banner =====
+   Pure square/rectangle: edge-to-edge inside the content column, no border,
+   no rounded corners, no shadow decoration on the frame itself. */
 .ph-ads {
   position: relative;
-  z-index: -100;
-  margin-top: 26px;
-  display: flex;
-  justify-content: center;
-}
-.ph-ads .scf-public-ads-banner {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  max-width: 100%;
-}
-.ph-ads .scf-ad-chip {
-  display: inline-flex;
-  align-items: center;
-  max-height: 64px;
-  max-width: 240px;
-  overflow: hidden;
-  border-radius: 8px;
-  border: 1px solid rgba(96, 165, 250, 0.14);
-  box-shadow: none;
-  opacity: 0.75;
-}
-.ph-ads .scf-ad-chip > img { width: auto; height: 56px; max-width: 200px; object-fit: cover; }
-.ph-ads .scf-ad-chip-text {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 12px;
-  background: rgba(8, 18, 46, 0.5);
-  text-decoration: none;
-}
-.ph-ads .scf-ad-label {
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(232, 240, 255, 0.35);
-}
-.ph-ads .scf-ad-title {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(232, 240, 255, 0.65);
+  z-index: 1;
+  margin-top: 30px;
 }
 
-/* Popup ad fallback (text-only popup) on dark shell */
-.scf-popup-fallback {
-  background: rgba(15, 28, 68, 0.96);
-  border: 1px solid rgba(96, 165, 250, 0.2);
-  border-radius: 14px;
-  padding: 34px 30px;
-  min-width: min(480px, 84vw);
-  text-align: center;
+.ph-banner-ads {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.scf-popup-fallback h2 {
-  color: #F0F4F8;
-  font-size: 19px;
+
+.ph-banner-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.62rem;
   font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(147, 197, 253, 0.75);
 }
+
+.ph-banner-label i { font-size: 0.8rem; }
+
+.ph-big-banner {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: rgba(8, 18, 46, 0.55);
+  overflow: hidden;
+  line-height: 0;
+}
+
+.ph-big-banner-link,
+.ph-big-banner-link img {
+  display: block;
+  width: 100%;
+}
+
+.ph-big-banner-link img {
+  height: clamp(180px, 26vw, 320px);
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.ph-big-banner-link:hover img { transform: scale(1.015); }
+
+.ph-big-banner-html { line-height: 1.5; }
+
+.ph-big-banner-html :is(img, video) {
+  display: block;
+  width: 100%;
+  height: clamp(180px, 26vw, 320px);
+  object-fit: cover;
+}
+
+.ph-big-banner-fallback {
+  height: clamp(150px, 20vw, 240px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.ph-big-banner-fallback i { font-size: 1.6rem; }
 
 /* ===== Responsive ===== */
 @media (max-width: 760px) {

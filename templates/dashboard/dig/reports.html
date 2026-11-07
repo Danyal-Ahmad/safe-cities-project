@@ -5,6 +5,7 @@
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
+{% with ns_generate_report=request.resolver_match.namespace|default:'dig'|add:':generate_report' ns_operational_reports=request.resolver_match.namespace|default:'dig'|add:':operational_reports' ns_financial_reports=request.resolver_match.namespace|default:'dig'|add:':financial_reports' ns_operational_audit=request.resolver_match.namespace|default:'dig'|add:':operational_audit' %}
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-file-earmark-bar-chart me-2"></i>Reports</h1>
@@ -13,10 +14,10 @@
 </div>
 
 <div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:generate_report' %}"><div class="card-body "><i></i><div>Generate Report</div><div class="small ">Create custom report</div></div></a></div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:operational_reports' %}"><div class="card-body "><i></i><div>Operational</div><div class="small ">Operations reports</div></div></a></div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:financial_reports' %}"><div class="card-body "><i></i><div>Financial</div><div class="small ">Revenue reports</div></div></a></div>
- <div><a class=" text-decoration-none h-100" href="{% url 'dig:operational_audit' %}"><div class="card-body "><i></i><div>Audit</div><div class="small ">Compliance reports</div></div></a></div>
+ <div><a class=" text-decoration-none h-100" href="{% url ns_generate_report %}"><div class="card-body "><i></i><div>Generate Report</div><div class="small ">Create custom report</div></div></a></div>
+ <div><a class=" text-decoration-none h-100" href="{% url ns_operational_reports %}"><div class="card-body "><i></i><div>Operational</div><div class="small ">Operations reports</div></div></a></div>
+ <div><a class=" text-decoration-none h-100" href="{% url ns_financial_reports %}"><div class="card-body "><i></i><div>Financial</div><div class="small ">Revenue reports</div></div></a></div>
+ <div><a class=" text-decoration-none h-100" href="{% url ns_operational_audit %}"><div class="card-body "><i></i><div>Audit</div><div class="small ">Compliance reports</div></div></a></div>
 </div>
 
 <div>
@@ -47,4 +48,5 @@
  </div>
  </div>
 </div>
+{% endwith %}
 {% endblock %}

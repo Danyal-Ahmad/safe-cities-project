@@ -21,26 +21,17 @@
 <div class="sc-nav-section" data-section="Enforcement">
   <div class="sc-nav-title">Enforcement</div>
   {% if request.user|has_perm:"view_challans" %}
-  <a href="{% url 'dig:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
+  <a href="{% url 'supervisor_portal:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
   {% endif %}
   {% if request.user|has_any_perm:"view_appeals,view_case_escalation" %}
-  <a href="{% url 'dig:case_escalation_tracker' %}" class="sc-nav-link {% if request.path == '/portal/dig/escalations/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Appeals</span></a>
+  <a href="{% url 'supervisor_portal:case_escalation_tracker' %}" class="sc-nav-link {% if request.path == '/portal/dig/escalations/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Appeals</span></a>
   {% endif %}
 </div>
 
 <div class="sc-nav-section" data-section="Reports">
   <div class="sc-nav-title">Reports</div>
   {% if request.user|has_perm:"view_reports" %}
-  <a href="{% url 'dig:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-graph-up"></i> <span class="sc-nav-link-text">Performance</span></a>
+  <a href="{% url 'supervisor_portal:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-graph-up"></i> <span class="sc-nav-link-text">Performance</span></a>
   {% endif %}
 </div>
 
-<div class="sc-nav-bottom">
-  <a href="{% url 'supervisor_portal:self_profile' %}" class="sc-nav-bottom-link {% if request.path == '/portal/supervisor/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-bottom-text">Profile</span></a>
-  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
-    {% csrf_token %}
-    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
-      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
-    </button>
-  </form>
-</div>

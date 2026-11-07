@@ -56,6 +56,7 @@
   <link rel="stylesheet" href="{% static 'css/safe-city-public.css' %}">
   <link rel="stylesheet" href="{% static 'css/safe-city-modern.css' %}">
   <link rel="stylesheet" href="{% static 'css/tailwind-bridge.css' %}">
+  <link rel="stylesheet" href="{% static 'css/sc-ticker.css' %}">
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -66,6 +67,14 @@
 <body class="{% block body_class %}sc-app{% endblock %}"
       data-env="{% if debug %}development{% else %}production{% endif %}"
       data-user-role="{{ user.role|lower }}">
+
+{% comment %}
+  Unified announcement ticker. ONE component on every page (staff portals,
+  citizen portal, public home), rendered ABOVE the navbar - full width,
+  flat, no radius. Behavior: static/js/pages/portal-ticker.js; the marquee
+  phase survives refresh and redirects via sessionStorage.
+{% endcomment %}
+{% include '_partials/portal_ticker.html' %}
 
 <div class="sc-app">
 
@@ -133,8 +142,28 @@
             <a href="{% url 'citizen_portal:profile_edit' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-person"></i> My Profile
             </a>
-            {% else %}
+            {% elif user.role == 'DIG' %}
             <a href="{% url 'dig:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% elif user.role == 'SSP' %}
+            <a href="{% url 'ssp_portal:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% elif user.role == 'SUPV' %}
+            <a href="{% url 'supervisor_portal:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% elif user.role == 'OFFICER' %}
+            <a href="{% url 'officer_portal:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% elif user.role == 'AUDIT' %}
+            <a href="{% url 'audit_portal:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-person"></i> My Profile
+            </a>
+            {% else %}
+            <a href="{% url 'it_support_portal:self_profile' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-person"></i> My Profile
             </a>
             {% endif %}
@@ -142,8 +171,28 @@
             <a href="{% url 'citizen_portal:password_change' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-key"></i> Change Password
             </a>
-            {% else %}
+            {% elif user.role == 'DIG' %}
             <a href="{% url 'dig:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% elif user.role == 'SSP' %}
+            <a href="{% url 'ssp_portal:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% elif user.role == 'SUPV' %}
+            <a href="{% url 'supervisor_portal:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% elif user.role == 'OFFICER' %}
+            <a href="{% url 'officer_portal:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% elif user.role == 'AUDIT' %}
+            <a href="{% url 'audit_portal:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+            {% else %}
+            <a href="{% url 'it_support_portal:change_password' %}" class="sc-user-dropdown-item" role="menuitem">
               <i class="bi bi-key"></i> Change Password
             </a>
             {% endif %}
@@ -159,33 +208,24 @@
       </div>
     </header>
 
-    {% if user.role != 'USER' %}
-    {% include '_partials/portal_ticker.html' %}
-    {% elif ticker_ads %}
-    <div class="sc-ticker" id="scTicker" role="region" aria-label="Announcements">
-      <span class="sc-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
-      <div class="sc-ticker-viewport"><div class="sc-ticker-track">
-        {% for ad in ticker_ads %}
-        <span class="sc-ticker-item" data-id="tick-{{ ad.id }}">
-          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
-          {% if ad.html_content %}<span class="sc-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
-        </span>
-        {% endfor %}
-      </div></div>
-    </div>
-    {% endif %}
-    {% endif %}
-
     {% if messages %}
     <div class="sc-messages">
       {% for m in messages %}
+      {% if 'welcome' in m.tags %}
+      <div class="sc-welcome-line sc-welcome-line--{{ m.tags|default:'success' }}" data-welcome-autohide="6000" role="status">
+        <span class="sc-welcome-line-glow" aria-hidden="true"></span>
+        <span class="sc-welcome-line-text"><i class="bi bi-broadcast"></i> {{ m }}</span>
+      </div>
+      {% else %}
       <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
         <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
         <div class="sc-msg-body">{{ m }}</div>
         <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
       </div>
+      {% endif %}
       {% endfor %}
     </div>
+    {% endif %}
     {% endif %}
 
     <main class="sc-content">
@@ -236,11 +276,9 @@
 <script src="{% static 'js/realtime-socket.js' %}" defer></script>
 {% endif %}
 
-{% if user.is_authenticated and user.role != 'USER' %}
-<!-- Portal announcement ticker behavior (pairs with the ticker bar include
-     under the topbar). -->
+<!-- Unified ticker behavior: identical on every page, marquee phase
+     persists across refresh and redirects. -->
 <script src="{% static 'js/pages/portal-ticker.js' %}" defer></script>
-{% endif %}
 
 {% block extra_js %}{% endblock %}
 </body>

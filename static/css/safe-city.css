@@ -543,6 +543,46 @@ table { border-collapse: collapse; border-spacing: 0; }
 .sc-msg-info, .sc-msg-debug { border-left: 4px solid var(--sc-primary); }
 .sc-msg-info i, .sc-msg-debug i { color: var(--sc-primary); }
 
+/* ---------- Welcome line (login greeting) ----------
+   A temporary greeting after sign-in: NO card background, NO close button.
+   Rendered as one slim ticker-style line that fades in from the left,
+   sweeps a soft glow left-to-right once, then auto-hides itself. */
+
+.sc-welcome-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 18px 10px 22px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 10%, #000 32%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 10%, #000 32%);
+  animation: sc-welcome-in 0.45s ease both;
+}
+.sc-welcome-line-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0.05) 55%, transparent 100%);
+  transform-origin: left center;
+  animation: sc-welcome-sweep 2.6s ease-out both;
+}
+.sc-welcome-line-text {
+  position: relative;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--sc-navy-deep, #0F2557);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-welcome-line-text i { color: var(--sc-primary, #2563EB); margin-right: 8px; }
+.sc-welcome-line.is-hiding { transition: opacity 0.45s ease, max-height 0.45s ease; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+@keyframes sc-welcome-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes sc-welcome-sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media print { .sc-welcome-line { display: none !important; } }
+
 /* ==========================================================================
    PAGE HEADERS
    ========================================================================== */

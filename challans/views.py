@@ -222,6 +222,20 @@ def home(request):
             except Exception:
                 c.signed_token = ''
 
+        # Real appeal status per challan (one query, no N+1 in the template).
+        try:
+            from appeals.models import ChallanAppeal
+            appeal_map = {
+                a.challan_id: a.get_status_display()
+                for a in ChallanAppeal.objects.filter(
+                    challan_id__in=[c.id for c in (challans or [])])
+            }
+            for c in (challans or []):
+                c.appeal_status = appeal_map.get(c.id, '')
+        except Exception:
+            for c in (challans or []):
+                c.appeal_status = ''
+
     return render(request, 'challan/home.html', {
         'challans': challans, 'plate': plate, 'cnic': cnic, 'searched': searched,
     })

@@ -6,13 +6,14 @@
 {% block extra_head %}{% endblock %}
 
 {% block content %}
+{% with ns_dash=request.resolver_match.namespace|default:'dig'|add:':dashboard' %}
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-circle"></i> Officer KPIs</h1>
  <p>Key performance indicators for each officer</p>
  </div>
  <div>
-<a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary">
+<a href="{% url ns_dash %}" class="sc-btn sc-btn-primary">
  <i class="bi bi-circle"></i> Dashboard
  </a>
  </div>
@@ -63,4 +64,5 @@
  {% endif %}
  </div>
 </div>
+{% endwith %}
 {% endblock %}

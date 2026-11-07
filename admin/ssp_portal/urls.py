@@ -34,7 +34,6 @@ urlpatterns = [
     path('live-monitor/', dig_views.live_monitor, name='live_monitor'),
     path('officer-activity/', dig_views.officer_activity, name='officer_activity_list'),
     path('officer-activity/<int:officer_id>/', dig_views.officer_activity, name='officer_activity'),
-    path('heatmap/', dig_views.regional_heatmap, name='heatmap'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),
 
@@ -51,6 +50,15 @@ urlpatterns = [
     path('alerts/hub/banner/<int:banner_id>/edit/',   dig_views.alerts_hub_edit_banner,    name='alerts_hub_edit_banner'),
     path('alerts/hub/banner/<int:banner_id>/toggle/', dig_views.alerts_hub_toggle_banner,  name='alerts_hub_toggle_banner'),
     path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner,  name='alerts_hub_delete_banner'),
+
+    path('violation-stats/', dig_views.violation_stats, name='violation_stats'),
+    path('heatmap/', dig_views.heatmap, name='heatmap'),
+    path('reports/generate/', dig_views.generate_report, name='generate_report'),
+    path('reports/operational/', dig_views.operational_reports, name='operational_reports'),
+    path('reports/financial/', dig_views.financial_reports, name='financial_reports'),
+    path('reports/operational-audit/', dig_views.operational_audit, name='operational_audit'),
+    path('revenue/', dig_views.revenue_dashboard, name='revenue_dashboard'),
+    path('change-password/', dig_views.staff_change_password, name='change_password'),
 
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),

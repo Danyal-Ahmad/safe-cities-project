@@ -32,6 +32,8 @@ urlpatterns = [
     path('timeline/',                              views.frame_timeline,      name='frame_timeline'),
     path('live-tracking/timeline/',                views.frame_timeline,      name='live_tracking_timeline'),
 
+    path('change-password/',                        dig_views.staff_change_password,     name='change_password'),
+
     path('notifications/',                          dig_views.notifications,             name='notifications'),
     path('notifications/<int:notification_id>/read/', dig_views.notification_read,       name='notification_read'),
     path('notifications/mark-read/',                dig_views.notification_mark_read,    name='notification_mark_read'),

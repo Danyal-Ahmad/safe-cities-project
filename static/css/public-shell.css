@@ -170,37 +170,7 @@ select.ps-input option { color: #0f1c46; background: #fff; }
   font-size: 12px; color: rgba(232,240,255,.45); background: rgba(8,18,46,.55);
 }
 
-/* ---- ticker ---- */
-.ps-ticker {
-  position: relative;
-  z-index: 2;
-  display: flex; align-items: stretch; gap: 0;
-  background: rgba(8,18,46,.82); border-bottom: 1px solid rgba(96,165,250,.14);
-  font-size: 13px; overflow: hidden;
-}
-.ps-ticker-label {
-  display: flex; align-items: center; padding: 9px 14px; color: #93C5FD;
-  background: rgba(59,130,246,.16); border-right: 1px solid rgba(96,165,250,.22);
-}
-.ps-ticker-viewport { overflow: hidden; flex: 1; display: flex; align-items: center; }
-.ps-ticker-track { display: inline-flex; gap: 48px; white-space: nowrap; padding: 9px 0; will-change: transform; flex: 0 0 auto; }
-.ps-ticker.is-scrolling .ps-ticker-track {
-  animation: ps-ticker-marquee var(--ps-ticker-duration, 40s) linear infinite;
-}
-.ps-ticker-viewport:hover .ps-ticker-track,
-.ps-ticker-viewport:focus-within .ps-ticker-track { animation-play-state: paused; }
-@keyframes ps-ticker-marquee {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ps-ticker.is-scrolling .ps-ticker-track { animation: none; }
-  .ps-ticker-viewport { overflow-x: auto; }
-}
-.ps-ticker-item { color: rgba(232,240,255,.85); font-weight: 600; display: inline-flex; align-items: center; }
-.ps-ticker-item a { color: #93C5FD; text-decoration: none; }
-.ps-ticker-item a:hover { text-decoration: underline; }
-.ps-ticker-note { color: rgba(232,240,255,.5); font-weight: 400; margin-left: 10px; }
+/* ---- ticker: replaced by the unified bar (static/css/sc-ticker.css) ---- */
 
 /* ---- popup ad (retired: homepage now shows a single large banner) ---- */
 

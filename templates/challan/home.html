@@ -1,110 +1,125 @@
 {% extends 'public_base.html' %}
 {% load static %}
 {% block title %}Verify E-Challan Online{% endblock %}
-{% block body_class %}{% if user.is_authenticated %}sc-app scpub-embed{% else %}public-home{% endif %}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
-{% endblock %}
+{% block body_class %}{% if user.is_authenticated %}scpub-embed{% else %}public-home{% endif %}{% endblock %}
 
 {% block content %}
 <div class="scpub scpub-home">
 
-  <div class="scpub-inner">
+  <div class="scpub-inner psca-container">
 
-    <!-- Hero: dual logos one side, "|" separator, title + subtitle other side -->
-    <section class="ph-hero">
-      <div class="scpub-brand">
-        <div class="scpub-logos">
-          <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
-          <span class="scpub-logos-sep" aria-hidden="true">|</span>
-          <img src="{% static 'img/university_logo.png' %}" alt="University">
-        </div>
-        <div class="scpub-brand-text">
-          <h1 class="scpub-brand-title ph-brand-title">SAFE CITIES PROJECT</h1>
-          <p class="scpub-brand-sub">E-CHALLAN CITIZEN PORTAL</p>
-        </div>
+    {% comment %}
+      SEARCH PAGE - shown while there are no results. The moment a search
+      returns challans this whole block is skipped and only the RESULTS
+      PAGE below renders (the search form hides itself): the challan list
+      appears as its own next page, never stacked under the form.
+    {% endcomment %}
+    {% if not searched or not challans %}
+    <div id="searchPage">
+      <div class="text-center" style="margin-top: 15px;">
+        <h1 class="psca-heading">Search E-Challan</h1>
+        <hr class="psca-divider">
       </div>
-    </section>
 
-    <!-- Search card: two inputs + one button -->
-    <section class="ph-search-card scpub-card">
-      <form method="get" action="{% url 'challans:home' %}" class="scpub-form" role="search">
-        <div class="ph-fields">
-          <div class="scpub-field">
-            <label for="phPlate">Number Plate</label>
-            <input class="scpub-input" id="phPlate" type="text" name="plate" placeholder="Number Plate (e.g. LEA-1234)" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12">
+      <form method="get" action="{% url 'challans:home' %}" role="search">
+        <div class="psca-row">
+          <div class="psca-field">
+            <label for="pscaPlate">Plate Number <span class="req">*</span> <span class="hint">(ABC 000, ABC 0000, ABC-00-0000)</span></label>
+            <input id="pscaPlate" type="text" name="plate" placeholder="Enter Your Plate Number" value="{{ plate|default:'' }}" autocomplete="off" maxlength="12" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
           </div>
-          <div class="scpub-field">
-            <label for="phCnic">CNIC</label>
-            <input class="scpub-input" id="phCnic" type="text" inputmode="numeric" name="cnic" placeholder="CNIC (13 digits)" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15">
+          <div class="psca-field">
+            <label for="pscaCnic">CNIC <span class="req">*</span> <span class="hint">(13 digits e.g. 1234567890123)</span></label>
+            <input id="pscaCnic" type="text" inputmode="numeric" name="cnic" placeholder="Enter Your CNIC" value="{{ cnic|default:'' }}" autocomplete="off" maxlength="15" oninput="formatCNIC(this)">
           </div>
+          <button type="submit" class="psca-search-btn"><i class="bi bi-search"></i> Search</button>
         </div>
-        <button type="submit" class="scpub-btn"><i class="bi bi-search"></i> Search Challan</button>
-        <p class="ph-urdu-hint" lang="ur" dir="rtl">اپنا چالان یہاں تلاش کریں</p>
       </form>
 
+      <!-- NO RECORD FOUND -->
       {% if searched and not challans %}
-      <div class="scpub-note scpub-note-danger ph-no-record"><i class="bi bi-exclamation-circle-fill"></i> No record found. Please check your plate number or CNIC and try again.</div>
+      <div class="psca-no-record"><i class="bi bi-exclamation-circle-fill"></i> No record found. Please check your plate number or CNIC and try again.</div>
       {% endif %}
-    </section>
 
-    <!-- Results below the search card (server rendered) -->
-    {% if searched and challans %}
-    <section class="ph-results">
-      <div class="ph-results-head">
-        <h2><i class="bi bi-card-checklist"></i> Challans Found ({{ challans|length }})</h2>
-        <a href="{% url 'challans:home' %}" class="scpub-btn-ghost"><i class="bi bi-arrow-left"></i> New Search</a>
-      </div>
-      <div class="scpub-card">
-        <div class="ph-table-wrap">
-          <table class="ph-table">
-            <thead>
-              <tr>
-                <th>Challan No</th>
-                <th>Plate</th>
-                <th>Owner</th>
-                <th>Status</th>
-                <th>Due Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for c in challans %}
-              <tr>
-                <td data-label="Challan No"><span class="ph-ticket">{{ c.ticket_no }}</span></td>
-                <td data-label="Plate"><span class="scpub-mono">{{ c.plate_number }}</span></td>
-                <td data-label="Owner">{% if c.owner_name %}{{ c.display_owner }}{% else %}-{% endif %}</td>
-                <td data-label="Status">
-                  {% if c.payment_status == 'PAID' %}<span class="scpub-badge scpub-badge-green">Paid</span>
-                  {% elif c.payment_status == 'VOIDED' %}<span class="scpub-badge scpub-badge-gray">Voided</span>
-                  {% elif c.is_overdue %}<span class="scpub-badge scpub-badge-red">Overdue</span>
-                  {% else %}<span class="scpub-badge scpub-badge-amber">Unpaid</span>{% endif %}
-                </td>
-                <td data-label="Due Date">{{ c.due_date|date:"d M Y" }}</td>
-                <td data-label="Action">
-                  {% if c.signed_token %}
-                  <a href="{% url 'challans:challan_detail_signed' c.signed_token %}" class="ph-view-btn"><i class="bi bi-receipt"></i> View Challan</a>
-                  {% else %}
-                  <a href="{% url 'challans:challan_detail' c.id %}" class="ph-view-btn"><i class="bi bi-receipt"></i> View Challan</a>
-                  {% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+      {% comment %}
+        BANNER - rendered ONLY when DIG / IT-Support has published a real
+        banner (placement = static post). No placeholder box and no label
+        text: the section stays hidden until a banner exists, then shows
+        by itself.
+      {% endcomment %}
+      {% if static_post_ads %}
+      <hr class="psca-sep">
+      <section class="psca-banner" aria-label="Public service announcement">
+        {% include 'challan/_public_ads.html' %}
+      </section>
+      {% endif %}
+
+    </div>
     {% endif %}
 
-    <!-- BANNER ADS: one large square banner (edge-to-edge, no border,
-         no rounded corners). Content managed from the DIG portal banner
-         manager (placement = Static post ad). -->
-    {% if static_post_ads %}
-    <section class="ph-ads" aria-label="Banner advertisement">
-      {% include 'challan/_public_ads.html' %}
-    </section>
+    {% comment %}
+      RESULTS PAGE - the challan ledger on its own page. Back returns to
+      the search form. Download opens the official PDF; Review opens the
+      full challan detail (evidence, pay, appeal for a mistaken challan).
+    {% endcomment %}
+    {% if searched and challans %}
+    <div id="resultsPage">
+      <div class="psca-results-head">
+        <a href="{% url 'challans:home' %}" class="psca-back-btn"><i class="bi bi-arrow-left"></i> Back</a>
+        <h1 class="psca-heading">E-Challan Details</h1>
+      </div>
+
+      <div class="psca-table-wrap">
+        <table class="psca-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Challan No</th>
+              <th>Plate No</th>
+              <th>Penalty</th>
+              <th>Due Date</th>
+              <th>Offense Time</th>
+              <th>Violation Type</th>
+              <th>Place Of Violation</th>
+              <th>Owner</th>
+              <th>Make</th>
+              <th>Year</th>
+              <th>Paid</th>
+              <th>Request Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in challans %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><span class="psca-badge">{{ c.ticket_no }}</span></td>
+              <td><span class="scpub-mono">{{ c.plate_number }}</span></td>
+              <td>PKR {{ c.fine_amount|floatformat:0 }}</td>
+              <td>{{ c.due_date|date:"m/d/Y" }}</td>
+              <td>{{ c.issue_date|date:"m/d/Y" }}</td>
+              <td>{{ c.get_violation_type_display }}</td>
+              <td>{{ c.location|default:"-" }}</td>
+              <td>{{ c.display_owner }}</td>
+              <td>{{ c.vehicle_type|default:"-" }}</td>
+              <td>{{ c.make_year|default:"-" }}</td>
+              <td>{% if c.payment_status == 'PAID' %}Yes{% else %}No{% endif %}</td>
+              <td>
+                {% if c.appeal_status %}{{ c.appeal_status }}{% else %}-{% endif %}
+              </td>
+              <td>
+                <a href="{% url 'challans:challan_pdf' c.id %}{% if not user.is_authenticated %}?token={{ c.signed_token }}{% endif %}" class="psca-btn psca-btn-download" target="_blank"><i class="bi bi-download"></i> Download</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'challans:challan_detail' c.id %}" class="psca-btn psca-btn-review"><i class="bi bi-eye"></i> Review</a>
+                {% else %}
+                <a href="{% url 'challans:challan_detail_signed' c.signed_token %}" class="psca-btn psca-btn-review"><i class="bi bi-eye"></i> Review</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
     {% endif %}
 
   </div>
@@ -112,6 +127,14 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pages/public-home.js' %}" defer></script>
-<script src="{% static 'js/pages/public-ads.js' %}" defer></script>
+<script nonce="{{ request.csp_nonce }}">
+function formatCNIC(input) {
+  var v = input.value.replace(/\D/g, '').substring(0, 13);
+  var f = '';
+  if (v.length > 12) f = v.substring(0, 5) + '-' + v.substring(5, 12) + '-' + v.substring(12);
+  else if (v.length > 5) f = v.substring(0, 5) + '-' + v.substring(5);
+  else f = v;
+  input.value = f;
+}
+</script>
 {% endblock %}

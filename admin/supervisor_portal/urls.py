@@ -37,6 +37,16 @@ urlpatterns = [
     path('alerts/hub/banner/<int:banner_id>/toggle/', dig_views.alerts_hub_toggle_banner,  name='alerts_hub_toggle_banner'),
     path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner,  name='alerts_hub_delete_banner'),
 
+    path('escalations/', dig_views.case_escalation_tracker, name='case_escalation_tracker'),
+    path('officer-kpi/', dig_views.officer_kpi, name='officer_kpi'),
+    path('violation-stats/', dig_views.violation_stats, name='violation_stats'),
+    path('heatmap/', dig_views.heatmap, name='heatmap'),
+    path('reports/generate/', dig_views.generate_report, name='generate_report'),
+    path('reports/operational/', dig_views.operational_reports, name='operational_reports'),
+    path('reports/financial/', dig_views.financial_reports, name='financial_reports'),
+    path('reports/operational-audit/', dig_views.operational_audit, name='operational_audit'),
+    path('change-password/', dig_views.staff_change_password, name='change_password'),
+
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),
 

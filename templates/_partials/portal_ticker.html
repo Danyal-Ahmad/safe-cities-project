@@ -1,31 +1,32 @@
 {% comment %}
-  SAFE CITIES PROJECT - portal announcement ticker bar.
+  SAFE CITIES PROJECT - unified announcement ticker bar.
 
-  Data source: the already-registered `active_alerts` context processor
-  (admin/dig_portal/context_processors.py), which returns
-  Alert.get_for_user(request.user) for authenticated users, returns an empty
-  list for citizens and anonymous visitors, and excludes alerts dismissed in
-  the session. Because that processor already provides exactly the data this
-  ticker needs, no new context processor and no settings.py change are
-  required; the items below are simply mapped to title, message, severity
-  and created_at.
+  ONE component, identical on every page: staff portals (base.html) and
+  the public pages (public_base.html). It always renders ABOVE the navbar
+  and is flat and full-width (styles: static/css/sc-ticker.css, behavior:
+  static/js/pages/portal-ticker.js - marquee phase survives page refresh
+  and redirects via sessionStorage).
 
-  Rendering contract:
-  - Hidden entirely when there are no items (the {% if %} guard below).
-  - Included by base.html for authenticated staff only
-    ({% if user.is_authenticated and user.role != 'USER' %}).
-  - static/js/pages/portal-ticker.js activates the scrolling marquee when
-    the items overflow, and prepends live items on the
-    'safecity:notification' CustomEvent dispatched by realtime-socket.js.
+  Item sources, merged in order:
+    1. active_alerts  - staff operational announcements (Alert model,
+       admin/dig_portal/context_processors.active_alerts). Empty for
+       citizens and anonymous visitors.
+    2. ticker_ads      - Banner rows with placement='ticker' managed from
+       the DIG / IT-Support alerts hub (audience-scoped: all, citizens,
+       staff). On the public home these are the announcements citizens see.
+
+  The partial renders nothing when both sources are empty, so pages with
+  no announcements show no bar at all.
 {% endcomment %}
-{% if active_alerts %}
-<div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Portal announcements">
+{% if active_alerts or ticker_ads %}
+<div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Announcements">
   <div class="sc-ticker-label">
     <i class="bi bi-megaphone-fill" aria-hidden="true"></i>
-    <span>ANNOUNCEMENTS</span>
+    <span>Announcements</span>
   </div>
   <div class="sc-ticker-viewport" id="scTickerViewport">
     <div class="sc-ticker-track" id="scTickerTrack">
+
       {% for alert in active_alerts|slice:":6" %}
       <div class="sc-ticker-item sc-ticker-item-{{ alert.severity|default:'info' }}" data-severity="{{ alert.severity|default:'info' }}">
         <span class="sc-ticker-item-title">{{ alert.title }}</span>
@@ -35,6 +36,18 @@
         {% endif %}
       </div>
       {% endfor %}
+
+      {% for ad in ticker_ads|slice:":6" %}
+      <div class="sc-ticker-item sc-ticker-item-info">
+        {% if ad.image_link %}
+        <a href="{{ ad.image_link }}" target="_blank" rel="noopener"><span class="sc-ticker-item-title">{{ ad.title }}</span></a>
+        {% else %}
+        <span class="sc-ticker-item-title">{{ ad.title }}</span>
+        {% endif %}
+        {% if ad.html_content %}<span class="sc-ticker-item-note">{{ ad.html_content|striptags|truncatewords:14 }}</span>{% endif %}
+      </div>
+      {% endfor %}
+
     </div>
   </div>
 </div>

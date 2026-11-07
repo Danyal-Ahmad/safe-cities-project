@@ -181,6 +181,19 @@
             // Temporary display: auto-fade after 7 seconds.
             setTimeout(function () { fadeOutMsg(msg); }, 7000);
         });
+        // Welcome greeting: slim ticker-style line, no background and no
+        // close button - it always hides itself (default 6s).
+        document.querySelectorAll('.sc-messages .sc-welcome-line').forEach(function (line) {
+            const delay = parseInt(line.getAttribute('data-welcome-autohide') || '6000', 10);
+            setTimeout(function () {
+                line.classList.add('is-hiding');
+                setTimeout(function () {
+                    const box = line.parentElement;
+                    line.remove();
+                    if (box && !box.children.length) box.remove();
+                }, 480);
+            }, delay);
+        });
     }
 
     // ============================================================

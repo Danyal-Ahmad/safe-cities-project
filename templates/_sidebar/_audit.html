@@ -24,6 +24,9 @@
   {% if request.user|has_perm:"view_anomaly_alerts" %}
   <a href="{% url 'audit_portal:anomaly_alerts' %}" class="sc-nav-link {% if request.path == '/portal/audit/anomalies/' %}sc-active{% endif %}"><i class="bi bi-exclamation-triangle"></i> <span class="sc-nav-link-text">Anomaly Alerts</span></a>
   {% endif %}
+  <a href="{% url 'audit_portal:audit_log' %}" class="sc-nav-link {% if request.path == '/portal/audit/audit-log/' %}sc-active{% endif %}"><i class="bi bi-journal-text"></i> <span class="sc-nav-link-text">Immutable Ledger</span></a>
+  <a href="{% url 'audit_portal:templates_select' %}" class="sc-nav-link {% if request.path == '/portal/audit/templates/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-pdf"></i> <span class="sc-nav-link-text">Report Templates</span></a>
+  <a href="{% url 'audit_portal:audit_export' %}" class="sc-nav-link {% if request.path == '/portal/audit/export/' %}sc-active{% endif %}"><i class="bi bi-download"></i> <span class="sc-nav-link-text">Export Reports</span></a>
 </div>
 
 <div class="sc-nav-section" data-section="Change Tracking">

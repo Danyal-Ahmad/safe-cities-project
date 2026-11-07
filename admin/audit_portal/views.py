@@ -421,9 +421,10 @@ def export_pdf(request, kind):
     return resp
 
 
-@role_required('DIG')
+@role_required(*AUDIT_ROLES)
 def templates_select(request):
-    """DIG-only, select-only page for choosing the active audit PDF template."""
+    """Audit staff (AUDIT + DIG) select the active audit PDF template.
+    IT Support manages the full template designer from its own portal."""
     from django.contrib import messages
     from django.shortcuts import redirect, render
 

@@ -23,7 +23,7 @@ CHECKS = [
 
 
 class Command(BaseCommand):
-    help = "Verify routes + demo data before runserver."
+    help = "Verify routes and seed data before runserver."
 
     def handle(self, *args, **options):
         ok = 0
@@ -48,7 +48,7 @@ class Command(BaseCommand):
             roles = {r: User.objects.filter(role=r).count() for r in
                      [User.DIG, User.SSP, User.SUPERVISOR, User.OFFICER, User.AUDIT, User.IT_SUPPORT]}
             self.stdout.write(self.style.SUCCESS(f'  [OK] Challans: {n}'))
-            self.stdout.write(self.style.SUCCESS(f'  [OK] Demo citizen CNIC 35202-1234567-1: {c}'))
+            self.stdout.write(self.style.SUCCESS(f'  [OK] Seed citizen CNIC 35202-1234567-1: {c}'))
             self.stdout.write(self.style.SUCCESS(f'  [OK] Citizen profiles: {p}'))
             for r, cnt in roles.items():
                 style = self.style.SUCCESS if cnt else self.style.WARNING

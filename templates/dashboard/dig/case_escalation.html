@@ -4,11 +4,45 @@
 {% block content %}
 <div class="sc-page-hero">
   <div>
-    <h1><i class="bi bi-shield-check me-2"></i>Mistake-Challan Appeals</h1>
-    <p class="lead">Citizen-submitted mistake-challan reports. The SSP reviews and decides every appeal.</p>
+    <h1><i class="bi bi-shield-check me-2"></i>Case Escalation</h1>
+    <p class="lead">Flagged detections escalated for command review. Mistake-challan appeals are routed to the SSP only.</p>
   </div>
 </div>
 
+{% if not is_ssp %}
+<div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-info-circle"></i>
+  <div>Mistake-challan appeals are reviewed exclusively by the SSP. This view is limited to flagged detections escalated by officers.</div>
+</div>
+{% endif %}
+
+<div class="card mb-3">
+  <div class="card-header"><span><i class="bi bi-flag me-2"></i>Flagged Detections ({{ flagged|length }})</span></div>
+  {% if flagged %}
+  <div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>#</th><th>Camera</th><th>Plate</th><th>Confidence</th><th>Flagged By</th><th>Notes</th><th>Flagged At</th></tr></thead>
+    <tbody>
+    {% for d in flagged %}
+      <tr>
+        <td class="font-mono">#{{ d.id }}</td>
+        <td class="font-mono">{{ d.camera.camera_id|default:"-" }}</td>
+        <td class="font-mono">{{ d.effective_plate|default:"-" }}</td>
+        <td class="small">{% if d.ai_confidence %}{{ d.ai_confidence|floatformat:2 }}{% else %}-{% endif %}</td>
+        <td class="small">{{ d.reviewed_by.display_name|default:"-" }}</td>
+        <td class="small text-truncate" style="max-width:260px;">{{ d.review_notes|truncatechars:80|default:"-" }}</td>
+        <td class="small">{{ d.reviewed_at|date:"d M H:i"|default:"-" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="card-body"><div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No flagged detections.</h3></div></div>
+  {% endif %}
+</div>
+
+{% if is_ssp %}
 <div class="card mb-3">
   <div class="card-header"><span><i class="bi bi-hourglass-split me-2"></i>Awaiting SSP Decision ({{ pending_appeals|length }})</span></div>
   {% if pending_appeals %}
@@ -64,4 +98,5 @@
   <div class="card-body"><div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No decided appeals yet.</h3></div></div>
   {% endif %}
 </div>
+{% endif %}
 {% endblock %}

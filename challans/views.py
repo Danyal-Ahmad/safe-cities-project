@@ -225,7 +225,7 @@ def _citizen_owns_challan(user, challan):
         from accounts.models import VehicleRegistration
         plates = {
             (p or '').upper().replace(' ', '').replace('-', '')
-            for p in VehicleRegistration.objects.filter(user=user).values_list('plate_number', flat=True)
+            for p in VehicleRegistration.objects.filter(owner=user).values_list('plate_number', flat=True)
         }
         plate = (challan.plate_number or '').upper().replace(' ', '').replace('-', '')
         if plate and plate in plates:

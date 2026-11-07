@@ -158,8 +158,8 @@ def main():
 
     # ---------- Portal page renders per role ----------
     role_pages = {
-        'DIG': ['/portal/dig/', '/portal/dig/dashboard/', '/portal/dig/live-monitor/',
-                '/portal/dig/cameras/', '/portal/dig/cameras/list/', '/portal/dig/challans/',
+        'DIG': ['/portal/dig/', '/portal/dig/live-monitor/',
+                '/portal/dig/cameras/', '/portal/dig/challans/',
                 '/portal/dig/flagged-detections/', '/portal/dig/vehicle-search/',
                 '/portal/dig/analytics/', '/portal/dig/heatmap/', '/portal/dig/audit/',
                 '/portal/dig/audit-templates/', '/portal/dig/officer-kpi/', '/portal/dig/compliance/'],

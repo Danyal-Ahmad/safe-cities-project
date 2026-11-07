@@ -799,9 +799,9 @@
       "category": "OPERATIONAL / FUNCTIONAL",
       "roles": {
         "IT Support": true,
-        "DIG": false,
-        "SSP": false,
-        "Supervisor": false,
+        "DIG": true,
+        "SSP": true,
+        "Supervisor": true,
         "Officer": true,
         "Audit": false,
         "Citizen": false
@@ -813,9 +813,9 @@
       "category": "OPERATIONAL / FUNCTIONAL",
       "roles": {
         "IT Support": true,
-        "DIG": false,
-        "SSP": false,
-        "Supervisor": false,
+        "DIG": true,
+        "SSP": true,
+        "Supervisor": true,
         "Officer": true,
         "Audit": false,
         "Citizen": false

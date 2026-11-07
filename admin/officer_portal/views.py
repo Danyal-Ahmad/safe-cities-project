@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Count
 
-from accounts.decorators import officer_or_dig_required, role_required
+from accounts.decorators import officer_or_dig_required, role_required, permission_required
 from detections.models import Detection, DetectionReviewNote
 from challans.models import Challan
 from appeals.models import ChallanAppeal
@@ -481,7 +481,7 @@ def vehicle_tracking(request):
     })
 
 
-@role_required('OFFICER', 'IT')
+@permission_required('live_tracking_timeline')
 def frame_timeline(request):
     from admin.shared import LiveTrackingService
 

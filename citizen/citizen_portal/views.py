@@ -34,7 +34,7 @@ def _user_plates(user):
     try:
         from accounts.models import VehicleRegistration
         return list(
-            VehicleRegistration.objects.filter(user=user)
+            VehicleRegistration.objects.filter(owner=user)
             .values_list('plate_number', flat=True)
         )
     except Exception:

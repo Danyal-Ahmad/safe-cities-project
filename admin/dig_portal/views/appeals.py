@@ -12,7 +12,7 @@ from django.shortcuts import render
 from accounts.decorators import role_required
 
 
-@role_required('SSP', 'DIG', 'SUPV')
+@role_required('SSP')
 def appeal_override(request, appeal_id):
     appeal = get_object_or_404(ChallanAppeal, pk=appeal_id)
     user_role = request.user.role
@@ -79,15 +79,19 @@ def appeal_override(request, appeal_id):
 
 @role_required('DIG', 'SSP', 'SUPV', 'AUDIT')
 def appeals_queue(request):
-    appeals = list(
-        ChallanAppeal.objects.all().select_related('challan', 'submitted_by').order_by('-created_at')[:100]
-    )
-    pending_appeals = [a for a in appeals if a.status == ChallanAppeal.PENDING]
-    decided_appeals = [a for a in appeals if a.status != ChallanAppeal.PENDING]
-    flagged = Detection.objects.filter(status=Detection.FLAGGED).order_by('-created_at')[:50]
+    flagged = Detection.objects.filter(status=Detection.FLAGGED).select_related('camera').order_by('-created_at')[:50]
+    if request.user.role == 'SSP':
+        appeals = list(
+            ChallanAppeal.objects.all().select_related('challan', 'submitted_by').order_by('-created_at')[:100]
+        )
+        pending_appeals = [a for a in appeals if a.status == ChallanAppeal.PENDING]
+        decided_appeals = [a for a in appeals if a.status != ChallanAppeal.PENDING]
+    else:
+        appeals, pending_appeals, decided_appeals = [], [], []
     return render(request, 'dashboard/dig/case_escalation.html', {
         'pending_appeals': pending_appeals,
         'decided_appeals': decided_appeals,
         'appeals': appeals,
         'flagged': flagged,
+        'is_ssp': request.user.role == 'SSP',
     })

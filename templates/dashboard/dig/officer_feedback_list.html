@@ -12,14 +12,14 @@
  <p>Feedback &amp; permission flags per officer</p>
  </div>
  <div>
-<a href="{% url 'dig:officer_feedback_add' %}" class="btn btn-primary ">
+<a href="{% url 'dig:officer_feedback_add' %}" class="sc-btn sc-btn-primary">
  <i class="bi bi-circle"></i> Add Feedback
  </a>
  </div>
 </div>
 
 <div>
- <div class="card-header ">
+ <div class="card-header">
  <div><i class="bi bi-circle"></i> All Feedback</div>
  <span class="badge bg-secondary">{{ feedback|length }}</span>
  </div>
@@ -41,12 +41,12 @@
  <td class="small ">{{ f.created_by.display_name|default:"-" }}</td>
  <td class="small ">{{ f.updated_at|date:"d-M-Y H:i" }}</td>
  <td class="small ">
- {% if f.can_review_detections %}<span class="badge ">RD</span>{% endif %}
- {% if f.can_review_appeals %}<span class="badge ">RA</span>{% endif %}
- {% if f.can_flag_for_dig %}<span class="badge ">FD</span>{% endif %}
+ {% if f.can_review_detections %}<span class="badge bg-secondary">RD</span>{% endif %}
+ {% if f.can_review_appeals %}<span class="badge bg-secondary">RA</span>{% endif %}
+ {% if f.can_flag_for_dig %}<span class="badge bg-secondary">FD</span>{% endif %}
 
- {% if f.can_view_own_performance %}<span class="badge ">VP</span>{% endif %}
- {% if f.can_add_internal_notes %}<span class="badge ">IN</span>{% endif %}
+ {% if f.can_view_own_performance %}<span class="badge bg-secondary">VP</span>{% endif %}
+ {% if f.can_add_internal_notes %}<span class="badge bg-secondary">IN</span>{% endif %}
  </td>
  </tr>
  {% endfor %}

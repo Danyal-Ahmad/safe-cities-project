@@ -274,7 +274,7 @@
             class="sc-note-form" data-notes-form data-notes-min="5">
         {% csrf_token %}
         <label class="sc-form-label" for="noteInput"><i class="bi bi-plus-circle"></i> Add internal note</label>
-        <textarea id="noteInput" name="note" rows="2" class="sc-form-control"
+        <textarea id="noteInput" name="note" rows="2" aria-label="Review note" class="sc-form-control"
                   placeholder="Internal observation for the audit trail (min 5 characters)&hellip;"
                   data-notes-input data-notes-min="5" required></textarea>
         <div class="sc-flex sc-items-center sc-justify-between sc-mt-2">

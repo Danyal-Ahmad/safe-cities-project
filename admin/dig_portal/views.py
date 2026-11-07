@@ -2027,16 +2027,16 @@ def penalty_config(request):
     cfg = s.template_config or {}
 
     VIOLATION_TYPES = [
-        {'key': 'wrong_way',    'label': 'Wrong Way Driving',    'icon': 'fa-arrow-right-arrow-left',
+        {'key': 'wrong_way',    'label': 'Wrong Way Driving',    'icon': 'bi-arrow-left-right',
          'desc': 'Vehicle travelling against the legal direction of traffic',
          'color': 'red',     'default_amount': 500, 'default_points': 3, 'enabled': True},
-        {'key': 'no_helmet',    'label': 'No Helmet',            'icon': 'fa-helmet-safety',
+        {'key': 'no_helmet',    'label': 'No Helmet',            'icon': 'bi-helmet-safety',
          'desc': 'Rider not wearing a helmet on a motorcycle',
          'color': 'amber',   'default_amount': 300, 'default_points': 2, 'enabled': False},
-        {'key': 'signal_break', 'label': 'Signal Break',         'icon': 'fa-traffic-light',
+        {'key': 'signal_break', 'label': 'Signal Break',         'icon': 'bi-traffic-cone',
          'desc': 'Vehicle crossing a red traffic signal',
          'color': 'purple',  'default_amount': 500, 'default_points': 3, 'enabled': False},
-        {'key': 'over_speed',   'label': 'Over Speed',           'icon': 'fa-gauge-high',
+        {'key': 'over_speed',   'label': 'Over Speed',           'icon': 'bi-speedometer2',
          'desc': 'Vehicle exceeding the posted speed limit',
          'color': 'blue',    'default_amount': 800, 'default_points': 4, 'enabled': False},
     ]
@@ -3563,12 +3563,12 @@ def challan_template_designer(request):
         messages.success(request, f"Template '{name}' saved.")
         return redirect('it_support_portal:challan_templates')
     blocks = [
-        {'id': 'header', 'label': 'Header (Gov + logos)', 'icon': 'fa-heading'},
-        {'id': 'ticket_meta', 'label': 'Ticket / Plate / Status', 'icon': 'fa-barcode'},
-        {'id': 'offender', 'label': 'Offender block', 'icon': 'fa-user'},
-        {'id': 'vehicle', 'label': 'Vehicle block', 'icon': 'fa-car'},
-        {'id': 'evidence', 'label': 'Evidence image', 'icon': 'fa-image'},
-        {'id': 'psid', 'label': 'PSID payment box', 'icon': 'fa-qrcode'},
+        {'id': 'header', 'label': 'Header (Gov + logos)', 'icon': 'bi-type-h1'},
+        {'id': 'ticket_meta', 'label': 'Ticket / Plate / Status', 'icon': 'bi-upc-scan'},
+        {'id': 'offender', 'label': 'Offender block', 'icon': 'bi-person'},
+        {'id': 'vehicle', 'label': 'Vehicle block', 'icon': 'bi-car-front'},
+        {'id': 'evidence', 'label': 'Evidence image', 'icon': 'bi-image'},
+        {'id': 'psid', 'label': 'PSID payment box', 'icon': 'bi-qr-code-scan'},
         {'id': 'instructions', 'label': 'Legal instructions', 'icon': 'fa-scale-balanced'},
         {'id': 'slips', 'label': 'Motorist + Bank slips', 'icon': 'fa-copy'},
         {'id': 'footer', 'label': 'Footer', 'icon': 'fa-minus'},

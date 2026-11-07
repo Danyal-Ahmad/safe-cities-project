@@ -17,7 +17,7 @@
 </div>
 
 <div>
- <div class="card-header ">
+ <div class="card-header">
  <div><i class="bi bi-circle"></i> SSP Officers</div>
  <span class="badge bg-secondary">{{ ssp_users|length }}</span>
  </div>
@@ -36,7 +36,7 @@
  <tr>
  <td>{{ u.display_name|default:u.username }}</td>
  <td class="form-control font-monospace">{{ u.username }}</td>
- <td>{% if u.is_active %}<span class="badge ">Active</span>{% else %}<span class="badge ">Disabled</span>{% endif %}</td>
+ <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}</td>
  </tr>
  {% endfor %}
  </tbody>
@@ -48,7 +48,7 @@
 </div>
 
 <div>
- <div class="card-header ">
+ <div class="card-header">
  <div><i class="bi bi-circle"></i> Supervisors</div>
  <span class="badge bg-secondary">{{ supervisor_users|length }}</span>
  </div>
@@ -67,7 +67,7 @@
  <tr>
  <td>{{ u.display_name|default:u.username }}</td>
  <td class="form-control font-monospace">{{ u.username }}</td>
- <td>{% if u.is_active %}<span class="badge ">Active</span>{% else %}<span class="badge ">Disabled</span>{% endif %}</td>
+ <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}</td>
  </tr>
  {% endfor %}
  </tbody>

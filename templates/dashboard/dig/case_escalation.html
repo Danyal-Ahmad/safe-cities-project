@@ -23,7 +23,7 @@
         <td><span class="badge badge-amber">{{ a.get_current_stage_display }}</span></td>
         <td class="small">{{ a.escalation_reason|default:"-" }}</td>
         <td class="small">{{ a.escalated_at|date:"d M H:i" }}</td>
-        <td><a href="{% url 'dig:appeal_override' a.id %}" class="btn btn-sm">Decide</a></td>
+        <td><a href="{% url 'dig:appeal_override' a.id %}" class="sc-btn sc-btn-sm">Decide</a></td>
       </tr>
     {% empty %}
       <tr><td colspan="7" style="padding:32px;text-align:center;color:var(--sc-text-muted,#5B6B85);">No escalated cases.</td></tr>

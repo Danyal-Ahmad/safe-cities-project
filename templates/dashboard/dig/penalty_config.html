@@ -7,8 +7,8 @@
 
 <div class="sc-page-hero">
  <div>
- <h1><i class="bi bi-arrow-right-circle me-2"></i>Penalty Configuration</h1>
- <p class=" opacity-75">Fines · points · enable/disable per violation type</p>
+ <h1><i class="bi bi-sliders me-2"></i>Penalty Configuration</h1>
+ <p class="sc-lead">Fines · points · enable/disable per violation type</p>
  </div>
  <div>
  <span class="badge bg-secondary">{{ active_count|default:0 }} / {{ total_count|default:0 }} active</span>
@@ -27,7 +27,7 @@
  {% for v in violations %}
  <div>
  <div class=" h-100 {% if not v.enabled %}opacity-75{% endif %}" id="section-{{ v.key }}">
- <div class="card-header ">
+ <div class="card-header">
  <span><i class=" {{ v.icon|default:'' }} me-2"></i>{{ v.label }}</span>
  <span class="badge bg-secondary">{{ forloop.counter }}</span>
  </div>
@@ -44,9 +44,9 @@
  </div>
  </div>
  <div>
- <input class="-input" type="checkbox" role="switch" name="enabled_{{ v.key }}" id="enabled_{{ v.key }}" {% if v.enabled %}checked{% endif %}
+ <input class="form-check-input" type="checkbox" role="switch" name="enabled_{{ v.key }}" id="enabled_{{ v.key }}" {% if v.enabled %}checked{% endif %}
  onchange="onToggle('{{ v.key }}', this)">
- <label class="-label" for="enabled_{{ v.key }}">Enable detection</label>
+ <label class="form-check-label" for="enabled_{{ v.key }}">Enable detection</label>
  </div>
  <div class="small fw-semibold" id="status-{{ v.key }}">
  {% if v.enabled %}ACTIVE - will detect and challan{% else %}DISABLED{% endif %}
@@ -55,13 +55,13 @@
  </div>
  </div>
  {% empty %}
- <div><div class="empty-state"><i class=" violation types configured.</div></div>
+ <div class="empty-state"><i class="bi bi-inbox"></i>No violation types configured.</div>
  {% endfor %}
  </div>
 
- <div class="form-actions ">
+ <div class="d-flex gap-2 justify-content-end flex-wrap">
  <button type="reset" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Reset</button>
- <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Configuration</button>
+ <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-check-lg me-1"></i>Save Configuration</button>
  </div>
 </form>
 

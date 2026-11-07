@@ -7,7 +7,7 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-camera-video me-2"></i>{{ camera.camera_id }}</h1>
- <p class=" opacity-75">{{ camera.location }} · {{ camera.get_health_status_display|default:camera.health_status }}</p>
+ <p class="sc-lead">{{ camera.location }} · {{ camera.get_health_status_display|default:camera.health_status }}</p>
  </div>
  <div>
  <a href="{% url 'it_support_portal:camera_list' %}" class="sc-btn sc-btn-primary">All cameras</a>
@@ -17,8 +17,8 @@
 
 <div>
  <div>
- <div class=" h-100">
- <div class="card-header ">
+ <div class="card h-100">
+ <div class="card-header">
  <span><i class="bi bi-circle me-2"></i>Live preview</span>
  <span class="badge {% if camera.is_streaming %}text-{% else %}text-{% endif %}">
  {% if camera.is_streaming %}Streaming{% else %}Offline{% endif %}
@@ -34,11 +34,11 @@
  {% if '.mp4' in camera.rtsp_url or '.webm' in camera.rtsp_url or '/media/' in camera.rtsp_url %}
  <video src="{{ camera.rtsp_url }}" controls autoplay muted loop playsinline></video>
  {% else %}
- <div class=" h-100 p-4">
- <i class=" opacity-75"></i>
+ <div class="card h-100 p-4">
+ <i class="bi bi-camera-video-off opacity-75"></i>
  <p>RTSP source configured</p>
- <code class="small ">{{ camera.rtsp_url|truncatechars:60 }}</code>
- <p class="small ">Open Live Tracking for frame canvas / annotations.</p>
+ <code class="small text-body">{{ camera.rtsp_url|truncatechars:60 }}</code>
+ <p class="small text-muted">Open Live Tracking for frame canvas / annotations.</p>
  </div>
  {% endif %}
  {% else %}
@@ -61,9 +61,9 @@
  <form method="post" action="{% url 'it_support_portal:camera_edit' camera.id %}" enctype="multipart/form-data">
  {% csrf_token %}
  <div>
- <input type="file" name="video_file" accept="video/mp4,video/webm,video/avi,video/quicktime" required>
+ <input type="file" name="video_file" aria-label="Camera demo video" accept="video/mp4,video/webm,video/avi,video/quicktime" required>
  </div>
- <button type="submit" class="btn btn-primary w-100"><i class="bi bi-arrow-right-circle me-1"></i>Upload &amp; connect to live pipeline</button>
+ <button type="submit" class="sc-btn sc-btn-primary w-100"><i class="bi bi-arrow-right-circle me-1"></i>Upload &amp; connect to live pipeline</button>
  </form>
  {% if camera.rtsp_url %}
  <div class="small ">Current source: <code>{{ camera.rtsp_url|truncatechars:50 }}</code></div>
@@ -125,14 +125,14 @@
  <input type="text" name="http_snapshot_url" class="form-control font-monospace" value="{{ camera.http_snapshot_url|default:'' }}" placeholder="http://.../video">
  </div>
  <div>
- <input class="-input" type="checkbox" name="is_active" id="isActive" {% if camera.is_active %}checked{% endif %}>
- <label class="-label" for="isActive">Active</label>
+ <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if camera.is_active %}checked{% endif %}>
+ <label class="form-check-label" for="isActive">Active</label>
  </div>
  <div>
- <input class="-input" type="checkbox" name="is_streaming" id="isStreaming" {% if camera.is_streaming %}checked{% endif %}>
- <label class="-label" for="isStreaming">Streaming enabled</label>
+ <input class="form-check-input" type="checkbox" name="is_streaming" id="isStreaming" {% if camera.is_streaming %}checked{% endif %}>
+ <label class="form-check-label" for="isStreaming">Streaming enabled</label>
  </div>
- <button type="submit" class="btn btn-primary w-100"><i class="bi bi-camera-video me-1"></i>Save camera</button>
+ <button type="submit" class="sc-btn sc-btn-primary w-100"><i class="bi bi-camera-video me-1"></i>Save camera</button>
  </form>
  </div>
  </div>

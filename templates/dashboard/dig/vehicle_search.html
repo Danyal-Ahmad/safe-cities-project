@@ -50,7 +50,7 @@
     </form>
 
     <div class="vs-search-examples">
-      <span class="vs-examples-label"><i class="bi bi-lightbulb"></i> Try:</span>
+      <span class="fw-semibold vs-examples-label"><i class="bi bi-lightbulb"></i> Try:</span>
       <button type="button" class="vs-example-chip" data-example="LEA-1100">LEA-1100</button>
       <button type="button" class="vs-example-chip" data-example="LEA">LEA…</button>
       <span class="sc-hint">Plate queries are matched in upper case; CNIC needs at least 5 digits.</span>
@@ -129,7 +129,7 @@
                     <div class="md-conf-bar">
                       <div class="md-conf-fill" data-conf="{{ d.ai_confidence|floatformat:4 }}"></div>
                     </div>
-                    <span class="vs-conf-value sc-mono">{{ d.ai_confidence|floatformat:2 }}</span>
+                    <span class="fw-semibold vs-conf-value sc-mono">{{ d.ai_confidence|floatformat:2 }}</span>
                   </div>
                   {% else %}<span class="sc-text-faint">-</span>{% endif %}
                 </td>

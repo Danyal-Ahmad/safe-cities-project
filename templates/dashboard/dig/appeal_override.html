@@ -9,7 +9,7 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-arrow-right-circle me-2"></i>Appeal Review | {{ stage_display }}</h1>
- <p class=" opacity-75">Appeal #{{ appeal.id }} · {{ appeal.challan.ticket_no }}</p>
+ <p class="sc-lead">Appeal #{{ appeal.id }} · {{ appeal.challan.ticket_no }}</p>
  </div>
  <a href="{% url 'dig:escalation_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-left me-1"></i>Back</a>
 </div>
@@ -24,28 +24,28 @@
 
 <div>
  <div>
- <div class=" h-100">
+ <div class="card h-100">
  <div class="card-header"><span><i class="bi bi-circle me-2"></i>Challan Detail</span></div>
  <div class="card-body">
- <div class="kv-"><span class="k">Ticket</span><span class="v font-monospace">{{ appeal.challan.ticket_no }}</span></div>
- <div class="kv-"><span class="k">Plate</span><span class="v font-monospace">{{ appeal.challan.plate_number }}</span></div>
- <div class="kv-"><span class="k">Violation</span><span class="v">{{ appeal.challan.get_violation_type_display }}</span></div>
- <div class="kv-"><span class="k">Fine</span><span class="v">{{ appeal.challan.fine_amount|intcomma }}</span></div>
- <div class="kv-"><span class="k">Issue Date</span><span class="v small ">{{ appeal.challan.issue_date|date:"Y-m-d" }}</span></div>
- <div class="kv-"><span class="k">Due Date</span><span class="v small ">{{ appeal.challan.due_date|date:"Y-m-d" }}</span></div>
- <div class="kv-"><span class="k">Location</span><span class="v">{{ appeal.challan.location|default:"-" }}</span></div>
- <div class="kv-"><span class="k">Owner</span><span class="v">{{ appeal.challan.owner_name|default:"-" }}</span></div>
- <div class="kv-"><span class="k">CNIC</span><span class="v font-monospace small">{{ appeal.challan.cnic|default:"-" }}</span></div>
- <div class="kv-"><span class="k">Payment</span><span class="v">
- {% if appeal.challan.payment_status == 'PAID' %}<span class="badge ">PAID</span>
- {% elif appeal.challan.payment_status == 'VOIDED' %}<span class="badge ">VOIDED</span>
- {% else %}<span class="badge ">UNPAID</span>{% endif %}
+ <div class="d-flex justify-content-between"><span class="text-muted small">Ticket</span><span class="fw-semibold v font-monospace">{{ appeal.challan.ticket_no }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Plate</span><span class="fw-semibold v font-monospace">{{ appeal.challan.plate_number }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Violation</span><span class="fw-semibold v">{{ appeal.challan.get_violation_type_display }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Fine</span><span class="fw-semibold v">{{ appeal.challan.fine_amount|intcomma }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Issue Date</span><span class="fw-semibold v small ">{{ appeal.challan.issue_date|date:"Y-m-d" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Due Date</span><span class="fw-semibold v small ">{{ appeal.challan.due_date|date:"Y-m-d" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Location</span><span class="fw-semibold v">{{ appeal.challan.location|default:"-" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Owner</span><span class="fw-semibold v">{{ appeal.challan.owner_name|default:"-" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">CNIC</span><span class="fw-semibold v font-monospace small">{{ appeal.challan.cnic|default:"-" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Payment</span><span class="fw-semibold v">
+ {% if appeal.challan.payment_status == 'PAID' %}<span class="badge bg-success">PAID</span>
+ {% elif appeal.challan.payment_status == 'VOIDED' %}<span class="badge bg-secondary">VOIDED</span>
+ {% else %}<span class="badge bg-warning">UNPAID</span>{% endif %}
  </span></div>
  </div>
  </div>
  </div>
  <div>
- <div class=" h-100">
+ <div class="card h-100">
  <div class="card-header"><span><i class="bi bi-circle me-2"></i>Comments</span></div>
  <div class="card-body">
  <div class="small fw-semibold ">Citizen's reason</div>
@@ -78,22 +78,22 @@
  placeholder="Explain your decision. This message will be sent to the citizen and (if routing) the next reviewer."></textarea>
  </div>
  <input type="hidden" name="action" value="">
- <div class="form-actions ">
+ <div class="d-flex gap-2 justify-content-end flex-wrap">
  {% if can_finalize %}
- <button type="submit" class="btn btn-success" onclick="this.form.action.value='approve'">
- <i class="bi bi-arrow-right-circle me-1"></i>Approve (Void Challan)
+ <button type="submit" class="sc-btn sc-btn-success" onclick="this.form.action.value='approve'">
+ <i class="bi bi-check-lg me-1"></i>Approve (Void Challan)
  </button>
- <button type="submit" class="btn btn-danger" onclick="this.form.action.value='reject'">
- <i class="bi bi-arrow-right-circle me-1"></i>Reject (Challan Stands)
+ <button type="submit" class="sc-btn sc-btn-danger" onclick="this.form.action.value='reject'">
+ <i class="bi bi-x-lg me-1"></i>Reject (Challan Stands)
  </button>
  {% endif %}
  {% if can_route_to_ssp %}
- <button type="submit" class="btn btn-primary" onclick="this.form.action.value='route_to_ssp'">
+ <button type="submit" class="sc-btn sc-btn-primary" onclick="this.form.action.value='route_to_ssp'">
  <i class="bi bi-arrow-right-circle me-1"></i>Route to SSP
  </button>
  {% endif %}
  {% if can_route_to_dig %}
- <button type="submit" class="btn btn-primary" onclick="this.form.action.value='route_to_dig'">
+ <button type="submit" class="sc-btn sc-btn-primary" onclick="this.form.action.value='route_to_dig'">
  <i class="bi bi-arrow-right-circle me-1"></i>Escalate to DIG
  </button>
  {% endif %}

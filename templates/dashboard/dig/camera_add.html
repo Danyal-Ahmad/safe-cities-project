@@ -7,7 +7,7 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-camera-video me-2"></i>Add camera</h1>
- <p class=" opacity-75">Register RTSP / HTTP stream or upload a demo video for live tracking</p>
+ <p class="sc-lead">Register RTSP / HTTP stream or upload a demo video for live tracking</p>
  </div>
  <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-list-ul me-1"></i>List</a>
 </div>
@@ -67,11 +67,11 @@
  <div class="card-header">Stream source</div>
  <div class="card-body">
  <div>
- <label class=" fw-semibold">Source type *</label>
+ <label class="form-label fw-semibold">Source type *</label>
  <div class="btn-group w-100" role="group">
- <input type="radio" class="btn-check" name="source_type" id="srcRtsp" value="rtsp" checked onchange="toggleSource()">
+ <input type="radio" class="form-check-input" name="source_type" id="srcRtsp" value="rtsp" checked onchange="toggleSource()">
  <label class="sc-btn sc-btn-primary" for="srcRtsp"><i class="bi bi-arrow-right-circle me-1"></i>RTSP / HTTP</label>
- <input type="radio" class="btn-check" name="source_type" id="srcVideo" value="video" onchange="toggleSource()">
+ <input type="radio" class="form-check-input" name="source_type" id="srcVideo" value="video" onchange="toggleSource()">
  <label class="sc-btn sc-btn-primary" for="srcVideo"><i class="bi bi-arrow-right-circle me-1"></i>Upload video</label>
  </div>
  </div>
@@ -95,7 +95,7 @@
  </div>
  <label>Video file *</label>
  <input type="file" name="video_file" accept="video/mp4,video/webm,video/avi,video/quicktime">
- <div>Max size depends on server limits. Prefer short clips (30–120s) looping on the monitor.</div>
+ <div>Max size depends on server limits. Prefer short clips (30-120s) looping on the monitor.</div>
  </div>
  </div>
  </div>
@@ -106,12 +106,12 @@
  <div class="card-header">Status</div>
  <div class="card-body">
  <div>
- <input class="-input" type="checkbox" name="is_streaming" id="isStreaming" checked>
- <label class="-label" for="isStreaming">Streaming enabled</label>
+ <input class="form-check-input" type="checkbox" name="is_streaming" id="isStreaming" checked>
+ <label class="form-check-label" for="isStreaming">Streaming enabled</label>
  </div>
  <div>
- <input class="-input" type="checkbox" name="is_active" id="isActive" checked>
- <label class="-label" for="isActive">Camera active</label>
+ <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+ <label class="form-check-label" for="isActive">Camera active</label>
  </div>
  </div>
  </div>
@@ -126,7 +126,7 @@
  </div>
  </div>
  <div>
- <button type="submit" class="btn btn-primary "><i class="bi bi-camera-video me-1"></i>Add camera</button>
+ <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-camera-video me-1"></i>Add camera</button>
  <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary">Cancel</a>
  </div>
  </div>

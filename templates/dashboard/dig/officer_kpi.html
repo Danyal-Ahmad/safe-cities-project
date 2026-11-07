@@ -20,7 +20,7 @@
 </div>
 
 <div>
- <div class="card-header ">
+ <div class="card-header">
  <div><i class="bi bi-circle"></i> Officer Performance</div>
  <span class="badge bg-secondary">{{ kpis|length }}</span>
  </div>
@@ -41,8 +41,8 @@
  {% for k in kpis %}
  <tr>
  <td>
- <div class="flex ">
- <div class="avatar avatar-sm">{{ k.officer.initials }}</div>
+ <div class="d-flex align-items-center gap-2">
+ <span class="sc-avatar">{{ k.officer.initials }}</span>
  <span>{{ k.officer.display_name|default:"-" }}</span>
  </div>
  </td>
@@ -50,9 +50,9 @@
  <td>{{ k.confirmed }}</td>
  <td>{{ k.rejected }}</td>
  <td>
- {% if k.accuracy >= 80 %}<span class="badge ">{{ k.accuracy }}%</span>
- {% elif k.accuracy >= 60 %}<span class="badge ">{{ k.accuracy }}%</span>
- {% else %}<span class="badge ">{{ k.accuracy }}%</span>{% endif %}
+ {% if k.accuracy >= 80 %}<span class="badge bg-success">{{ k.accuracy }}%</span>
+ {% elif k.accuracy >= 60 %}<span class="badge bg-warning">{{ k.accuracy }}%</span>
+ {% else %}<span class="badge bg-danger">{{ k.accuracy }}%</span>{% endif %}
  </td>
  <td>{{ k.appeals }}</td>
  </tr>
@@ -60,7 +60,7 @@
  </tbody>
  </table>
  {% else %}
- <div class="empty-state"><i class=" data</h3><p>No officer activity recorded yet.</p></div>
+ <div class="empty-state"><i class="bi bi-inbox"></i>No officer activity data available yet.</div>
  {% endif %}
  </div>
 </div>

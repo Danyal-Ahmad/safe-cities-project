@@ -111,7 +111,7 @@
             <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="False positive: Vehicle was executing a legal U-turn">Legal Turn</button>
             <button type="button" class="md-badge md-badge-secondary" style="cursor: pointer; font-size: 0.68rem;" data-quick-note="Plate number mismatch: character misclassified by OCR">OCR Mismatch</button>
           </div>
-          <textarea name="notes" id="reviewNotesInput" rows="2" class="md-textarea" placeholder="Optional for confirm; auto-filled above for reject/flag" style="font-size: 0.8rem;">{{ detection.review_notes|default:'' }}</textarea>
+          <textarea name="notes" id="reviewNotesInput" aria-label="Review notes" rows="2" class="md-textarea" placeholder="Optional for confirm; auto-filled above for reject/flag" style="font-size: 0.8rem;">{{ detection.review_notes|default:'' }}</textarea>
         </div>
 
         <!-- Zero-Friction Action Buttons with Keyboard Shortcut Tags -->

@@ -7,7 +7,7 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-calendar-range me-2"></i>Assign Shift</h1>
- <p class=" opacity-75">Create a shift window. Leave officer empty for automatic assignment.</p>
+ <p class="sc-lead">Create a shift window. Leave officer empty for automatic assignment.</p>
  </div>
  <div>
  <a href="{% url 'dig:shift_management' %}" class="sc-btn sc-btn-primary">
@@ -24,15 +24,15 @@
  {% csrf_token %}
  <div>
  <div>
- <label class=" fw-semibold">Start time</label>
+ <label class="form-label fw-semibold">Start time</label>
  <input type="datetime-local" name="start_time" required>
  </div>
  <div>
- <label class=" fw-semibold">End time</label>
+ <label class="form-label fw-semibold">End time</label>
  <input type="datetime-local" name="end_time" required>
  </div>
  <div>
- <label class=" fw-semibold">Officer (optional)</label>
+ <label class="form-label fw-semibold">Officer (optional)</label>
  <select name="officer_id">
  <option value="">Auto-assign (least busy)</option>
  {% for o in officers %}
@@ -42,7 +42,7 @@
  </div>
  </div>
  <div>
- <button type="submit" class="btn btn-primary"><i class="bi bi-calendar-range me-1"></i>Save shift</button>
+ <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-calendar-range me-1"></i>Save shift</button>
  <a href="{% url 'dig:shift_management' %}" class="sc-btn sc-btn-primary">Cancel</a>
  </div>
  </form>

@@ -819,3 +819,21 @@ select.form-select {
 @media print {
   .modal, .modal-backdrop { display: none !important; }
 }
+
+
+/* sc-avatar: initials circle (officer lists) */
+.sc-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--sc-primary, #2563EB);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

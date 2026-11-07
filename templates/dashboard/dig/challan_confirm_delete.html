@@ -8,25 +8,25 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-receipt me-2"></i>Delete Challan</h1>
- <p class=" opacity-75">This action is permanent and cannot be undone</p>
+ <p class="sc-lead">This action is permanent and cannot be undone</p>
  </div>
 </div>
 
 <div>
  <div>
- <div class=" confirm-card">
+ <div class="sc-card">
  <div class="card-header"><i class="bi bi-circle me-2"></i>Confirm deletion</div>
  <div class="py-4">
- <p>Ticket <strong class="form-control font-monospace">{{ challan.ticket_no|default:challan.id }}</strong></p>
- <p class=" small ">
- Plate: <span class="form-control font-monospace">{{ challan.plate_number|default:"-" }}</span>
+ <p>Ticket <strong class="font-monospace">{{ challan.ticket_no|default:challan.id }}</strong></p>
+ <p class="d-flex justify-content-between small">
+ Plate: <span class="font-monospace">{{ challan.plate_number|default:"-" }}</span>
  · Fine: {{ challan.fine_amount|default:"-" }}
  </p>
  <form method="post">
  {% csrf_token %}
  <div class="form-actions pt-0">
  <a href="{% url 'dig:challan_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Cancel</a>
- <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Permanently Delete</button>
+ <button type="submit" class="sc-btn sc-btn-danger"><i class="bi bi-trash me-1"></i>Permanently Delete</button>
  </div>
  </form>
  </div>

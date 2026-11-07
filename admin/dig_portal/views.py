@@ -3583,7 +3583,7 @@ def challan_template_designer(request):
 def live_tracking(request):
     """Shared Live Tracking page for staff portals.
 
-    permission.json grants `live_tracking` to OFFICER + IT Support only -
+    The RBAC matrix grants `live_tracking` to OFFICER + IT Support only -
     DIG/SSP/Supervisor/Audit are intentionally excluded.
     """
     from admin.shared import LiveTrackingService

@@ -9,7 +9,7 @@ Shared by:
 The counters live per-process (thread-safe via ``_lock``). This matches the
 existing project pattern: the locmem cache used by django_ratelimit has the
 same single-process scope. For a multi-worker deployment move both to Redis
-(see docs/SECURITY_AUDIT.md - residual risks).
+(residual risks tracked in the security review).
 """
 from __future__ import annotations
 

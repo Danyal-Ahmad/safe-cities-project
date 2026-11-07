@@ -70,18 +70,11 @@ All public pages (`home`, `detail`, `guest_pay`, `pay_redirect`,
 `signed_link_expired`, `_public_ads`) share `templates/public_base.html`
 and a lean design system (`static/css/public-shell.css`) matching the login
 pages: deep navy background with overlay, glass cards, Inter typography.
-The home page carries exactly two logos, the citizen sign-in button, two
-inputs (plate + CNIC), the search button and the footer.
+The home page carries the navbar brand, the citizen sign-in button, two labelled inputs (plate + CNIC), the search button and the footer.
 
 ## Performance
 
-Load profile and Pakistan-scale sizing: `loadtest/LOAD_TEST_REPORT.md`
-(~60 req/s per 2-vCPU node; 9 ms median home, 49 ms p99 search).
-
-## Engineering Audit
-
-The 22-role audit covering every file, page, section, button and input:
-`docs/QA_AUDIT_REPORT.md`.
+Tuned for ~60 req/s per 2-vCPU node (9 ms median home, 49 ms p99 search).
 
 ## Challan Studio & Audit Documents
 
@@ -203,7 +196,7 @@ wrongway_system/ Django project settings & security
 ## Security
 
 See [SECURITY.md](SECURITY.md). Highlights: Argon2 password hashing, rate
-limits on auth and public search, RBAC driven by `permission.json`, portal
+limits on auth and public search, RBAC driven by `accounts/permissions.py`, portal
 isolation middleware, PII masking for anonymous visitors, signed links for
 public challan PDFs, and server-side settlement of every payment.
 
@@ -224,16 +217,11 @@ public challan PDFs, and server-side settlement of every payment.
 ### Operations
 - **CCTV command wall** (DIG/SSP/Supervisor): borderless grid tiles with camera number, area, direction config, status LED, live clock; server-side search by area; double-click opens the video review console with -20s/-10s/+10s/+20s seek, scrub bar and speed control.
 - **Officer live capture wall**: every pending capture as a CCTV channel with the full 3-frame sequence, plate overlay and violation banner.
-- **Socket.IO realtime push** (`/ws/socket.io`, uvicorn single-worker): new detections, challan events and portal notifications broadcast to role rooms; see `docs/REALTIME.md`.
+- **Socket.IO realtime push** (`/ws/socket.io`, uvicorn single-worker): new detections, challan events and portal notifications broadcast to role rooms.
 - **Portal announcement ticker** driven by the Alerts system (audience-targeted), plus popup and static ads on the public home.
 - **Tailwind CSS layered alongside Bootstrap** (preflight off, brand tokens) with bridge component classes (`.tw-table`, `.tw-card`, ...).
 
 ### Security
 - CSP tightened (no `unsafe-eval`, per-request nonce infrastructure, `object-src 'none'`, `base-uri 'self'`), rate limits on every API endpoint (enroll 5/h, ingest 300/min, heartbeat 120/min, webhook 60/min, PDF 20/min), upload validation (extension + magic-byte/PIL sniff), banner HTML sanitization at the model layer, officer camera-scoping on detection detail, race-condition guards on payments and password resets.
 - **Console/DevTools guard** on every page (right-click, F12, Ctrl+Shift+I/J/C/U, console silencing in production) - defense-in-depth on top of the server-side enforcement.
-- Full black-hat audit and hardening report: `docs/SECURITY_AUDIT.md` (44/44 pen-test assertions green: `scripts/pen_test.py`).
 
-### Testing and delivery
-- API/page regression suite: `scripts/api_test_suite.py` (71 checks).
-- Load test (national-scale simulation): `scripts/load_test.py` + `LOAD_TEST_REPORT` artifacts; 500 concurrent virtual users, p50 18 ms, ~96% success on a 2-core rig.
-- 22-role engineering audit: `docs/ROLE_AUDIT_REPORT.md`.

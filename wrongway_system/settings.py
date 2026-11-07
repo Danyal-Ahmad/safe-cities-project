@@ -208,7 +208,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # plain unhashed URL instead of raising "Missing staticfiles manifest entry".
 # Run `python3 manage.py collectstatic` in production (launcher.py already
 # does this automatically). MEDIA (/uploads) is NOT handled by WhiteNoise -
-# see docs/SECURITY_AUDIT.md "Static & media serving" for the nginx recipe
+# see the deployment notes "Static & media serving" for the nginx recipe
 # that never serves uploads with executable content types.
 WHITENOISE_MAX_AGE = 0 if DEBUG else 60      # non-fingerprinted files
 WHITENOISE_IMMUTABLE_FILE_MAX_AGE = 31536000  # fingerprinted files
@@ -318,7 +318,7 @@ if not DEBUG:
 #     onchange=..., banner delete onsubmit=confirm(...)). Nonce coverage
 #     for the ONE owned inline script (tailwind.config in base.html) is in
 #     place, so the residual risk can be retired template-by-template; see
-#     docs/SECURITY_AUDIT.md "Residual risks".
+#     deployment notes "Residual risks".
 #   * https://code.jquery.com - REMOVED (dead host; jQuery is served from
 #     cdn.jsdelivr.net).
 #

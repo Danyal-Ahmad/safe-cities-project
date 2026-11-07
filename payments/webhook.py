@@ -16,7 +16,7 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
-# Gateway webhook limit: 60/min per IP (see docs/SECURITY_AUDIT.md matrix).
+# Gateway webhook limit: 60/min per IP (security review matrix).
 WEBHOOK_LIMIT = (60, 60)
 
 

@@ -11,7 +11,7 @@ Start with a SINGLE worker so in-process emits reach connected clients:
     uvicorn wrongway_system.asgi:application --host 0.0.0.0 --port 8000 \
         --workers 1 --log-level info
 
-(or: python launcher.py realtime). See docs/REALTIME.md.
+(or: python launcher.py realtime).
 
 If python-socketio is unavailable or the realtime layer fails to build,
 ``application`` falls back to the plain Django ASGI application so the

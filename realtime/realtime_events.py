@@ -11,7 +11,7 @@ longer need to poll JSON endpoints for updates.
 
 The server is mounted by wrongway_system/asgi.py at ``/ws/socket.io`` and
 must run in a SINGLE process (uvicorn --workers 1) so in-process emits
-reach connected clients. See docs/REALTIME.md for the multi-worker Redis
+reach connected clients. Multi-worker deployments should front this with Redis.
 message-queue option.
 
 Security note: the Socket.IO handshake does not carry the Django session,

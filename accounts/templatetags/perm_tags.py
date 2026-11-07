@@ -1,6 +1,6 @@
 """
 Permission template tags - read from accounts/permissions.py
-which is auto-generated from permission.json.
+which is defined in accounts/permissions.py.
 
 Usage in templates:
   {% load perm_tags %}

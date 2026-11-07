@@ -11,7 +11,7 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
-# Demo checkout POST limit: 30/min per IP (see docs/SECURITY_AUDIT.md matrix).
+# Demo checkout POST limit: 30/min per IP (security review matrix).
 # GET is unlimited - it only renders a confirmation page for an existing
 # pending reference and never mutates anything.
 DEMO_CHECKOUT_LIMIT = (30, 60)

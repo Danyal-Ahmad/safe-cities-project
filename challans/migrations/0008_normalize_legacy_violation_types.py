@@ -1,8 +1,5 @@
 from django.db import migrations
 
-# Legacy rows wrote the class constant name instead of its value.
-# Normalize any invalid violation_type to a valid catalog key so
-# get_violation_type_display() resolves properly everywhere.
 
 VALID_KEYS = ('wrong_way', 'no_helmet', 'signal_break', 'over_speed', 'other')
 

@@ -33,7 +33,7 @@
   var MIN_DURATION_S = 18;  // never scroll faster than this
   var CLONE_FLAG = 'data-ticker-clone';
   var RESIZE_DELAY_MS = 200;
-  var MAX_COPIES = 12;      // safety cap when repeating very short sets
+  var MAX_COPIES = 24;      // safety cap when repeating very short sets (keeps the loop gapless)
 
   var resizeTimer = null;
   var lastEvent = null;
@@ -63,10 +63,12 @@
 
   // Measures the track and activates the seamless right-to-left marquee.
   // Spacing between items is a margin on every item (see tailwind-bridge.css).
-  // The item set is duplicated until the ORIGINAL half of the track is at
-  // least as wide as the viewport, which guarantees the translateX(-50%)
-  // loop is seamless no matter how few items there are - the ticker always
-  // scrolls, infinitely, right to left.
+  //
+  // True-infinite rule: the track must hold an EVEN number of identical
+  // sets and the FIRST HALF of the track must be at least as wide as the
+  // viewport (plus buffer). translateX(-50%) then lands exactly on a set
+  // boundary, so the loop is seamless and never runs out of content -
+  // no blank gap can open at the leading edge, no matter how few items.
   function ensureMarquee() {
     removeClones();
 
@@ -84,16 +86,15 @@
     }
     if (setWidth < 1) { return; }
 
-    // Repeat the set enough times that the original half covers the
-    // viewport (plus a buffer), then mirror it for the -50% loop. The copy
-    // count must be ODD so the track holds an even number of identical
-    // sets and translateX(-50%) lands exactly on a set boundary - that is
-    // what makes the infinite loop seamless.
-    var needed = Math.max(1, Math.ceil((viewport.clientWidth + 80) / setWidth));
-    if (needed % 2 === 0) { needed += 1; }
-    var copies = Math.min(needed, MAX_COPIES);
-    if (copies % 2 === 0) { copies -= 1; }
-    if (copies < 1) { copies = 1; }
+    // Number of sets needed so that HALF the track covers the viewport.
+    var halfSets = Math.max(1, Math.ceil((viewport.clientWidth + 120) / setWidth));
+    // Total sets must be even for the -50% loop to land on a set boundary.
+    var totalSets = halfSets * 2;
+    if (totalSets > MAX_COPIES + 1) { totalSets = MAX_COPIES + 1; }
+    if (totalSets % 2 !== 0) { totalSets += 1; }
+    // copies = extra sets beyond the originals.
+    var copies = Math.max(0, totalSets - 1);
+    if (copies < 1) { copies = 1; totalSets = 2; }
 
     for (var c = 0; c < copies; c++) {
       for (var i = 0; i < items.length; i++) {
@@ -168,6 +169,13 @@
       item.appendChild(t);
     }
     if (message) {
+      if (title) {
+        var d1 = document.createElement('span');
+        d1.className = 'sc-ticker-dash';
+        d1.setAttribute('aria-hidden', 'true');
+        d1.textContent = '\u2014';
+        item.appendChild(d1);
+      }
       var m = document.createElement('span');
       m.className = 'sc-ticker-item-message';
       m.textContent = message;
@@ -177,6 +185,13 @@
     var fresh = document.createElement('span');
     fresh.className = 'sc-ticker-item-new';
     fresh.textContent = 'NEW';
+    if (title || message) {
+      var d2 = document.createElement('span');
+      d2.className = 'sc-ticker-dash';
+      d2.setAttribute('aria-hidden', 'true');
+      d2.textContent = '\u2014';
+      item.appendChild(d2);
+    }
     item.appendChild(fresh);
 
     track.insertBefore(item, track.firstChild);

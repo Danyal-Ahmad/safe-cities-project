@@ -90,13 +90,23 @@
 
     function closeUserMenu() {
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.remove('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (dd) { dd.classList.remove('open'); dd.classList.remove('show'); }
+        if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
     function scToggleUserMenu(e) {
         if (e) e.stopPropagation();
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.toggle('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (dd) {
+            // 'open' is the class the stylesheet reacts to; keep 'show' in
+            // sync for any legacy rule that still expects it.
+            const willOpen = !dd.classList.contains('open');
+            dd.classList.toggle('open', willOpen);
+            dd.classList.toggle('show', willOpen);
+            if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
     }
 
     function initUserMenu() {

@@ -1,0 +1,390 @@
+{% comment %}
+  SAFE CITIES PROJECT — government_grid_a4.html
+  "Government Grid" citation matrix layout (single A4 page, print-exact).
+
+  Ported from the approved "challan-template-1" reference sheet and
+  re-adjusted to the project print contract:
+    - ONE A4 page, @page margin 0, .sheet fixed 210 x 297 mm (overflow
+      hidden) so a second page is structurally impossible.
+    - No page numbers, no localhost/site URLs anywhere on the sheet.
+    - Payment channels render as the real static/img/payment icons when
+      present, with a plain text list as fallback (sample previews).
+    - Urdu set in Noto Nastaliq Urdu via @font-face (static/fonts/).
+
+  Layout uses CSS tables (WeasyPrint-deterministic), never flexbox.
+  Height budget (mm): padding 3 + 7 | hd 32 | title-row 20 | cols 84
+  | mid 88 | low 32 | ft 12 | margins 5 x 2.6 = 13  =>  total 291
+  ====================================================================
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>E-Challan {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu';
+    src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu';
+    src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  @font-face { font-family: 'Noto Naskh Arabic';
+    src: url('static/fonts/NotoNaskhArabic-Regular.ttf'); font-weight: 400; }
+  :root {
+    --navy: #0b3a78; --navy-2: #12498f; --paper: #f4f8fd; --panel: #ffffff;
+    --line: #cfdbea; --red: #d3202a; --red-bg: #fdecee;
+    --ink: #14233a; --muted: #5a6b82;
+    --ur: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Noto Naskh Arabic", serif;
+    --sans: "Segoe UI", "Liberation Sans", Arial, Helvetica, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #ffffff; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact;
+         font-family: var(--sans); color: var(--ink); font-size: 8pt; }
+  img { display: block; max-width: 100%; }
+  .ur { font-family: var(--ur); direction: rtl; unicode-bidi: isolate; }
+
+  /* ---------- A4 sheet (fixed heights, one page) ---------- */
+  .sheet { width: 210mm; height: 297mm; margin: 0 auto; background: #eaf1fa;
+           padding: 3mm 3mm 7mm; position: relative; overflow: hidden; }
+  .demo-strip { position: absolute; left: 0; right: 0; bottom: 0; height: 4.4mm;
+                line-height: 4.4mm; text-align: center; font-size: 5.6pt;
+                letter-spacing: .14em; text-transform: uppercase; color: #6b7a90;
+                background: #dde7f3; }
+
+  /* ---------- header (32mm) ---------- */
+  .hd { height: 32mm; margin-bottom: 2.6mm; background: var(--navy); border-radius: 2.2mm;
+        color: #fff; display: table; width: 100%; table-layout: fixed; }
+  .hd .hd-logo { display: table-cell; width: 32mm; vertical-align: middle; text-align: center; }
+  .hd-logo .ring { display: inline-block; width: 24mm; height: 24mm; border-radius: 50%;
+                   background: #fff; padding: 1.5mm; }
+  .hd-logo .ring img { width: 100%; height: 100%; object-fit: contain; }
+  .hd .hd-title { display: table-cell; vertical-align: middle; padding: 0 3mm; }
+  .hd-title h1 { font-size: 18pt; line-height: 1.15; font-weight: 800; letter-spacing: .02em;
+                 text-transform: uppercase; }
+  .hd-title .tag { margin-top: 2mm; font-size: 6.4pt; letter-spacing: .18em;
+                   text-transform: uppercase; color: #dbe6f6; }
+  .hd .hd-ur { display: table-cell; width: 52mm; vertical-align: middle; text-align: center; }
+  .hd-ur .a { font-size: 12pt; line-height: 2; }
+  .hd-ur .b { border-top: .25mm solid rgba(255,255,255,.55); margin-top: 1mm; padding-top: 1mm;
+              font-size: 8pt; line-height: 2; color: #e6eefb; }
+  .hd .hd-badge { display: table-cell; width: 30mm; vertical-align: middle; text-align: center; }
+  .hd-badge img { width: 22mm; height: 22mm; object-fit: contain; }
+
+  /* ---------- title row (24mm) ---------- */
+  .title-row { height: 24mm; margin-bottom: 2.6mm; display: table; width: 100%;
+               table-layout: fixed; background: var(--panel); border: .3mm solid var(--line);
+               border-radius: 2.2mm; padding: 2mm 3.4mm; }
+  .title-row .tt { display: table-cell; vertical-align: middle; width: 46%; padding-left: 2mm; }
+  .tt h2 { font-size: 19pt; line-height: 1.2; font-weight: 900; color: var(--navy);
+           letter-spacing: .01em; text-transform: uppercase; }
+  .tt p { margin-top: 1.6mm; font-size: 8.4pt; font-weight: 600; letter-spacing: .13em;
+          color: var(--navy); text-transform: uppercase; }
+  .title-row .no-box { display: table-cell; vertical-align: middle; width: 28%;
+                       border: .35mm solid var(--navy); border-radius: 2mm; padding: 1.6mm 3mm;
+                       margin: 0 3mm; }
+  .no-box .l { font-size: 7pt; color: var(--muted); font-weight: 600; }
+  .no-box .big { font-size: 11.4pt; font-weight: 800; color: var(--navy);
+                 padding-bottom: 1.2mm; border-bottom: .25mm solid var(--line);
+                 margin-bottom: 1.2mm; letter-spacing: .02em; }
+  .no-box .dt { font-size: 8.8pt; font-weight: 600; margin-top: .4mm; }
+  .title-row .qr-box { display: table-cell; vertical-align: middle; width: 26%;
+                       border: .35mm solid var(--navy); border-radius: 2mm; padding: 1.6mm;
+                       text-align: center; }
+  .qr-box .qr { display: inline-block; width: 15mm; height: 15mm; background: #fff;
+                padding: 1mm; border: .22mm solid var(--line); border-radius: 1mm; }
+  .qr-box .qr svg, .qr-box .qr img { width: 100%; height: 100%; }
+
+  /* ---------- three-column grid (84mm) ---------- */
+  .cols { height: 84mm; margin-bottom: 2.6mm; display: table; width: 100%;
+          table-layout: fixed; border-spacing: 3mm 0; border-collapse: separate; }
+  .box { display: table-cell; vertical-align: top; background: var(--panel);
+         border: .3mm solid var(--navy); border-radius: 2.2mm; overflow: hidden; }
+  .box.b-veh { width: 36%; }
+  .box.b-vio { width: 34%; }
+  .box.b-pay { width: 30%; }
+  .box .bh { height: 8.6mm; background: var(--navy); color: #fff; display: table;
+             width: 100%; table-layout: fixed; }
+  .box .bh > span { display: table-cell; vertical-align: middle; padding: 0 3mm;
+                    font-size: 8.6pt; font-weight: 700; letter-spacing: .02em;
+                    text-transform: uppercase; white-space: nowrap; }
+  .tbl { padding: 1mm 3mm 1.4mm; }
+  .r { display: table; width: 100%; table-layout: fixed; border-bottom: .22mm solid #e0e8f2;
+       font-size: 7.6pt; line-height: 1.3; }
+  .r:last-child { border-bottom: 0; }
+  .r .k { display: table-cell; width: 24mm; vertical-align: middle; font-weight: 700; }
+  .r .c { display: table-cell; vertical-align: middle; width: 3mm; color: var(--muted); }
+  .r .v { display: table-cell; vertical-align: middle; font-weight: 500; }
+  .r .v b { font-weight: 800; }
+  .r .v.red { color: var(--red); font-weight: 800; }
+  .b-veh .r { height: 8mm; }
+  .b-vio .r { height: 8.8mm; }
+  .vio .v .ur { display: block; font-size: 7.6pt; line-height: 1.8; text-align: left; }
+
+  /* payment box */
+  .b-pay { border-color: var(--red); background: #fff; }
+  .b-pay .ph { height: 9mm; background: var(--red-bg); color: var(--red); display: table;
+               width: 100%; table-layout: fixed; border-bottom: .22mm solid #f1c9cd; }
+  .b-pay .ph > span { display: table-cell; vertical-align: middle; padding: 0 3mm;
+                      font-size: 8.6pt; font-weight: 800; text-transform: uppercase; }
+  .b-pay .ph > span i { display: inline-block; width: 4.6mm; height: 4.6mm; border-radius: 50%;
+                        background: var(--red); color: #fff; font-style: normal; font-size: 7pt;
+                        line-height: 4.6mm; text-align: center; font-weight: 900; margin-right: 2mm; }
+  .pay .tot { text-align: center; padding: 2mm 2mm 1.6mm; border-bottom: .3mm solid var(--red);
+              margin: 0 3mm; }
+  .pay .tot .l { font-size: 7.4pt; font-weight: 600; color: var(--red); }
+  .pay .tot .amt { font-size: 16pt; font-weight: 800; color: var(--red); line-height: 1.25; }
+  .pay h4 { font-size: 8.2pt; font-weight: 800; margin: 1.8mm 3mm 1mm; }
+  .pm { list-style: none; padding: 0 3mm; }
+  .pm li { display: table; width: 100%; table-layout: fixed; height: 7.8mm; }
+  .pm li .pmi { display: table-cell; vertical-align: middle; width: 8mm; }
+  .pm li .pmi img { width: 6.4mm; height: 6.4mm; object-fit: contain; }
+  .pm li .pmt { display: table-cell; vertical-align: middle; font-size: 7pt; line-height: 1.3; }
+  .pay .note { margin: 0 3mm; padding: 1.2mm 0 1.6mm; border-top: .22mm solid #e0e8f2;
+               font-size: 6.6pt; line-height: 1.4; color: var(--muted); }
+
+  /* ---------- evidence + important (86mm) ---------- */
+  .mid { height: 86mm; margin-bottom: 2.6mm; display: table; width: 100%;
+         table-layout: fixed; border-spacing: 3mm 0; border-collapse: separate; }
+  .mid .evi { width: 68%; }
+  .mid .imp { width: 32%; }
+  .evi .body { height: 77.4mm; padding: 2.4mm 2.6mm; display: table; width: 100%;
+               table-layout: fixed; }
+  .body .camcell { display: table-cell; vertical-align: top; width: 63%; padding-right: 2.6mm; }
+  .body .sidecell { display: table-cell; vertical-align: top; width: 37%; }
+  .cam { position: relative; background: #2a2d33; border-radius: 1.2mm; overflow: hidden;
+         height: 72.4mm; }
+  .cam > img { width: 100%; height: 100%; object-fit: cover; }
+  .osd { position: absolute; top: 0; left: 0; background: rgba(0,0,0,.82); color: #fff;
+         font-size: 8pt; line-height: 1.5; padding: .8mm 1.8mm 1mm; white-space: pre; }
+  .side .mini { border: .25mm solid var(--line); border-radius: 1.4mm; padding: 1.6mm 2mm;
+                background: #fbfdff; margin-bottom: 2.4mm; }
+  .side .mini:last-child { margin-bottom: 0; }
+  .mini h5 { font-size: 7.4pt; font-weight: 700; margin-bottom: 1.2mm; }
+  .mini .pic { height: 26mm; background: #111; border-radius: 1mm; overflow: hidden; }
+  .mini .pic img { width: 100%; height: 100%; object-fit: cover; }
+  .mini .txt { font-size: 7pt; line-height: 1.7; color: #3b4d66; }
+  .mini .txt b { font-weight: 800; color: var(--navy); }
+
+  .imp .body { height: 77.4mm; padding: 1.6mm 3mm 0; position: relative; }
+  .imp ul { list-style: disc; padding-left: 5mm; font-size: 7.2pt; line-height: 1.5; }
+  .imp li { margin-bottom: 2.2mm; }
+  .imp li b { font-weight: 800; }
+  .imp .ur-slogan { position: absolute; left: 0; right: 0; bottom: 11mm; text-align: center;
+                    font-size: 8pt; line-height: 2; color: var(--navy); }
+  .skyline { position: absolute; left: 0; right: 0; bottom: 0; height: 9mm; opacity: .28; }
+  .skyline svg { width: 100%; height: 100%; stroke: var(--navy); fill: none; stroke-width: .9; }
+
+  /* ---------- rules + officer (32mm) ---------- */
+  .low { height: 32mm; margin-bottom: 2.6mm; display: table; width: 100%;
+         table-layout: fixed; border-spacing: 3mm 0; border-collapse: separate; }
+  .low .rules { display: table-cell; vertical-align: top; width: 60%;
+                background: var(--panel); border: .3mm solid var(--line); border-radius: 2.2mm;
+                padding: 2.4mm 3.4mm; }
+  .low .officer { display: table-cell; vertical-align: middle; width: 40%;
+                  background: var(--panel); border: .3mm solid var(--line); border-radius: 2.2mm;
+                  padding: 2mm 3mm; }
+  .rules h3 { font-size: 8.6pt; font-weight: 800; color: var(--navy); text-transform: uppercase; }
+  .rules p { margin-top: 1.4mm; font-size: 7.4pt; line-height: 1.55; color: #3b4d66; }
+  .rules .bar { margin-top: 1.6mm; background: var(--navy-2); color: #fff; border-radius: 1.2mm;
+                height: 7mm; display: table; width: 100%; table-layout: fixed; }
+  .rules .bar span { display: table-cell; vertical-align: middle; text-align: center;
+                     font-size: 7.6pt; font-weight: 700; }
+  .rules .bar s { text-decoration: none; opacity: .6; }
+  .officer .sg { display: table-cell; vertical-align: middle; width: 68%; text-align: center; }
+  .officer .sg .sig { height: 11mm; }
+  .officer .sg .sig img { height: 100%; margin: 0 auto; object-fit: contain; }
+  .officer .sg .t { font-size: 8pt; font-weight: 800; margin-top: 1mm; }
+  .officer .sg .o { font-size: 7.2pt; color: #33465f; margin-top: .4mm; }
+  .officer .seal { display: table-cell; vertical-align: middle; width: 32%; text-align: center; }
+  .officer .seal img { width: 24mm; height: 24mm; object-fit: contain; }
+
+  /* ---------- footer (12mm) ---------- */
+  .ft { height: 12mm; background: var(--navy); border-radius: 2.2mm; display: table;
+        width: 100%; table-layout: fixed; color: #fff; font-size: 8.2pt; }
+  .ft div { display: table-cell; vertical-align: middle; text-align: center; padding: 0 2mm; }
+  .ft b { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- ========== HEADER ========== -->
+  <header class="hd">
+    <div class="hd-logo">
+      <span class="ring">{% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Safe Cities Project">{% endif %}</span>
+    </div>
+    <div class="hd-title">
+      <h1>Safe Cities Project</h1>
+      <p class="tag">Smart &middot; Safe &middot; Secure — Traffic Enforcement</p>
+    </div>
+    <div class="hd-ur">
+      <div class="a ur">سیف سٹیز پروجیکٹ</div>
+      <div class="b ur">سمارٹ · محفوظ · قابلِ اعتماد</div>
+    </div>
+    <div class="hd-badge">
+      {% if logo_right_path %}<img src="{{ logo_right_path }}" alt="University partner">{% endif %}
+    </div>
+  </header>
+
+  <!-- ========== TITLE ROW ========== -->
+  <section class="title-row">
+    <div class="tt">
+      <h2>E-Challan Notice</h2>
+      <p>Traffic Violation Citation</p>
+    </div>
+    <div class="no-box">
+      <div class="l">Challan No.</div>
+      <div class="big">{{ challan.ticket_no }}</div>
+      <div class="l">Issue Date &amp; Time</div>
+      <div class="dt">{{ challan.issue_date|date:"d M Y" }} &nbsp;{{ challan.created_at|date:"H:i" }}</div>
+    </div>
+    <div class="qr-box">
+      {% if qr_svg %}<span class="qr">{{ qr_svg|safe }}</span>{% endif %}
+    </div>
+  </section>
+
+  <!-- ========== VEHICLE / VIOLATION / PAYMENT ========== -->
+  <section class="cols">
+
+    <div class="box b-veh">
+      <div class="bh"><span>Vehicle &amp; Owner</span></div>
+      <div class="tbl">
+        <div class="r"><span class="k">Vehicle No.</span><span class="c">:</span><span class="v"><b>{{ challan.plate_number|default:"—" }}</b></span></div>
+        <div class="r"><span class="k">Vehicle Type</span><span class="c">:</span><span class="v">{{ challan.vehicle_type|default:"Car" }}</span></div>
+        <div class="r"><span class="k">Make / Year</span><span class="c">:</span><span class="v">{{ challan.make_year|default:"—" }}</span></div>
+        <div class="r"><span class="k">Color</span><span class="c">:</span><span class="v">{{ challan.color|default:"—" }}</span></div>
+        <div class="r"><span class="k">Chassis No.</span><span class="c">:</span><span class="v">{{ challan.chassis_no|default:"—" }}</span></div>
+        <div class="r"><span class="k">Engine No.</span><span class="c">:</span><span class="v">—</span></div>
+        <div class="r"><span class="k">Owner Name</span><span class="c">:</span><span class="v">{{ challan.owner_name|default:"—" }}</span></div>
+        <div class="r"><span class="k">CNIC No.</span><span class="c">:</span><span class="v">{{ challan.cnic|default:"—" }}</span></div>
+        <div class="r"><span class="k">Address</span><span class="c">:</span><span class="v">{{ challan.address|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="box b-vio vio">
+      <div class="bh"><span>Violation Details</span></div>
+      <div class="tbl">
+        <div class="r"><span class="k">Violation Type</span><span class="c">:</span><span class="v">{{ challan.get_violation_type_display|default:"Traffic Violation" }}<span class="ur">{{ challan.violation_type_display_ur|default:"خلاف ورزی" }}</span></span></div>
+        <div class="r"><span class="k">Location</span><span class="c">:</span><span class="v">{{ challan.location|default:"—" }}</span></div>
+        <div class="r"><span class="k">Date &amp; Time</span><span class="c">:</span><span class="v">{{ challan.created_at|date:"d M Y" }} &nbsp;{{ challan.created_at|date:"H:i" }}</span></div>
+        <div class="r"><span class="k">Camera</span><span class="c">:</span><span class="v">{% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif %}</span></div>
+        <div class="r"><span class="k">Legal Direction</span><span class="c">:</span><span class="v">{{ challan.legal_direction|default:"—"|capfirst }}</span></div>
+        <div class="r"><span class="k">Moving Direction</span><span class="c">:</span><span class="v">{{ challan.moving_direction|default:"—"|capfirst }}</span></div>
+        <div class="r"><span class="k">AI Confidence</span><span class="c">:</span><span class="v">{% if challan.confidence_percent %}{{ challan.confidence_percent }}%{% else %}—{% endif %}</span></div>
+        <div class="r"><span class="k">Fine Amount</span><span class="c">:</span><span class="v red">PKR {{ challan.fine_amount|floatformat:0 }}</span></div>
+      </div>
+    </div>
+
+    <div class="box b-pay pay">
+      <div class="ph"><span><i>!</i> Payment Required</span></div>
+      <div class="tot">
+        <div class="l">Total Amount Due</div>
+        <div class="amt">PKR {{ challan.fine_amount|floatformat:0 }}</div>
+      </div>
+      <h4>Payment Channels</h4>
+      <ul class="pm">
+        {% if payment_icons %}
+        {% for p in payment_icons %}
+        <li><span class="pmi"><img src="{{ p.path }}" alt="{{ p.label }}"></span><span class="pmt">{{ p.label }}</span></li>
+        {% endfor %}
+        {% else %}
+        <li><span class="pmt">Online — credit / debit card</span></li>
+        <li><span class="pmt">JazzCash / EasyPaisa mobile wallets</span></li>
+        <li><span class="pmt">Bank branches (NBP)</span></li>
+        <li><span class="pmt">ATM / internet banking</span></li>
+        <li><span class="pmt">Pakistan Post counters</span></li>
+        {% endif %}
+      </ul>
+      <div class="note">Pay within {{ due_days }} days to avoid additional charges and legal action.</div>
+    </div>
+  </section>
+
+  <!-- ========== EVIDENCE + IMPORTANT ========== -->
+  <section class="mid">
+    <div class="box evi">
+      <div class="bh"><span>Evidence</span></div>
+      <div class="body">
+        <div class="camcell">
+          <div class="cam">
+            {% if evidence_image_path %}
+            <img src="{{ evidence_image_path }}" alt="Annotated violation frame">
+            <div class="osd">VIOLATION: {{ challan.get_violation_type_display|default:"TRAFFIC VIOLATION"|upper }}
+TIME: {{ challan.created_at|date:"d M Y H:i" }}
+CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif %}</div>
+            {% else %}
+            <div class="osd">EVIDENCE FRAME PENDING</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="sidecell">
+          <div class="side">
+            <div class="mini">
+              <h5>Plate Close-up</h5>
+              {% if plate_image_path %}
+              <div class="pic"><img src="{{ plate_image_path }}" alt="Number plate crop"></div>
+              {% else %}
+              <div class="pic"></div>
+              {% endif %}
+            </div>
+            <div class="mini">
+              <h5>Detection Analysis</h5>
+              <div class="txt">
+                Legal direction: <b>{{ challan.legal_direction|default:"—"|capfirst }}</b><br>
+                Moving direction: <b>{{ challan.moving_direction|default:"—"|capfirst }}</b><br>
+                AI confidence: <b>{% if challan.confidence_percent %}{{ challan.confidence_percent }}%{% else %}—{% endif %}</b><br>
+                Evidence checks: <b>{% if evidence_summary %}{{ evidence_summary.passed|default:0 }}/{{ evidence_summary.total|default:0 }} passed{% else %}—{% endif %}</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="box imp">
+      <div class="bh"><span>Important</span></div>
+      <div class="body">
+        <ul>
+          <li>This is a computer generated challan. No physical challan will be issued.</li>
+          <li>View and pay this challan online through the <b>Safe Cities Project</b> citizen portal.</li>
+          <li>For any query, contact the Safe City helpline: <b>15</b>.</li>
+        </ul>
+        <div class="ur-slogan ur">قانون کی پاسداری<br>ہم سب کی ذمہ داری</div>
+        <div class="skyline">
+          <svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M0 58h200M8 58V40h10v18M22 58V28h9v30M36 58V34h12v24M52 58V44h8v14M150 58V30h8v28M162 58V20h6v38M172 58V36h12v22M120 50l4-20 4 20M118 58V50h12v8M186 58V8l3-6 3 6v50"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== RULES + OFFICER ========== -->
+  <section class="low">
+    <div class="rules">
+      <h3>Violation of Traffic Rules</h3>
+      <p>{{ legal_text|default:"Pay at any National Bank of Pakistan branch or Post Office before the due date. Non-payment may lead to additional charges and legal action under the traffic rules." }}</p>
+      <div class="bar">
+        <span>Drive Responsibly <s>|</s> Follow Rules <s>|</s> Save Lives</span>
+      </div>
+    </div>
+    <div class="officer">
+      <div class="sg">
+        <div class="sig">{% if officer_signature_path %}<img src="{{ officer_signature_path }}" alt="Issuing officer signature">{% endif %}</div>
+        <div class="t">{{ officer_signature_name|default:"Issuing Officer" }}</div>
+        <div class="o">{{ officer_signature_designation|default:"Safe Cities Project" }}</div>
+      </div>
+      <div class="seal">
+        {% if officer_signature_stamp_path %}<img src="{{ officer_signature_stamp_path }}" alt="Official seal">{% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="ft">
+    <div><b>Helpline:</b> 15</div>
+    <div>Safe Cities Project — Citizen Portal</div>
+    <div>Safe City Enforcement Office</div>
+  </footer>
+
+  <div class="demo-strip">FYP demo sheet &mdash; Safe Cities Project &mdash; not an official document</div>
+</div>
+</body>
+</html>

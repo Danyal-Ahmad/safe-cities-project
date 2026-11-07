@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from admin.dig_portal import views as dig_views
-from admin.officer_portal.views import frame_timeline as officer_frame_timeline
+from admin.shared import make_timeline_view
 
 app_name = 'ssp_portal'
 
@@ -11,19 +11,24 @@ urlpatterns = [
     path('challans/<int:challan_id>/approve/', views.approve_challan, name='approve_challan_alias'),
     path('appeal/<int:appeal_id>/decide/', views.decide_appeal, name='decide_appeal'),
 
+    path('production/', views.daily_production, name='daily_production'),
+    path('production/export/', views.daily_production_export, name='daily_production_export'),
+    path('camera-outage/', views.camera_outage, name='camera_outage'),
+
     path('challans/', dig_views.challan_list, name='challan_list'),
     path('blacklist/', dig_views.blacklist_list, name='blacklist_list'),
     path('blacklist/add/', dig_views.blacklist_add, name='blacklist_add'),
 
 
-    path('appeals/', dig_views.case_escalation_tracker, name='case_escalation'),
-    path('appeals/tracker/', dig_views.case_escalation_tracker, name='case_escalation_tracker'),
-    path('appeals/queue/', dig_views.case_escalation_tracker, name='appeal_list'),
-    path('escalations/', dig_views.case_escalation_tracker, name='escalation_list'),
+    path('appeals/', dig_views.appeals_queue, name='case_escalation'),
+    path('appeals/tracker/', dig_views.appeals_queue, name='case_escalation_tracker'),
+    path('appeals/queue/', dig_views.appeals_queue, name='appeal_list'),
 
     path('camera-health/', dig_views.camera_health, name='camera_health'),
     path('cameras-status/', dig_views.cameras_status, name='cameras_status'),
     path('officer-kpi/', dig_views.officer_kpi, name='officer_kpi'),
+    path('violations/', dig_views.violation_stats, name='violation_stats'),
+    path('revenue/', dig_views.revenue_dashboard, name='revenue_dashboard'),
 
     path('notifications/', dig_views.notifications, name='notifications'),
     path('notifications/<int:notification_id>/read/', dig_views.notification_read, name='notification_read'),
@@ -52,7 +57,8 @@ urlpatterns = [
     path('alerts/hub/banner/<int:banner_id>/toggle/', dig_views.alerts_hub_toggle_banner,  name='alerts_hub_toggle_banner'),
     path('alerts/hub/banner/<int:banner_id>/delete/', dig_views.alerts_hub_delete_banner,  name='alerts_hub_delete_banner'),
 
+    path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
-    path('live-tracking/timeline/', officer_frame_timeline, name='live_tracking_timeline'),
+    path('live-tracking/timeline/', make_timeline_view(['SSP', 'DIG']), name='live_tracking_timeline'),
 
 ]

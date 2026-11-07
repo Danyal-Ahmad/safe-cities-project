@@ -7,19 +7,19 @@
 {% if appeals %}
 <div class="sc-table-wrap">
 <table class="sc-table sc-data-table" data-table-id="my-appeals">
-<thead><tr><th>Appeal</th><th>Challan</th><th>Plate</th><th>Stage</th><th>Status</th><th>Created</th><th></th></tr></thead>
+<thead><tr><th>Appeal</th><th>Challan</th><th>Plate</th><th>Status</th><th>Created</th><th></th></tr></thead>
 <tbody>
 {% for a in appeals %}
 <tr>
 <td class="sc-mono">#{{ a.id }}</td>
 <td class="sc-mono"><a href="{% url 'challans:challan_detail' a.challan.id %}">{{ a.challan.ticket_no }}</a></td>
 <td class="sc-mono">{{ a.challan.plate_number }}</td>
-<td><span class="sc-badge sc-badge-amber">{{ a.get_current_stage_display }}</span></td>
+
 <td><span class="sc-badge sc-badge-blue">{{ a.get_status_display }}</span></td>
 <td class="sc-text-sm">{{ a.created_at|date:'d M Y H:i' }}</td>
 <td>
-{% if a.current_stage == 'officer' and a.status == 'pending' %}
-<a href="{% url 'citizen_portal:escalate_appeal' a.id %}" class="sc-btn sc-btn-sm">Escalate to SSP</a>
+{% if a.status == 'pending' %}
+<span class="sc-text-faint sc-text-xs">SSP decision is final</span>
 {% endif %}
 </td>
 </tr>

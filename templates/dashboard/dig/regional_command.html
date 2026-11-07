@@ -1,93 +1,114 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 {% block title %}Regional Command{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
 
 <div class="sc-page-hero">
- <div>
- <h1><i class="bi bi-geo-alt me-2"></i>Regional Command</h1>
- <p class=" opacity-75">Cameras · violations · officers by region</p>
- </div>
- <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+  <div>
+    <h1><i class="bi bi-geo-alt me-2"></i>Regional Command</h1>
+    <p class="sc-lead">Cameras, violations and officers by region</p>
+  </div>
+  <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
 </div>
 
-<div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Cameras</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ total_cameras|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Online</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ total_online|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Violations</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ total_violations|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Officers</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ total_officers|default:0 }}</div>
- </div>
- </div>
+<div class="row g-4">
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Cameras</span>
+        <span class="metric-icon-box"><i class="bi bi-camera-video"></i></span>
+      </div>
+      <div class="metric-value">{{ total_cameras|default:0 }}</div>
+      <div class="sc-text-sm sc-text-muted">active network</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Online</span>
+        <span class="metric-icon-box"><i class="bi bi-broadcast"></i></span>
+      </div>
+      <div class="metric-value">{{ total_online|default:0 }}</div>
+      <div class="sc-text-sm sc-text-muted">health status online</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Violations</span>
+        <span class="metric-icon-box"><i class="bi bi-exclamation-triangle"></i></span>
+      </div>
+      <div class="metric-value">{{ total_violations|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">challans all time</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Officers</span>
+        <span class="metric-icon-box"><i class="bi bi-person-badge"></i></span>
+      </div>
+      <div class="metric-value">{{ total_officers|default:0 }}</div>
+      <div class="sc-text-sm sc-text-muted">officer accounts</div>
+    </div>
+  </div>
 </div>
 
-<div>
- <div class="card-header ">
- <span><i class="bi bi-circle me-2"></i>Regional Overview</span>
- <span class="badge bg-secondary">{{ regions|length }} regions</span>
- </div>
- <div class="p-0">
- <div class="table-responsive">
- {% if regions %}
- <table class="table table-hover table-sm align-middle">
- <thead>
- <tr>
- <th>Region</th>
- <th>Cameras</th>
- <th>Online</th>
- <th>Violations</th>
- <th>Officers</th>
- <th>SSPs</th>
- </tr>
- </thead>
- <tbody>
- {% for r in regions %}
- <tr>
- <td class="fw-semibold">{{ r.name|default:"-" }}</td>
- <td>{{ r.cameras|default:0 }}</td>
- <td>{{ r.online|default:0 }}</td>
- <td>{{ r.violations|default:0 }}</td>
- <td>{{ r.officers|default:0 }}</td>
- <td>{{ r.ssps|default:0 }}</td>
- </tr>
- {% endfor %}
- </tbody>
- </table>
- {% else %}
- <div class="empty-state"><i class=" regional data available.</div>
- {% endif %}
- </div>
- </div>
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-map me-2"></i>Regional Overview</span>
+    <span class="badge bg-secondary">{{ regions|length }} regions</span>
+  </div>
+  <div class="table-responsive">
+    {% if regions %}
+    <table class="table table-hover table-sm align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Region</th>
+          <th>Cameras</th>
+          <th>Online</th>
+          <th>Challans (30d)</th>
+          <th>Revenue (30d)</th>
+          <th>Officers</th>
+          <th>SSPs</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in regions %}
+        <tr>
+          <td class="fw-semibold">{{ r.name|default:"-" }}</td>
+          <td>{{ r.cameras|default:0 }}</td>
+          <td>
+            {% if r.cameras %}
+            <span class="badge bg-success">{{ r.cameras_online|default:0 }} online</span>
+            {% else %}
+            <span class="badge bg-secondary">0 online</span>
+            {% endif %}
+          </td>
+          <td>{{ r.challans_30d|default:0|intcomma }}</td>
+          <td>PKR {{ r.revenue_30d|default:0|intcomma }}</td>
+          <td>{{ r.officers|default:0 }}</td>
+          <td>{{ r.ssps|default:0 }}</td>
+          <td>
+            <a href="{% url 'dig:challan_list' %}?search={{ r.name|urlencode }}" class="sc-btn sc-btn-primary" title="View challans for this region">
+              <i class="bi bi-search"></i> Challans
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="sc-empty-state">
+      <i class="bi bi-geo-alt"></i>
+      <h3>No regional data available</h3>
+      <p>Regions appear once cameras with locations or officers with regions are registered.</p>
+    </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

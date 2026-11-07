@@ -1,4 +1,3 @@
-"""realtime migration 0001 - LiveFeed + CameraAssignment."""
 from django.db import migrations, models
 import django.db.models.deletion
 

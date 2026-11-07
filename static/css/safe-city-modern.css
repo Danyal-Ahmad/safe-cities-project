@@ -1,7 +1,4 @@
-/* ==========================================================================
-   SAFE CITY | Modern Components  (v3.0 · reference-matched)
-   Hero banner · KPI cards · balance card · quick actions · md-table · live
-   ========================================================================== */
+
 
 :root {
   --md-brand-navy: #16294E;
@@ -29,10 +26,6 @@
   --md-shadow-lg: 0 10px 30px rgba(15, 37, 87, 0.10);
 }
 
-/* ==========================================================================
-   HERO BANNER | blue gradient with illustration (reference design)
-   ========================================================================== */
-
 .md-hero {
   position: relative;
   display: flex;
@@ -49,7 +42,6 @@
   overflow: hidden;
 }
 
-/* flowing wave accents */
 .md-hero::before {
   content: '';
   position: absolute;
@@ -74,7 +66,6 @@
   pointer-events: none;
 }
 
-/* illustration panel (police car + skyline) */
 .md-hero-art {
   position: relative;
   z-index: 2;
@@ -150,10 +141,6 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   BUTTONS
-   ========================================================================== */
-
 .md-btn {
   display: inline-flex;
   align-items: center;
@@ -203,10 +190,6 @@
 
 .md-btn-sm { padding: 6px 13px; font-size: 0.76rem; }
 
-/* ==========================================================================
-   BADGES
-   ========================================================================== */
-
 .md-badge {
   display: inline-flex;
   align-items: center;
@@ -233,10 +216,6 @@
 .md-badge-purple { background: var(--md-purple-bg); color: var(--md-purple); }
 .md-badge-teal { background: #E8FAF7; color: #0D9488; }
 
-/* ==========================================================================
-   CARDS
-   ========================================================================== */
-
 .md-card {
   background: #FFFFFF;
   border: 1px solid var(--sc-border, #E4E8EF);
@@ -259,10 +238,6 @@
 
 .md-card-head h3 { font-size: 1rem; font-weight: 700; color: var(--md-text-title); display: flex; align-items: center; gap: 8px; }
 .md-card-body { position: relative; }
-
-/* ==========================================================================
-   KPI CARDS (stat cards per reference)
-   ========================================================================== */
 
 .md-kpi-grid {
   display: grid;
@@ -323,7 +298,6 @@
 
 .md-kpi-foot { font-size: 0.72rem; color: var(--md-text-faint); margin-top: 3px; }
 
-/* color variants (icon circle + faint tint) */
 .md-kpi-card.kpi-warning { background: linear-gradient(135deg, #FFFFFF 55%, #FDF6E7); }
 .md-kpi-card.kpi-warning .md-kpi-icon-box { background: var(--md-warning); }
 .md-kpi-card.kpi-success { background: linear-gradient(135deg, #FFFFFF 55%, #EAF7F0); }
@@ -339,10 +313,6 @@
 .md-stat-row:last-child { border-bottom: none; }
 .md-stat-label { color: var(--md-text-muted); }
 .md-stat-value { font-weight: 700; color: var(--md-text-title); }
-
-/* ==========================================================================
-   BALANCE CARD
-   ========================================================================== */
 
 .md-balance-card {
   position: relative;
@@ -377,10 +347,6 @@
 
 .md-balance-amount.clear { color: #7EE2A8; }
 
-/* ==========================================================================
-   QUICK ACTIONS
-   ========================================================================== */
-
 .md-quick-action {
   display: flex;
   align-items: center;
@@ -404,10 +370,6 @@
   justify-content: center;
   font-size: 1.15rem;
 }
-
-/* ==========================================================================
-   TABLES
-   ========================================================================== */
 
 .md-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
 
@@ -449,10 +411,6 @@
 
 .md-action-key { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--md-text-muted); }
 
-/* ==========================================================================
-   FORMS (md-*)
-   ========================================================================== */
-
 .md-form-group { margin-bottom: 14px; }
 
 .md-form-group label {
@@ -478,10 +436,6 @@
 }
 
 .md-input:focus, .md-select:focus { border-color: var(--md-brand-primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08); }
-
-/* ==========================================================================
-   LIVE / SURVEILLANCE components (reference: command center)
-   ========================================================================== */
 
 .md-live-badge {
   display: inline-flex;
@@ -528,14 +482,9 @@
 .md-conf-bar { height: 4px; border-radius: 4px; background: #E4E8EF; overflow: hidden; }
 .md-conf-fill { height: 100%; border-radius: 4px; background: var(--md-brand-accent); transition: width 0.4s ease; }
 
-/* legacy grid helpers used on some pages */
 .md-2 { grid-column: span 2; }
 .md-3 { grid-column: span 3; }
 .md-4 { grid-column: span 4; }
-
-/* ==========================================================================
-   BOOTSTRAP HARMONIZATION - keep raw .card/.table pages on-brand
-   ========================================================================== */
 
 .card { background: #FFFFFF; border: 1px solid var(--sc-border, #E4E8EF); border-radius: var(--md-radius-lg); box-shadow: var(--md-shadow); color: var(--sc-text, #33415C); }
 .card-header { background: #F1F4F9; border-bottom: 1px solid var(--sc-border, #E4E8EF); font-weight: 700; color: var(--md-text-title); border-radius: var(--md-radius-lg) var(--md-radius-lg) 0 0 !important; }
@@ -566,16 +515,13 @@
 
 .modal-content { border-radius: var(--md-radius-lg); border: 1px solid var(--sc-border, #E4E8EF); }
 
-/* DataTables harmonization */
 table.dataTable thead th { background: #F1F4F9 !important; color: #5B6B85 !important; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #E4E8EF !important; }
 table.dataTable tbody td { border-color: #EDF1F7 !important; }
 div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; border: 1px solid #D3DAE7; padding: 6px 14px; }
 
-/* page-specific body classes */
 .page-dig .md-hero-title > i { background: var(--md-brand-primary); }
 .page-officer .md-hero { background: linear-gradient(115deg, #16294E 0%, #1E3A5F 55%, #2E5FB7 100%); }
 
-/* Triage grid (officer review queue: left queue list + right detail) */
 .md-triage-grid {
   display: grid;
   grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
@@ -587,7 +533,6 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   .md-triage-grid { grid-template-columns: 1fr; }
 }
 
-/* Hotkey kbd chips */
 .md-action-key {
   display: inline-flex;
   align-items: center;
@@ -609,16 +554,7 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   border-color: transparent;
 }
 
-/* ==========================================================================
-   UNIFIED COMMAND SCREEN (scr) · v4.0
-   One cohesive portal screen: command rail + attached stat strip + unified
-   workspace grid. Replaces the old hero-banner / quick-action / KPI-card
-   stack (five separate blocks) with a single visual system.
-   ========================================================================== */
-
 .scr { display: flex; flex-direction: column; gap: 14px; }
-
-/* ---------- Command header unit (rail + stats fused into one card) ---------- */
 
 .scr-head {
   border-radius: 18px;
@@ -627,8 +563,6 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   box-shadow: 0 14px 34px rgba(15, 37, 87, 0.14);
   overflow: hidden;
 }
-
-/* ---------- Rail (navy command bar) ---------- */
 
 .scr-rail {
   position: relative;
@@ -643,7 +577,6 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   overflow: hidden;
 }
 
-/* blueprint grid + glow accents */
 .scr-rail::before {
   content: '';
   position: absolute;
@@ -796,11 +729,9 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
 }
 .scr-rail-btn--solid:hover { background: #EDF3FE; color: #0F2557; }
 
-/* ---------- Attached stat strip (fused under the rail) ---------- */
-
 .scr-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
   background: #FFFFFF;
   border-top: 1px solid var(--sc-border);
 }
@@ -839,9 +770,7 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--sc-text-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.45;
 }
 
 .scr-stat-value {
@@ -879,8 +808,6 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
 .scr-stat--success .scr-stat-value { color: #15803D; }
 .scr-stat--danger  .scr-stat-value { color: #DC2626; }
 .scr-stat--warning .scr-stat-value { color: #B45309; }
-
-/* ---------- Unified workspace grid ---------- */
 
 .scr-grid {
   display: grid;

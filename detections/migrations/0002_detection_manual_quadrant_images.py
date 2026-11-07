@@ -1,4 +1,3 @@
-"""Add 4 quadrant image fields to Detection for manual officer annotation."""
 from django.db import migrations, models
 
 

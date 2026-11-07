@@ -52,8 +52,8 @@ hr { border: 0; border-top: 1px solid var(--sc-border, #E4E8EF); margin: 1rem 0;
     box-shadow 0.15s ease, transform 0.05s ease;
 }
 .btn i, .btn .bi, .btn .fa-solid, .btn .fas { font-size: 0.95em; }
-.btn:hover { background: var(--sc-bg-soft, #F1F4F9); border-color: #B9C4D8; color: var(--sc-navy-deep, #0F2557); }
-.btn:active { transform: translateY(1px); }
+.btn:hover { background: var(--sc-bg-soft, #F1F4F9); border-color: #B9C4D8; color: var(--sc-navy-deep, #0F2557); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
 .btn:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.30); outline-offset: 2px; }
 .btn:disabled, .btn.disabled { opacity: 0.55; pointer-events: none; }
 
@@ -61,10 +61,11 @@ hr { border: 0; border-top: 1px solid var(--sc-border, #E4E8EF); margin: 1rem 0;
   --btn-fg: #FFFFFF;
   --btn-bg: var(--sc-primary, #2563EB);
   --btn-bd: var(--sc-primary, #2563EB);
+  background: linear-gradient(135deg, #3B82F6, var(--sc-primary, #2563EB) 55%, #1D4ED8);
   box-shadow: 0 1px 2px rgba(37, 99, 235, 0.30);
 }
 .btn-primary:hover {
-  background: var(--sc-primary-hover, #1D4ED8);
+  background: linear-gradient(135deg, #60A5FA, #2563EB 55%, #1D4ED8);
   border-color: var(--sc-primary-hover, #1D4ED8);
   color: #FFFFFF;
 }

@@ -1,7 +1,4 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Payment gateway redirect page
-   Loaded after public-home.css (shared dark glass system).
-   ============================================================================ */
+
 
 .scpub-pay-redirect .scpub-inner {
   max-width: 480px;
@@ -13,7 +10,6 @@
   text-align: center;
 }
 
-/* Spinner */
 .pr-spinner {
   width: 46px;
   height: 46px;

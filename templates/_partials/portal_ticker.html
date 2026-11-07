@@ -1,23 +1,4 @@
-{% comment %}
-  SAFE CITIES PROJECT - portal announcement ticker bar.
 
-  Data source: the already-registered `active_alerts` context processor
-  (admin/dig_portal/context_processors.py), which returns
-  Alert.get_for_user(request.user) for authenticated users, returns an empty
-  list for citizens and anonymous visitors, and excludes alerts dismissed in
-  the session. Because that processor already provides exactly the data this
-  ticker needs, no new context processor and no settings.py change are
-  required; the items below are simply mapped to title, message, severity
-  and created_at.
-
-  Rendering contract:
-  - Hidden entirely when there are no items (the {% if %} guard below).
-  - Included by base.html for authenticated staff only
-    ({% if user.is_authenticated and user.role != 'USER' %}).
-  - static/js/pages/portal-ticker.js activates the scrolling marquee when
-    the items overflow, and prepends live items on the
-    'safecity:notification' CustomEvent dispatched by realtime-socket.js.
-{% endcomment %}
 {% if active_alerts %}
 <div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Portal announcements">
   <div class="sc-ticker-label">
@@ -29,9 +10,9 @@
       {% for alert in active_alerts|slice:":6" %}
       <div class="sc-ticker-item sc-ticker-item-{{ alert.severity|default:'info' }}" data-severity="{{ alert.severity|default:'info' }}">
         <span class="sc-ticker-item-title">{{ alert.title }}</span>
-        <span class="sc-ticker-item-message">{{ alert.message }}</span>
+        {% if alert.message %}<span class="sc-ticker-dash" aria-hidden="true">&mdash;</span><span class="sc-ticker-item-message">{{ alert.message }}</span>{% endif %}
         {% if alert.created_at %}
-        <span class="sc-ticker-item-time" title="{{ alert.created_at|date:'F j, Y H:i' }}">{{ alert.created_at|date:'M j, H:i' }}</span>
+        <span class="sc-ticker-dash" aria-hidden="true">&mdash;</span><span class="sc-ticker-item-time" title="{{ alert.created_at|date:'F j, Y H:i' }}">{{ alert.created_at|date:'M j, H:i' }}</span>
         {% endif %}
       </div>
       {% endfor %}

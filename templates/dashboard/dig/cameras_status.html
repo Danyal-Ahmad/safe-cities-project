@@ -11,7 +11,6 @@
 {% block content %}
 <div class="cams-dark">
 
-  <!-- ======== Hero ======== -->
   <div class="cd-hero">
     <div>
       <h1 class="cd-title"><i class="bi bi-broadcast"></i> Camera Status</h1>
@@ -34,7 +33,6 @@
     </div>
   </div>
 
-  <!-- ======== KPI chips ======== -->
   <div class="cd-kpis">
     <div class="cd-kpi">
       <span class="cd-kpi-label"><i class="bi bi-camera-video"></i> Total Cameras</span>
@@ -62,7 +60,6 @@
     </div>
   </div>
 
-  <!-- ======== Search + filters ======== -->
   <form method="get" class="cd-filter-bar" data-camera-filters
         data-server-filtered="{% if q %}1{% else %}0{% endif %}">
     <div class="cd-filter-search">
@@ -100,7 +97,6 @@
   </div>
   {% endif %}
 
-  <!-- ======== Status table ======== -->
   {% if cameras %}
   <div class="cd-table-wrap">
     <table class="cd-table">

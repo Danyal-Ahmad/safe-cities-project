@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/public-shell.css' %}">
   {% block extra_head %}{% endblock %}
@@ -55,8 +55,8 @@
       <div class="ps-ticker-viewport"><div class="ps-ticker-track" id="psTickerTrack">
         {% for ad in ticker_ads %}
         <span class="ps-ticker-item" data-id="tick-{{ ad.id }}">
-          {% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}
-          {% if ad.html_content %}<span class="ps-ticker-note">{{ ad.html_content|striptags|truncatewords:12 }}</span>{% endif %}
+          <span class="ps-ticker-item-title">{% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}</span>
+          {% if ad.html_content %}<span class="ps-ticker-dash" aria-hidden="true">&mdash;</span><span class="ps-ticker-note">{{ ad.html_content|striptags|truncatewords:10 }}</span>{% endif %}
         </span>
         {% endfor %}
       </div></div>
@@ -66,7 +66,13 @@
     {% if messages %}
     <div class="ps-messages">
       {% for m in messages %}
-      <div class="ps-msg ps-msg-{{ m.tags|default:'info' }}"><i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i> {{ m }}</div>
+      <div class="ps-msg ps-msg-{{ m.tags|default:'info' }}">
+        <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+        <span class="ps-msg-label">{% if m.tags == 'success' %}Success{% elif m.tags == 'error' %}Error{% elif m.tags == 'warning' %}Warning{% else %}Info{% endif %}</span>
+        <span class="ps-msg-dash" aria-hidden="true">&mdash;</span>
+        <span class="ps-msg-body">{{ m }}</span>
+        <button type="button" class="ps-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
+      </div>
       {% endfor %}
     </div>
     {% endif %}
@@ -82,6 +88,7 @@
   </div>
 
   <script src="{% static 'js/pages/public-ads.js' %}" defer></script>
+  <script src="{% static 'js/public-messages.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

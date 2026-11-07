@@ -1,4 +1,3 @@
-"""Add Notification model for per-user notifications (appeal routing chain)."""
 from django.db import migrations, models
 import django.db.models.deletion
 from django.conf import settings

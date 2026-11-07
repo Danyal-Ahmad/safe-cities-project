@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% comment %}V9.0-REBUILT · Graphite+Emerald+Rose · page-hero+page-nav+quick-actions · business logic preserved{% endcomment %}
+
 {% block title %}Officer KPIs{% endblock %}
 
 {% block extra_head %}{% endblock %}
@@ -8,22 +8,22 @@
 {% block content %}
 <div class="sc-page-hero">
  <div>
- <h1><i class="bi bi-circle"></i> Officer KPIs</h1>
- <p>Key performance indicators for each officer</p>
+ <h1><i class="bi bi-trophy me-2"></i> Officer KPIs</h1>
+ <p class="sc-lead">Key performance indicators for each officer</p>
  </div>
  <div>
 <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary">
- <i class="bi bi-circle"></i> Dashboard
+ <i class="bi bi-grid-1x2 me-1"></i> Dashboard
  </a>
  </div>
 </div>
 
-<div>
- <div class="card-header ">
- <div><i class="bi bi-circle"></i> Officer Performance</div>
+<div class="card">
+ <div class="card-header d-flex justify-content-between align-items-center">
+ <div><i class="bi bi-trophy me-2"></i> Officer Performance</div>
  <span class="badge bg-secondary">{{ kpis|length }}</span>
  </div>
- <div class="p-0 table-responsive">
+ <div class="card-body p-0 table-responsive">
  {% if kpis %}
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -40,7 +40,7 @@
  {% for k in kpis %}
  <tr>
  <td>
- <div class="flex ">
+ <div class="d-flex align-items-center gap-2">
  <div class="avatar avatar-sm">{{ k.officer.initials }}</div>
  <span>{{ k.officer.display_name|default:"-" }}</span>
  </div>
@@ -49,9 +49,9 @@
  <td>{{ k.confirmed }}</td>
  <td>{{ k.rejected }}</td>
  <td>
- {% if k.accuracy >= 80 %}<span class="badge ">{{ k.accuracy }}%</span>
- {% elif k.accuracy >= 60 %}<span class="badge ">{{ k.accuracy }}%</span>
- {% else %}<span class="badge ">{{ k.accuracy }}%</span>{% endif %}
+ {% if k.accuracy >= 80 %}<span class="badge bg-success">{{ k.accuracy }}%</span>
+ {% elif k.accuracy >= 60 %}<span class="badge bg-warning">{{ k.accuracy }}%</span>
+ {% else %}<span class="badge bg-danger">{{ k.accuracy }}%</span>{% endif %}
  </td>
  <td>{{ k.appeals }}</td>
  </tr>
@@ -59,7 +59,11 @@
  </tbody>
  </table>
  {% else %}
- <div class="empty-state"><i class=" data</h3><p>No officer activity recorded yet.</p></div>
+ <div class="sc-empty-state">
+ <i class="bi bi-trophy"></i>
+ <h3>No officer data</h3>
+ <p>No officer activity recorded yet.</p>
+ </div>
  {% endif %}
  </div>
 </div>

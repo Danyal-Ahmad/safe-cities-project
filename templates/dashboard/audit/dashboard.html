@@ -10,9 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     AUDIT OVERSIGHT COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
+
 <div class="scr">
 
   <header class="scr-head">
@@ -22,12 +20,10 @@
         <div class="scr-rail-kicker">Safe Cities Project · Independent Oversight</div>
         <div class="scr-rail-title">
           Compliance &amp; Financial Audit Oversight
-          <span class="scr-rail-tag scr-rail-tag--warning"><i class="bi bi-lock"></i> Read-Only Audit</span>
         </div>
         <div class="scr-rail-sub">Immutable system records, financial reconciliation, anomaly detection and administrative change tracking.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"export_audit_log" %}
         <a href="{% url 'audit_portal:audit_export' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-download"></i> Export Logs</a>
         {% endif %}
@@ -35,7 +31,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_challans" %}
       <div class="scr-stat">
@@ -73,14 +68,12 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_audit_log" %}
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Audit Log Ingestion Volume (7 Days)</div>
-        <span class="md-badge md-badge-secondary">Logged Events</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="auditVolumeChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="bar"></canvas>
@@ -92,7 +85,6 @@
     <section class="scr-panel scr-panel-6">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Audit Activity Distribution</div>
-        <span class="md-badge md-badge-secondary">All Action Types</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="auditCategoriesChart" data-api-url="{% url 'realtime:api_chart_violation_distribution' %}" data-chart-type="doughnut"></canvas>

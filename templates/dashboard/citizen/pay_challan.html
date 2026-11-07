@@ -18,10 +18,8 @@
 </div>
 </div>
 <div class="sc-psid-box">
-<div class="sc-psid-info">
 <div class="sc-psid-label">Payment System ID (PSID)</div>
 <div class="sc-psid-code">{{ psid }}</div>
-</div>
 </div>
 </div>
 <div>
@@ -31,8 +29,8 @@
 <form method="post" class="sc-search-form">
 {% csrf_token %}
 <div class="sc-form-group">
-<label>Payment method *</label>
-<select name="payment_method" required class="w-full">
+<label for="paymentMethod">Payment method *</label>
+<select id="paymentMethod" name="payment_method" required class="w-full">
 <option value="">-- Select payment method --</option>
 {% for pm in payment_methods %}
 <option value="{{ pm.id }}">{{ pm.name }} ({{ pm.provider }})</option>
@@ -40,8 +38,8 @@
 </select>
 </div>
 <div class="sc-form-group">
-<label>Transaction reference (optional)</label>
-<input type="text" name="txn_ref" placeholder="Transaction ID from your payment receipt">
+<label for="txnRef">Transaction reference (optional)</label>
+<input type="text" id="txnRef" name="txn_ref" placeholder="Transaction ID from your payment receipt">
 </div>
 <button type="submit" name="action" value="initiate" class="sc-btn sc-btn-primary sc-btn-block">Pay via gateway</button>
 <button type="submit" name="action" value="manual" class="sc-btn sc-btn-block">Submit for verification</button>

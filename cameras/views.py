@@ -18,18 +18,10 @@ from detections.ai import run_pipeline
 logger = logging.getLogger('wrongway.ingest')
 
 
-# ---------------------------------------------------------------------------
-# Per-endpoint API rate limits (per IP, sliding window).
-# These are view-level limits - the global RateLimitMiddleware never covers
-# /api/ paths, so the layers never double-limit. The limits are checked
-# BEFORE authentication so flooding does not cost a DB lookup, and they are
-# plain in-view checks (no decorator wrapping) so @csrf_exempt on the Bearer
-# endpoints is untouched.
-# ---------------------------------------------------------------------------
-ENROLL_LIMIT = (5, 3600)      # 5 per hour per IP - enrollment tokens are rare
-INGEST_LIMIT = (300, 60)      # 300 per minute per IP - a camera pushes every few
-                               # seconds; must NOT break normal operation
-HEARTBEAT_LIMIT = (120, 60)   # 120 per minute per IP
+ENROLL_LIMIT = (5, 3600)      
+INGEST_LIMIT = (300, 60)      
+
+HEARTBEAT_LIMIT = (120, 60)   
 
 
 def _authenticate_camera(request):
@@ -154,7 +146,7 @@ def ingest(request):
     challan = None
     action = 'queued_review'
     try:
-        from detections.finalize import finalize_detection_from_ai
+        from detections.pipeline import finalize_detection_from_ai
         detection, challan, action = finalize_detection_from_ai(detection, result, camera=camera)
     except Exception as fin_err:
         logger.warning("finalize_detection_from_ai failed: %s", fin_err)

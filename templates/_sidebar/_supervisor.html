@@ -1,7 +1,4 @@
 {% load perm_tags %}
-{% comment %} ============================================================
-   Supervisor sidebar
-   ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
@@ -13,8 +10,17 @@
   {% if request.user|has_perm:"view_team_performance" %}
   <a href="{% url 'supervisor_portal:team_performance' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/team-performance/' %}sc-active{% endif %}"><i class="bi bi-trophy"></i> <span class="sc-nav-link-text">Team Performance</span></a>
   {% endif %}
+  {% if request.user|has_perm:"view_detections" %}
+  <a href="{% url 'supervisor_portal:team_queue_load' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/queue-load/' %}sc-active{% endif %}"><i class="bi bi-layers"></i> <span class="sc-nav-link-text">Queue Load</span></a>
+  {% endif %}
   {% if request.user|has_perm:"view_shifts" %}
   <a href="{% url 'supervisor_portal:shift_management' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/shifts/' %}sc-active{% endif %}"><i class="bi bi-calendar-week"></i> <span class="sc-nav-link-text">My Officers</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"view_officer_activity" %}
+  <a href="{% url 'supervisor_portal:officer_activity_list' %}" class="sc-nav-link {% if '/officer-activity/' in request.path or '/activity/' in request.path %}sc-active{% endif %}"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Officer Activity</span></a>
+  {% endif %}
+  {% if request.user|has_any_perm:"view_cameras,view_shifts" %}
+  <a href="{% url 'supervisor_portal:camera_assignments' %}" class="sc-nav-link {% if request.path == '/portal/supervisor/camera-assignments/' %}sc-active{% endif %}"><i class="bi bi-camera-video"></i> <span class="sc-nav-link-text">Camera Assignments</span></a>
   {% endif %}
 </div>
 
@@ -24,7 +30,7 @@
   <a href="{% url 'dig:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
   {% endif %}
   {% if request.user|has_any_perm:"view_appeals,view_case_escalation" %}
-  <a href="{% url 'dig:case_escalation_tracker' %}" class="sc-nav-link {% if request.path == '/portal/dig/escalations/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Appeals</span></a>
+  <a href="{% url 'dig:appeals_queue' %}" class="sc-nav-link {% if request.path == '/portal/dig/appeals/' %}sc-active{% endif %}"><i class="bi bi-shield-check"></i> <span class="sc-nav-link-text">Appeals</span></a>
   {% endif %}
 </div>
 
@@ -33,14 +39,4 @@
   {% if request.user|has_perm:"view_reports" %}
   <a href="{% url 'dig:reports' %}" class="sc-nav-link {% if request.path == '/portal/dig/reports/' %}sc-active{% endif %}"><i class="bi bi-graph-up"></i> <span class="sc-nav-link-text">Performance</span></a>
   {% endif %}
-</div>
-
-<div class="sc-nav-bottom">
-  <a href="{% url 'supervisor_portal:self_profile' %}" class="sc-nav-bottom-link {% if request.path == '/portal/supervisor/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-bottom-text">Profile</span></a>
-  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
-    {% csrf_token %}
-    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
-      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
-    </button>
-  </form>
 </div>

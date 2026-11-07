@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Reset Requests{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/it-reset-requests.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sc-page-hero">
+  <div>
+    <h1><i class="bi bi-key me-2"></i>Reset Requests</h1>
+    <p class="sc-lead">Admin password reset queue submitted by locked-out staff accounts. Read-only for IT Support.</p>
+  </div>
+  <div class="sc-flex sc-gap-2">
+    <span class="sc-badge sc-badge-blue"><i class="bi bi-person-lock"></i>{{ pending_count|default:0|intcomma }} pending</span>
+  </div>
+</div>
+
+<div class="sc-kpi-grid">
+  <div class="sc-kpi sc-kpi-amber">
+    <div class="sc-kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="sc-kpi-label">Pending DIG Action</div>
+    <div class="sc-kpi-value">{{ pending_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">awaiting DIG office handling</div>
+  </div>
+  <div class="sc-kpi sc-kpi-ok">
+    <div class="sc-kpi-icon"><i class="bi bi-check2-circle"></i></div>
+    <div class="sc-kpi-label">Resolved</div>
+    <div class="sc-kpi-value">{{ resolved_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">password reset completed</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-x-circle"></i></div>
+    <div class="sc-kpi-label">Cancelled</div>
+    <div class="sc-kpi-value">{{ cancelled_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">withdrawn or expired requests</div>
+  </div>
+  <div class="sc-kpi">
+    <div class="sc-kpi-icon"><i class="bi bi-archive"></i></div>
+    <div class="sc-kpi-label">Total Requests</div>
+    <div class="sc-kpi-value">{{ total_count|default:0|intcomma }}</div>
+    <div class="sc-kpi-foot">all time</div>
+  </div>
+</div>
+
+<div class="sc-card it-rr-note">
+  <div class="sc-card-body sc-flex sc-gap-2 sc-items-center">
+    <i class="bi bi-shield-lock it-rr-note-ic"></i>
+    <div>
+      <div class="it-rr-note-t">Handled by DIG office</div>
+      <div class="sc-text-sm sc-text-muted">IT Support has read-only visibility of this queue. Password resets for staff accounts are performed exclusively by the DIG office.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sc-card">
+  <div class="sc-card-header d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-funnel"></i>
+    <span>Filter by Status</span>
+    <span class="ms-auto d-flex flex-wrap sc-gap-2">
+      <a href="{% url 'it_support_portal:reset_requests' %}" class="sc-badge {% if not status_filter %}sc-badge-blue{% else %}sc-badge-gray{% endif %}">All ({{ total_count }})</a>
+      {% for s in status_rows %}
+      <a href="?status={{ s.code }}" class="sc-badge {% if status_filter == s.code %}{% if s.code == 'PENDING' %}sc-badge-amber{% elif s.code == 'RESOLVED' %}sc-badge-ok{% else %}sc-badge-gray{% endif %}{% else %}sc-badge-gray{% endif %}">{{ s.label }} ({{ s.count }})</a>
+      {% endfor %}
+    </span>
+  </div>
+  <div class="sc-card-body p-0">
+    {% if requests %}
+    <div class="sc-table-wrap">
+      <table class="sc-table sc-data-table mb-0">
+        <thead>
+          <tr>
+            <th>Requesting Admin</th>
+            <th>Reason / Note</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Handled By</th>
+            <th>Resolved At</th>
+            <th>Source IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in requests %}
+          <tr>
+            <td>
+              <div class="it-rr-name">{{ r.target_user.display_name|default:r.target_user.username }}</div>
+              <div class="sc-text-xs sc-text-muted sc-mono">{{ r.target_user.username }} / {{ r.target_user.role_label|default:r.target_user.role }}</div>
+              <div class="sc-text-xs sc-text-muted">{{ r.requested_by_email }}</div>
+            </td>
+            <td class="sc-text-sm">{{ r.reason_note|default:"-" }}</td>
+            <td>
+              {% if r.status == 'PENDING' %}
+                {% if r.is_expired %}<span class="sc-badge sc-badge-red"><i class="bi bi-clock"></i>Expired</span>{% else %}<span class="sc-badge sc-badge-amber"><i class="bi bi-hourglass"></i>Pending DIG Action</span>{% endif %}
+              {% elif r.status == 'RESOLVED' %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Resolved</span>
+              {% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-slash-circle"></i>Cancelled</span>{% endif %}
+            </td>
+            <td class="sc-text-sm sc-text-muted">{{ r.created_at|date:"d M Y H:i" }}</td>
+            <td class="sc-text-sm">{{ r.resolved_by.display_name|default:"-" }}</td>
+            <td class="sc-text-sm sc-text-muted">{{ r.resolved_at|date:"d M Y H:i"|default:"-" }}</td>
+            <td class="sc-mono sc-text-xs">{{ r.ip_address|default:"-" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="sc-empty">
+      <i class="bi bi-key"></i>
+      <p class="mb-1">No admin password reset requests match the current filter.</p>
+      <p class="sc-hint mb-0">Requests appear here when a staff member uses the forgot password flow on the staff login page.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

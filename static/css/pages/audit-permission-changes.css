@@ -1,8 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | Permission Changes (audit-permission-changes)
-   ========================================================================== */
 
-/* Tracked-action chips ---------------------------------------------------- */
 
 .audit-chips {
   display: flex;
@@ -27,8 +23,6 @@
 .audit-chip i {
   font-size: 0.65rem;
 }
-
-/* Table helpers ----------------------------------------------------------- */
 
 .audit-action-badge {
   font-family: var(--sc-mono, monospace);

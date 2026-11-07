@@ -3,109 +3,122 @@
 {% load humanize %}
 
 {% block title %}AI Review Queue{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/officer-review-queue.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="sc-page-hero">
-  <div>
-    <h1><i class="bi bi-inbox-fill me-2"></i>AI Violation Triage &amp; Review Queue
-      <span class="md-badge md-badge-amber" id="queueCountBadge">{{ detections|length }} PENDING</span>
-    </h1>
-    <p class="sc-lead">Rapid-action decision hub · verified AI inferences · hotkey-enabled verification.</p>
-  </div>
-  <div class="sc-flex sc-gap-2 sc-items-center">
-    <div class="sc-flex sc-items-center" style="gap: 0.4rem; padding: 0.45rem 0.85rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid var(--sc-border); background: var(--sc-bg-soft); color: var(--sc-text-muted);">
-      <span style="color: var(--sc-text-faint);">Hotkeys:</span>
-      <span class="md-action-key" style="background:#0284c7;color:#fff;">C</span> Confirm
-      <span class="md-action-key" style="background:#ef4444;color:#fff;">R</span> Reject
-      <span class="md-action-key" style="background:#f59e0b;color:#fff;">F</span> Flag
+<div class="rq-page">
+  <div class="sc-page-hero">
+    <div>
+      <h1><i class="bi bi-inbox-fill me-2"></i>AI Violation Triage &amp; Review Queue</h1>
+      <p class="sc-lead">Live officer decision station &mdash; verified AI inferences, sequential 3-frame evidence and instant hotkeys.</p>
     </div>
-    <a href="{% url 'officer_portal:live_tracking' %}" class="sc-btn">
-      <i class="bi bi-radar me-1"></i>Live Radar
-    </a>
-  </div>
-</div>
-
-<!-- Main Split Triage Grid (Left Queue | Right Interactive Detail) -->
-<div class="md-triage-grid" {% if selected %}data-has-selected="1"{% endif %}>
-
-  <!-- LEFT PANEL: Detection Items Queue -->
-  <div class="md-card" style="padding: 0; overflow: hidden;">
-    <div class="md-card-head" style="padding: 0.875rem 1rem;">
-      <div class="sc-flex sc-items-center" style="gap: 0.5rem;">
-        <i class="bi bi-list-task" style="color: var(--md-brand-cyan);"></i>
-        <h3 style="font-size: 0.9rem; margin: 0;">Review Backlog</h3>
-      </div>
-      <span class="md-badge md-badge-secondary" style="font-size: 0.72rem;">
-        {{ detections|length }} Items
+    <div class="rq-hero-actions">
+      <span class="rq-hotkeys" aria-label="Keyboard shortcuts">
+        <kbd>C</kbd> Confirm <i class="bi bi-slash-lg"></i>
+        <kbd>R</kbd> Reject <i class="bi bi-slash-lg"></i>
+        <kbd>F</kbd> Escalate <i class="bi bi-slash-lg"></i>
+        <kbd>&#8593;</kbd><kbd>&#8595;</kbd> Navigate
       </span>
-    </div>
-
-    <!-- Scrollable Queue Stream -->
-    <div style="max-height: calc(100vh - 240px); overflow-y: auto;" id="queueItemsList">
-      {% for d in detections %}
-        <a href="?detection_id={{ d.id }}"
-           class="md-queue-item {% if selected and selected.id == d.id %}active{% endif %}"
-           data-det-id="{{ d.id }}"
-           style="border-left: 3px solid {% if selected and selected.id == d.id %}#0284c7{% else %}transparent{% endif %};">
-          <!-- Frame Thumbnail -->
-          <div style="width: 58px; height: 42px; background: #0f172a; border-radius: var(--md-radius-sm); overflow: hidden; flex-shrink: 0; position: relative;">
-            {% if d.raw_image %}
-              <img src="{% if d.raw_image %}{{ d.raw_image.url }}{% endif %}" alt="Frame" style="width: 100%; height: 100%; object-fit: cover; background:#0A0E14;">
-            {% else %}
-              <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.65rem;">No Img</div>
-            {% endif %}
-          </div>
-
-          <!-- Meta Information -->
-          <div style="flex-grow: 1; min-width: 0;">
-            <div class="sc-flex sc-items-center sc-justify-between">
-              <span class="md-plate-tag" style="font-size: 0.85rem; color: #0b192c;">
-                {{ d.effective_plate|default:"UNREAD" }}
-              </span>
-              <span class="md-badge md-badge-amber" style="font-size: 0.65rem; padding: 1px 5px;">
-                {{ d.effective_violation_type|default:"wrong_way"|truncatechars:12 }}
-              </span>
-            </div>
-            <div class="sc-flex sc-items-center sc-justify-between" style="font-size: 0.72rem; color: var(--md-text-muted); margin-top: 2px;">
-              <span>#{{ d.id }} · {{ d.camera.camera_id|default:"CAM" }}</span>
-              <span>{{ d.created_at|date:"H:i:s" }}</span>
-            </div>
-
-            {% if d.ai_confidence %}
-              <div class="md-conf-bar" style="margin-top: 4px;">
-                <div class="md-conf-fill" style="width: {% widthratio d.ai_confidence 1 100 %}%;"></div>
-              </div>
-            {% endif %}
-          </div>
-        </a>
-      {% empty %}
-        <div style="padding: 3rem 1.5rem; text-align: center; color: var(--md-text-muted);">
-          <i class="bi bi-check2-all" style="font-size: 2.5rem; color: #10b981; display: block; margin-bottom: 0.5rem;"></i>
-          <div style="font-weight: 600; color: var(--md-text-title);">Queue is Clear!</div>
-          <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">All pending AI violation frames have been triaged by officers.</p>
-        </div>
-      {% endfor %}
+      <a href="{% url 'officer_portal:live_tracking' %}" class="sc-btn sc-btn-sm">
+        <i class="bi bi-broadcast me-1"></i>Live Tracking
+      </a>
     </div>
   </div>
 
-  <!-- RIGHT PANEL: Full Detection Detail & Decision Station -->
-  <div class="md-card" style="padding: 1.25rem;">
-    {% if selected %}
-      {% include "dashboard/officer/_detection_detail.html" with detection=selected %}
-    {% else %}
-      <div style="padding: 5rem 2rem; text-align: center; color: var(--md-text-muted);">
-        <i class="bi bi-shield-check" style="font-size: 3.5rem; color: #0284c7; display: block; margin-bottom: 0.75rem;"></i>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--md-text-title); margin: 0;">Officer Decision Station</h3>
-        <p style="font-size: 0.9rem; max-width: 360px; margin: 0.5rem auto 1.5rem;">Select any item from the left queue to inspect the violation frame, verify license plate numbers, or issue legal e-challans.</p>
-        {% if detections %}
+  <!-- Live queue telemetry: real values from the scoped queryset, refreshed
+       in-page by officer-review-queue.js polling /realtime/queue-count/. -->
+  <div class="rq-stats" data-rq-panel>
+    <div class="rq-tile rq-tile--warning">
+      <div class="rq-tile-label">Pending Queue</div>
+      <div class="rq-tile-value" data-rq-pending>{{ queue_count|default:0 }}</div>
+      <div class="rq-tile-foot">live count &middot; auto-refresh</div>
+    </div>
+    <div class="rq-tile">
+      <div class="rq-tile-label">Avg AI Confidence</div>
+      <div class="rq-tile-value">{% if avg_confidence %}{{ avg_confidence|floatformat:2 }}{% else %}&mdash;{% endif %}</div>
+      <div class="rq-tile-foot">across pending frames</div>
+    </div>
+    <div class="rq-tile{% if oldest_age_min and oldest_age_min > 60 %} rq-tile--danger{% endif %}">
+      <div class="rq-tile-label">Oldest Waiting</div>
+      <div class="rq-tile-value">{% if oldest_age_min is not None %}{{ oldest_age_min }} min{% else %}&mdash;{% endif %}</div>
+      <div class="rq-tile-foot">since first pending frame</div>
+    </div>
+    <div class="rq-tile">
+      <div class="rq-tile-label">Active Sources</div>
+      <div class="rq-tile-value">{{ cameras_active|default:0 }} cam &middot; {{ plates_pending|default:0 }} plates</div>
+      <div class="rq-tile-foot">cameras and distinct plates in queue</div>
+    </div>
+  </div>
+
+  <!-- Main split triage grid (Left Queue | Right Interactive Detail) -->
+  <div class="md-triage-grid" {% if selected %}data-has-selected="1"{% endif %}>
+
+    <!-- LEFT PANEL: Detection queue -->
+    <div class="md-card rq-queue-card">
+      <div class="md-card-head rq-queue-head">
+        <span class="rq-queue-title"><i class="bi bi-list-task"></i> Review Backlog</span>
+        <span class="rq-queue-count" data-rq-count>{{ detections|length }} items</span>
+      </div>
+
+      <div class="rq-queue-list" id="queueItemsList">
+        {% for d in detections %}
+        <a href="?detection_id={{ d.id }}"
+           class="md-queue-item rq-item {% if selected and selected.id == d.id %}active{% endif %}"
+           data-det-id="{{ d.id }}">
+          <span class="rq-item-thumb">
+            {% if d.raw_image %}
+            <img src="{{ d.raw_image.url }}" alt="Frame">
+            {% else %}
+            <i class="bi bi-image"></i>
+            {% endif %}
+          </span>
+          <span class="rq-item-body">
+            <span class="rq-item-top">
+              <b class="rq-item-plate">{{ d.effective_plate|default:"UNREAD" }}</b>
+              <span class="rq-item-violation">{{ d.effective_violation_type|default:"wrong_way"|truncatechars:14 }}</span>
+            </span>
+            <span class="rq-item-meta">
+              <span>#{{ d.id }} &middot; {{ d.camera.camera_id|default:"CAM" }}</span>
+              <span>{{ d.created_at|date:"H:i:s" }}</span>
+            </span>
+            {% if d.ai_confidence %}
+            <span class="rq-conf">
+              <span class="rq-conf-fill" style="width: {% widthratio d.ai_confidence 1 100 %}%;"></span>
+            </span>
+            {% endif %}
+          </span>
+        </a>
+        {% empty %}
+        <div class="rq-queue-empty">
+          <i class="bi bi-check2-all"></i>
+          <b>Queue is clear</b>
+          <p>All pending AI violation frames have been triaged.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Full detection detail & decision station -->
+    <div class="md-card rq-station-card">
+      {% if selected %}
+        {% include "dashboard/officer/_detection_detail.html" with detection=selected %}
+      {% else %}
+        <div class="rq-station-empty">
+          <i class="bi bi-shield-check"></i>
+          <b>Officer Decision Station</b>
+          <p>Select any item from the queue to inspect the violation frame, verify the license plate and record the decision.</p>
+          {% if detections %}
           <a href="?detection_id={{ detections.0.id }}" class="md-btn md-btn-primary">
             <i class="bi bi-play-fill"></i> Start Reviewing First Detection
           </a>
-        {% endif %}
-      </div>
-    {% endif %}
-  </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
 
+  </div>
 </div>
 {% endblock %}
 

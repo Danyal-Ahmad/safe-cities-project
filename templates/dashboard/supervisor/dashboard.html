@@ -10,9 +10,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     SUPERVISOR OPERATIONS COMMAND SCREEN · one cohesive surface
-     ==================================================================== -->
 <div class="scr">
 
   <header class="scr-head">
@@ -22,12 +19,10 @@
         <div class="scr-rail-kicker">Safe Cities Project · Field Supervision</div>
         <div class="scr-rail-title">
           Supervisor Operations Command
-          <span class="scr-rail-tag"><i class="bi bi-person-badge"></i> Team Supervisor</span>
         </div>
         <div class="scr-rail-sub">Field officer management, active shift rosters, review backlog and accuracy oversight.</div>
       </div>
       <div class="scr-rail-actions">
-        <span class="scr-rail-clock"><span class="scr-live-dot"></span><span id="live-clock">{% now "D, d M Y · H:i:s" %}</span></span>
         {% if request.user|has_perm:"view_team_performance" %}
         <a href="{% url 'supervisor_portal:team_performance' %}" class="scr-rail-btn scr-rail-btn--solid"><i class="bi bi-people"></i> Team Performance</a>
         {% endif %}
@@ -37,7 +32,6 @@
       </div>
     </div>
 
-    <!-- Fused stat strip -->
     <div class="scr-stats">
       {% if request.user|has_perm:"view_team_performance" %}
       <div class="scr-stat">
@@ -77,14 +71,12 @@
     </div>
   </header>
 
-  <!-- Unified workspace -->
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_analytics" %}
     <section class="scr-panel scr-panel-7">
       <div class="scr-panel-head">
         <div class="scr-panel-title"><i class="bi bi-graph-up"></i> Team Review Activity (Last 7 Days)</div>
-        <span class="md-badge md-badge-secondary">Triage Throughput</span>
       </div>
       <div class="scr-panel-body scr-panel-chart">
         <canvas id="teamActivityChart" data-api-url="{% url 'realtime:api_chart_activity_trend' %}" data-chart-type="line"></canvas>
@@ -106,8 +98,8 @@
               <i class="bi bi-clock"></i>
             </div>
             <div>
-              <div style="font-weight: 700; font-size: 0.9rem; color: var(--md-text-title);">{{ shift.name|default:'Shift' }}</div>
-              <div style="font-size: 0.75rem; color: var(--md-text-muted);"><b style="color: #0b192c;">{{ shift.count|default:0 }}</b> officers scheduled</div>
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--md-text-title);">{{ shift.label }} Shift</div>
+              <div style="font-size: 0.75rem; color: var(--md-text-muted);"><b style="color: #0b192c;">{{ shift.count }}</b> officers on duty: {{ shift.officers|join:", " }}{% if shift.extra %} <b style="color: #0b192c;">+{{ shift.extra }}</b>{% endif %}</div>
             </div>
           </div>
           {% endfor %}

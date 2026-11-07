@@ -1,19 +1,3 @@
-"""
-Camera database audit / cleanup.
-
-Non-destructive by default: reports duplicate camera_id values, cameras with
-no rtsp_url/http_snapshot_url that are still marked is_streaming, cameras
-stuck in a stale health state, and orphaned CameraAssignment / LiveFeed rows
-pointing at cameras that no longer exist (these can't actually happen for
-FK-backed rows since Postgres enforces referential integrity, but the check
-is kept as a defensive sanity pass against any rows written outside the ORM,
-e.g. via raw SQL/backups/fixtures).
-
-Usage:
-    python manage.py cleanup_cameras                # report only
-    python manage.py cleanup_cameras --fix-duplicates
-    python manage.py cleanup_cameras --fix-stale-health
-"""
 from django.core.management.base import BaseCommand
 from django.db.models import Count
 from django.utils import timezone

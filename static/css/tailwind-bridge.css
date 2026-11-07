@@ -231,141 +231,22 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. Portal ticker bar (templates/_partials/portal_ticker.html)
-   Slim announcement bar directly under the topbar. Data comes from the
-   registered active_alerts context processor. Scrolling is a pure CSS
-   marquee; portal-ticker.js duplicates the item set once and sets
-   --sc-ticker-duration so the translateX(-50%) loop is seamless.
-   Spacing between items is a margin on every item (not a track gap) so
-   each half of the track is exactly as wide as the other.
+   2. Portal ticker bar: MOVED. The full ticker design (strip above the
+   navbar, em-dash separators, seamless marquee) now lives with the rest
+   of the unified app shell in static/css/safe-city.css (section
+   "UNIFIED APP SHELL v2"). Only reduced-motion/print fallbacks are kept
+   here so this bridge stays self-contained.
    -------------------------------------------------------------------------- */
-
-.sc-ticker {
-  position: relative;
-  z-index: 20;
-  display: flex;
-  align-items: stretch;
-  min-height: 42px;
-  margin-bottom: 14px;
-  background: var(--sc-surface, #FFFFFF);
-  border: 1px solid var(--sc-border, #E4E8EF);
-  border-radius: var(--sc-radius-lg, 20px);
-  box-shadow: var(--sc-shadow, 0 4px 16px rgba(15, 37, 87, 0.06));
-  overflow: hidden;
-}
-
-.sc-ticker-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  padding: 0 16px;
-  background: linear-gradient(135deg, var(--sc-navy-deep, #0F2557), var(--sc-navy, #16294E));
-  color: #FFFFFF;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.sc-ticker-viewport {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  /* Soft fade at both edges so items glide in/out instead of hard-clipping
-     against the label pill and the card border. */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 18px), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 18px), transparent 100%);
-}
-
-.sc-ticker-track {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto; /* never shrink: the track box must stay as wide as its
-                     content so translateX(-50%) moves exactly one item set */
-  white-space: nowrap;
-  padding: 7px 16px; /* symmetric left/right padding keeps the -50% loop seamless */
-  will-change: transform;
-}
-
-.sc-ticker.is-scrolling .sc-ticker-track {
-  animation: sc-ticker-marquee var(--sc-ticker-duration, 40s) linear infinite;
-}
-
-/* Pause on hover (and for keyboard focus) */
-.sc-ticker-viewport:hover .sc-ticker-track,
-.sc-ticker-viewport:focus-within .sc-ticker-track {
-  animation-play-state: paused;
-}
-
-@keyframes sc-ticker-marquee {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
-}
-
-.sc-ticker-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-  margin-right: 34px;
-  padding: 4px 12px;
-  border-left: 3px solid var(--sc-primary, #2563EB);
-  border-radius: 8px;
-  background: var(--sc-bg-soft, #F1F4F9);
-}
-.sc-ticker-item-info    { border-left-color: var(--sc-info, #2E5FB7); }
-.sc-ticker-item-success { border-left-color: var(--sc-success, #22A45D); }
-.sc-ticker-item-warning { border-left-color: var(--sc-warning, #F5A623); }
-.sc-ticker-item-danger  { border-left-color: var(--sc-danger, #E23B4E); }
-
-.sc-ticker-item-title {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--sc-navy-deep, #0F2557);
-}
-.sc-ticker-item-message {
-  font-size: 0.8125rem;
-  color: var(--sc-text-muted, #5B6B85);
-  max-width: 560px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sc-ticker-item-time {
-  font-family: var(--sc-mono, ui-monospace, Consolas, monospace);
-  font-size: 0.68rem;
-  color: var(--sc-text-faint, #8A94B0);
-}
-.sc-ticker-item-live { background: var(--sc-primary-subtle, rgba(37, 99, 235, 0.08)); }
-.sc-ticker-item-new {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #FFFFFF;
-  background: var(--sc-primary, #2563EB);
-  border-radius: 999px;
-  padding: 2px 7px;
-}
-
-/* Brief highlight when a live item is prepended by portal-ticker.js */
-.sc-ticker.is-flashing { animation: sc-ticker-pulse 1.2s ease; }
-@keyframes sc-ticker-pulse {
-  0%, 100% { box-shadow: var(--sc-shadow, 0 4px 16px rgba(15, 37, 87, 0.06)); }
-  40%      { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.30); }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .sc-ticker.is-scrolling .sc-ticker-track { animation: none; }
   .sc-ticker-viewport { overflow-x: auto; }
-  .sc-ticker.is-flashing { animation: none; }
 }
 
 @media print {
   .sc-ticker { display: none !important; }
 }
+
 
 /* --------------------------------------------------------------------------
    3. Console guard block screen (static/js/console-guard.js)

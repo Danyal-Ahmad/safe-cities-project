@@ -11,9 +11,7 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
-# Demo checkout POST limit: 30/min per IP (see docs/SECURITY_AUDIT.md matrix).
-# GET is unlimited - it only renders a confirmation page for an existing
-# pending reference and never mutates anything.
+
 DEMO_CHECKOUT_LIMIT = (30, 60)
 
 
@@ -88,17 +86,6 @@ def _pending_transaction(ref):
 
 
 def demo_checkout(request):
-    """Simulated gateway checkout (used when merchant keys are not configured).
-
-    GET  ?ref=…  - render the confirmation page for a PENDING PaymentTransaction.
-    POST (CSRF) - visitor confirms; the matching pending transaction is settled,
-    which is the ONLY path (besides the signed webhook) that marks a challan PAID.
-
-    POST is rate limited per IP (30/min). Settlement is idempotent: the challan
-    row is locked with select_for_update and the PaymentTransaction is claimed
-    with a guarded UPDATE (status must still be PENDING), so a double-submit or
-    a concurrent webhook can never double-credit the same challan.
-    """
     from admin.dig_portal.models import AuditLog
 
     if request.method == 'POST':
@@ -126,11 +113,8 @@ def demo_checkout(request):
         challan = txn.challan
         return_url = f"/challan/{challan.id}/pay/done/"
         if status == 'paid':
-            # Atomic idempotent settlement (2026 hardening pass). Previously
-            # check-then-act: a double-submit or a webhook racing the visitor's
-            # confirmation could both run mark_paid. Now the challan row is
-            # locked, and the transaction is claimed with a guarded UPDATE -
-            # only the first claimant settles; everyone else sees PAID.
+
+
             with transaction.atomic():
                 locked = type(challan).objects.select_for_update().get(pk=challan.pk)
                 if locked.payment_status != locked.PAID:

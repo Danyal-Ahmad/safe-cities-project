@@ -101,7 +101,7 @@ class Command(BaseCommand):
             warn(f'Primary hasher: {hashers[0] if hashers else "unknown"}')
 
         from pathlib import Path
-        models_dir = Path(settings.BASE_DIR) / 'models'
+        models_dir = Path(settings.BASE_DIR) / 'ai_models'
         for name in ('NumberPlate_detection_model_int8.onnx', 'car_side_Classifier_model_int8.onnx'):
             if (models_dir / name).exists():
                 ok(f'AI model present: {name}')

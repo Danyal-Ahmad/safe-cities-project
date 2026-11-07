@@ -1,4 +1,3 @@
-"""cameras migration 0001 - Camera model."""
 import uuid
 from django.db import migrations, models
 

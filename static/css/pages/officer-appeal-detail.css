@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Officer | Appeal Detail (officer-appeal-detail)
-   Read-only appeal view: meta lists, reason block, decision timeline.
-   ========================================================================== */
+
 
 .sc-appeal-reason {
   background: var(--sc-bg-soft);
@@ -20,8 +17,6 @@
   letter-spacing: 0.06em;
   color: var(--sc-navy-deep);
 }
-
-/* ---- Meta definition lists ------------------------------------------------ */
 
 .sc-meta-list {
   margin: 0;
@@ -73,8 +68,6 @@
 .sc-meta-row-wide dd {
   text-align: left;
 }
-
-/* ---- Decision trail timeline ---------------------------------------------- */
 
 .sc-timeline {
   list-style: none;
@@ -153,8 +146,6 @@
   font-size: 0.72rem;
   color: var(--sc-text-faint);
 }
-
-/* ---- Stage badge jump link ------------------------------------------------- */
 
 .sc-stage-jump {
   cursor: pointer;

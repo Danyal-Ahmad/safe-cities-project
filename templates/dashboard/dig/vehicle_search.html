@@ -28,7 +28,6 @@
   </div>
 </div>
 
-<!-- ============ SEARCH ============ -->
 <div class="sc-card vs-search-card">
   <div class="sc-card-body">
     <form method="get" action="{% url portal_ns|add:':vehicle_search' %}" class="vs-search-form" role="search">
@@ -60,7 +59,6 @@
 
 {% if q %}
 
-<!-- ============ RESULT SUMMARY ============ -->
 <div class="sc-banner vs-result-banner">
   <i class="bi bi-binoculars"></i>
   <div>
@@ -73,7 +71,6 @@
 <div class="row g-4">
   <div class="col-12">
 
-    <!-- ============ DETECTIONS ============ -->
     <div class="sc-card">
       <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span class="d-flex align-items-center gap-2">
@@ -138,7 +135,7 @@
                     {% if es.total %}
                       <span class="sc-badge {% if es.all_passed %}sc-badge-ok{% else %}sc-badge-amber{% endif %}"
                             title="{% if es.all_passed %}All evidence checks passed{% else %}Some evidence checks failed{% endif %}{% if es.hash %} - hash {{ es.hash|slice:':12' }}…{% endif %}">
-                        <i class="bi bi-shield-{% if es.all_passed %}check{% else %}exclamation{% endif %}"></i>
+                        <i class="bi bi-shield-fill-{% if es.all_passed %}check{% else %}exclamation{% endif %}"></i>
                         {{ es.passed }}/{{ es.total }} checks
                       </span>
                     {% else %}
@@ -167,7 +164,6 @@
 
   <div class="col-12">
 
-    <!-- ============ CHALLANS ============ -->
     <div class="sc-card">
       <div class="sc-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span class="d-flex align-items-center gap-2">
@@ -238,7 +234,6 @@
 
 {% else %}
 
-<!-- ============ NO QUERY STATE ============ -->
 <div class="sc-card">
   <div class="sc-card-body">
     <div class="sc-empty vs-empty-cta">

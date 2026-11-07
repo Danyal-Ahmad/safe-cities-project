@@ -1,6 +1,5 @@
-/* Officer triage detail partial (_detection_detail.html) - extracted JS.
- * Idempotent: guards against double-binding if the partial is included more
- * than once or this file is loaded multiple times. */
+
+
 (function () {
   'use strict';
 
@@ -31,22 +30,17 @@
     return true;
   }
 
-  // Quick-reason preset buttons (previously inline onclick="applyQuickNote(...)").
   document.querySelectorAll('[data-quick-note]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       applyQuickNote(btn.getAttribute('data-quick-note'));
     });
   });
 
-  // Triage submit buttons: auto-fill a default note when empty
-  // (previously inline onclick="return validateRejectNotes()" / validateFlagNotes()).
   const rejectBtn = document.getElementById('btnRejectTriage');
   if (rejectBtn) rejectBtn.addEventListener('click', function () { validateRejectNotes(); });
   const flagBtn = document.getElementById('btnFlagTriage');
   if (flagBtn) flagBtn.addEventListener('click', function () { validateFlagNotes(); });
 
-  // Target image: fade out when the frame fails to load
-  // (previously inline onerror="this.style.opacity='0.15';").
   const targetImg = document.getElementById('detailTargetImage');
   if (targetImg) {
     const fade = function () { targetImg.style.opacity = '0.15'; };

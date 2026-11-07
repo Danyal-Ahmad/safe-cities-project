@@ -1,43 +1,14 @@
-/**
- * SAFE CITIES PROJECT - Realtime Socket.IO client
- *
- * Connects the portal page to the Socket.IO server mounted at /ws/socket.io
- * (wrongway_system/asgi.py + realtime/realtime_events.py) and reacts to
- * pushed events without polling:
- *
- *   'detection:new'        -> toast + DOM CustomEvent 'safecity:detection'
- *   'portal:notification'  -> severity-colored toast + CustomEvent
- *                             'safecity:notification'
- *   'challan:updated'      -> DOM CustomEvent 'safecity:challan' (no toast)
- *
- * Connection state changes are announced via the DOM CustomEvent
- * 'safecity:realtime-state' with detail.state in:
- *   'connecting' | 'connected' | 'reconnecting' | 'disconnected' |
- *   'unavailable'   (CDN client could not be loaded)
- * so pages can update a status badge without touching the console.
- *
- * Page integration (added to templates by a separate stream):
- *   <script src="{% static 'js/realtime-socket.js' %}" defer></script>
- *   <body data-user-role="officer">        (or window.SAFECITY_USER.role)
- *
- * Listeners on portal pages:
- *   document.addEventListener('safecity:detection', function (e) {
- *       // e.detail = {id, plate, status, action, camera, confidence, ...}
- *   });
- */
+
+
 (function () {
     'use strict';
 
     if (window.SafeCityRealtime) {
-        return; // already initialised; never connect twice
+        return;
     }
 
     var SOCKET_IO_CDN = '/static/vendor/socket.io/socket.io.min.js';
     var SOCKET_PATH = '/ws/socket.io';
-
-    // ------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------
 
     function getRole() {
         var fromGlobal = window.SAFECITY_USER && window.SAFECITY_USER.role;
@@ -52,7 +23,7 @@
                 bubbles: true,
                 detail: payload
             }));
-        } catch (e) { /* older browsers without CustomEvent detail */ }
+        } catch (e) {  }
     }
 
     function setState(state, extra) {
@@ -69,7 +40,6 @@
             typeof window.Swal.mixin === 'function';
     }
 
-    // SweetAlert2 toast icons only accept these four values.
     function swalIcon(severity) {
         var map = {
             info: 'info', success: 'success', ok: 'success',
@@ -95,7 +65,6 @@
         fallbackToast(title, message, severity);
     }
 
-    // Minimal dependency-free toast (used when SweetAlert2 is absent).
     function fallbackToast(title, message, severity) {
         if (!document.body) { return; }
         var colors = {
@@ -128,7 +97,6 @@
         var span = document.createElement('span');
         span.textContent = message || '';
 
-        // textContent only: pushed payloads (plates, titles) are never HTML.
         el.appendChild(strong);
         el.appendChild(span);
         stack.appendChild(el);
@@ -140,10 +108,6 @@
             }, 250);
         }, 4200);
     }
-
-    // ------------------------------------------------------------------
-    // Event handlers
-    // ------------------------------------------------------------------
 
     function onDetection(payload) {
         dispatch('safecity:detection', payload);
@@ -166,19 +130,15 @@
     }
 
     function onChallan(payload) {
-        // No toast (staff lists refresh silently); pages listen for the event.
+
         dispatch('safecity:challan', payload);
     }
-
-    // ------------------------------------------------------------------
-    // Bootstrap
-    // ------------------------------------------------------------------
 
     function connect() {
         var socket = io(window.location.origin, {
             path: SOCKET_PATH,
             auth: { role: getRole() },
-            // socket.io auto-reconnect defaults, made explicit:
+
             reconnection: true,
             reconnectionAttempts: Infinity,
             reconnectionDelay: 1000,
@@ -190,8 +150,7 @@
         });
 
         socket.on('disconnect', function (reason) {
-            // 'io client disconnect' = we closed it; anything else means
-            // socket.io will retry automatically.
+
             setState(reason === 'io client disconnect' ? 'disconnected' : 'reconnecting', reason);
         });
 
@@ -211,8 +170,7 @@
             ready();
             return;
         }
-        // Another stream may already add the CDN <script> tag; if we got
-        // here without it, inject it ourselves before connecting.
+
         var script = document.createElement('script');
         script.src = SOCKET_IO_CDN;
         script.async = true;

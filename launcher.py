@@ -49,8 +49,6 @@ EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=noreply@safecities.project
-
-CAMERA_WORKER_INTERVAL=5
 """
 
 
@@ -541,7 +539,6 @@ def _env_flag(name: str) -> bool:
 
 
 def uvicorn_available(py: Path) -> bool:
-    """True when the ASGI server (uvicorn) is importable in the venv."""
     try:
         r = subprocess.run([str(py), '-c', 'import uvicorn'],
                            capture_output=True, cwd=str(ROOT))
@@ -676,7 +673,20 @@ def fresh() -> None:
 
 
 def show_help() -> None:
-    print(__doc__)
+    print("""Safe City launcher
+
+Usage: python launcher.py <command>
+
+Commands:
+  run          Start the stack (PostgreSQL check, migrations, collectstatic, runserver)
+  setup        Full fresh setup (venv packages, DB create, migrations, seed admin)
+  migrate      Apply database migrations
+  seedadmin    Create the default DIG admin account
+  static       Collect static files
+  test         Run the Django test suite
+  status       Show stack status (DB + server)
+  help         Show this help
+""")
 
 
 def main() -> None:

@@ -1,20 +1,16 @@
-/* ==========================================================================
-   DIG | Add to Blacklist  (dashboard/dig/blacklist_add.html)
-   ========================================================================== */
+
 
 .bl-req {
   color: var(--sc-danger, #E23B4E);
   font-weight: 800;
 }
 
-/* Value input - enforced uppercase, mono */
 .bl-value-input {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
 }
 
-/* Live character counter attached to the reason label */
 .bl-counter {
   float: right;
   font-size: 0.68rem;
@@ -27,7 +23,6 @@
 .bl-counter.bl-counter-warn { color: #B87A10; }
 .bl-counter.bl-counter-limit { color: var(--sc-danger, #E23B4E); }
 
-/* Shake + red ring when JS flags a missing required field */
 .bl-invalid {
   border-color: var(--sc-danger, #E23B4E) !important;
   box-shadow: 0 0 0 3px var(--sc-danger-bg, #FDF3F5) !important;
@@ -50,8 +45,6 @@
   margin-top: 18px;
   padding-top: 16px;
 }
-
-/* ---------- Policy panel ---------- */
 
 .bl-policy-card .sc-card-body { padding-top: 2px; }
 
@@ -91,7 +84,6 @@
 
 .bl-policy-list strong { color: var(--sc-navy-deep, #0F2557); }
 
-/* What happens next */
 .bl-next-steps {
   border: 1px dashed #B9C9E8;
   border-radius: var(--sc-radius, 14px);

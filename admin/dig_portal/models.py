@@ -183,6 +183,14 @@ class AuditLog(models.Model):
             return 'Unknown device', 'other'
 
     @classmethod
+    def parse_device(cls, ua_str):
+        try:
+            browser, os_name, device_type, brand, summary = LoginEvent._parse_ua(ua_str)
+        except Exception:
+            return '', ''
+        return summary or device_type, device_type
+
+    @classmethod
     def write(cls, request, action, target_model='', target_id=None, **details):
         actor = None
         ip = None
@@ -209,12 +217,6 @@ class AuditLog(models.Model):
 
 
 class LoginEvent(models.Model):
-    """Immutable record of every authentication attempt on the platform.
-
-    Captures the account, portal, outcome, source IP and full device
-    fingerprint (browser / OS / device type) so auditors can reconstruct
-    who accessed the system, from where and with what device.
-    """
     PORTAL_ADMIN = 'admin'
     PORTAL_CITIZEN = 'citizen'
     PORTAL_CHOICES = [(PORTAL_ADMIN, 'Staff Portal'), (PORTAL_CITIZEN, 'Citizen Portal')]
@@ -455,8 +457,8 @@ class Banner(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # Stored-XSS guard: banner HTML is rendered |safe on public pages, so
-        # every write path sanitizes executable constructs at the model layer.
+
+
         from admin.dig_portal.sanitize import sanitize_banner_html
         if self.html_content:
             self.html_content = sanitize_banner_html(self.html_content)
@@ -511,7 +513,6 @@ class Notification(models.Model):
         ('appeal_pending', 'Appeal Pending Review'),
         ('appeal_approved', 'Appeal Approved'),
         ('appeal_rejected', 'Appeal Rejected'),
-        ('appeal_escalated', 'Appeal Escalated'),
         ('camera', 'Camera Event'),
         ('challan', 'Challan Event'),
         ('payment_verification', 'Payment Verification'),
@@ -524,7 +525,7 @@ class Notification(models.Model):
     message = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other')
     target_url = models.CharField(max_length=500, blank=True, default='',
-                                   help_text="URL to navigate to when clicked (e.g. /dig/appeal/5/override/)")
+                                   help_text="URL to navigate to when clicked")
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -655,7 +656,6 @@ class ChallanTemplate(models.Model):
 
 
 class AuditPDFTemplate(models.Model):
-    """Custom HTML layout for audit report PDF exports (Canva-lite library)."""
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=255, blank=True, default="")
     html_content = models.TextField(blank=True, default="")
@@ -678,7 +678,6 @@ class AuditPDFTemplate(models.Model):
 
 
 class BlacklistEntry(models.Model):
-    """Flagged vehicle plates blocked from normal processing."""
     plate_number = models.CharField(max_length=20, unique=True, db_index=True)
     reason = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)

@@ -8,9 +8,6 @@ from detections.models import Detection
 
 class ChallanManager(models.Manager):
     def generate_ticket_no(self, plate_series=None):
-        """Auto challan number (numeric), not plate-based.
-        Format: 8+ digit number, sequential (e.g. 20019776).
-        """
         last = (
             self.filter(ticket_no__regex=r'^[0-9]+$')
             .order_by('-id')
@@ -26,7 +23,7 @@ class ChallanManager(models.Manager):
             n = None
         if n is None:
             year = timezone.localdate().year
-            base = year * 100000  # e.g. 202600000
+            base = year * 100000  
             n = base + self.count() + 1
         while self.filter(ticket_no=str(n)).exists():
             n += 1
@@ -48,14 +45,10 @@ class Challan(models.Model):
         (OTHER, 'Other'),
     ]
 
-    # Catalog of violation types. Multiple types exist; only the types listed
-    # in ENABLED_VIOLATIONS are live for enforcement. The violation type on a
-    # challan is always the conclusion of the detection analysis, never a
-    # default assigned at write time.
+
     ENABLED_VIOLATIONS = [WRONG_WAY]
 
-    # Limited targeted translation of the violation catalog for Urdu-primary
-    # documents. English remains the primary label via get_violation_type_display.
+
     VIOLATION_LABELS_URDU = {
         WRONG_WAY: 'غلط سمت میں گاڑی چلانا',
         NO_HELMET: 'ہیلمٹ کے بغیر دو پہیہ والی گاڑی چلانا',
@@ -124,12 +117,10 @@ class Challan(models.Model):
 
     @property
     def violation_type_display_urdu(self):
-        """Limited targeted Urdu label for the analyzed violation type."""
         return self.VIOLATION_LABELS_URDU.get(self.violation_type, self.violation_type or '-')
 
     @property
     def confidence_percent(self):
-        """ai_confidence normalized to a 0-100 percent scale for display."""
         v = self.ai_confidence
         if v is None:
             return None
@@ -143,7 +134,6 @@ class Challan(models.Model):
 
     @property
     def psid(self):
-        """Numeric Payment System ID only (digits). Stable per challan."""
         tid = str(self.ticket_no or self.pk or 0)
         digits = ''.join(ch for ch in tid if ch.isdigit()) or str(self.pk or 0)
         core = digits[-12:].zfill(12)
@@ -161,7 +151,6 @@ class Challan(models.Model):
 
     @property
     def payment_qr_payload(self):
-        """Payload encoded in QR for mobile banking apps / agent counters."""
         return (
             f"SAFECITY|PSID:{self.psid}|TKT:{self.ticket_no}|"
             f"PLT:{self.plate_number}|AMT:{self.fine_amount}|STS:{self.payment_status}"

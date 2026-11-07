@@ -1,7 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT - Audit PDF Templates (it-audit-templates)
-   Canva-lite management page: cards, live preview frames, HTML editor
-   ========================================================================== */
+
 
 .it-aud-card {
   display: flex;
@@ -54,7 +51,6 @@
   color: var(--sc-text-muted, #5B6B85);
 }
 
-/* Sandboxed A4 preview frame (browser chrome strip above the iframe) */
 .it-aud-frame {
   display: block;
   width: 100%;
@@ -65,7 +61,6 @@
   box-shadow: inset 0 18px 0 -17px #F1F4F9;
 }
 
-/* Card action rows */
 .it-aud-actions {
   display: flex;
   align-items: center;
@@ -76,7 +71,6 @@
 
 .it-aud-actions form { margin: 0; }
 
-/* Collapsible editors */
 .it-aud-edit {
   margin-top: 10px;
   border-top: 1px dashed var(--sc-border-strong, #D3DAE7);
@@ -99,7 +93,6 @@
 
 .it-aud-edit form { margin-top: 10px; }
 
-/* HTML editor (Canva-lite) */
 .it-aud-editor { margin: 0; }
 
 .it-aud-editor-grid {

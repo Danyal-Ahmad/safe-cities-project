@@ -1,38 +1,102 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Case Escalation{% endblock %}
+{% block title %}Mistake-Challan Appeals{% endblock %}
 {% block content %}
 <div class="sc-page-hero">
   <div>
-    <h1>Case escalation</h1>
-    <p class="lead">High-value and escalated appeal cases pending DIG decision.</p>
+    <h1><i class="bi bi-shield-check me-2"></i>Case Escalation</h1>
+    <p class="lead">Flagged detections escalated for command review. Mistake-challan appeals are routed to the SSP only.</p>
   </div>
 </div>
 
-<div class="card">
-{% if appeals %}
+{% if not is_ssp %}
+<div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-info-circle"></i>
+  <div>Mistake-challan appeals are reviewed exclusively by the SSP. This view is limited to flagged detections escalated by officers.</div>
+</div>
+{% endif %}
+
+<div class="card mb-3">
+  <div class="card-header"><span><i class="bi bi-flag me-2"></i>Flagged Detections ({{ flagged|length }})</span></div>
+  {% if flagged %}
   <div class="table-responsive">
   <table class="table table-hover mb-0">
-    <thead><tr><th>#</th><th>Challan</th><th>Plate</th><th>Stage</th><th>Reason</th><th>When</th><th>Action</th></tr></thead>
+    <thead><tr><th>#</th><th>Camera</th><th>Plate</th><th>Confidence</th><th>Flagged By</th><th>Notes</th><th>Flagged At</th></tr></thead>
     <tbody>
-    {% for a in appeals %}
+    {% for d in flagged %}
       <tr>
-        <td class="font-mono">#{{ a.id }}</td>
-        <td class="font-mono"><a href="{% url 'challans:challan_detail' a.challan.id %}">{{ a.challan.ticket_no }}</a></td>
-        <td class="font-mono">{{ a.challan.plate_number }}</td>
-        <td><span class="badge badge-amber">{{ a.get_current_stage_display }}</span></td>
-        <td class="small">{{ a.escalation_reason|default:"-" }}</td>
-        <td class="small">{{ a.escalated_at|date:"d M H:i" }}</td>
-        <td><a href="{% url 'dig:appeal_override' a.id %}" class="btn btn-sm">Decide</a></td>
+        <td class="font-mono">#{{ d.id }}</td>
+        <td class="font-mono">{{ d.camera.camera_id|default:"-" }}</td>
+        <td class="font-mono">{{ d.effective_plate|default:"-" }}</td>
+        <td class="small">{% if d.ai_confidence %}{{ d.ai_confidence|floatformat:2 }}{% else %}-{% endif %}</td>
+        <td class="small">{{ d.reviewed_by.display_name|default:"-" }}</td>
+        <td class="small text-truncate" style="max-width:260px;">{{ d.review_notes|truncatechars:80|default:"-" }}</td>
+        <td class="small">{{ d.reviewed_at|date:"d M H:i"|default:"-" }}</td>
       </tr>
-    {% empty %}
-      <tr><td colspan="7" style="padding:32px;text-align:center;color:var(--sc-text-muted,#5B6B85);">No escalated cases.</td></tr>
     {% endfor %}
     </tbody>
   </table>
   </div>
-{% else %}
-  <div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No escalated cases.</h3></div>
-{% endif %}
+  {% else %}
+  <div class="card-body"><div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No flagged detections.</h3></div></div>
+  {% endif %}
 </div>
+
+{% if is_ssp %}
+<div class="card mb-3">
+  <div class="card-header"><span><i class="bi bi-hourglass-split me-2"></i>Awaiting SSP Decision ({{ pending_appeals|length }})</span></div>
+  {% if pending_appeals %}
+  <div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>#</th><th>Challan</th><th>Plate</th><th>Violation</th><th>Submitted By</th><th>Reason</th><th>Submitted</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for a in pending_appeals %}
+      <tr>
+        <td class="font-mono">#{{ a.id }}</td>
+        <td class="font-mono"><a href="{% url 'challans:challan_detail' a.challan.id %}">{{ a.challan.ticket_no }}</a></td>
+        <td class="font-mono">{{ a.challan.plate_number }}</td>
+        <td class="small">{{ a.challan.get_violation_type_display }}</td>
+        <td class="small">{% if a.submitted_by %}{{ a.submitted_by.display_name }}{% else %}Guest · {{ a.guest_cnic }}{% endif %}</td>
+        <td class="small text-truncate" style="max-width:260px;">{{ a.reason|truncatechars:80 }}</td>
+        <td class="small">{{ a.created_at|date:"d M H:i" }}</td>
+        <td><a href="{% url 'dig:appeal_override' a.id %}" class="btn btn-sm btn-primary">Review</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="card-body"><div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No appeals awaiting decision.</h3></div></div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header"><span><i class="bi bi-check2-circle me-2"></i>Decided by SSP ({{ decided_appeals|length }})</span></div>
+  {% if decided_appeals %}
+  <div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>#</th><th>Challan</th><th>Plate</th><th>Decision</th><th>SSP Comment</th><th>Decided By</th><th>Decided At</th></tr></thead>
+    <tbody>
+    {% for a in decided_appeals %}
+      <tr>
+        <td class="font-mono">#{{ a.id }}</td>
+        <td class="font-mono"><a href="{% url 'challans:challan_detail' a.challan.id %}">{{ a.challan.ticket_no }}</a></td>
+        <td class="font-mono">{{ a.challan.plate_number }}</td>
+        <td>
+          {% if a.status == 'approved' %}<span class="badge bg-success">APPROVED</span>
+          {% else %}<span class="badge bg-danger">REJECTED</span>{% endif %}
+        </td>
+        <td class="small text-truncate" style="max-width:280px;">{{ a.ssp_comment|truncatechars:80|default:"-" }}</td>
+        <td class="small">{% if a.ssp_reviewed_by %}{{ a.ssp_reviewed_by.display_name }}{% else %}-{% endif %}</td>
+        <td class="small">{{ a.ssp_reviewed_at|date:"d M H:i" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="card-body"><div class="sc-empty-state"><i class="bi bi-inbox"></i><h3>No decided appeals yet.</h3></div></div>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}

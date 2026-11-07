@@ -1,7 +1,5 @@
-/* ==========================================================================
-   Officer | Profile (officer-profile.js)
-   Avatar fallback + light phone-format validation on the profile form.
-   ========================================================================== */
+
+
 (function () {
   'use strict';
 
@@ -15,7 +13,6 @@
 
   ready(function () {
 
-    /* Avatar fallback to the default icon if the upload is missing. */
     document.querySelectorAll('img[data-img-fallback]').forEach(function (img) {
       img.addEventListener('error', function () {
         var wrap = img.closest('.sc-profile-avatar-wrap') || img.parentElement;
@@ -24,7 +21,6 @@
       });
     });
 
-    /* Phone sanity check - warn (not block) on obviously invalid input. */
     var form = document.querySelector('form[data-profile-form]');
     if (form) {
       form.addEventListener('submit', function (e) {

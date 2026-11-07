@@ -12,26 +12,26 @@
  <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-camera-video me-1"></i>Cameras</a>
 </div>
 
-<div>
- <div>
+<div class="row g-4">
+ <div class="col-md-3">
  <div class="metric-card h-100">
  <div class="metric-label">Officers</div>
  <div class="metric-value">{{ officers|length }}</div>
  </div>
  </div>
- <div>
+ <div class="col-md-3">
  <div class="metric-card h-100">
  <div class="metric-label">Cameras</div>
  <div class="metric-value">{{ cameras|length }}</div>
  </div>
  </div>
- <div>
+ <div class="col-md-3">
  <div class="metric-card h-100">
  <div class="metric-label">Active assignments</div>
  <div class="metric-value">{{ assignments|length }}</div>
  </div>
  </div>
- <div>
+ <div class="col-md-3">
  <div class="metric-card h-100">
  <div class="metric-label">Limit</div>
  <div class="metric-value">1 / officer</div>
@@ -39,48 +39,48 @@
  </div>
 </div>
 
-<div>
- <div>
- <div>
+<div class="row g-4 mt-1">
+ <div class="col-lg-4">
+ <div class="card h-100">
  <div class="card-header"><i class="bi bi-arrow-right-circle me-1"></i> New assignment</div>
  <div class="card-body">
  <form method="post">
  {% csrf_token %}
  <input type="hidden" name="action" value="assign">
- <div>
+ <div class="sc-form-group">
  <label>Officer *</label>
- <select name="officer_id" required>
+ <select name="officer_id" class="form-select" required>
  <option value="">- Select officer -</option>
  {% for o in officers %}
  <option value="{{ o.id }}">{{ o.display_name }}{% if o.staff_id %} · {{ o.staff_id }}{% endif %}</option>
  {% endfor %}
  </select>
  </div>
- <div>
+ <div class="sc-form-group">
  <label>Camera *</label>
- <select name="camera_id" required>
+ <select name="camera_id" class="form-select" required>
  <option value="">- Select camera -</option>
  {% for c in cameras %}
  <option value="{{ c.id }}">{{ c.camera_id }} | {{ c.location|truncatechars:36 }}</option>
  {% endfor %}
  </select>
  </div>
- <div>
+ <div class="sc-form-group">
  <label>Notes</label>
- <input type="text" name="notes" maxlength="200" placeholder="Optional">
+ <input type="text" name="notes" class="form-control" maxlength="200" placeholder="Optional">
  </div>
  <button type="submit" class="btn btn-primary w-100"><i class="bi bi-arrow-right-circle me-1"></i>Assign</button>
  </form>
- <p class="small ">If the officer already has a camera, the previous assignment is released automatically (limit = 1).</p>
+ <p class="small text-muted mt-2 mb-0">If the officer already has a camera, the previous assignment is released automatically (limit = 1).</p>
  </div>
  </div>
  </div>
- <div>
- <div>
- <div class="card-header ">
+ <div class="col-lg-8">
+ <div class="card h-100">
+ <div class="card-header">
  <span><i class="bi bi-arrow-right-circle me-1"></i> Active assignments</span>
  </div>
- <div class="p-0">
+ <div class="card-body p-0">
  <div class="table-responsive">
  <table class="sc-table">
  <thead>
@@ -103,22 +103,26 @@
  <td class="small">{{ a.camera.location|truncatechars:40 }}</td>
  <td class="small">{{ a.assigned_at|date:"d M Y H:i" }}</td>
  <td>
- <form method="post" class="d-inline" onsubmit="return false;" data-bs-toggle="modal" data-bs-target="#confirmReleaseModal" onclick="document.getElementById('releaseAssignmentId').value=this.querySelector('[name=assignment_id]').value; return false;">
- {% csrf_token %}
- <input type="hidden" name="action" value="release">
- <input type="hidden" name="assignment_id" value="{{ a.id }}">
- <button class="sc-btn sc-btn-primary" type="submit"><i class="bi bi-circle"></i>
- </form>
+ <button type="button" class="sc-btn sc-btn-danger" title="Release this assignment"
+ data-bs-toggle="modal" data-bs-target="#confirmReleaseModal"
+ data-assignment-id="{{ a.id }}"
+ data-camera="{{ a.camera.camera_id }}"
+ data-officer="{{ a.officer.display_name }}">
+ <i class="bi bi-x-circle"></i> Release
+ </button>
  <a class="sc-btn sc-btn-primary" href="{% url portal_ns|add:':live_tracking' %}?camera_id={{ a.camera_id }}" title="Open live tracking">
- <i class="bi bi-circle"></i>
+ <i class="bi bi-camera-video"></i>
  </a>
  </td>
  </tr>
  {% empty %}
  <tr>
- <td colspan="5" class=" py-5">
- <i class=" opacity-50"></i>
- No active assignments. Assign a camera to an officer to enable their Live Tracking feed.
+ <td colspan="5" class="py-5">
+ <div class="sc-empty-state">
+ <i class="bi bi-camera-video-off"></i>
+ <h3>No active assignments</h3>
+ <p>Assign a camera to an officer to enable their Live Tracking feed.</p>
+ </div>
  </td>
  </tr>
  {% endfor %}
@@ -129,4 +133,36 @@
  </div>
  </div>
 </div>
+
+<div class="modal fade" id="confirmReleaseModal" tabindex="-1" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-centered">
+ <div class="modal-content">
+ <form method="post" id="releaseForm">
+ {% csrf_token %}
+ <input type="hidden" name="action" value="release">
+ <input type="hidden" name="assignment_id" id="releaseAssignmentId" value="">
+ <div class="modal-header"><h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Release Camera</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+ <div class="modal-body">
+ <p>Release <strong id="releaseCameraLabel"></strong> from <strong id="releaseOfficerLabel"></strong>? The officer loses Live Tracking for this camera.</p>
+ </div>
+ <div class="modal-footer">
+ <button type="button" class="sc-btn sc-btn-sm" data-bs-dismiss="modal">Cancel</button>
+ <button type="submit" class="sc-btn sc-btn-danger"><i class="bi bi-x-circle me-1"></i>Release</button>
+ </div>
+ </form>
+ </div>
+ </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+ document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#confirmReleaseModal"]').forEach(function (btn) {
+ btn.addEventListener('click', function () {
+ document.getElementById('releaseAssignmentId').value = btn.getAttribute('data-assignment-id') || '';
+ document.getElementById('releaseCameraLabel').textContent = btn.getAttribute('data-camera') || '';
+ document.getElementById('releaseOfficerLabel').textContent = btn.getAttribute('data-officer') || '';
+ });
+ });
+</script>
 {% endblock %}

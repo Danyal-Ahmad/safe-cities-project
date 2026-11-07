@@ -1,14 +1,9 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Public challan detail page
-   Loaded after public-home.css (shared dark glass system).
-   ============================================================================ */
+
 
 .scpub-detail .scpub-inner { max-width: 1040px; }
 
-/* Back link */
 .pd-back { display: flex; margin-bottom: 14px; }
 
-/* Compact hero */
 .pd-hero {
   display: flex;
   align-items: center;
@@ -44,7 +39,6 @@
 .pd-hero-actions .scpub-btn,
 .pd-hero-actions .scpub-btn-ghost { width: auto; }
 
-/* Two column layout */
 .pd-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
@@ -54,7 +48,6 @@
 .pd-col-main,
 .pd-col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
-/* Evidence */
 .pd-evidence {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
@@ -82,7 +75,6 @@
   color: rgba(232, 240, 255, 0.4);
 }
 
-/* Appeal */
 .pd-hint {
   font-size: 11px;
   color: rgba(232, 240, 255, 0.4);
@@ -131,11 +123,9 @@
 .pd-appeal-row:last-child { border-bottom: none; }
 .pd-appeal-date { font-size: 12px; color: rgba(232, 240, 255, 0.5); }
 
-/* Actions column */
 .pd-actions { display: flex; flex-direction: column; gap: 10px; }
 .pd-actions .scpub-btn-ghost { width: 100%; }
 
-/* Officer signature */
 .pd-officer { margin-bottom: 12px; }
 .pd-officer-name { font-size: 15px; font-weight: 700; color: #F0F4F8; }
 .pd-officer-role { font-size: 12.5px; color: rgba(232, 240, 255, 0.55); }
@@ -167,7 +157,6 @@
   padding: 24px;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .pd-grid { grid-template-columns: 1fr; }
   .pd-evidence { grid-template-columns: 1fr; }
@@ -175,3 +164,34 @@
   .pd-hero-actions { width: 100%; }
   .pd-hero-actions .scpub-btn { flex: 1; }
 }
+
+/* ===== Official E-Challan embedded PDF (the real rendered document) ===== */
+.pd-pdf-card { overflow: hidden; }
+.pd-pdf-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  max-height: 640px;
+  border: 1px solid #E4E8EF;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #F6F9FD;
+}
+.pd-pdf-embed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.pd-pdf-hint {
+  margin: 10px 0 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #5B6B85;
+}
+.pd-pdf-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.pd-pdf-actions .scpub-btn { width: 100%; }

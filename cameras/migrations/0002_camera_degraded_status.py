@@ -1,5 +1,5 @@
-# Add 'degraded' to Camera health_status choices
-# No database change needed - CharField stays VARCHAR(20), just a choice expansion
+
+
 
 from django.db import migrations, models
 

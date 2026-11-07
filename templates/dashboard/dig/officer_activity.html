@@ -10,47 +10,47 @@
  <h1><i class="bi bi-person-badge me-2"></i>Officer Activity</h1>
  <p class=" opacity-75">{{ officer.display_name|default:"Officer" }} · recent oversight</p>
  </div>
- <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+ <a href="{% url portal_ns|add:':dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
 </div>
 
-<div>
- <div>
+<div class="row g-4">
+ <div class="col-md-4">
  <div class="metric-card h-100">
  <div class="metric-card-top">
  <span class="metric-label">Detections Reviewed</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ <span class="metric-icon-box"><i class="bi bi-eye"></i></span>
  </div>
  <div class="metric-value">{{ stats.total_reviewed|default:0 }}</div>
  </div>
  </div>
- <div>
+ <div class="col-md-4">
  <div class="metric-card h-100">
  <div class="metric-card-top">
  <span class="metric-label">Appeals Handled</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ <span class="metric-icon-box"><i class="bi bi-envelope-check"></i></span>
  </div>
  <div class="metric-value">{{ stats.total_appeals|default:0 }}</div>
  </div>
  </div>
- <div>
+ <div class="col-md-4">
  <div class="metric-card h-100">
  <div class="metric-card-top">
  <span class="metric-label">Notes Added</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ <span class="metric-icon-box"><i class="bi bi-journal-text"></i></span>
  </div>
  <div class="metric-value">{{ stats.total_notes|default:0 }}</div>
  </div>
  </div>
 </div>
 
-<div>
- <div>
- <div class=" h-100">
- <div class="card-header ">
- <span><i class="bi bi-circle me-2"></i>Recent Reviews</span>
+<div class="row g-4 mt-1">
+ <div class="col-lg-6">
+ <div class="card h-100">
+ <div class="card-header d-flex justify-content-between align-items-center">
+ <span><i class="bi bi-eye me-2"></i>Recent Reviews</span>
  <span class="badge bg-secondary">{{ recent_actions|length }}</span>
  </div>
- <div class="p-0">
+ <div class="card-body p-0">
  <div class="table-responsive">
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -59,13 +59,13 @@
  <tbody>
  {% for d in recent_actions %}
  <tr>
- <td class="form-control font-monospace">#{{ d.id }}</td>
- <td class="form-control font-monospace">{{ d.effective_plate|default:"-" }}</td>
+ <td class="font-monospace">#{{ d.id }}</td>
+ <td class="font-monospace">{{ d.effective_plate|default:"-" }}</td>
  <td>{{ d.get_status_display }}</td>
- <td class="small ">{{ d.reviewed_at|date:"d M H:i" }}</td>
+ <td class="small text-muted">{{ d.reviewed_at|date:"d M H:i" }}</td>
  </tr>
  {% empty %}
- <tr><td colspan="4" class=" py-4">No reviews yet</td></tr>
+ <tr><td colspan="4" class="text-center py-4 text-muted">No reviews yet</td></tr>
  {% endfor %}
  </tbody>
  </table>
@@ -73,13 +73,13 @@
  </div>
  </div>
  </div>
- <div>
- <div class=" h-100">
- <div class="card-header ">
- <span><i class="bi bi-circle me-2"></i>Appeals Handled</span>
+ <div class="col-lg-6">
+ <div class="card h-100">
+ <div class="card-header d-flex justify-content-between align-items-center">
+ <span><i class="bi bi-envelope me-2"></i>Appeals Handled</span>
  <span class="badge bg-secondary">{{ appeals_handled|length }}</span>
  </div>
- <div class="p-0">
+ <div class="card-body p-0">
  <div class="table-responsive">
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -88,12 +88,12 @@
  <tbody>
  {% for a in appeals_handled %}
  <tr>
- <td class="form-control font-monospace">{{ a.challan.ticket_no }}</td>
+ <td class="font-monospace">{{ a.challan.ticket_no }}</td>
  <td>{{ a.get_status_display }}</td>
- <td class="small ">{{ a.reviewed_at|date:"d M H:i" }}</td>
+ <td class="small text-muted">{{ a.reviewed_at|date:"d M H:i" }}</td>
  </tr>
  {% empty %}
- <tr><td colspan="3" class=" py-4">No appeals handled</td></tr>
+ <tr><td colspan="3" class="text-center py-4 text-muted">No appeals handled</td></tr>
  {% endfor %}
  </tbody>
  </table>

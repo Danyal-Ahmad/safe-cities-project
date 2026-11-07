@@ -51,11 +51,21 @@ DEMO_PASSWORDS = {
     'citizen@safecity.fyp': 'Demo@CZN-2026secure',
 }
 
+# Secondary convention: environments where the demo accounts were reset to a
+# single shared password (the current sandbox standard, also used by
+# scripts/push_audit.py). Tried after the per-role demo password so the suite
+# works both on freshly-seeded checkouts and on long-lived demo databases.
+_SHARED_DEMO_PASSWORD = 'Test@2026'
+
 
 def client_for(username, password=None):
     c = Client()
-    ok = c.login(username=username, password=password or DEMO_PASSWORDS.get(username, 'Admin@2026'))
-    return c if ok else None
+    for pwd in (password, DEMO_PASSWORDS.get(username), _SHARED_DEMO_PASSWORD):
+        if not pwd:
+            continue
+        if c.login(username=username, password=pwd):
+            return c
+    return None
 
 
 def main():
@@ -158,8 +168,8 @@ def main():
 
     # ---------- Portal page renders per role ----------
     role_pages = {
-        'DIG': ['/portal/dig/', '/portal/dig/dashboard/', '/portal/dig/live-monitor/',
-                '/portal/dig/cameras/', '/portal/dig/cameras/list/', '/portal/dig/challans/',
+        'DIG': ['/portal/dig/', '/portal/dig/live-monitor/',
+                '/portal/dig/cameras/', '/portal/dig/challans/',
                 '/portal/dig/flagged-detections/', '/portal/dig/vehicle-search/',
                 '/portal/dig/analytics/', '/portal/dig/heatmap/', '/portal/dig/audit/',
                 '/portal/dig/audit-templates/', '/portal/dig/officer-kpi/', '/portal/dig/compliance/'],

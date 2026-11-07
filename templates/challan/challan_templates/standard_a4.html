@@ -1,0 +1,372 @@
+{% comment %}
+  SAFE CITIES PROJECT — standard_a4.html
+  Default bilingual official e-challan layout (single A4 page, print-exact).
+
+  Ported from the approved "challan-template-2" reference sheet and
+  re-adjusted to the project print contract:
+    - ONE A4 page, @page margin 0, .sheet fixed 210 x 297 mm (overflow
+      hidden) so a second page is structurally impossible.
+    - No page numbers, no localhost/site URLs anywhere on the sheet.
+    - Data comes exclusively from the pdf_service context (challan.*,
+      logo paths, evidence image, payment icons, barcode/QR inline SVG).
+    - Urdu set in Noto Nastaliq Urdu via @font-face (static/fonts/) so
+      WeasyPrint embeds real Nastaliq glyphs (fontconfig fallback too).
+
+  Layout uses CSS tables (WeasyPrint-deterministic), never flexbox.
+  Height budget (mm): padding 3 + 7 | hd 34 | bar 8.6 | info 66 | row2 64
+  | paym 40 | low 46 | ft 9.6 | margins 6 x 2.4 = 14.4 => total 292.6
+  ====================================================================
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>E-Challan {{ challan.ticket_no }}</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @font-face { font-family: 'Noto Nastaliq Urdu';
+    src: url('static/fonts/NotoNastaliqUrdu-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Noto Nastaliq Urdu';
+    src: url('static/fonts/NotoNastaliqUrdu-Bold.ttf'); font-weight: 700; }
+  @font-face { font-family: 'Noto Naskh Arabic';
+    src: url('static/fonts/NotoNaskhArabic-Regular.ttf'); font-weight: 400; }
+  :root {
+    --navy: #0b3a78; --navy-2: #0f4690;
+    --soft: #eaf1fb; --soft-2: #f3f7fc; --line: #cdd9e8;
+    --red: #d3202a; --ink: #172a44; --muted: #5c6d84;
+    --ur: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Noto Naskh Arabic", serif;
+    --sans: "Segoe UI", "Liberation Sans", Arial, Helvetica, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #ffffff; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact;
+         font-family: var(--sans); color: var(--ink); font-size: 8pt; }
+  img { display: block; max-width: 100%; }
+  .ur { font-family: var(--ur); direction: rtl; unicode-bidi: isolate; }
+
+  /* ---------- A4 sheet (fixed heights, one page) ---------- */
+  .sheet { width: 210mm; height: 297mm; margin: 0 auto; background: #f6f9fd;
+           padding: 3mm 4mm 7mm; position: relative; overflow: hidden; }
+  .demo-strip { position: absolute; left: 0; right: 0; bottom: 0; height: 4.4mm;
+                line-height: 4.4mm; text-align: center; font-size: 5.6pt;
+                letter-spacing: .14em; text-transform: uppercase; color: #6b7a90;
+                background: #e3ebf6; }
+
+  /* ---------- header (34mm) ---------- */
+  .hd { height: 34mm; margin-bottom: 2.4mm; display: table; width: 100%;
+        table-layout: fixed; }
+  .hd .lg { display: table-cell; width: 34mm; vertical-align: middle; text-align: center; }
+  .hd .lg img { width: 24mm; height: 24mm; margin: 0 auto; object-fit: contain; }
+  .hd .lg .cap { display: block; margin-top: 1mm; font-size: 6.2pt; font-weight: 700;
+                 letter-spacing: .08em; color: var(--navy); text-transform: uppercase; }
+  .hd .ct { display: table-cell; vertical-align: middle; text-align: center; }
+  .hd .ct .u { font-size: 12.5pt; line-height: 2; font-weight: 700; color: var(--navy); }
+  .hd .ct h1 { font-size: 16.5pt; line-height: 1.2; font-weight: 800; color: var(--navy);
+               text-transform: uppercase; letter-spacing: .01em; }
+  .hd .ct h2 { margin-top: 1.6mm; font-size: 12pt; font-weight: 700; color: var(--navy); }
+  .hd .ct h2 .ur { font-size: 13pt; font-weight: 700; }
+  .hd .ct .tg { margin-top: 2mm; font-size: 8pt; color: var(--navy-2); letter-spacing: .22em; }
+  .hd .ct .tg s { text-decoration: none; color: #7b8aa0; }
+  .hd .rg { display: table-cell; width: 34mm; vertical-align: middle; text-align: center; }
+  .hd .rg img { width: 22mm; height: 22mm; margin: 0 auto; object-fit: contain; }
+  .hd .rg .cap { font-size: 6.2pt; font-weight: 700; letter-spacing: .08em;
+                 color: var(--navy); text-transform: uppercase; }
+
+  /* ---------- navy identity bar (8.6mm) ---------- */
+  .bar { height: 8.6mm; margin-bottom: 2.4mm; background: var(--navy); border-radius: 1.6mm;
+         color: #fff; display: table; width: 100%; table-layout: fixed; }
+  .bar span { display: table-cell; vertical-align: middle; padding: 0 4mm;
+              font-size: 8.4pt; font-weight: 700; }
+  .bar span:nth-child(2) { text-align: center; font-weight: 600; }
+  .bar span:nth-child(3) { text-align: right; }
+
+  /* ---------- three info panels (66mm) ---------- */
+  .info { height: 66mm; margin-bottom: 2.4mm; display: table; width: 100%;
+          table-layout: fixed; border-spacing: 2.6mm 0; border-collapse: separate; }
+  .info .p { display: table-cell; vertical-align: top; background: #fff;
+             border: .3mm solid var(--line); border-radius: 1.8mm; overflow: hidden; }
+  .p .ph { height: 9mm; background: var(--navy); color: #fff; display: table;
+           width: 100%; table-layout: fixed; }
+  .p .ph > span { display: table-cell; vertical-align: middle; padding: 0 2.4mm;
+                  font-size: 7pt; font-weight: 700; white-space: nowrap; }
+  .p .ph .ur { font-size: 7.6pt; font-weight: 600; }
+  .p .ph em { font-style: normal; font-weight: 400; opacity: .85; }
+
+  .t .r { display: table; width: 100%; table-layout: fixed;
+          border-bottom: .22mm solid #e2eaf4; font-size: 7.4pt; line-height: 1.35; }
+  .t .r:last-child { border-bottom: 0; }
+  .t .r .k { display: table-cell; width: 27.5mm; vertical-align: middle;
+             background: var(--soft-2); font-weight: 700; padding: 0 2mm;
+             border-right: .22mm solid #e2eaf4; white-space: nowrap; }
+  .t .r .v { display: table-cell; vertical-align: middle; padding: 0 2.6mm; }
+  .t .r .v.red { color: var(--red); font-weight: 800; font-size: 9.6pt; }
+  /* per-panel row heights: 57mm content / rows */
+  .p-vehicle .r  { height: 9.4mm; }
+  .p-owner .r    { height: 13.8mm; }
+  .p-violation .r { height: 9.4mm; }
+
+  /* ---------- evidence + fine (64mm) ---------- */
+  .row2 { height: 64mm; margin-bottom: 2.4mm; display: table; width: 100%;
+          table-layout: fixed; border-spacing: 2.6mm 0; border-collapse: separate; }
+  .row2 .p { display: table-cell; vertical-align: top; background: #fff;
+             border: .3mm solid var(--line); border-radius: 1.8mm; overflow: hidden; }
+  .row2 .p.evi { width: 61.5%; }
+  .row2 .p.fine { width: 38.5%; }
+  .evi .eb { height: 54.4mm; padding: 2mm; }
+  .ebrow { display: table; width: 100%; table-layout: fixed; height: 50.4mm; }
+  .ebrow .camcell { display: table-cell; vertical-align: top; width: 74%; }
+  .ebrow .thumbcell { display: table-cell; vertical-align: top; width: 26%; padding-left: 2mm; }
+  .cam { position: relative; background: #3a3d42; overflow: hidden;
+         height: 50.4mm; border-radius: 1.2mm; }
+  .cam > img { width: 100%; height: 100%; object-fit: cover; }
+  .osd { position: absolute; top: 0; left: 0; background: rgba(211,32,42,.92); color: #fff;
+         font-size: 6.6pt; line-height: 1.6; padding: .8mm 1.8mm 1mm; white-space: pre; }
+  .thumbs .th { height: 24.2mm; margin-bottom: 2mm; background: #222; overflow: hidden;
+                border-radius: 1mm; }
+  .thumbs .th:last-child { margin-bottom: 0; }
+  .thumbs .th img { width: 100%; height: 100%; object-fit: cover; }
+
+  .fine .fb { height: 54.4mm; padding: 2mm 3mm; text-align: center; }
+  .fine .tf { width: 100%; border: .25mm solid var(--line); background: var(--soft-2);
+              border-radius: 1.4mm; text-align: center; padding: 1.6mm 0 1.4mm; }
+  .fine .tf .l { font-size: 8pt; font-weight: 700; }
+  .fine .tf .a { font-size: 17pt; font-weight: 900; color: var(--red); line-height: 1.25; }
+  .fine .tf .w { font-size: 7.4pt; color: var(--muted); }
+  .fine .qr { width: 20mm; height: 20mm; margin: 2mm auto 0; background: #fff;
+              border: .25mm solid var(--line); border-radius: 1mm; padding: 1mm; }
+  .fine .qr svg, .fine .qr img { width: 100%; height: 100%; }
+  .fine .qc { margin-top: 1.4mm; font-size: 7.4pt; font-weight: 700; color: var(--navy); }
+  .fine .qu { font-size: 7.2pt; line-height: 1.9; color: var(--navy); }
+
+  /* ---------- payment methods (40mm) ---------- */
+  .paym { height: 40mm; margin-bottom: 2.4mm; display: table; width: 100%;
+          table-layout: fixed; border-spacing: 2.6mm 0; border-collapse: separate; }
+  .paym.p { background: #fff; border: .3mm solid var(--line); border-radius: 1.8mm;
+            overflow: hidden; }
+  .paym .grid { height: 30.6mm; padding: 1.6mm 0; display: table; width: 100%;
+                table-layout: fixed; }
+  .paym .c { display: table-cell; vertical-align: top; padding: 1.4mm 3mm;
+             border-left: .25mm solid #dde6f1; }
+  .paym .c:first-child { border-left: 0; }
+  .paym .c .h { font-size: 8pt; font-weight: 700; color: var(--navy); }
+  .paym .c .h .ic { display: inline-block; width: 7mm; height: 7mm; border-radius: 50%;
+                    background: var(--navy); color: #fff; text-align: center;
+                    font-size: 6.4pt; line-height: 7mm; margin-right: 1.6mm; }
+  .paym .c p { margin-top: 1.4mm; font-size: 6.8pt; line-height: 1.5; }
+  .paym .c p b { font-weight: 800; }
+  .paym .c .u { margin-top: 1mm; font-size: 7pt; line-height: 1.9; text-align: right;
+                color: #33465f; }
+
+  /* ---------- instructions + officer (46mm) ---------- */
+  .low { height: 46mm; margin-bottom: 2.4mm; display: table; width: 100%;
+         table-layout: fixed; border-spacing: 2.6mm 0; border-collapse: separate; }
+  .low .ins { display: table-cell; vertical-align: top;
+              background: var(--soft); border: .3mm solid var(--line); border-radius: 1.8mm;
+              padding: 2.2mm 3.4mm; }
+  .low .off { display: table-cell; vertical-align: top;
+              background: var(--soft); border: .3mm solid var(--line); border-radius: 1.8mm;
+              padding: 2mm 3mm 2.4mm; text-align: center; }
+  .ins .ih { font-size: 8.4pt; font-weight: 700; color: var(--navy); }
+  .ins .ih .i { display: inline-block; width: 5.2mm; height: 5.2mm; border-radius: 50%;
+                background: var(--navy); color: #fff; font-style: normal; font-size: 7.4pt;
+                line-height: 5.2mm; text-align: center; font-weight: 800; margin-right: 1.8mm; }
+  .ins .ih .ur { font-size: 8pt; font-weight: 600; }
+  .ins ul { list-style: disc; padding-left: 5mm; margin-top: 1.2mm; font-size: 6.8pt;
+            line-height: 1.55; }
+  .ins ul.u { padding-left: 0; padding-right: 5mm; direction: rtl; margin-top: .8mm;
+              font-size: 7pt; line-height: 2; font-family: var(--ur); text-align: right; }
+  .ins ul li { margin-bottom: .8mm; }
+  .off .sig { height: 13mm; width: 100%; border-bottom: .25mm dotted #7f8ea3; }
+  .off .sig img { height: 100%; margin: 0 auto; object-fit: contain; }
+  .off .t1 { font-size: 7.8pt; font-weight: 800; color: var(--navy); margin-top: .8mm; }
+  .off .t2 { font-size: 7pt; margin-top: .4mm; }
+  .off .t3 { font-size: 7.2pt; line-height: 1.8; margin-top: .6mm; color: #33465f; }
+  .off .bc { margin-top: 1.2mm; width: 100%; height: 8.6mm; background: #fff;
+             border: .22mm solid var(--line); border-radius: 1mm; padding: 1mm 2mm; }
+  .off .bc svg, .off .bc img { width: 100%; height: 100%; }
+  .off .bn { font-size: 6.6pt; margin-top: .8mm; letter-spacing: .06em; }
+
+  /* ---------- footer (9.6mm) ---------- */
+  .ft { height: 9.6mm; background: var(--navy); border-radius: 1.6mm; display: table;
+        width: 100%; table-layout: fixed; color: #fff; font-size: 7.8pt; }
+  .ft div { display: table-cell; vertical-align: middle; text-align: center; padding: 0 2mm; }
+  .ft .ur { font-size: 9pt; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- ========== HEADER ========== -->
+  <header class="hd">
+    <div class="lg">
+      {% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Safe Cities Project">{% endif %}
+      <span class="cap">Safe Cities</span>
+    </div>
+    <div class="ct">
+      <div class="u ur">سیف سٹیز پروجیکٹ</div>
+      <h1>Safe Cities Project</h1>
+      <h2>E-Challan <span class="ur">الیکٹرانک چالان</span></h2>
+      <div class="tg">SMART <s>|</s> SAFE <s>|</s> SECURE</div>
+    </div>
+    <div class="rg">
+      {% if logo_right_path %}<img src="{{ logo_right_path }}" alt="Partner">{% endif %}
+      <span class="cap">University Partner</span>
+    </div>
+  </header>
+
+  <!-- ========== NAVY IDENTITY BAR ========== -->
+  <div class="bar">
+    <span>Challan No: {{ challan.ticket_no }}</span>
+    <span>Issued: {{ challan.issue_date|date:"d M Y" }} &nbsp;{{ challan.created_at|date:"H:i" }}</span>
+    <span>Vehicle No: {{ challan.plate_number|default:"—" }}</span>
+  </div>
+
+  <!-- ========== INFO PANELS ========== -->
+  <section class="info">
+    <div class="p p-vehicle">
+      <div class="ph"><span>Vehicle Information <em>/</em> <span class="ur">گاڑی کی معلومات</span></span></div>
+      <div class="t">
+        <div class="r"><span class="k">Registration No:</span><span class="v"><b>{{ challan.plate_number|default:"—" }}</b></span></div>
+        <div class="r"><span class="k">Vehicle Type:</span><span class="v">{{ challan.vehicle_type|default:"Car" }}</span></div>
+        <div class="r"><span class="k">Make / Year:</span><span class="v">{{ challan.make_year|default:"—" }}</span></div>
+        <div class="r"><span class="k">Color:</span><span class="v">{{ challan.color|default:"—" }}</span></div>
+        <div class="r"><span class="k">Engine No:</span><span class="v">—</span></div>
+        <div class="r"><span class="k">Chassis No:</span><span class="v">{{ challan.chassis_no|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="p p-owner">
+      <div class="ph"><span>Owner Information <em>/</em> <span class="ur">مالک کی معلومات</span></span></div>
+      <div class="t">
+        <div class="r"><span class="k">Name:</span><span class="v">{{ challan.owner_name|default:"—" }}</span></div>
+        <div class="r"><span class="k">CNIC:</span><span class="v">{{ challan.cnic|default:"—" }}</span></div>
+        <div class="r"><span class="k">Phone:</span><span class="v">{{ challan.phone|default:"—" }}</span></div>
+        <div class="r"><span class="k">Address:</span><span class="v">{{ challan.address|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="p p-violation">
+      <div class="ph"><span>Violation Details <em>/</em> <span class="ur">خلاف ورزی کی تفصیلات</span></span></div>
+      <div class="t">
+        <div class="r"><span class="k">Violation Type:</span><span class="v">{{ challan.get_violation_type_display|default:"Traffic Violation" }}</span></div>
+        <div class="r"><span class="k">Location:</span><span class="v">{{ challan.location|default:"—" }}</span></div>
+        <div class="r"><span class="k">Date &amp; Time:</span><span class="v">{{ challan.created_at|date:"d M Y" }} &nbsp;{{ challan.created_at|date:"H:i" }}</span></div>
+        <div class="r"><span class="k">Legal Direction:</span><span class="v">{{ challan.legal_direction|default:"—"|capfirst }}</span></div>
+        <div class="r"><span class="k">Moving Direction:</span><span class="v">{{ challan.moving_direction|default:"—"|capfirst }}</span></div>
+        <div class="r"><span class="k">Fine Amount:</span><span class="v red">PKR {{ challan.fine_amount|floatformat:0 }}</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== EVIDENCE + FINE ========== -->
+  <section class="row2">
+    <div class="p evi">
+      <div class="ph"><span>Evidence <em>/</em> <span class="ur">ثبوت</span></span></div>
+      <div class="eb">
+        <div class="ebrow">
+          <div class="camcell">
+            <div class="cam">
+              {% if evidence_image_path %}
+              <img src="{{ evidence_image_path }}" alt="Annotated violation frame">
+              <div class="osd">VIOLATION: {{ challan.get_violation_type_display|default:"TRAFFIC VIOLATION"|upper }}
+CONF: {% if challan.confidence_percent %}{{ challan.confidence_percent }}%{% else %}—{% endif %}
+TIME: {{ challan.created_at|date:"d M Y H:i" }}
+CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif %}</div>
+              {% else %}
+              <div class="osd">EVIDENCE FRAME PENDING</div>
+              {% endif %}
+            </div>
+          </div>
+          {% if plate_image_path %}
+          <div class="thumbcell">
+            <div class="thumbs">
+              <div class="th"><img src="{{ plate_image_path }}" alt="Plate close-up"></div>
+              <div class="th"><img src="{{ evidence_image_path }}" alt="Vehicle frame"></div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="p fine">
+      <div class="ph"><span>Fine Amount <em>/</em> <span class="ur">جرمانے کی رقم</span></span></div>
+      <div class="fb">
+        <div class="tf">
+          <div class="l">Total Fine Amount</div>
+          <div class="a">PKR {{ challan.fine_amount|floatformat:0 }}</div>
+          <div class="w">Pay before {{ challan.due_date|date:"d M Y" }}</div>
+        </div>
+        {% if qr_svg %}<div class="qr">{{ qr_svg|safe }}</div>{% endif %}
+        <div class="qc">Scan QR for Online Payment</div>
+        <div class="qu ur">آن لائن ادائیگی کے لیے QR کو اسکین کریں</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PAYMENT METHODS ========== -->
+  <section class="paym">
+    <div class="ph"><span>Payment Methods <em>/</em> <span class="ur">ادائیگی کے طریقے</span></span></div>
+    <div class="grid">
+      <div class="c">
+        <div class="h"><span class="ic">01</span>Online Payment</div>
+        <p>Pay through the <b>Safe Cities Project</b> citizen portal using credit / debit card.</p>
+        <div class="u ur">ویب پورٹل پر جا کر آن لائن ادائیگی کریں۔</div>
+      </div>
+      <div class="c">
+        <div class="h"><span class="ic">02</span>Bank Branch</div>
+        <p>Deposit at any <b>National Bank of Pakistan</b> branch using <b>Challan No: {{ challan.ticket_no }}</b></p>
+        <div class="u ur">قریب بینک برانچ میں جمع کرائیں۔</div>
+      </div>
+      <div class="c">
+        <div class="h"><span class="ic">03</span>Mobile Wallets</div>
+        <p><b>JazzCash / EasyPaisa</b> — use Challan No: {{ challan.ticket_no }}</p>
+        <div class="u ur">موبائل والٹ کے ذریعے ادائیگی کریں۔</div>
+      </div>
+      <div class="c">
+        <div class="h"><span class="ic">04</span>Post Office</div>
+        <p>Pay at designated Pakistan Post counters before the due date.</p>
+        <div class="u ur">پوسٹ آفس کاؤنٹر پر ادائیگی کریں۔</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== INSTRUCTIONS + OFFICER ========== -->
+  <section class="low">
+    <div class="ins">
+      <div class="ih"><i class="i">i</i>Important Instructions <span style="font-weight:400">/</span> <span class="ur">اہم ہدایات</span></div>
+      <ul>
+        <li>Please pay the fine within {{ due_days }} days from the date of issue to avoid additional charges.</li>
+        <li>In case of non-payment, the vehicle may be impounded as per law.</li>
+        <li>This challan can be contested within {{ due_days }} days at the relevant traffic office with supporting documents.</li>
+        <li>Keep this challan record for your reference.</li>
+      </ul>
+      <ul class="u">
+        <li>چالان جاری ہونے کی تاریخ سے {{ due_days }} دن کے اندر جرمانہ ادا کریں تاکہ اضافی چارجز سے بچا جا سکے۔</li>
+        <li>ادائیگی نہ ہونے کی صورت میں گاڑی ضبط کی جا سکتی ہے۔</li>
+        <li>چالان کے خلاف متعلقہ ٹریفک آفس میں درخواست جمع کروا سکتے ہیں۔</li>
+      </ul>
+    </div>
+    <div class="off">
+      <div class="sig">
+        {% if officer_signature_path %}<img src="{{ officer_signature_path }}" alt="Authorised signature">{% endif %}
+      </div>
+      <div class="t1">{{ officer_signature_name|default:"Authorised Officer" }}</div>
+      <div class="t2">Safe Cities Project</div>
+      <div class="t3 ur">مجاز افسر — سیف سٹیز پروجیکٹ</div>
+      {% if barcode_svg %}<div class="bc">{{ barcode_svg|safe }}</div>{% endif %}
+      <div class="bn">Challan No: {{ challan.ticket_no }}</div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="ft">
+    <div>Helpline: 15</div>
+    <div>Safe Cities Project — Citizen Portal</div>
+    <div class="ur">قانون کی پاسداری — ہم سب کی ذمہ داری</div>
+  </footer>
+
+  <div class="demo-strip">FYP demo sheet &mdash; Safe Cities Project &mdash; not an official document</div>
+</div>
+</body>
+</html>

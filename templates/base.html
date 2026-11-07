@@ -44,7 +44,7 @@
   <!-- Icon and effect libraries (Bootstrap Icons / Font Awesome are icon
        fonts only - no Bootstrap framework CSS/JS is loaded anywhere). -->
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/animate.css/animate.min.css' %}">
 
   <!-- Framework-free UI stack: sc-framework.css provides every utility and
@@ -70,27 +70,29 @@
 <div class="sc-app">
 
   {% if user.is_authenticated %}
-  <aside class="sc-sidebar">
-    <a href="{% url 'challans:home' %}" class="sc-brand">
-      <img src="{% static 'img/project_logo.png' %}" alt="Safe City">
-      <div class="sc-brand-text">
-        <span class="sc-brand-title">SAFE CITY</span>
-        <span class="sc-brand-sub">{{ user.role_label }}</span>
+
+  <!-- Announcement ticker: its own slim strip ABOVE the navbar. Deliberately
+       not merged into the navbar (separate band + hairline). Item segments
+       are separated by fully visible em dashes, never by cut-off borders. -->
+  {% if user.role != 'USER' %}
+    {% include '_partials/portal_ticker.html' %}
+  {% elif ticker_ads %}
+  <div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Announcements">
+    <div class="sc-ticker-label">
+      <i class="bi bi-megaphone-fill" aria-hidden="true"></i>
+      <span>ANNOUNCEMENTS</span>
+    </div>
+    <div class="sc-ticker-viewport" id="scTickerViewport">
+      <div class="sc-ticker-track" id="scTickerTrack">
+        {% for ad in ticker_ads %}
+        <div class="sc-ticker-item" data-id="tick-{{ ad.id }}">
+          <span class="sc-ticker-item-title">{% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}</span>
+          {% if ad.html_content %}<span class="sc-ticker-dash" aria-hidden="true">&mdash;</span><span class="sc-ticker-item-message">{{ ad.html_content|striptags|truncatewords:10 }}</span>{% endif %}
+        </div>
+        {% endfor %}
       </div>
-    </a>
-    <nav class="sc-nav">
-      {% with user_role=user.role|lower %}
-        {% if user_role == 'dig' %}{% include "_sidebar/_dig.html" %}
-        {% elif user_role == 'it' or user_role == 'it_support' %}{% include "_sidebar/_it_support.html" %}
-        {% elif user_role == 'officer' %}{% include "_sidebar/_officer.html" %}
-        {% elif user_role == 'ssp' %}{% include "_sidebar/_ssp.html" %}
-        {% elif user_role == 'supv' or user_role == 'supervisor' %}{% include "_sidebar/_supervisor.html" %}
-        {% elif user_role == 'audit' %}{% include "_sidebar/_audit.html" %}
-        {% elif user_role == 'user' or user_role == 'citizen' %}{% include "_sidebar/_citizen.html" %}
-        {% endif %}
-      {% endwith %}
-    </nav>
-  </aside>
+    </div>
+  </div>
   {% endif %}
 
   <div class="sc-main">
@@ -192,13 +194,54 @@
       {% block content %}{% endblock %}
     </main>
 
+  <!-- Body: the sidebar hangs from the navbar and rests on the footer.
+       The sidebar head no longer repeats a role name - group titles carry
+       the navigation context. -->
+  <div class="sc-body">
     {% if user.is_authenticated %}
-    <footer class="sc-footer">
-      <span>&copy; 2026 SAFE CITIES PROJECT &middot; All Rights Reserved</span>
-      <span>v1.0 &middot; SAFE CITIES PROJECT</span>
-    </footer>
+    <aside class="sc-sidebar">
+      <nav class="sc-nav">
+        {% with user_role=user.role|lower %}
+          {% if user_role == 'dig' %}{% include "_sidebar/_dig.html" %}
+          {% elif user_role == 'it' or user_role == 'it_support' %}{% include "_sidebar/_it_support.html" %}
+          {% elif user_role == 'officer' %}{% include "_sidebar/_officer.html" %}
+          {% elif user_role == 'ssp' %}{% include "_sidebar/_ssp.html" %}
+          {% elif user_role == 'supv' or user_role == 'supervisor' %}{% include "_sidebar/_supervisor.html" %}
+          {% elif user_role == 'audit' %}{% include "_sidebar/_audit.html" %}
+          {% elif user_role == 'user' or user_role == 'citizen' %}{% include "_sidebar/_citizen.html" %}
+          {% endif %}
+        {% endwith %}
+      </nav>
+    </aside>
     {% endif %}
+
+    <div class="sc-main">
+      {% if messages %}
+      <div class="sc-messages">
+        {% for m in messages %}
+        <div class="sc-msg sc-msg-{{ m.tags|default:'info' }}" data-msg-type="{{ m.tags|default:'info' }}">
+          <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+          <span class="sc-msg-label">{% if m.tags == 'success' %}Success{% elif m.tags == 'error' %}Error{% elif m.tags == 'warning' %}Warning{% else %}Info{% endif %}</span>
+          <span class="sc-msg-dash" aria-hidden="true">&mdash;</span>
+          <div class="sc-msg-body">{{ m }}</div>
+          <button type="button" class="sc-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <main class="sc-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
   </div>
+
+  {% if user.is_authenticated %}
+  <footer class="sc-footer">
+    <span>&copy; 2026 SAFE CITIES PROJECT &middot; All Rights Reserved</span>
+    <span>v1.0 &middot; SAFE CITIES PROJECT</span>
+  </footer>
+  {% endif %}
 </div>
 
 <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
@@ -236,9 +279,10 @@
 <script src="{% static 'js/realtime-socket.js' %}" defer></script>
 {% endif %}
 
-{% if user.is_authenticated and user.role != 'USER' %}
-<!-- Portal announcement ticker behavior (pairs with the ticker bar include
-     under the topbar). -->
+{% if user.is_authenticated %}
+<!-- Portal announcement ticker behavior (pairs with the ticker strip above
+     the topbar). Runs for staff alerts and the citizen service-ads ticker
+     alike: both render the #scPortalTicker ids. -->
 <script src="{% static 'js/pages/portal-ticker.js' %}" defer></script>
 {% endif %}
 

@@ -1,6 +1,10 @@
+/* ============================================================================
+   SAFE CITIES PROJECT | DIG challan template selection gallery
+   Cards show the REAL rendered PDF (rasterised first page). No raw code.
+   ============================================================================ */
 .dts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
 }
 .dts-card {
@@ -17,13 +21,42 @@
 .dts-card.is-active { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, .12); }
 .dts-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
 .dts-name { font-weight: 800; color: #0f172a; font-size: .95rem; }
-.dts-blurb { font-size: .76rem; color: #64748b; margin: 0; min-height: 2.1em; }
-.dts-frame {
-  height: 200px;
+.dts-blurb { font-size: .76rem; color: #64748b; margin: 0; min-height: 2.1em; line-height: 1.45; }
+
+/* Real PDF preview: rasterised first page of the actual rendered challan.
+   A4 ratio (210:297) keeps every card identical in height. */
+.dts-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 210 / 297;
   border-radius: .5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dbe3ee;
   overflow: hidden;
   background: #fff;
-  position: relative;
 }
-.dts-frame iframe { width: 210mm; height: 297mm; border: 0; transform-origin: 0 0; pointer-events: none; }
+.dts-preview a { display: block; width: 100%; height: 100%; }
+.dts-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+.dts-preview-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  height: 100%;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: .8rem;
+  text-align: center;
+  padding: 1rem;
+}
+.dts-preview-fallback i { font-size: 2.2rem; color: #94a3b8; }
+.dts-preview-fallback:hover { color: #1d4ed8; text-decoration: underline; }
+a.dts-preview-fallback:hover i { color: #2563eb; }

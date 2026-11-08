@@ -407,7 +407,8 @@
         if (single) {
             chartOpts.plugins.legend = { display: false };
             const centerValue = (data || []).reduce(function (a, b) { return a + (b || 0); }, 0);
-            const centerLabel = (labels || []).slice(0, 2).join(' + ');
+            const positiveLabels = (labels || []).filter(function (_, i) { return (data || [])[i] > 0; });
+            const centerLabel = ((positiveLabels.length ? positiveLabels : labels) || []).slice(0, 2).join(' + ');
             const ctx = getCtx(canvas);
             chartOpts.plugins.centerText = false;
             delete chartOpts.plugins.centerText;
@@ -426,8 +427,15 @@
                     ctx.font = '800 ' + Math.round(canvas.clientHeight / 6.2) + 'px ' + scCharts.defaults.fontFamily;
                     ctx.fillText(String(centerValue), x, y - 6);
                     ctx.fillStyle = '#8A94B0';
-                    ctx.font = '600 ' + Math.max(9, Math.round(canvas.clientHeight / 15)) + 'px ' + scCharts.defaults.fontFamily;
-                    ctx.fillText(String(centerLabel).toUpperCase(), x, y + Math.round(canvas.clientHeight / 12));
+                    let labelSize = Math.max(9, Math.round(canvas.clientHeight / 15));
+                    ctx.font = '600 ' + labelSize + 'px ' + scCharts.defaults.fontFamily;
+                    const labelText = String(centerLabel).toUpperCase();
+                    const holeWidth = ((arc.innerRadius || 30) * 1.8) || 60;
+                    while (ctx.measureText(labelText).width > holeWidth && labelSize > 7) {
+                        labelSize -= 1;
+                        ctx.font = '600 ' + labelSize + 'px ' + scCharts.defaults.fontFamily;
+                    }
+                    ctx.fillText(labelText, x, y + Math.round(canvas.clientHeight / 12));
                     ctx.restore();
                 }
             };

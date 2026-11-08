@@ -90,6 +90,9 @@
 
 .cam-location { max-width: 230px; }
 
+#cameraTable th:nth-child(1), #cameraTable td:nth-child(1) { white-space: nowrap; }
+#cameraTable th:nth-child(2), #cameraTable td:nth-child(2) { min-width: 120px; }
+
 .cam-dir-badge { min-width: 78px; justify-content: center; }
 
 .cam-health-chip {

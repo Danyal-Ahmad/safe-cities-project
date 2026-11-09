@@ -1,10 +1,5 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Citizen portal home (citizen-home.css)
-   Large image-blend hero card + fused stat strip. Bright, aligned, no pills
-   or decorative dots. Time + date is owned by the navbar only.
-   ============================================================================ */
 
-/* ---------- large hero card (approved reference style) ---------- */
+
 .scr { display: flex; flex-direction: column; gap: 1rem; }
 
 .cz-hero {
@@ -14,14 +9,12 @@
   min-height: 210px;
   border-radius: 14px;
   overflow: hidden;
-  background: #0F2557; /* navy base the artwork blends into */
+  background: #0F2557;
   color: #F0F4FF;
   isolation: isolate;
 }
 
-/* Right-side artwork: police unit + Lahore landmarks, blended into the
-   navy card through a left-to-right gradient mask (proper image blend,
-   no hard edge, no visible card border on the art side). */
+
 .cz-hero-art {
   position: absolute;
   inset: 0;
@@ -73,7 +66,7 @@
 }
 .cz-hero-facts b { color: #E4EEFF; font-weight: 700; }
 
-/* plate chip (mono, dark) - aligned, single height */
+
 .cz-plate {
   display: inline-block;
   padding: 1px 8px;
@@ -87,7 +80,7 @@
   letter-spacing: 0.04em;
 }
 
-/* ledger head tools: aligned row, no pills */
+
 .scr-panel-tools {
   display: flex;
   align-items: center;
@@ -100,7 +93,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- responsive ---------- */
+
 @media (max-width: 900px) {
   .cz-hero-text { max-width: 100%; padding: 22px 24px; }
   .cz-hero { min-height: 190px; }

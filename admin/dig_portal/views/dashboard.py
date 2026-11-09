@@ -278,3 +278,4 @@ def api_chart_officer_kpi(request):
             {'label': 'Rejected',  'data': [r['rejected']  for r in rows], 'backgroundColor': '#dc2626'},
         ],
     })
+

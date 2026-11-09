@@ -181,3 +181,4 @@ class CitizenAccountIsolationTests(TestCase):
         self.client.force_login(citizen)
         r = self.client.get('/realtime/api/live/recent-detections/')
         self.assertEqual(r.status_code, 302)
+

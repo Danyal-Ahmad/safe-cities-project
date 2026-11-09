@@ -567,3 +567,4 @@ def admin_delete(request, user_id):
     if next_url.startswith('/'):
         return redirect(next_url)
     return redirect('dig:citizen_users_list' if role == User.USER else 'dig:admin_list')
+

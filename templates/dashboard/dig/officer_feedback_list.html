@@ -8,22 +8,22 @@
 {% block content %}
 <div class="sc-page-hero">
  <div>
- <h1><i class="bi bi-chat-left-text me-2"></i> Officer Performance Feedback</h1>
- <p class="sc-lead">Feedback and permission flags per officer</p>
+ <h1><i class="bi bi-circle"></i> Officer Performance Feedback</h1>
+ <p>Feedback &amp; permission flags per officer</p>
  </div>
  <div>
-<a href="{% url 'dig:officer_feedback_add' %}" class="btn btn-primary">
- <i class="bi bi-plus-circle me-1"></i> Add Feedback
+<a href="{% url 'dig:officer_feedback_add' %}" class="sc-btn sc-btn-primary">
+ <i class="bi bi-circle"></i> Add Feedback
  </a>
  </div>
 </div>
 
-<div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <div><i class="bi bi-chat-left-text me-2"></i> All Feedback</div>
+<div>
+ <div class="card-header">
+ <div><i class="bi bi-circle"></i> All Feedback</div>
  <span class="badge bg-secondary">{{ feedback|length }}</span>
  </div>
- <div class="card-body p-0 table-responsive">
+ <div class="p-0 table-responsive">
  {% if feedback %}
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -38,13 +38,14 @@
  {% for f in feedback %}
  <tr>
  <td>{{ f.officer.display_name|default:"-" }}</td>
- <td class="small text-muted">{{ f.created_by.display_name|default:"-" }}</td>
- <td class="small text-muted">{{ f.updated_at|date:"d-M-Y H:i" }}</td>
- <td class="small">
- {% if f.can_review_detections %}<span class="badge bg-primary">RD</span>{% endif %}
- {% if f.can_review_appeals %}<span class="badge bg-info">RA</span>{% endif %}
- {% if f.can_flag_for_dig %}<span class="badge bg-warning">FD</span>{% endif %}
- {% if f.can_view_own_performance %}<span class="badge bg-success">VP</span>{% endif %}
+ <td class="small ">{{ f.created_by.display_name|default:"-" }}</td>
+ <td class="small ">{{ f.updated_at|date:"d-M-Y H:i" }}</td>
+ <td class="small ">
+ {% if f.can_review_detections %}<span class="badge bg-secondary">RD</span>{% endif %}
+ {% if f.can_review_appeals %}<span class="badge bg-secondary">RA</span>{% endif %}
+ {% if f.can_flag_for_dig %}<span class="badge bg-secondary">FD</span>{% endif %}
+
+ {% if f.can_view_own_performance %}<span class="badge bg-secondary">VP</span>{% endif %}
  {% if f.can_add_internal_notes %}<span class="badge bg-secondary">IN</span>{% endif %}
  </td>
  </tr>
@@ -52,8 +53,8 @@
  </tbody>
  </table>
  {% else %}
- <div class="sc-empty-state">
- <i class="bi bi-chat-left-text"></i>
+ <div class="empty-state">
+ <i class="bi bi-circle"></i>
  <h3>No feedback</h3>
  <p>No feedback recorded yet. <a href="{% url 'dig:officer_feedback_add' %}">Add the first entry</a>.</p>
  </div>

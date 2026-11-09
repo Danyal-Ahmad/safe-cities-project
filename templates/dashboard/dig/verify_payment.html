@@ -8,15 +8,15 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-credit-card me-2"></i>Verify Payment</h1>
- <p class=" opacity-75">Verify payment status for a challan</p>
+ <p class="sc-lead">Verify payment status for a challan</p>
  </div>
 </div>
 
-<div class="row g-4">
- <div class="col-lg-6">
- <div class="card h-100">
+<div>
+ <div>
+ <div>
  <div class="card-header">
- <span><i class="bi bi-credit-card me-2"></i>Verify Payment</span>
+ <span><i class="bi bi-circle me-2"></i>Verify Payment</span>
  </div>
  <div class="card-body">
  <form method="post">
@@ -32,14 +32,14 @@
  </div>
  </div>
  <div>
- <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Verify</button>
+ <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Verify</button>
  <a href="{% url 'dig:payment_list' %}" class="sc-btn sc-btn-primary">Cancel</a>
  </div>
  </form>
  {% if verification_result %}
- <div class="alert {% if verified %}alert-success{% else %}alert-danger{% endif %} p-3 mt-3">
- <h5 class="mb-2">
- <i class="bi {% if verified %}bi-circle-check{% else %}bi-x-circle{% endif %} me-2"></i>
+ <div class="alert p-3 {% if verified %}bg-success bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %} border-0">
+ <h5 class="{% if verified %}text-success{% else %}text-danger{% endif %}">
+ <i class="bi bi-{% if verified %}circle-check{% else %}circle-xmark{% endif %} me-2"></i>
  {% if verified %}Payment Verified{% else %}Payment Not Found{% endif %}
  </h5>
  <div>

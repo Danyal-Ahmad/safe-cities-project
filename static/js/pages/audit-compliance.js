@@ -1,8 +1,4 @@
-/* ==========================================================================
-   AUDIT PORTAL | Compliance Reports (audit-compliance.js)
-   Builds the doughnut charts from data-* attributes on the canvases
-   (labels/values are pipe-separated so no inline JSON is required).
-   ========================================================================== */
+
 (function () {
   'use strict';
 
@@ -54,8 +50,8 @@
     var colors = labels.map(function (label, i) {
       return colorFor(label, i);
     });
-    // Themed engine: stat ring for single categories, synced legend,
-    // friendly empty state for all-zero data.
+
+
     window.scCharts.doughnut(el.id, labels, values, {
       colors: colors,
       emptyMessage: 'No data available for this chart yet'
@@ -71,12 +67,12 @@
   }
 
   ready(function () {
-    /* Payment-status breakdown - colours matched to status semantics. */
+
     buildDoughnut('auditStatusChart', function (label, i) {
       return STATUS_COLORS[label.toUpperCase()] || PALETTE[i % PALETTE.length];
     });
 
-    /* Violation-type breakdown - palette-cycled colours. */
+
     buildDoughnut('auditTypeChart', function (label, i) {
       return PALETTE[i % PALETTE.length];
     });

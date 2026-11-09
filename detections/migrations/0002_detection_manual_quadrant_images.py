@@ -29,3 +29,4 @@ class Migration(migrations.Migration):
             field=models.ImageField(blank=True, help_text='Bottom-right quadrant of the manually annotated frame.', null=True, upload_to='detections/manual/q4/%Y/%m/%d/'),
         ),
     ]
+

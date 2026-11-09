@@ -16,3 +16,4 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('static_post', 'Static post ad (home, hidden staging)'), ('popup', 'Popup ad (home only)'), ('ticker', 'Ticker ad (portals + home)'), ('push', 'Push notification (portals)'), ('top', 'Top strip (legacy)'), ('bottom', 'Bottom strip (legacy)'), ('ad', 'Legacy ad space (retired)')], default='ticker', max_length=20),
         ),
     ]
+

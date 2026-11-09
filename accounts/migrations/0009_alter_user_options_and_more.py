@@ -35,3 +35,4 @@ class Migration(migrations.Migration):
             field=models.PositiveIntegerField(default=5000, help_text='Fine amount (PKR) above which SSP attention is required'),
         ),
     ]
+

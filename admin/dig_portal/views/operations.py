@@ -308,3 +308,4 @@ def officer_signatures(request):
         'search': search,
         'has_signature': sum(1 for o in page_obj.object_list if o.signature),
     })
+

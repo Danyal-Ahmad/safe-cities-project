@@ -39,3 +39,4 @@ class Command(BaseCommand):
         if generated:
             self.stdout.write(self.style.NOTICE(f"Initial password (shown once): {password}"))
             self.stdout.write(self.style.NOTICE("Change it immediately after first sign-in."))
+

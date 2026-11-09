@@ -226,6 +226,70 @@ def flag_detection(request, detection_id):
 
 
 @officer_or_dig_required
+def confirm_detection(request, detection_id):
+    if request.method != 'POST':
+        raise Http404
+    detection = get_object_or_404(Detection, pk=detection_id)
+
+    if request.user.role == 'OFFICER':
+        allowed = officer_camera_ids(request.user)
+        if detection.camera_id is not None and detection.camera_id not in allowed:
+            raise Http404('Detection not found for your assigned cameras.')
+
+    if detection.status != Detection.PENDING:
+        messages.error(request, "Only detections pending review can be confirmed.")
+        return redirect('officer_portal:review_queue')
+
+    plate = re.sub(r'[^A-Z0-9-]', '', (request.POST.get('plate') or '').strip().upper())[:12]
+    notes = (request.POST.get('notes') or '').strip()
+    if len(notes) < 20:
+        messages.error(request, "Notes are required (min 20 chars) when confirming a plate.")
+        return redirect('officer_portal:detection_detail', detection_id=detection.id)
+
+    from detections.ai import is_valid_pk_plate
+    if not plate or not is_valid_pk_plate(plate):
+        messages.error(request, "Enter a valid Pakistani plate (e.g. LEA-1100, ABC 000, XYZ-00-0000).")
+        return redirect('officer_portal:detection_detail', detection_id=detection.id)
+
+    from django.db import transaction
+    before = {'status': detection.status, 'plate': detection.effective_plate}
+    with transaction.atomic():
+        detection.ai_plate_text = plate
+        detection.reviewed_by = request.user
+        detection.reviewed_at = timezone.now()
+        detection.review_notes = notes
+        detection.status = Detection.CONFIRMED
+        detection.save()
+        AuditLog.write(
+            request, 'detection.confirm_plate', 'Detection', detection.id,
+            before=before,
+            after={'status': detection.status, 'plate': plate},
+            notes=notes,
+        )
+
+    challan = None
+    try:
+        from detections.evidence_annotator import store_annotated_evidence
+        store_annotated_evidence(detection, detection.camera)
+    except Exception as e:
+        logging.getLogger('wrongway.officer').warning('evidence annotation deferred: %s', e)
+    try:
+        from detections.pipeline import issue_challan
+        challan = issue_challan(detection, detection.camera, user=request.user)
+    except Exception as e:
+        logging.getLogger('wrongway.officer').error('challan issue failed after confirm: %s', e)
+
+    if challan:
+        messages.success(
+            request,
+            f"Detection confirmed with plate {plate}. Challan {challan.ticket_no} issued "
+            f"(PKR {challan.fine_amount:.0f}, due {challan.due_date:%d %b %Y}).")
+        return redirect('officer_portal:challans_list')
+    messages.success(request, f"Detection confirmed with plate {plate}. No challan was issued by the pipeline (no live violation type).")
+    return redirect('officer_portal:review_queue')
+
+
+@officer_or_dig_required
 def add_review_note(request, detection_id):
     detection = get_object_or_404(Detection, pk=detection_id)
     if request.method == 'POST':
@@ -314,12 +378,21 @@ def lookup_owner_by_plate(plate_number):
                .first())
         if reg:
             owner = getattr(reg, 'owner', None)
+            address = None
+            try:
+                profile = getattr(owner, 'citizen_profile', None)
+                if profile is not None:
+                    parts = [profile.address, profile.city, profile.province]
+                    joined = ', '.join(p for p in parts if p)
+                    address = joined or None
+            except Exception:
+                address = None
             data = {
                 'owner_name': (getattr(owner, 'get_full_name', lambda: '')() or
                                getattr(owner, 'display_name', None) or
                                getattr(owner, 'first_name', None)),
                 'cnic': getattr(owner, 'cnic', None),
-                'address': None,
+                'address': address,
                 'phone': getattr(owner, 'phone', None),
                 'vehicle_type': getattr(reg, 'vehicle_type', None) or 'car',
                 'make_year': getattr(reg, 'year', None),
@@ -533,3 +606,4 @@ def officer_profile(request):
         messages.success(request, 'Profile updated.')
         return redirect('officer_portal:profile')
     return render(request, 'dashboard/officer/profile.html', {'profile_user': user})
+

@@ -60,5 +60,12 @@ urlpatterns = [
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', make_timeline_view(['SSP', 'DIG']), name='live_tracking_timeline'),
-
+    path('change-password/', dig_views.staff_change_password, name='change_password'),
+    path('reports/generate/', dig_views.generate_report, name='generate_report'),
+    path('reports/operational/', dig_views.operational_reports, name='operational_reports'),
+    path('reports/financial/', dig_views.financial_reports, name='financial_reports'),
+    path('reports/operational-audit/', dig_views.operational_audit, name='operational_audit'),
+    path('escalations/', dig_views.appeals_queue, name='escalation_list'),
+    path('notifications/feed/', dig_views.notifications, name='notifications_feed'),
 ]
+

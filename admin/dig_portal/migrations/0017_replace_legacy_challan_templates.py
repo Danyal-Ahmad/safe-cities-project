@@ -40,3 +40,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(remove_legacy_templates_and_reset, restore_legacy_state),
     ]
+

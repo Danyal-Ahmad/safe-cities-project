@@ -49,8 +49,6 @@ guaranteed to fit a **single A4 page** (page-count verified with pypdf).
 - Citizens self-register at `/auth/citizen/signup/`
 - Staff accounts are created by DIG / IT Support via the Staff Directory
 - Bootstrap the first DIG admin: `python manage.py create_dig_admin`
-- Seed the realistic staff organisation, camera network and 60-day operational history:
-  `python manage.py seed_operational_data --purge` (default staff password: `SafeCity@2026`, change after first login)
 
 ## Advertising & Notification Channels
 
@@ -71,17 +69,11 @@ All public pages (`home`, `detail`, `guest_pay`, `pay_redirect`,
 `signed_link_expired`, `_public_ads`) share `templates/public_base.html`
 and a lean design system (`static/css/public-shell.css`) matching the login
 pages: deep navy background with overlay, glass cards, Inter typography.
-The home page carries exactly two logos, the citizen sign-in button, two
-inputs (plate + CNIC), the search button and the footer.
+The home page carries the navbar brand, the citizen sign-in button, two labelled inputs (plate + CNIC), the search button and the footer.
 
 ## Performance
 
-(~60 req/s per 2-vCPU node; 9 ms median home, 49 ms p99 search).
-
-## Engineering Audit
-
-The 22-role audit covering every file, page, section, button and input:
-the QA render suite (`scripts/qa_render_checks.py`).
+Tuned for ~60 req/s per 2-vCPU node (9 ms median home, 49 ms p99 search).
 
 ## Challan Studio & Audit Documents
 
@@ -203,7 +195,7 @@ wrongway_system/ Django project settings & security
 ## Security
 
 See [SECURITY.md](SECURITY.md). Highlights: Argon2 password hashing, rate
-limits on auth and public search, RBAC driven by `permission.json`, portal
+limits on auth and public search, RBAC driven by `accounts/permissions.py`, portal
 isolation middleware, PII masking for anonymous visitors, signed links for
 public challan PDFs, and server-side settlement of every payment.
 
@@ -231,9 +223,4 @@ public challan PDFs, and server-side settlement of every payment.
 ### Security
 - CSP tightened (no `unsafe-eval`, per-request nonce infrastructure, `object-src 'none'`, `base-uri 'self'`), rate limits on every API endpoint (enroll 5/h, ingest 300/min, heartbeat 120/min, webhook 60/min, PDF 20/min), upload validation (extension + magic-byte/PIL sniff), banner HTML sanitization at the model layer, officer camera-scoping on detection detail, race-condition guards on payments and password resets.
 - **Console/DevTools guard** on every page (right-click, F12, Ctrl+Shift+I/J/C/U, console silencing in production) - defense-in-depth on top of the server-side enforcement.
-- Black-hat audit harness: `scripts/pen_test.py` (44/44 assertions green against a running server).
 
-### Testing and delivery
-- API/page regression suite: `scripts/api_test_suite.py` (71 checks).
-- Load test (national-scale simulation): `scripts/load_test.py` + `LOAD_TEST_REPORT` artifacts; 500 concurrent virtual users, p50 18 ms, ~96% success on a 2-core rig.
-- Role/permission matrix: `permission.json` (synced via `python manage.py sync_role_permissions`).

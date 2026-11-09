@@ -39,3 +39,4 @@ class Migration(migrations.Migration):
         migrations.AlterModelTable(name='shift', table='sc_shifts'),
         migrations.AlterModelTable(name='challantemplate', table='sc_challan_templates'),
     ]
+

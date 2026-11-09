@@ -63,7 +63,7 @@ guarantees each layer provides.
 
 ## RBAC & isolation
 
-- `permission.json` is the single source of truth; `accounts/permissions.py`
+- `accounts/permissions.py` is the single source of truth for the RBAC matrix;
   mirrors it (auto-generated). Roles: DIG > SSP > Supervisor > Officer,
   plus Audit and IT (staff), and USER (citizen).
 - Every view is decorated with role/permission checks; payment operations are

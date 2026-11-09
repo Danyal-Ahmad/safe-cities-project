@@ -1,12 +1,5 @@
-/* ============================================================================
-   SAFE CITIES PROJECT | Live Tracking workstation (live-tracking.css)
-   Shared by every portal's Live Tracking page (officer / DIG / SSP / SUPV / IT).
-   2026-11: these component classes were referenced by the template but never
-   defined anywhere - the page had been rendering on generic utilities alone.
-   Clean white command styling; video surface stays dark (a camera stage).
-   ============================================================================ */
 
-/* ---------- workstation grid: video stage | side rail ---------- */
+
 .md-workstation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
@@ -29,7 +22,7 @@
   min-width: 0;
 }
 
-/* ---------- stage header ---------- */
+
 .md-ws-header {
   display: flex;
   align-items: center;
@@ -50,7 +43,7 @@
   color: var(--sc-navy-deep, #0F2557);
 }
 
-/* ---------- video stage: fixed 16:9 dark surface ---------- */
+
 .md-video-stage {
   position: relative;
   width: 100%;
@@ -78,7 +71,7 @@
   justify-content: center;
 }
 
-/* AI bounding-box canvas: pixel-matched to the stage, never interactive */
+
 .md-canvas-overlay {
   position: absolute;
   inset: 0;
@@ -87,7 +80,7 @@
   pointer-events: none;
 }
 
-/* ---------- HUD overlay ---------- */
+
 .md-stage-hud {
   position: absolute;
   left: 0;
@@ -130,7 +123,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- live detection feed (side rail) ---------- */
+
 .md-feed-item {
   display: flex;
   gap: 0.6rem;
@@ -160,7 +153,7 @@
   color: var(--sc-text-muted, #5B6B85);
 }
 
-/* ---------- responsive ---------- */
+
 @media (max-width: 1100px) {
   .md-workstation { grid-template-columns: 1fr; }
 }

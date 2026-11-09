@@ -5,90 +5,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Safe Cities Project{% endblock %} &middot; SAFE CITIES PROJECT</title>
-  <meta name="theme-color" content="#0a1a3a">
+  <meta name="theme-color" content="#1d4f7c">
   <link rel="icon" type="image/png" href="{% static 'img/project_logo.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/sc-ticker.css' %}">
   <link rel="stylesheet" href="{% static 'css/public-shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages/public-home.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
-<body class="ps-page {% block body_class %}{% endblock %}">
-  <div class="ps-bg" aria-hidden="true">
-    <img src="{% static 'img/login_background.jpg' %}" alt="">
-    <div class="ps-bg-overlay"></div>
-  </div>
+<body class="pub {% block body_class %}{% endblock %}">
 
-  <div class="ps-shell">
-    <header class="ps-header">
-      <div class="ps-brand">
-        <a href="{% url 'challans:home' %}" class="ps-brand-logos" aria-label="Safe Cities Project home">
+
+{% include '_partials/portal_ticker.html' %}
+
+<div class="pub-shell">
+
+
+  <header class="pub-nav">
+    <div class="pub-nav-inner">
+      <div class="pub-nav-brand">
+        <a href="{% url 'challans:home' %}" class="pub-nav-logos" aria-label="Safe Cities Project home">
           <img src="{% static 'img/project_logo.png' %}" alt="Safe Cities Project">
-          <span class="ps-brand-sep" aria-hidden="true"></span>
-          <img src="{% static 'img/university_logo.png' %}" alt="Partner">
+          <span class="pub-nav-sep" aria-hidden="true">|</span>
+          <img src="{% static 'img/university_logo.png' %}" alt="Partner university">
         </a>
-        <div class="ps-brand-text">
-          <span class="ps-brand-title">SAFE CITIES PROJECT</span>
-          <span class="ps-brand-sub">E-Challan Portal</span>
+        <div class="pub-nav-text">
+          <span class="pub-nav-title">SAFE CITIES PROJECT</span>
+          <span class="pub-nav-sub">E-CHALLAN CITIZEN PORTAL</span>
+          <span class="pub-nav-urdu" lang="ur" dir="rtl">ای چالان پبلک پورٹل</span>
         </div>
       </div>
-      <div class="ps-header-actions">
+      <div class="pub-nav-actions">
         {% block header_actions %}
           {% if user.is_authenticated %}
             {% if user.role == 'USER' %}
-            <a href="{% url 'citizen_portal:home' %}" class="ps-btn ps-btn-ghost"><i class="bi bi-speedometer2"></i> My Dashboard</a>
+            <a href="{% url 'citizen_portal:home' %}" class="pub-nav-btn"><i class="bi bi-speedometer2"></i> My Dashboard</a>
             {% else %}
-            <a href="{% url 'auth_portal:role_redirect' %}" class="ps-btn ps-btn-ghost"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'auth_portal:role_redirect' %}" class="pub-nav-btn"><i class="bi bi-speedometer2"></i> Dashboard</a>
             {% endif %}
           {% else %}
-          <a href="{% url 'auth_portal:citizen_login' %}" class="ps-btn ps-btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Citizen Sign In</a>
+          <a href="{% url 'auth_portal:citizen_login' %}" class="pub-nav-btn"><i class="bi bi-box-arrow-in-right"></i> Citizen Sign In</a>
           {% endif %}
         {% endblock %}
       </div>
-    </header>
-
-    {% if ticker_ads %}
-    <div class="ps-ticker" id="psTicker" role="region" aria-label="Announcements">
-      <span class="ps-ticker-label"><i class="bi bi-megaphone-fill"></i></span>
-      <div class="ps-ticker-viewport"><div class="ps-ticker-track" id="psTickerTrack">
-        {% for ad in ticker_ads %}
-        <span class="ps-ticker-item" data-id="tick-{{ ad.id }}">
-          <span class="ps-ticker-item-title">{% if ad.image_link %}<a href="{{ ad.image_link }}" target="_blank" rel="noopener">{{ ad.title }}</a>{% else %}{{ ad.title }}{% endif %}</span>
-          {% if ad.html_content %}<span class="ps-ticker-dash" aria-hidden="true">&mdash;</span><span class="ps-ticker-note">{{ ad.html_content|striptags|truncatewords:10 }}</span>{% endif %}
-        </span>
-        {% endfor %}
-      </div></div>
     </div>
-    {% endif %}
+  </header>
 
-    {% if messages %}
-    <div class="ps-messages">
-      {% for m in messages %}
-      <div class="ps-msg ps-msg-{{ m.tags|default:'info' }}">
-        <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
-        <span class="ps-msg-label">{% if m.tags == 'success' %}Success{% elif m.tags == 'error' %}Error{% elif m.tags == 'warning' %}Warning{% else %}Info{% endif %}</span>
-        <span class="ps-msg-dash" aria-hidden="true">&mdash;</span>
-        <span class="ps-msg-body">{{ m }}</span>
-        <button type="button" class="ps-msg-close" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <main class="ps-main">
-      {% block content %}{% endblock %}
-    </main>
-
-    <footer class="ps-footer">
-      <span>&copy; 2026 SAFE CITIES PROJECT &middot; E-Challan Enforcement Platform</span>
-      <span>All Rights Reserved</span>
-    </footer>
+  {% if messages %}
+  <div class="pub-messages">
+    {% for m in messages %}
+    <div class="pub-msg pub-msg-{{ m.tags|default:'info' }}"><i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% elif m.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i> {{ m }}</div>
+    {% endfor %}
   </div>
+  {% endif %}
 
-  <script src="{% static 'js/pages/public-ads.js' %}" defer></script>
-  <script src="{% static 'js/public-messages.js' %}" defer></script>
-  {% block extra_js %}{% endblock %}
+  <main class="pub-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="pub-footer">
+    <span>&copy; 2026 SAFE CITIES PROJECT &middot; E-Challan Enforcement Platform</span>
+    <span class="pub-footer-help">Helpline: <b>+9999</b> &middot; ای چالان پبلک پورٹل</span>
+  </footer>
+</div>
+
+<script src="{% static 'js/pages/public-ads.js' %}" defer></script>
+<script src="{% static 'js/pages/portal-ticker.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

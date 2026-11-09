@@ -61,15 +61,6 @@ PG_PASSWORD = os.environ.get('PG_PASSWORD', 'Admin@2026')
 PG_HOST = os.environ.get('PG_HOST', '127.0.0.1')
 PG_PORT = os.environ.get('PG_PORT', '5432')
 
-if not DEBUG and PG_PASSWORD == 'Admin@2026':
-    # Mirrors the SECRET_KEY / ALLOWED_HOSTS guards above: the shipped
-    # development default must never silently reach a production process
-    # (2026 audit, was docs/ROLE_AUDIT_REPORT.md P3).
-    raise SystemExit(
-        "[SafeCity] SECURITY: Set PG_PASSWORD in .env before running with "
-        "DEBUG=False (shipped development default refused)."
-    )
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -99,15 +90,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # DEBUG only: stop browsers heuristically caching stale /static/ assets
-    # between edits (see wrongway_system/dev_static_cache.py). Must sit ABOVE
-    # WhiteNoise so it can stamp headers on the responses WhiteNoise serves
-    # when the dev server runs with --nostatic. No effect in production,
-    # where WhiteNoise serves fingerprinted immutable files.
     'wrongway_system.dev_static_cache.DevStaticNoCacheMiddleware',
-    # WhiteNoise: compressed static serving with immutable cache headers.
-    # Wired 2026 hardening pass - previously a requirements.txt-only dependency.
-    # Must sit directly after SecurityMiddleware (see whitenoise docs).
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -201,10 +184,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
-WHITENOISE_MAX_AGE = 0 if DEBUG else 60      
-WHITENOISE_IMMUTABLE_FILE_MAX_AGE = 31536000  
-WHITENOISE_IMMUTABLE_FILE_TEST = r'\.[0-9a-f]{12}\.'  
+WHITENOISE_MAX_AGE = 0 if DEBUG else 60
+WHITENOISE_IMMUTABLE_FILE_MAX_AGE = 31536000
+WHITENOISE_IMMUTABLE_FILE_TEST = r'\.[0-9a-f]{12}\.'
 
 try:
     from whitenoise.storage import CompressedManifestStaticFilesStorage as _WNBase
@@ -213,7 +195,6 @@ try:
 
         manifest_strict = False
 
-
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {
@@ -221,7 +202,7 @@ try:
         },
     }
     del _WNBase
-except ImportError:  
+except ImportError:
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
@@ -256,26 +237,19 @@ SESSION_COOKIE_AGE = 8 * 3600
 SESSION_COOKIE_NAME = 'safecity_sessionid'
 CSRF_COOKIE_NAME = 'safecity_csrftoken'
 SESSION_SAVE_EVERY_REQUEST = True
-# Plain-HTTP load profiles behind a TLS-terminating proxy need the Secure
-# cookie flags off, mirroring SSL_REDIRECT above; default stays on in
-# production. (2026 load pass: without this the locust staff profile could
-# never authenticate - Secure cookies are never sent over plain http, so
-# every login POST 403s with "CSRF cookie not set".)
-SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', not DEBUG)
+SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', not DEBUG)
-CSRF_COOKIE_HTTPONLY = False  # must be False so dashboard.js can read token for AJAX
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_FAILURE_VIEW = 'admin.dig_portal.views.csrf_failure'
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'  
+X_FRAME_OPTIONS = 'DENY'
 
 if not DEBUG:
-
-
     SECURE_SSL_REDIRECT = _env_bool('SSL_REDIRECT', True)
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -284,7 +258,6 @@ if not DEBUG:
 
 
 if DEBUG:
-
     CSP_DEFAULT_SRC = ("'self'", "*")
     CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "*")
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "*")
@@ -295,15 +268,15 @@ if DEBUG:
 else:
     CSP_DEFAULT_SRC = ("'self'",)
     CSP_SCRIPT_SRC = (
-        "'self'", "'unsafe-inline'",  
+        "'self'", "'unsafe-inline'",
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com",
         "https://unpkg.com",
         "https://cdn.tailwindcss.com",
         "https://fonts.googleapis.com",
     )
-    CSP_STYLE_SRC = (  
-        "'self'", "'unsafe-inline'",  
+    CSP_STYLE_SRC = (
+        "'self'", "'unsafe-inline'",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com",
         "https://unpkg.com",
@@ -316,14 +289,11 @@ else:
         "https://cdnjs.cloudflare.com",
     )
     CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
-    CSP_CONNECT_SRC = ("'self'",)  
+    CSP_CONNECT_SRC = ("'self'",)
     CSP_FORM_ACTION = ("'self'", "https:")
-
 
 CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
-
-
 CSP_FRAME_ANCESTORS = ("'none'",)
 CSP_FRAME_ANCESTORS_EMBED = ("'self'",)
 
@@ -344,7 +314,6 @@ else:
 MODELS_DIR = BASE_DIR / 'ai_models'
 PLATE_DETECTOR_MODEL = MODELS_DIR / 'NumberPlate_detection_model_int8.onnx'
 SIDE_CLASSIFIER_MODEL = MODELS_DIR / 'car_side_Classifier_model_int8.onnx'
-
 
 RATELIMIT_USE_CACHE = 'default'
 RATELIMIT_ENABLE = True

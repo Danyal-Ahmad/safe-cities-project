@@ -21,3 +21,4 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('DIG', 'DIG (Super Admin)'), ('SSP', 'SSP | Senior Superintendent'), ('SUPV', 'Supervisor'), ('OFFICER', 'Officer'), ('AUDIT', 'Audit Officer'), ('IT', 'IT Support'), ('USER', 'Registered Citizen')], default='USER', max_length=10),
         ),
     ]
+

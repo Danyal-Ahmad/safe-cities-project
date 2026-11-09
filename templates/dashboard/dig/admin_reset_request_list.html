@@ -38,7 +38,7 @@
             <td class="small">{{ req.created_at|date:"d M Y H:i" }}</td>
             <td><span class="reset-token">{{ req.token|slice:":12" }}…</span></td>
             <td>
-              <a href="{% url 'dig:admin_reset_password' req.token %}" class="btn btn-sm btn-primary">
+              <a href="{% url 'dig:admin_reset_password' req.token %}" class="sc-btn sc-btn-sm sc-btn-primary">
                 <i class="bi bi-key"></i> Reset Password
               </a>
             </td>

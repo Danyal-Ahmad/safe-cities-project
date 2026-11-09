@@ -16,3 +16,4 @@ class Migration(migrations.Migration):
             field=models.FloatField(default=0.7, help_text='Minimum combined AI confidence (plate detection + side classification) for the system to AUTO-CONFIRM a violation and create a Challan without officer review. Detections below this threshold go to the officer review queue. Default = 0.70 (70%).'),
         ),
     ]
+

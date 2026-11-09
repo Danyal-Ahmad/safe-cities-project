@@ -16,7 +16,6 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
-
 WEBHOOK_LIMIT = (60, 60)
 
 
@@ -118,8 +117,6 @@ def _webhook_secret() -> str:
 @csrf_exempt
 @require_http_methods(['POST'])
 def payment_webhook(request):
-
-
     if is_rate_limited(request, 'payment_webhook',
                        limit=WEBHOOK_LIMIT[0], window=WEBHOOK_LIMIT[1]):
         return rate_limit_response(request)
@@ -150,7 +147,6 @@ def payment_webhook(request):
             'ok': True, 'action': 'already_paid',
             'ticket_no': challan.ticket_no,
         })
-
 
     with transaction.atomic():
         locked = type(challan).objects.select_for_update().get(pk=challan.pk)

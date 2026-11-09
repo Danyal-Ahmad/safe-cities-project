@@ -1,5 +1,6 @@
 {% load perm_tags %}
 
+
 <div class="sc-nav-section" data-section="Overview">
   <div class="sc-nav-title">Overview</div>
   <a href="{% url 'ssp_portal:dashboard' %}" class="sc-nav-link {% if request.path == '/portal/ssp/' or request.path == '/portal/ssp/dashboard/' %}sc-active{% endif %}"><i class="bi bi-grid-1x2"></i> <span class="sc-nav-link-text">Dashboard</span></a>
@@ -8,68 +9,30 @@
 <div class="sc-nav-section" data-section="Enforcement">
   <div class="sc-nav-title">Enforcement</div>
   {% if request.user|has_perm:"view_challans" %}
-  <a href="{% url 'ssp_portal:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/ssp/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
+  <a href="{% url 'ssp_portal:challan_list' %}" class="sc-nav-link {% if request.path == '/portal/dig/challans/' %}sc-active{% endif %}"><i class="bi bi-receipt"></i> <span class="sc-nav-link-text">Challans</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_appeals" %}
-  <a href="{% url 'ssp_portal:appeal_list' %}" class="sc-nav-link {% if '/portal/ssp/appeals/' in request.path %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Appeals Queue</span></a>
-  {% endif %}
-</div>
-
-<div class="sc-nav-section" data-section="Intelligence">
-  <div class="sc-nav-title">Intelligence</div>
-  {% if request.user|has_perm:"view_analytics" %}
-  <a href="{% url 'ssp_portal:analytics' %}" class="sc-nav-link {% if request.path == '/portal/ssp/analytics/' %}sc-active{% endif %}"><i class="bi bi-graph-up-arrow"></i> <span class="sc-nav-link-text">Analytics</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"view_vehicle_search" %}
-  <a href="{% url 'ssp_portal:vehicle_search' %}" class="sc-nav-link {% if request.path == '/portal/ssp/vehicle-search/' %}sc-active{% endif %}"><i class="bi bi-search"></i> <span class="sc-nav-link-text">Vehicle Search</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"view_heatmap" %}
-  <a href="{% url 'ssp_portal:heatmap' %}" class="sc-nav-link {% if request.path == '/portal/ssp/heatmap/' %}sc-active{% endif %}"><i class="bi bi-geo-alt"></i> <span class="sc-nav-link-text">Heatmap</span></a>
+  <a href="{% url 'ssp_portal:appeal_list' %}" class="sc-nav-link {% if request.path == '/portal/ssp/appeals/queue/' %}sc-active{% endif %}"><i class="bi bi-arrow-up-circle"></i> <span class="sc-nav-link-text">Appeals</span></a>
   {% endif %}
 </div>
 
 <div class="sc-nav-section" data-section="Reports">
   <div class="sc-nav-title">Reports</div>
   {% if request.user|has_perm:"view_analytics" %}
-  <a href="{% url 'ssp_portal:violation_stats' %}" class="sc-nav-link {% if request.path == '/portal/ssp/violations/' %}sc-active{% endif %}"><i class="bi bi-bar-chart"></i> <span class="sc-nav-link-text">Violation Stats</span></a>
+  <a href="{% url 'ssp_portal:violation_stats' %}" class="sc-nav-link {% if request.path == '/portal/dig/violations/' %}sc-active{% endif %}"><i class="bi bi-bar-chart"></i> <span class="sc-nav-link-text">Violation Stats</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_revenue_dashboard" %}
-  <a href="{% url 'ssp_portal:revenue_dashboard' %}" class="sc-nav-link {% if request.path == '/portal/ssp/revenue/' %}sc-active{% endif %}"><i class="bi bi-currency-dollar"></i> <span class="sc-nav-link-text">Revenue Dashboard</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"generate_reports" %}
-  <a href="{% url 'ssp_portal:daily_production' %}" class="sc-nav-link {% if '/portal/ssp/production' in request.path %}sc-active{% endif %}"><i class="bi bi-file-earmark-bar-graph"></i> <span class="sc-nav-link-text">Production Report</span></a>
-  {% endif %}
-</div>
-
-<div class="sc-nav-section" data-section="Cameras">
-  <div class="sc-nav-title">Cameras</div>
-  {% if request.user|has_perm:"view_camera_health" %}
-  <a href="{% url 'ssp_portal:camera_health' %}" class="sc-nav-link {% if request.path == '/portal/ssp/camera-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse"></i> <span class="sc-nav-link-text">Camera Health</span></a>
-  <a href="{% url 'ssp_portal:camera_outage' %}" class="sc-nav-link {% if request.path == '/portal/ssp/camera-outage/' %}sc-active{% endif %}"><i class="bi bi-camera-video-off"></i> <span class="sc-nav-link-text">Camera Outage</span></a>
+  <a href="{% url 'ssp_portal:revenue_dashboard' %}" class="sc-nav-link {% if request.path == '/portal/dig/revenue/' %}sc-active{% endif %}"><i class="bi bi-currency-dollar"></i> <span class="sc-nav-link-text">Revenue Dashboard</span></a>
   {% endif %}
 </div>
 
 <div class="sc-nav-section" data-section="Staff">
   <div class="sc-nav-title">Staff</div>
   {% if request.user|has_perm:"view_officer_kpi" %}
-  <a href="{% url 'ssp_portal:officer_kpi' %}" class="sc-nav-link {% if request.path == '/portal/ssp/officer-kpi/' %}sc-active{% endif %}"><i class="bi bi-people"></i> <span class="sc-nav-link-text">Staff Overview</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"view_officer_activity" %}
-  <a href="{% url 'ssp_portal:officer_activity_list' %}" class="sc-nav-link {% if '/portal/ssp/officer-activity/' in request.path %}sc-active{% endif %}"><i class="bi bi-activity"></i> <span class="sc-nav-link-text">Officer Activity</span></a>
-  {% endif %}
-</div>
-
-<div class="sc-nav-section" data-section="Communications">
-  <div class="sc-nav-title">Communications</div>
-  {% if request.user|has_perm:"view_notifications" %}
-  <a href="{% url 'ssp_portal:notifications' %}" class="sc-nav-link {% if '/portal/ssp/notifications/' in request.path %}sc-active{% endif %}"><i class="bi bi-bell"></i> <span class="sc-nav-link-text">Notifications</span></a>
-  {% endif %}
-  {% if request.user|has_perm:"view_notifications" %}
-  <a href="{% url 'ssp_portal:alerts_hub' %}" class="sc-nav-link {% if '/portal/ssp/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone"></i> <span class="sc-nav-link-text">Alerts Hub</span></a>
+  <a href="{% url 'ssp_portal:officer_kpi' %}" class="sc-nav-link {% if request.path == '/portal/dig/officer-kpi/' %}sc-active{% endif %}"><i class="bi bi-people"></i> <span class="sc-nav-link-text">Staff Overview</span></a>
   {% endif %}
 </div>
 
 <div class="sc-nav-section" data-section="Settings">
   <div class="sc-nav-title">Settings</div>
-  <a href="{% url 'ssp_portal:self_profile' %}" class="sc-nav-link {% if request.path == '/portal/ssp/profile/' %}sc-active{% endif %}"><i class="bi bi-person-vcard"></i> <span class="sc-nav-link-text">Profile</span></a>
 </div>

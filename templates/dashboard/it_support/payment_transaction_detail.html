@@ -22,7 +22,7 @@
     <div class="sc-kpi-icon"><i class="bi bi-cash"></i></div>
     <div class="sc-kpi-label">Amount</div>
     <div class="sc-kpi-value">PKR {{ txn.amount|floatformat:0|intcomma }}</div>
-    <div class="sc-kpi-foot">{{ txn.provider|default:"demo" }} provider</div>
+    <div class="sc-kpi-foot">{{ txn.provider|default:"gateway" }} provider</div>
   </div>
   <div class="sc-kpi {% if txn.status == 'success' %}sc-kpi-ok{% elif txn.status == 'failed' %}sc-kpi-danger{% else %}sc-kpi-amber{% endif %}">
     <div class="sc-kpi-icon"><i class="bi bi-flag"></i></div>
@@ -77,7 +77,7 @@
               {% endif %}
             </td>
           </tr>
-          <tr><th>Provider</th><td><span class="sc-badge sc-badge-blue">{{ txn.provider|default:"demo" }}</span></td></tr>
+          <tr><th>Provider</th><td><span class="sc-badge sc-badge-blue">{{ txn.provider|default:"gateway" }}</span></td></tr>
           <tr><th>Amount</th><td class="sc-mono">PKR {{ txn.amount|floatformat:2 }}</td></tr>
           <tr><th>Status</th><td>
             {% if txn.status == 'success' %}<span class="sc-badge sc-badge-ok"><i class="bi bi-check-circle"></i>Success</span>

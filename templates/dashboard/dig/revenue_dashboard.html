@@ -7,104 +7,69 @@
 {% block content %}
 
 <div class="sc-page-hero">
-  <div>
-    <h1><i class="bi bi-cash-stack me-2"></i>Revenue Dashboard</h1>
-    <p class="sc-lead">Financial overview and revenue tracking</p>
-  </div>
-  <a href="{% url 'dig:reports' %}" class="sc-btn sc-btn-primary"><i class="bi bi-file-earmark-text me-1"></i>View Reports</a>
+ <div>
+ <h1><i class="bi bi-cash-stack me-2"></i>Revenue Dashboard</h1>
+ <p class="sc-lead">Financial overview and revenue tracking</p>
+ </div>
+ <a href="{% url 'dig:reports' %}" class="sc-btn sc-btn-primary">View Reports</a>
 </div>
 
-<div class="row g-4">
-  <div class="col-md-3">
-    <div class="metric-card h-100">
-      <div class="metric-card-top">
-        <span class="metric-label">Collected</span>
-        <span class="metric-icon-box"><i class="bi bi-cash-coin"></i></span>
-      </div>
-      <div class="metric-value">PKR {{ collected|default:0|intcomma }}</div>
-      <div class="sc-text-sm sc-text-muted">all time</div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="metric-card h-100">
-      <div class="metric-card-top">
-        <span class="metric-label">Pending</span>
-        <span class="metric-icon-box"><i class="bi bi-hourglass-split"></i></span>
-      </div>
-      <div class="metric-value">PKR {{ pending|default:0|intcomma }}</div>
-      <div class="sc-text-sm sc-text-muted">unpaid fines</div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="metric-card h-100">
-      <div class="metric-card-top">
-        <span class="metric-label">Overdue</span>
-        <span class="metric-icon-box"><i class="bi bi-exclamation-circle"></i></span>
-      </div>
-      <div class="metric-value">PKR {{ overdue|default:0|intcomma }}</div>
-      <div class="sc-text-sm sc-text-muted">past due date</div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="metric-card h-100">
-      <div class="metric-card-top">
-        <span class="metric-label">This Month</span>
-        <span class="metric-icon-box"><i class="bi bi-calendar-check"></i></span>
-      </div>
-      <div class="metric-value">PKR {{ this_month|default:0|intcomma }}</div>
-      <div class="sc-text-sm sc-text-muted">collected this month</div>
-    </div>
-  </div>
+<div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Collected</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ collected|default:0|intcomma }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Pending</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ pending|default:0|intcomma }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">Overdue</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ overdue|default:0|intcomma }}</div>
+ </div>
+ </div>
+ <div>
+ <div class="metric-card h-100">
+ <div class="metric-card-top">
+ <span class="metric-label">This Month</span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
+ </div>
+ <div class="metric-value">{{ this_month|default:0|intcomma }}</div>
+ </div>
+ </div>
 </div>
 
-<div class="row g-4 mt-1">
-  <div class="col-lg-8">
-    <div class="card h-100">
-      <div class="card-header"><span><i class="bi bi-bar-chart me-2"></i>Daily Collection (Last 14 Days)</span></div>
-      <div class="card-body">
-        <canvas id="dailyChart" height="260"
-                data-daily-labels="{{ daily_labels|join:',' }}"
-                data-daily-collected="{{ daily_collected|join:',' }}"
-                data-daily-pending="{{ daily_pending|join:',' }}"></canvas>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-header"><span><i class="bi bi-pie-chart me-2"></i>Payment Status</span></div>
-      <div class="card-body">
-        <canvas id="statusChart" height="260"
-                data-status-labels="{{ status_labels|join:',' }}"
-                data-status-counts="{{ status_counts|join:',' }}"></canvas>
-      </div>
-    </div>
-  </div>
+<div>
+ <div>
+ <div class="card h-100">
+ <div class="card-header"><span><i class="bi bi-graph-up me-2"></i>Revenue Trend</span></div>
+ <div class="card-body">
+ <p class="sc-empty">Chart data pending configuration</p>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class="card h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Revenue by Type</span></div>
+ <div class="card-body">
+ <p class="sc-empty">Chart data pending configuration</p>
+ </div>
+ </div>
+ </div>
 </div>
 
-<div class="card mt-4">
-  <div class="card-header"><span><i class="bi bi-table me-2"></i>Collection by Period</span></div>
-  <div class="table-responsive">
-    <table class="table table-hover table-sm align-middle mb-0">
-      <thead>
-        <tr><th>Period</th><th>Challans</th><th>Collected (PKR)</th><th>Pending (PKR)</th><th>Total Billed (PKR)</th></tr>
-      </thead>
-      <tbody>
-        {% for s in summary %}
-        <tr>
-          <td class="fw-semibold">{{ s.period }}</td>
-          <td>{{ s.challans|intcomma }}</td>
-          <td class="text-success fw-semibold">{{ s.collected|intcomma }}</td>
-          <td class="text-warning fw-semibold">{{ s.pending|intcomma }}</td>
-          <td>{{ s.total|intcomma }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/pages/dig-revenue-dashboard.js' %}" defer></script>
 {% endblock %}

@@ -6,24 +6,25 @@
 {% block extra_head %}{% endblock %}
 
 {% block content %}
+{% with ns_dash=request.resolver_match.namespace|default:'dig'|add:':dashboard' %}
 <div class="sc-page-hero">
  <div>
- <h1><i class="bi bi-trophy me-2"></i> Officer KPIs</h1>
- <p class="sc-lead">Key performance indicators for each officer</p>
+ <h1><i class="bi bi-circle"></i> Officer KPIs</h1>
+ <p>Key performance indicators for each officer</p>
  </div>
  <div>
-<a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary">
- <i class="bi bi-grid-1x2 me-1"></i> Dashboard
+<a href="{% url ns_dash %}" class="sc-btn sc-btn-primary">
+ <i class="bi bi-circle"></i> Dashboard
  </a>
  </div>
 </div>
 
-<div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <div><i class="bi bi-trophy me-2"></i> Officer Performance</div>
+<div>
+ <div class="card-header">
+ <div><i class="bi bi-circle"></i> Officer Performance</div>
  <span class="badge bg-secondary">{{ kpis|length }}</span>
  </div>
- <div class="card-body p-0 table-responsive">
+ <div class="p-0 table-responsive">
  {% if kpis %}
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -41,7 +42,7 @@
  <tr>
  <td>
  <div class="d-flex align-items-center gap-2">
- <div class="avatar avatar-sm">{{ k.officer.initials }}</div>
+ <span class="sc-avatar">{{ k.officer.initials }}</span>
  <span>{{ k.officer.display_name|default:"-" }}</span>
  </div>
  </td>
@@ -59,12 +60,9 @@
  </tbody>
  </table>
  {% else %}
- <div class="sc-empty-state">
- <i class="bi bi-trophy"></i>
- <h3>No officer data</h3>
- <p>No officer activity recorded yet.</p>
- </div>
+ <div class="empty-state"><i class="bi bi-inbox"></i>No officer activity data available yet.</div>
  {% endif %}
  </div>
 </div>
+{% endwith %}
 {% endblock %}

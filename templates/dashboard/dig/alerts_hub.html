@@ -61,15 +61,15 @@
 
 <div class="ah-pane {% if active_tab == 'alerts' %}active{% endif %}" id="pane-alerts">
   <div class="ah-toolbar">
-    <input type="text" id="alertSearch" placeholder="Search alerts…">
-    <select id="alertSevFilter">
+    <input type="text" id="alertSearch" aria-label="Search alerts" placeholder="Search alerts…">
+    <select id="alertSevFilter" aria-label="Filter alerts by severity">
       <option value="">All severities</option>
       <option value="danger">Danger</option>
       <option value="warning">Warning</option>
       <option value="info">Info</option>
       <option value="success">Success</option>
     </select>
-    <select id="alertStatusFilter">
+    <select id="alertStatusFilter" aria-label="Filter alerts by status">
       <option value="">All statuses</option>
       <option value="active">Active</option>
       <option value="off">Off</option>
@@ -156,8 +156,8 @@
 
 <div class="ah-pane {% if active_tab == 'banners' %}active{% endif %}" id="pane-banners">
   <div class="ah-toolbar">
-    <input type="text" id="bannerSearch" placeholder="Search banners…">
-    <select id="bannerStatusFilter">
+    <input type="text" id="bannerSearch" aria-label="Search banners" placeholder="Search banners…">
+    <select id="bannerStatusFilter" aria-label="Filter banners by status">
       <option value="">All statuses</option>
       <option value="active">Active</option>
       <option value="off">Off</option>
@@ -238,7 +238,7 @@
 
 <div class="ah-pane {% if active_tab == 'broadcasts' %}active{% endif %}" id="pane-broadcasts">
   <div class="ah-toolbar">
-    <input type="text" id="broadcastSearch" placeholder="Search broadcasts…">
+    <input type="text" id="broadcastSearch" aria-label="Search broadcasts" placeholder="Search broadcasts…">
     <div class="ah-view-toggle" data-view-toggle="broadcast">
       <button type="button" class="ah-view-btn active" data-view="cards"><i class="bi bi-grid-fill"></i> Cards</button>
       <button type="button" class="ah-view-btn" data-view="table"><i class="bi bi-list-ul"></i> List</button>

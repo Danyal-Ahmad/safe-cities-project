@@ -6,109 +6,81 @@
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
 <div class="sc-page-hero">
-  <div>
-    <h1><i class="bi bi-file-earmark-bar-chart me-2"></i>Generate Report</h1>
-    <p class="sc-lead">Create a custom report with your selected parameters</p>
-  </div>
-  <a href="{% url 'dig:reports' %}" class="sc-btn"><i class="bi bi-arrow-left me-1"></i>Back to Reports</a>
+ <div>
+ <h1><i class="bi bi-file-earmark-bar-chart me-2"></i>Generate Report</h1>
+ <p class="sc-lead">Create a custom report with your selected parameters</p>
+ </div>
 </div>
 
-<div class="row g-4">
-  <div class="col-12">
-    <div class="card h-100">
-      <div class="card-header">
-        <span><i class="bi bi-sliders me-2"></i>Report Parameters</span>
-      </div>
-      <div class="card-body">
-        <form method="post">
-          {% csrf_token %}
-          <div class="row g-3">
-            <div class="col-md-6">
-              <div class="sc-form-group">
-                <label class="form-label">Report Title *</label>
-                <input type="text" name="title" class="form-control" required placeholder="Monthly Violation Report - January 2026">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="sc-form-group">
-                <label class="form-label">Report Type *</label>
-                <select name="type" class="form-select" required>
-                  <option value="violations" {% if selected_type == 'violations' %}selected{% endif %}>Violation Statistics</option>
-                  <option value="revenue" {% if selected_type == 'revenue' %}selected{% endif %}>Revenue Collection</option>
-                  <option value="camera_performance" {% if selected_type == 'camera_performance' %}selected{% endif %}>Camera Performance</option>
-                  <option value="officer_performance" {% if selected_type == 'officer_performance' %}selected{% endif %}>Officer Performance</option>
-                  <option value="appeals" {% if selected_type == 'appeals' %}selected{% endif %}>Appeal Statistics</option>
-                  <option value="compliance" {% if selected_type == 'compliance' %}selected{% endif %}>Compliance Report</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-8">
-              <div class="sc-form-group">
-                <label class="form-label">Date Range *</label>
-                <div class="d-flex align-items-center gap-3">
-                  <input type="date" name="start_date" class="form-control" required>
-                  <span>to</span>
-                  <input type="date" name="end_date" class="form-control" required>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="sc-form-group">
-                <label class="form-label">Format</label>
-                <select name="format" class="form-select">
-                  <option value="csv">CSV</option>
-                  <option value="pdf">PDF</option>
-                  <option value="excel">Excel (CSV)</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="sc-form-group">
-                <label class="form-label">Camera</label>
-                <select name="camera_id" class="form-select">
-                  <option value="">All Cameras</option>
-                  {% for c in cameras %}
-                  <option value="{{ c.id }}">{{ c.camera_id }} | {{ c.location|truncatechars:36 }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="sc-form-group">
-                <label class="form-label">Violation Type</label>
-                <select name="violation_type" class="form-select">
-                  <option value="">All Violations</option>
-                  {% for code, label in violation_types %}
-                  <option value="{{ code }}">{{ label }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="sc-form-group">
-                <label class="form-label">Officer</label>
-                <select name="officer_id" class="form-select">
-                  <option value="">All Officers</option>
-                  {% for o in officers %}
-                  <option value="{{ o.id }}">{{ o.display_name|default:o.username }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="include_charts" id="includeCharts" checked>
-                <label class="form-check-label" for="includeCharts">Include Charts</label>
-              </div>
-            </div>
-            <div class="col-12 d-flex gap-2">
-              <button type="submit" class="btn btn-primary"><i class="bi bi-file-earmark-bar-chart me-1"></i>Generate Report</button>
-              <a href="{% url 'dig:reports' %}" class="sc-btn">Cancel</a>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+<div>
+ <div>
+ <div>
+ <div class="card-header">
+ <span><i class="bi bi-circle me-2"></i>Generate Report</span>
+ </div>
+ <div class="card-body">
+ <form method="post">
+ {% csrf_token %}
+ <div>
+ <div>
+ <label>Report Title *</label>
+ <input type="text" name="title" required placeholder="Monthly Violation Report - January 2024">
+ </div>
+ <div>
+ <label>Report Type *</label>
+ <select name="type" required>
+ <option value="violations">Violation Statistics</option>
+ <option value="revenue">Revenue Collection</option>
+ <option value="camera_performance">Camera Performance</option>
+ <option value="officer_performance">Officer Performance</option>
+ <option value="appeals">Appeal Statistics</option>
+ <option value="compliance">Compliance Report</option>
+ </select>
+ </div>
+ </div>
+ <div>
+ <div>
+ <label>Date Range *</label>
+ <div>
+ <input type="date" name="start_date" required>
+ <span>to</span>
+ <input type="date" name="end_date" required>
+ </div>
+ </div>
+ <div>
+ <label>Format</label>
+ <select name="format">
+ <option value="pdf">PDF</option>
+ <option value="excel">Excel</option>
+ <option value="csv">CSV</option>
+ </select>
+ </div>
+ </div>
+ <div>
+ <div>
+ <label>Camera</label>
+ <select name="camera_id"><option value="">All Cameras</option></select>
+ </div>
+ <div>
+ <label>Violation Type</label>
+ <select name="violation_type"><option value="">All Violations</option></select>
+ </div>
+ <div>
+ <label>Officer</label>
+ <select name="officer_id"><option value="">All Officers</option></select>
+ </div>
+ </div>
+ <div>
+ <input class="form-check-input" type="checkbox" name="include_charts" id="includeCharts" checked>
+ <label class="form-check-label" for="includeCharts">Include Charts</label>
+ </div>
+ <div>
+ <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-file-earmark-bar-chart me-1"></i>Generate Report</button>
+ <a href="{% url 'dig:reports' %}" class="sc-btn sc-btn-primary">Cancel</a>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
 </div>
 {% endblock %}

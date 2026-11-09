@@ -4,7 +4,6 @@
 
 {% block title %}AI Review Queue{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/pages/officer-review-queue.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -27,8 +26,7 @@
     </div>
   </div>
 
-  <!-- Live queue telemetry: real values from the scoped queryset, refreshed
-       in-page by officer-review-queue.js polling /realtime/queue-count/. -->
+
   <div class="rq-stats" data-rq-panel>
     <div class="rq-tile rq-tile--warning">
       <div class="rq-tile-label">Pending Queue</div>
@@ -52,10 +50,10 @@
     </div>
   </div>
 
-  <!-- Main split triage grid (Left Queue | Right Interactive Detail) -->
+
   <div class="md-triage-grid" {% if selected %}data-has-selected="1"{% endif %}>
 
-    <!-- LEFT PANEL: Detection queue -->
+
     <div class="md-card rq-queue-card">
       <div class="md-card-head rq-queue-head">
         <span class="rq-queue-title"><i class="bi bi-list-task"></i> Review Backlog</span>
@@ -100,7 +98,7 @@
       </div>
     </div>
 
-    <!-- RIGHT PANEL: Full detection detail & decision station -->
+
     <div class="md-card rq-station-card">
       {% if selected %}
         {% include "dashboard/officer/_detection_detail.html" with detection=selected %}

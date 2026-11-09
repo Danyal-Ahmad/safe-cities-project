@@ -51,3 +51,4 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, default='', help_text='URL to navigate to when clicked (e.g. /dig/appeal/5/override/)', max_length=500),
         ),
     ]
+

@@ -19,3 +19,4 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='camera_assignments_made', to=settings.AUTH_USER_MODEL),
         ),
     ]
+

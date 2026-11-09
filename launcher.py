@@ -49,6 +49,8 @@ EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=noreply@safecities.project
+
+CAMERA_WORKER_INTERVAL=5
 """
 
 
@@ -579,10 +581,6 @@ def run_server(realtime: bool = False) -> None:
     step('Collect static (idempotent)')
     manage(py, 'collectstatic', '--noinput')
 
-    # Realtime mode (--realtime flag or REALTIME=1 env): serve the ASGI app
-    # (Django + Socket.IO at /ws/socket.io) with uvicorn. SINGLE WORKER is
-    # REQUIRED: the pipeline emits Socket.IO events in-process, so the
-    # server and the emits must share one process (Socket.IO requires a single shared process).
     if realtime or _env_flag('REALTIME'):
         if uvicorn_available(py):
             port = os.environ.get('PORT', '').strip() or '8000'
@@ -605,7 +603,7 @@ def run_server(realtime: bool = False) -> None:
     banner('Starting Django dev server -- http://127.0.0.1:8000/')
     print('  Press CTRL+C to stop.\n')
 
-    safe_run([str(py), 'manage.py', 'runserver'], label='runserver')
+    safe_run([str(py), 'manage.py', 'runserver', '--nostatic'], label='runserver')
 
 
 def auto() -> None:
@@ -672,21 +670,23 @@ def fresh() -> None:
     print('  Next: python launcher.py run')
 
 
+HELP_TEXT = """
+Safe Cities Project - Punjab Police e-Challan Platform
+======================================================
+
+Usage:
+    python launcher.py setup    Create venv, install deps, reset DB, migrate, seed DIG admin
+    python launcher.py run      Start the production server (gunicorn)
+    python launcher.py dev      Start the development server (runserver)
+    python launcher.py reset    Drop + recreate the public schema, then migrate
+    python launcher.py check    Run Django system checks
+
+Requires PostgreSQL running and a .env file (see .env.example).
+"""
+
+
 def show_help() -> None:
-    print("""Safe City launcher
-
-Usage: python launcher.py <command>
-
-Commands:
-  run          Start the stack (PostgreSQL check, migrations, collectstatic, runserver)
-  setup        Full fresh setup (venv packages, DB create, migrations, seed admin)
-  migrate      Apply database migrations
-  seedadmin    Create the default DIG admin account
-  static       Collect static files
-  test         Run the Django test suite
-  status       Show stack status (DB + server)
-  help         Show this help
-""")
+    print(HELP_TEXT)
 
 
 def main() -> None:

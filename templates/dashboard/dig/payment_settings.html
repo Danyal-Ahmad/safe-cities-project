@@ -1,95 +1,95 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Payment Settings{% endblock %}
-{% block body_class %}page-it{% endblock %}
+
 {% block content %}
 <div class="sc-page-hero">
-  <div>
-    <h1><i class="bi bi-credit-card me-2"></i>Payment settings</h1>
-    <p class="sc-lead">Enable channels and set merchant credentials</p>
-  </div>
-  <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-btn sc-btn-primary">
-    Method catalogue
-  </a>
+ <div>
+ <h1><i class="bi bi-credit-card me-2"></i>Payment settings</h1>
+ <p class="sc-lead">Enable channels and set merchant credentials</p>
+ </div>
+ <a href="{% url 'it_support_portal:payment_method_list' %}" class="sc-btn sc-btn-primary">
+ Method catalogue
+ </a>
 </div>
 
 <form method="post">
-  {% csrf_token %}
-  <div class="row g-4">
-    {% for key, cfg in payment_methods.items %}
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>{{ cfg.label }}</span>
-          <div class="form-check mb-0">
-            <input class="form-check-input" type="checkbox" name="{{ key }}_enabled" id="en_{{ key }}"
-              {% if cfg.enabled %}checked{% endif %}>
-            <label class="form-check-label small" for="en_{{ key }}">Enabled</label>
-          </div>
-        </div>
-        <div class="card-body">
-          {% if key == 'jazzcash' or key == 'easypaisa' %}
-          <div class="sc-form-group">
-            <label class="form-label small">Merchant / Store ID</label>
-            <input class="form-control form-control-sm" name="{{ key }}_merchant_id"
-              value="{{ cfg.merchant_id|default:'' }}">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Password / PIN</label>
-            <input class="form-control form-control-sm" name="{{ key }}_password"
-              value="{{ cfg.password|default:'' }}" autocomplete="off">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Integrity / Hash key</label>
-            <input class="form-control form-control-sm" name="{{ key }}_integrity_salt"
-              value="{{ cfg.integrity_salt|default:'' }}">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Return URL</label>
-            <input class="form-control form-control-sm" name="{{ key }}_return_url"
-              value="{{ cfg.return_url|default:'' }}" placeholder="https://...">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Environment</label>
-            <select class="form-select form-select-sm" name="{{ key }}_environment">
-              <option value="sandbox" {% if cfg.environment == 'sandbox' %}selected{% endif %}>Sandbox</option>
-              <option value="live" {% if cfg.environment == 'live' %}selected{% endif %}>Live</option>
-            </select>
-          </div>
-          {% elif key == 'bank_transfer' %}
-          <div class="sc-form-group">
-            <label class="form-label small">Bank name</label>
-            <input class="form-control form-control-sm" name="{{ key }}_bank_name" value="{{ cfg.bank_name|default:'' }}">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Account title</label>
-            <input class="form-control form-control-sm" name="{{ key }}_account_title" value="{{ cfg.account_title|default:'' }}">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Account number</label>
-            <input class="form-control form-control-sm" name="{{ key }}_account_number" value="{{ cfg.account_number|default:'' }}">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">IBAN</label>
-            <input class="form-control form-control-sm font-monospace" name="{{ key }}_iban" value="{{ cfg.iban|default:'' }}">
-          </div>
-          {% else %}
-          <div class="sc-form-group">
-            <label class="form-label small">Publishable key</label>
-            <input class="form-control form-control-sm" name="{{ key }}_publishable_key" value="{{ cfg.publishable_key|default:'' }}">
-          </div>
-          <div class="sc-form-group">
-            <label class="form-label small">Secret key</label>
-            <input class="form-control form-control-sm" name="{{ key }}_secret_key" value="{{ cfg.secret_key|default:'' }}">
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  <div class="mt-4">
-    <button type="submit" class="btn btn-primary"><i class="bi bi-credit-card me-1"></i>Save payment settings</button>
-  </div>
+ {% csrf_token %}
+ <div>
+ {% for key, cfg in payment_methods.items %}
+ <div>
+ <div class="card h-100">
+ <div class="card-header">
+ <span>{{ cfg.label }}</span>
+ <div>
+ <input class="form-check-input" type="checkbox" name="{{ key }}_enabled" id="en_{{ key }}"
+ {% if cfg.enabled %}checked{% endif %}>
+ <label class="-label small" for="en_{{ key }}">Enabled</label>
+ </div>
+ </div>
+ <div class="card-body">
+ {% if key == 'jazzcash' or key == 'easypaisa' %}
+ <div>
+ <label class="form-label small">Merchant / Store ID</label>
+ <input class="form-control form-control-sm" name="{{ key }}_merchant_id"
+ value="{{ cfg.merchant_id|default:'' }}">
+ </div>
+ <div>
+ <label class="form-label small">Password / PIN</label>
+ <input class="form-control form-control-sm" name="{{ key }}_password"
+ value="{{ cfg.password|default:'' }}" autocomplete="off">
+ </div>
+ <div>
+ <label class="form-label small">Integrity / Hash key</label>
+ <input class="form-control form-control-sm" name="{{ key }}_integrity_salt"
+ value="{{ cfg.integrity_salt|default:'' }}">
+ </div>
+ <div>
+ <label class="form-label small">Return URL</label>
+ <input class="form-control form-control-sm" name="{{ key }}_return_url"
+ value="{{ cfg.return_url|default:'' }}" placeholder="https://...">
+ </div>
+ <div>
+ <label class="form-label small">Environment</label>
+ <select class="form-control form-control-sm" name="{{ key }}_environment">
+ <option value="sandbox" {% if cfg.environment == 'sandbox' %}selected{% endif %}>Sandbox</option>
+ <option value="live" {% if cfg.environment == 'live' %}selected{% endif %}>Live</option>
+ </select>
+ </div>
+ {% elif key == 'bank_transfer' %}
+ <div>
+ <label class="form-label small">Bank name</label>
+ <input class="form-control form-control-sm" name="{{ key }}_bank_name" value="{{ cfg.bank_name|default:'' }}">
+ </div>
+ <div>
+ <label class="form-label small">Account title</label>
+ <input class="form-control form-control-sm" name="{{ key }}_account_title" value="{{ cfg.account_title|default:'' }}">
+ </div>
+ <div>
+ <label class="form-label small">Account number</label>
+ <input class="form-control form-control-sm" name="{{ key }}_account_number" value="{{ cfg.account_number|default:'' }}">
+ </div>
+ <div>
+ <label class="form-label small">IBAN</label>
+ <input class=" -sm font-monospace" name="{{ key }}_iban" value="{{ cfg.iban|default:'' }}">
+ </div>
+ {% else %}
+ <div>
+ <label class="form-label small">Publishable key</label>
+ <input class="form-control form-control-sm" name="{{ key }}_publishable_key" value="{{ cfg.publishable_key|default:'' }}">
+ </div>
+ <div>
+ <label class="form-label small">Secret key</label>
+ <input class="form-control form-control-sm" name="{{ key }}_secret_key" value="{{ cfg.secret_key|default:'' }}">
+ </div>
+ {% endif %}
+ </div>
+ </div>
+ </div>
+ {% endfor %}
+ </div>
+ <div>
+ <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-credit-card me-1"></i>Save payment settings</button>
+ </div>
 </form>
 {% endblock %}

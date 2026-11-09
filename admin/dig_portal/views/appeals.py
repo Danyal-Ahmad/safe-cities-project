@@ -95,3 +95,4 @@ def appeals_queue(request):
         'flagged': flagged,
         'is_ssp': request.user.role == 'SSP',
     })
+

@@ -31,3 +31,4 @@ class Migration(migrations.Migration):
             old_name='challans_ch_issue_d_2c457d_idx',
         ),
     ]
+

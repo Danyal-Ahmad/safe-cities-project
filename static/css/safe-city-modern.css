@@ -803,7 +803,7 @@ div.dataTables_wrapper div.dataTables_filter input { border-radius: 999px; borde
   -webkit-box-orient: vertical;
 }
 .scr-stat-foot a { color: var(--sc-primary); font-weight: 600; text-decoration: none; }
-.scr-stat-foot a:hover { text-decoration: underline; }
+.scr-stat-foot a:hover { text-decoration: none; }
 
 .scr-stat--success .scr-stat-value { color: #15803D; }
 .scr-stat--danger  .scr-stat-value { color: #DC2626; }

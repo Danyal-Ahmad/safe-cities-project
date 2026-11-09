@@ -11,19 +11,6 @@ logger = logging.getLogger('wrongway.nadra')
 
 _CNIC_RE = re.compile(r'^\d{5}-\d{7}-\d$')
 
-_OFFLINE_REGISTRY = {
-    '35202-7481936-4': {'name': 'Ahmad Raza', 'status': 'valid'},
-    '35201-3347821-9': {'name': 'Muhammad Bilal Khokhar', 'status': 'valid'},
-    '35202-9912045-6': {'name': 'Sara Fatima Khan', 'status': 'valid'},
-    '35201-7842109-2': {'name': 'Usman Ghani', 'status': 'valid'},
-    '35202-1122334-0': {'name': 'Ayesha Siddiqui', 'status': 'valid'},
-    '37405-1122334-3': {'name': 'Tahir Mehmood Bhatti', 'status': 'valid'},
-    '35202-4455667-7': {'name': 'Kiran Shahzadi', 'status': 'valid'},
-    '34101-8877445-1': {'name': 'Zafar Iqbal Chaudhry', 'status': 'valid'},
-    '33100-5544332-8': {'name': 'Hina Aslam Malhi', 'status': 'valid'},
-    '35228-9911223-5': {'name': 'Sheikh Hamza Farooq', 'status': 'valid'},
-}
-
 
 def is_valid_cnic_format(cnic: str) -> bool:
     return bool(_CNIC_RE.match((cnic or '').strip()))
@@ -38,7 +25,7 @@ def _settings():
 
 
 def verify_cnic(cnic: str, expected_name: Optional[str] = None) -> Dict[str, Any]:
-    from integrations.mode import is_demo, is_real
+    from integrations.mode import is_real
     cnic = (cnic or '').strip()
     if not is_valid_cnic_format(cnic):
         return {
@@ -81,22 +68,6 @@ def verify_cnic(cnic: str, expected_name: Optional[str] = None) -> Dict[str, Any
         except Exception as e:
             logger.warning('NADRA API error cnic=%s: %s', cnic, e)
 
-    if is_demo() and cnic in _OFFLINE_REGISTRY:
-        row = _OFFLINE_REGISTRY[cnic]
-        name = row['name']
-        name_match = None
-        if expected_name:
-            name_match = expected_name.strip().lower() in name.lower() or name.lower() in expected_name.strip().lower()
-        return {
-            'ok': True, 'cnic': cnic, 'name': name,
-            'status': 'valid', 'source': 'nadra_offline', 'name_match': name_match,
-        }
-
-    if is_demo():
-        return {
-            'ok': True, 'cnic': cnic, 'name': None,
-            'status': 'valid', 'source': 'format_only', 'name_match': None,
-        }
     return {
         'ok': False, 'cnic': cnic, 'name': None,
         'status': 'unavailable', 'source': 'nadra_unconfigured', 'name_match': None,

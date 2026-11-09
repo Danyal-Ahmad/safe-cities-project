@@ -64,7 +64,7 @@ def home(request):
         digits = _normalize_cnic(user.cnic)
         if digits:
             q |= Q(cnic=digits)
-            q |= Q(cnic__icontains=digits[:5])  
+            q |= Q(cnic__icontains=digits[:5])
     if user.phone:
         q |= Q(phone=user.phone)
     plates = _user_plates(user)
@@ -170,10 +170,6 @@ def submit_appeal(request, challan_id):
             messages.error(request, "Reason must be at least 30 characters.")
         else:
             if evidence:
-                # 2026 audit (P4): extension whitelist + PIL sniff + 5 MB cap.
-                # The old content_type check was client-spoofable and allowed a
-                # renamed .html to be stored and later served from /media/ as
-                # same-origin text/html (stored XSS against appeal reviewers).
                 from challans.views import _validate_evidence_file
                 ok_ev, ev_err = _validate_evidence_file(evidence)
                 if not ok_ev:
@@ -356,7 +352,7 @@ def pay_challan(request, challan_id):
             PaymentTransaction.objects.create(
                 ticket_no=challan.ticket_no,
                 challan=challan,
-                provider=(init.get('provider') or payment_method.name or 'demo'),
+                provider=(init.get('provider') or payment_method.name or 'gateway'),
                 amount=challan.fine_amount,
                 status=PaymentTransaction.STATUS_PENDING,
                 txn_ref=init.get('reference'),
@@ -370,8 +366,6 @@ def pay_challan(request, challan_id):
                     'init': init,
                     'payment_method': payment_method,
                 })
-            if init.get('mode') == 'demo':
-                return redirect(init.get('action_url') or reverse('citizen_portal:pay_challan', kwargs={'challan_id': challan.id}))
             messages.info(request, init.get('message') or 'Use manual transaction reference.')
 
         if not method_id:
@@ -481,5 +475,4 @@ def api_citizen_challans(request):
     return JsonResponse({
         'draw': draw, 'recordsTotal': total, 'recordsFiltered': total, 'data': data,
     })
-
 

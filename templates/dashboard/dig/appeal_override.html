@@ -7,101 +7,98 @@
 {% block content %}
 
 <div class="sc-page-hero">
-    <div>
-        <h1><i class="bi bi-shield-check me-2"></i>Appeal Review | SSP Decision</h1>
-        <p class="opacity-75">Appeal #{{ appeal.id }} · {{ appeal.challan.ticket_no }}</p>
-    </div>
-    <a href="{% url 'dig:appeals_queue' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+ <div>
+ <h1><i class="bi bi-arrow-right-circle me-2"></i>Appeal Review | {{ stage_display }}</h1>
+ <p class="sc-lead">Appeal #{{ appeal.id }} · {{ appeal.challan.ticket_no }}</p>
+ </div>
+ <a href="{% url 'dig:appeals_queue' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-left me-1"></i>Back</a>
 </div>
 
-<div class="alert alert-info small">
-    <i class="bi bi-info-circle me-2"></i>
-    <strong>Review policy:</strong> Mistake-challan appeals are submitted by citizens and decided
-    <strong>by the SSP only</strong>. Approving an appeal voids the challan; rejecting it leaves the challan active.
+<div class="alert alert-info small ">
+ <i class="bi bi-arrow-right-circle me-1"></i>
+ <strong>Review chain:</strong> Officer → SSP → DIG (final).
+ {% if current_stage == 'officer' %}Officer can approve/reject or route to SSP.{% endif %}
+ {% if current_stage == 'ssp' %}SSP can approve/reject or escalate to DIG.{% endif %}
+ {% if current_stage == 'dig' %}DIG makes the final decision.{% endif %}
 </div>
 
-<div class="row g-3 mb-3">
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><span><i class="bi bi-receipt me-2"></i>Challan Detail</span></div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Ticket</span><span class="font-monospace">{{ appeal.challan.ticket_no }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Plate</span><span class="font-monospace">{{ appeal.challan.plate_number }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Violation</span><span>{{ appeal.challan.get_violation_type_display }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Fine</span><span>{{ appeal.challan.fine_amount|intcomma }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Issue Date</span><span class="small">{{ appeal.challan.issue_date|date:"Y-m-d" }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Due Date</span><span class="small">{{ appeal.challan.due_date|date:"Y-m-d" }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Location</span><span>{{ appeal.challan.location|default:"-" }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">Owner</span><span>{{ appeal.challan.owner_name|default:"-" }}</span></div>
-                <div class="d-flex justify-content-between border-bottom py-1"><span class="fw-semibold">CNIC</span><span class="font-monospace small">{{ appeal.challan.cnic|default:"-" }}</span></div>
-                <div class="d-flex justify-content-between py-1">
-                    <span class="fw-semibold">Payment</span>
-                    <span>
-                    {% if appeal.challan.payment_status == 'PAID' %}<span class="badge bg-success">PAID</span>
-                    {% elif appeal.challan.payment_status == 'VOIDED' %}<span class="badge bg-secondary">VOIDED</span>
-                    {% else %}<span class="badge bg-warning">UNPAID</span>{% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><span><i class="bi bi-chat-left-text me-2"></i>Appeal Submission</span></div>
-            <div class="card-body">
-                <div class="small fw-semibold mb-1">Citizen's reason</div>
-                <div class="alert alert-warning small">{{ appeal.reason|linebreaksbr }}</div>
-                {% if appeal.submitted_by %}
-                    <div class="small fw-semibold mb-1">Submitted by</div>
-                    <div class="small mb-2">{{ appeal.submitted_by.display_name }} ({{ appeal.submitted_by.email|default:appeal.submitted_by.phone }})</div>
-                {% else %}
-                    <div class="small fw-semibold mb-1">Submitted by</div>
-                    <div class="small mb-2">Guest (CNIC matched): {{ appeal.guest_name|default:"-" }} · {{ appeal.guest_cnic|default:"-" }}</div>
-                {% endif %}
-                {% if appeal.ssp_comment %}
-                    <div class="small fw-semibold mb-1">SSP decision comment</div>
-                    <div class="alert alert-success small">{{ appeal.ssp_comment|linebreaksbr }}</div>
-                {% endif %}
-                {% if appeal.evidence_file %}
-                    <div class="small fw-semibold mb-1">Evidence</div>
-                    <img src="{{ appeal.evidence_file.url }}" class="img-fluid rounded border" alt="Evidence">
-                {% endif %}
-            </div>
-        </div>
-    </div>
+<div>
+ <div>
+ <div class="card h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Challan Detail</span></div>
+ <div class="card-body">
+ <div class="d-flex justify-content-between"><span class="text-muted small">Ticket</span><span class="fw-semibold v font-monospace">{{ appeal.challan.ticket_no }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Plate</span><span class="fw-semibold v font-monospace">{{ appeal.challan.plate_number }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Violation</span><span class="fw-semibold v">{{ appeal.challan.get_violation_type_display }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Fine</span><span class="fw-semibold v">{{ appeal.challan.fine_amount|intcomma }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Issue Date</span><span class="fw-semibold v small ">{{ appeal.challan.issue_date|date:"Y-m-d" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Due Date</span><span class="fw-semibold v small ">{{ appeal.challan.due_date|date:"Y-m-d" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Location</span><span class="fw-semibold v">{{ appeal.challan.location|default:"-" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Owner</span><span class="fw-semibold v">{{ appeal.challan.owner_name|default:"-" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">CNIC</span><span class="fw-semibold v font-monospace small">{{ appeal.challan.cnic|default:"-" }}</span></div>
+ <div class="d-flex justify-content-between"><span class="text-muted small">Payment</span><span class="fw-semibold v">
+ {% if appeal.challan.payment_status == 'PAID' %}<span class="badge bg-success">PAID</span>
+ {% elif appeal.challan.payment_status == 'VOIDED' %}<span class="badge bg-secondary">VOIDED</span>
+ {% else %}<span class="badge bg-warning">UNPAID</span>{% endif %}
+ </span></div>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class="card h-100">
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Comments</span></div>
+ <div class="card-body">
+ <div class="small fw-semibold ">Citizen's reason</div>
+ <div class="comment-box warning ">{{ appeal.reason|linebreaksbr }}</div>
+ {% if appeal.officer_comment %}
+ <div class="small fw-semibold ">Officer</div>
+ <div class="comment-box ">{{ appeal.officer_comment|linebreaksbr }}</div>
+ {% endif %}
+ {% if appeal.ssp_comment %}
+ <div class="small fw-semibold ">SSP</div>
+ <div class="comment-box success ">{{ appeal.ssp_comment|linebreaksbr }}</div>
+ {% endif %}
+ {% if appeal.evidence_file %}
+ <div class="small fw-semibold ">Evidence</div>
+ <img src="{{ appeal.evidence_file.url }}" class="img-fluid " alt="Evidence">
+ {% endif %}
+ </div>
+ </div>
+ </div>
 </div>
 
-<div class="card">
-    <div class="card-header"><span><i class="bi bi-gavel me-2"></i>SSP Decision</span></div>
-    <div class="card-body">
-        {% if can_finalize %}
-            <p class="small">Your decision is final and is sent to the citizen immediately.</p>
-            <form method="post">{% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label" for="id_comment">Comment <span class="text-danger">*</span> <span class="text-muted">(min 30 chars)</span></label>
-                    <textarea name="comment" id="id_comment" class="form-control" required minlength="30" rows="4"
-                              placeholder="Explain your decision. This message will be sent to the citizen."></textarea>
-                </div>
-                <input type="hidden" name="action" value="">
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success" onclick="this.form.action.value='approve'">
-                        <i class="bi bi-check-circle me-1"></i>Approve (Void Challan)
-                    </button>
-                    <button type="submit" class="btn btn-danger" onclick="this.form.action.value='reject'">
-                        <i class="bi bi-x-circle me-1"></i>Reject (Challan Stands)
-                    </button>
-                </div>
-            </form>
-        {% else %}
-            <div class="alert alert-secondary mb-0 small">
-                <i class="bi bi-lock me-1"></i>
-                {% if appeal.status == 'pending' %}
-                    Only the SSP can decide this appeal. You have read-only visibility.
-                {% else %}
-                    This appeal was decided by the SSP on {{ appeal.ssp_reviewed_at|date:"Y-m-d H:i" }}.
-                {% endif %}
-            </div>
-        {% endif %}
-    </div>
+<div>
+ <div class="card-header"><span><i class="bi bi-circle me-2"></i>Decision | {{ stage_display }}</span></div>
+ <div class="card-body">
+ <p class="small ">Your decision is sent to the citizen and any next-stage reviewer.</p>
+ <form method="post">{% csrf_token %}
+ <div>
+ <label>Comment * <span>(min 30 chars)</span></label>
+ <textarea name="comment" required minlength="30" rows="4"
+ placeholder="Explain your decision. This message will be sent to the citizen and (if routing) the next reviewer."></textarea>
+ </div>
+ <input type="hidden" name="action" value="">
+ <div class="d-flex gap-2 justify-content-end flex-wrap">
+ {% if can_finalize %}
+ <button type="submit" class="sc-btn sc-btn-success" onclick="this.form.action.value='approve'">
+ <i class="bi bi-check-lg me-1"></i>Approve (Void Challan)
+ </button>
+ <button type="submit" class="sc-btn sc-btn-danger" onclick="this.form.action.value='reject'">
+ <i class="bi bi-x-lg me-1"></i>Reject (Challan Stands)
+ </button>
+ {% endif %}
+ {% if can_route_to_ssp %}
+ <button type="submit" class="sc-btn sc-btn-primary" onclick="this.form.action.value='route_to_ssp'">
+ <i class="bi bi-arrow-right-circle me-1"></i>Route to SSP
+ </button>
+ {% endif %}
+ {% if can_route_to_dig %}
+ <button type="submit" class="sc-btn sc-btn-primary" onclick="this.form.action.value='route_to_dig'">
+ <i class="bi bi-arrow-right-circle me-1"></i>Escalate to DIG
+ </button>
+ {% endif %}
+ </div>
+ </form>
+ </div>
 </div>
 {% endblock %}

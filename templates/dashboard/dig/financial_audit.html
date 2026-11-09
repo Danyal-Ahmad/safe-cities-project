@@ -9,47 +9,47 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-shield-lock me-2"></i>Financial Audit</h1>
- <p class=" opacity-75">Collection status · payment history</p>
+ <p class="sc-lead">Collection status · payment history</p>
  </div>
  <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
 </div>
 
-<div class="row g-4">
- <div class="col-md-4">
+<div>
+ <div>
  <div class="metric-card h-100">
  <div class="metric-card-top">
  <span class="metric-label">Total Collected</span>
- <span class="metric-icon-box"><i class="bi bi-cash-coin"></i></span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
  </div>
- <div class="metric-value">PKR {{ total_collected|default:0|intcomma }}</div>
+ <div class="metric-value">{{ total_collected|default:0|intcomma }}</div>
  </div>
  </div>
- <div class="col-md-4">
+ <div>
  <div class="metric-card h-100">
  <div class="metric-card-top">
  <span class="metric-label">Total Pending</span>
- <span class="metric-icon-box"><i class="bi bi-hourglass-split"></i></span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
  </div>
- <div class="metric-value">PKR {{ total_pending|default:0|intcomma }}</div>
+ <div class="metric-value">{{ total_pending|default:0|intcomma }}</div>
  </div>
  </div>
- <div class="col-md-4">
+ <div>
  <div class="metric-card h-100">
  <div class="metric-card-top">
  <span class="metric-label">Total Voided</span>
- <span class="metric-icon-box"><i class="bi bi-x-circle"></i></span>
+ <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
  </div>
- <div class="metric-value">PKR {{ total_voided|default:0|intcomma }}</div>
+ <div class="metric-value">{{ total_voided|default:0|intcomma }}</div>
  </div>
  </div>
 </div>
 
-<div class="card mt-4">
- <div class="card-header d-flex justify-content-between align-items-center">
- <span><i class="bi bi-credit-card me-2"></i>Recent Payments</span>
+<div>
+ <div class="card-header">
+ <span><i class="bi bi-circle me-2"></i>Recent Payments</span>
  <span class="badge bg-secondary">{{ recent_payments|length }}</span>
  </div>
- <div class="card-body p-0">
+ <div class="p-0">
  <div class="table-responsive">
  <table class="table table-hover table-sm align-middle">
  <thead>
@@ -66,18 +66,18 @@
  {% for c in recent_payments %}
  <tr>
  <td class="font-monospace fw-semibold">{{ c.ticket_no }}</td>
- <td class="font-monospace">{{ c.plate_number }}</td>
+ <td class="form-control font-monospace">{{ c.plate_number }}</td>
  <td>{{ c.get_violation_type_display }}</td>
  <td class="fw-semibold">{{ c.fine_amount|intcomma }}</td>
- <td class="small text-muted">{{ c.issue_date|date:"d M Y" }}</td>
+ <td class="small ">{{ c.issue_date|date:"d M Y" }}</td>
  <td>
  {% if c.payment_status == 'PAID' %}<span class="badge bg-success">Paid</span>
- {% elif c.payment_status == 'VOIDED' %}<span class="badge bg-danger">Voided</span>
- {% else %}<span class="badge bg-secondary">Unpaid</span>{% endif %}
+ {% elif c.payment_status == 'VOIDED' %}<span class="badge bg-secondary">Voided</span>
+ {% else %}<span class="badge bg-warning">Unpaid</span>{% endif %}
  </td>
  </tr>
  {% empty %}
- <tr><td colspan="6" class="text-center py-4 text-muted">No recent payments</td></tr>
+ <tr><td colspan="6" class=" py-4">No recent payments</td></tr>
  {% endfor %}
  </tbody>
  </table>

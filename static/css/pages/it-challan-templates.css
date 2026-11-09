@@ -1,8 +1,4 @@
-/* ==========================================================================
-   IT SUPPORT | Challan Templates (it-challan-templates)
-   Cards show the REAL rendered PDF (rasterised first page / uploaded PDF).
-   No raw template code anywhere on the page.
-   ========================================================================== */
+
 
 .it-tpl-card {
   display: flex;
@@ -47,9 +43,9 @@
 }
 
 .it-tpl-blurb a { color: var(--sc-primary, #2563EB); text-decoration: none; }
-.it-tpl-blurb a:hover { text-decoration: underline; }
+.it-tpl-blurb a:hover { text-decoration: none; }
 
-/* Real PDF preview: rasterised first page at A4 ratio. */
+
 .it-tpl-preview {
   position: relative;
   width: 100%;
@@ -88,7 +84,7 @@
 .it-tpl-preview-fallback i { font-size: 2.2rem; color: #94a3b8; }
 .it-tpl-preview-fallback:hover { color: #1d4ed8; text-decoration: underline; }
 
-/* Action row: aligned, full-width buttons with even spacing. */
+
 .it-tpl-actions {
   display: flex;
   align-items: center;
@@ -98,7 +94,7 @@
 .it-tpl-actions form { display: flex; flex: 1 1 auto; }
 .it-tpl-actions .sc-btn { width: 100%; }
 
-/* Upload disclosure */
+
 .it-upload { position: relative; }
 .it-upload > summary { list-style: none; }
 .it-upload > summary::-webkit-details-marker { display: none; }

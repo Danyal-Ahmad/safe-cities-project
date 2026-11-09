@@ -51,3 +51,4 @@ class Migration(migrations.Migration):
             old_name='dig_portal__start_t_d31604_idx',
         ),
     ]
+

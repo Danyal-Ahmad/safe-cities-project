@@ -18,10 +18,10 @@ from detections.ai import run_pipeline
 logger = logging.getLogger('wrongway.ingest')
 
 
-ENROLL_LIMIT = (5, 3600)      
-INGEST_LIMIT = (300, 60)      
+ENROLL_LIMIT = (5, 3600)
+INGEST_LIMIT = (300, 60)
 
-HEARTBEAT_LIMIT = (120, 60)   
+HEARTBEAT_LIMIT = (120, 60)
 
 
 def _authenticate_camera(request):

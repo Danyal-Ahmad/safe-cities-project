@@ -138,7 +138,7 @@
               {% elif t.status == 'refunded' %}<span class="sc-badge sc-badge-amber"><i class="bi bi-arrow-counterclockwise"></i>Refunded</span>
               {% else %}<span class="sc-badge sc-badge-gray"><i class="bi bi-hourglass"></i>Pending</span>{% endif %}
             </td>
-            <td><span class="sc-badge sc-badge-blue">{{ t.provider|default:"demo" }}</span></td>
+            <td><span class="sc-badge sc-badge-blue">{{ t.provider|default:"gateway" }}</span></td>
             <td class="sc-mono sc-text-xs">{{ t.txn_ref|default:"-" }}</td>
             <td class="sc-mono sc-text-xs">{{ t.gateway_ref|default:"-" }}</td>
             <td class="sc-text-sm sc-text-muted">{{ t.created_at|date:"d M Y H:i" }}</td>

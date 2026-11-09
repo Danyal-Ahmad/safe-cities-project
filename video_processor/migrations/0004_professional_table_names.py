@@ -6,3 +6,4 @@ class Migration(migrations.Migration):
         migrations.AlterModelTable(name='videoupload', table='sc_video_uploads'),
         migrations.AlterModelTable(name='videoframe', table='sc_video_frames'),
     ]
+

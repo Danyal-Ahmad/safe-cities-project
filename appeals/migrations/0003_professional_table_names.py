@@ -5,3 +5,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelTable(name='challanappeal', table='sc_challan_appeals'),
     ]
+

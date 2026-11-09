@@ -123,3 +123,4 @@ def store_annotated_evidence(detection, camera=None) -> bool:
     except Exception as exc:
         logger.warning('annotated evidence store failed: %s', exc)
         return False
+

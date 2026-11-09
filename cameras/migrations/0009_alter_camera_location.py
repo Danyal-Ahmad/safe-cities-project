@@ -16,3 +16,4 @@ class Migration(migrations.Migration):
             field=models.CharField(help_text="Physical location of the camera (e.g. 'Main Boulevard, Sector III').", max_length=255),
         ),
     ]
+

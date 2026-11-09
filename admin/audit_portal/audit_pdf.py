@@ -85,8 +85,8 @@ _KIND_ALIASES = {
     'summary': 'dashboard',
 }
 
-MAX_ROWS = 25          
-FALLBACK_ROWS = 15     
+MAX_ROWS = 25
+FALLBACK_ROWS = 15
 
 LOG_COLUMNS = ['Timestamp', 'Actor', 'Action', 'Target', 'IP', 'Details']
 
@@ -354,7 +354,7 @@ def _db_context(kind, row_limit, now):
 
     try:
         anomalies = _detect_anomalies() or []
-    except Exception as exc:  
+    except Exception as exc:
         logger.warning("anomaly detection failed during PDF export: %s", exc)
         anomalies = []
     ctx['anomalies'] = anomalies
@@ -493,7 +493,7 @@ def _db_context(kind, row_limit, now):
             {'label': 'Open Anomalies', 'value': _fmt_int(len(anomalies)), 'hint': 'needs review'},
         ]
 
-    else:  
+    else:
         auth_filter = (kind == 'auth_events')
         actions = {
             'user_activity': _USER_ACTIVITY_ACTIONS,
@@ -612,7 +612,7 @@ def build_audit_context(kind, row_limit=MAX_ROWS, preview=False):
         return ctx
 
 
-_WEASYPRINT_STATE = None  
+_WEASYPRINT_STATE = None
 
 
 def _render_html_to_pdf(html_string):
@@ -842,3 +842,4 @@ def generate_audit_pdf(kind, context=None, template_key=None):
         pdf += (f"trailer<< /Size {len(parts) + 1} /Root 1 0 R >>\n"
                 f"startxref\n{xref_pos}\n%%EOF\n").encode()
         return pdf
+

@@ -101,3 +101,4 @@ class VideoPipelineDryRunTests(TestCase):
             u = User.objects.create(
                 username='offstub@t.fyp', email='offstub@t.fyp', role='OFFICER', is_active=True)
         return u
+

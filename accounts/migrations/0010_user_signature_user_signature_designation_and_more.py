@@ -31,3 +31,4 @@ class Migration(migrations.Migration):
             field=models.ImageField(blank=True, help_text='Optional official rubber-stamp image.', null=True, upload_to='stamps/'),
         ),
     ]
+

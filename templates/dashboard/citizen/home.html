@@ -11,16 +11,10 @@
 {% endblock %}
 
 {% block content %}
-<!-- ====================================================================
-     CITIZEN PORTAL SCREEN · one cohesive surface
-     Large image-blend hero card (no buttons on the card) + live stat
-     strip + unified workspace. Time + date live in the navbar only.
-     ==================================================================== -->
+
 <div class="scr">
 
-  <!-- Large hero card: blended landmark artwork on the right, exactly as
-       the approved reference. No action buttons on the card itself - pay
-       and view actions live in the ledger rows below. -->
+
   <section class="cz-hero" aria-label="Citizen E-Challan Portal">
     <div class="cz-hero-text">
       <div class="cz-hero-kicker">Safe Cities Project &middot; Citizen Services</div>
@@ -35,7 +29,7 @@
     <div class="cz-hero-art" aria-hidden="true"></div>
   </section>
 
-  <!-- Fused stat strip -->
+
   <div class="scr-stats" data-kpi-api-url="{% url 'citizen_portal:api_citizen_kpis' %}">
     {% if request.user|has_perm:"view_own_challans" %}
     <div class="scr-stat {% if unpaid_count > 0 %}scr-stat--danger{% else %}scr-stat--success{% endif %}">
@@ -70,7 +64,7 @@
     {% endif %}
   </div>
 
-  <!-- Unified workspace -->
+
   <div class="scr-grid">
 
     {% if request.user|has_perm:"view_own_challans" and challans %}
@@ -79,7 +73,7 @@
         <div class="scr-panel-title"><i class="bi bi-bar-chart-line-fill"></i> 6-Month Challan Activity</div>
       </div>
       <div class="scr-panel-body scr-panel-chart">
-        <canvas id="chart-citizen-trend" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="bar"
+        <canvas id="chart-citizen-trend"
                 data-month-labels='[{% for m in month_labels %}"{{ m|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                 data-month-counts='[{% for m in month_counts %}{{ m }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>
@@ -90,7 +84,7 @@
         <div class="scr-panel-title"><i class="bi bi-pie-chart-fill"></i> Infraction Breakdown</div>
       </div>
       <div class="scr-panel-body scr-panel-chart">
-        <canvas id="chart-citizen-types" data-api-url="{% url 'citizen_portal:api_citizen_kpis' %}" data-chart-type="doughnut"
+        <canvas id="chart-citizen-types"
                 data-violation-labels='[{% for v in violation_labels %}"{{ v|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                 data-violation-counts='[{% for v in violation_counts %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}]'></canvas>
       </div>

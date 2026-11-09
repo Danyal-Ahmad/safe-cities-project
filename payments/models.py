@@ -50,4 +50,3 @@ class PaymentTransaction(models.Model):
         self.save(update_fields=['status', 'gateway_ref', 'raw_response', 'updated_at'])
         if self.challan:
             self.challan.mark_paid(txn_ref=self.txn_ref, payment_method=self.provider)
-

@@ -585,4 +585,3 @@ def camera_stream_url(request, camera_id):
         return JsonResponse({'stream_url': latest.raw_image.url, 'type': 'detection_snapshot'})
 
     return JsonResponse({'stream_url': None, 'type': 'none'}, status=404)
-

@@ -41,4 +41,3 @@ class Migration(migrations.Migration):
             old_name='detections__reviewe_31d6ab_idx',
         ),
     ]
-

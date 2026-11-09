@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.TextField(blank=True, default='', help_text='Challan Studio structured document (blocks + theme).'),
         ),
     ]
-

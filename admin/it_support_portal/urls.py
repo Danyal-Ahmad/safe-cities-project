@@ -29,8 +29,6 @@ urlpatterns = [
     path('cameras/<int:camera_id>/test/', dig_views.camera_test, name='camera_test'),
 
     path('system-health/', views.system_health, name='system_health'),
-    path('environment/', views.environment, name='environment'),
-    path('environment/test/', views.environment_test, name='environment_test'),
     path('payment-settings/', dig_views.payment_settings, name='payment_settings'),
     path('payments/monitor/', views.payment_transactions, name='payment_transactions'),
     path('payments/monitor/<int:txn_id>/', views.payment_transaction_detail, name='payment_transaction_detail'),
@@ -68,6 +66,4 @@ urlpatterns = [
     path('officer-signatures/', dig_views.officer_signatures, name='officer_signatures'),
 
     path('profile/', dig_views.self_profile, name='self_profile'),
-    path('change-password/', dig_views.staff_change_password, name='change_password'),
 ]
-

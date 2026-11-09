@@ -1,8 +1,8 @@
-
+/* IT Infrastructure Command dashboard - extracted from templates/dashboard/it_support/dashboard.html */
 (function () {
   'use strict';
 
-
+  // Live clock
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -15,7 +15,10 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-
+  // Generic Chart.js
+    // Chart.js from API, routed through the themed scCharts engine
+  // (rounded bars, smooth gradient lines, padded single-value axes, value
+  // labels, unified legends and friendly empty states).
   async function initChartFromAPI(canvas){
     if (typeof Chart === 'undefined' || !window.scCharts) return;
     try {

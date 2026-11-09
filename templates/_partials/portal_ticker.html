@@ -1,34 +1,21 @@
 
-{% if active_alerts or ticker_ads %}
-<div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Announcements">
+{% if active_alerts %}
+<div class="sc-ticker" id="scPortalTicker" role="region" aria-label="Portal announcements">
   <div class="sc-ticker-label">
     <i class="bi bi-megaphone-fill" aria-hidden="true"></i>
-    <span>Announcements</span>
+    <span>ANNOUNCEMENTS</span>
   </div>
   <div class="sc-ticker-viewport" id="scTickerViewport">
     <div class="sc-ticker-track" id="scTickerTrack">
-
       {% for alert in active_alerts|slice:":6" %}
       <div class="sc-ticker-item sc-ticker-item-{{ alert.severity|default:'info' }}" data-severity="{{ alert.severity|default:'info' }}">
         <span class="sc-ticker-item-title">{{ alert.title }}</span>
-        <span class="sc-ticker-item-message">{{ alert.message }}</span>
+        {% if alert.message %}<span class="sc-ticker-dash" aria-hidden="true">&mdash;</span><span class="sc-ticker-item-message">{{ alert.message }}</span>{% endif %}
         {% if alert.created_at %}
-        <span class="sc-ticker-item-time" title="{{ alert.created_at|date:'F j, Y H:i' }}">{{ alert.created_at|date:'M j, H:i' }}</span>
+        <span class="sc-ticker-dash" aria-hidden="true">&mdash;</span><span class="sc-ticker-item-time" title="{{ alert.created_at|date:'F j, Y H:i' }}">{{ alert.created_at|date:'M j, H:i' }}</span>
         {% endif %}
       </div>
       {% endfor %}
-
-      {% for ad in ticker_ads|slice:":6" %}
-      <div class="sc-ticker-item sc-ticker-item-info">
-        {% if ad.image_link %}
-        <a href="{{ ad.image_link }}" target="_blank" rel="noopener"><span class="sc-ticker-item-title">{{ ad.title }}</span></a>
-        {% else %}
-        <span class="sc-ticker-item-title">{{ ad.title }}</span>
-        {% endif %}
-        {% if ad.html_content %}<span class="sc-ticker-item-note">{{ ad.html_content|striptags|truncatewords:14 }}</span>{% endif %}
-      </div>
-      {% endfor %}
-
     </div>
   </div>
 </div>

@@ -23,7 +23,7 @@ class ChallanManager(models.Manager):
             n = None
         if n is None:
             year = timezone.localdate().year
-            base = year * 100000
+            base = year * 100000  
             n = base + self.count() + 1
         while self.filter(ticket_no=str(n)).exists():
             n += 1

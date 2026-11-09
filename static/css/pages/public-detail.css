@@ -165,7 +165,7 @@
   .pd-hero-actions .scpub-btn { flex: 1; }
 }
 
-
+/* ===== Official E-Challan embedded PDF (the real rendered document) ===== */
 .pd-pdf-card { overflow: hidden; }
 .pd-pdf-embed {
   position: relative;

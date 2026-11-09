@@ -1,5 +1,7 @@
 {% load perm_tags %}
-
+{% comment %} ============================================================
+   Citizen - minimal sidebar
+   ============================================================ {% endcomment %}
 
 <div class="sc-nav-section" data-section="My Account">
   <div class="sc-nav-title">My Account</div>
@@ -23,4 +25,13 @@
   {% if request.user|has_perm:"change_own_password" %}
   <a href="{% url 'citizen_portal:password_change' %}" class="sc-nav-link {% if request.path == '/portal/citizen/password/' %}sc-active{% endif %}"><i class="bi bi-key"></i> <span class="sc-nav-link-text">Change Password</span></a>
   {% endif %}
+</div>
+
+<div class="sc-nav-bottom">
+  <form method="post" action="{% url 'auth_portal:logout' %}" style="margin:0;">
+    {% csrf_token %}
+    <button type="submit" class="sc-nav-bottom-link logout" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:12px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
+      <i class="bi bi-box-arrow-right"></i> <span class="sc-nav-bottom-text">Sign Out</span>
+    </button>
+  </form>
 </div>

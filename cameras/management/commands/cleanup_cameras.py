@@ -85,4 +85,3 @@ class Command(BaseCommand):
                 self.stdout.write(f"  pk={c.pk} {c.camera_id} | {c.location} (active={c.is_active})")
 
         self.stdout.write(self.style.MIGRATE_HEADING("\nDone. Nothing was deleted. Use --fix-duplicates / --fix-stale-health to apply the safe fixes above."))
-

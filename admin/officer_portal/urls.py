@@ -12,7 +12,6 @@ urlpatterns = [
     path('detection/<int:detection_id>/reject/',   views.reject_detection,    name='reject_detection'),
     path('detection/<int:detection_id>/flag/',     views.flag_detection,      name='flag_detection'),
     path('detection/<int:detection_id>/note/',     views.add_review_note,     name='add_review_note'),
-    path('detection/<int:detection_id>/confirm/',  views.confirm_detection,  name='confirm_detection'),
 
     path('camera-feed/',                           views.camera_feed,         name='camera_feed'),
     path('detections/',                            views.detections_list,     name='detections_list'),
@@ -33,11 +32,8 @@ urlpatterns = [
     path('timeline/',                              views.frame_timeline,      name='frame_timeline'),
     path('live-tracking/timeline/',                views.frame_timeline,      name='live_tracking_timeline'),
 
-    path('change-password/',                        dig_views.staff_change_password,     name='change_password'),
-
     path('notifications/',                          dig_views.notifications,             name='notifications'),
     path('notifications/<int:notification_id>/read/', dig_views.notification_read,       name='notification_read'),
     path('notifications/mark-read/',                dig_views.notification_mark_read,    name='notification_mark_read'),
     path('notifications/clear-all/',                dig_views.notification_clear_all,    name='notification_clear_all'),
 ]
-

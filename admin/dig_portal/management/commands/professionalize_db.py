@@ -90,4 +90,3 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 'Done. Next: python manage.py migrate'
             ))
-

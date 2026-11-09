@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('pending_review', 'Pending Review'), ('confirmed', 'Confirmed'), ('rejected', 'Rejected (False Positive)'), ('flagged_officer', 'Flagged for Officer Review')], default='pending_review', max_length=20),
         ),
     ]
-

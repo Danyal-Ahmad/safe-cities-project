@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, default='standard_a4', help_text="Active PDF template key. File template = filename under templates/challan/challan_templates/ without .html. DB template = 'db:<ChallanTemplate id>'.", max_length=100),
         ),
     ]
-

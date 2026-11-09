@@ -1,15 +1,15 @@
-
+/* DIG Command Center dashboard - extracted from templates/dashboard/dig/dashboard.html */
 (function () {
   'use strict';
 
-
+  // "wrong_way" -> "Wrong Way" for chart/category labels coming from API keys.
   function prettyLabel(s) {
     return String(s === undefined || s === null ? '' : s)
       .replace(/[_-]+/g, ' ')
       .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
-
+  // Live clock
   function updateClock(){
     const el = document.getElementById('live-clock');
     if(el) {
@@ -22,7 +22,7 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-
+  // Fetch helper (CSRF-safe)
   async function scFetch(url, options={}){
     const resp = await fetch(url, {
       ...options,

@@ -26,4 +26,3 @@ class Migration(migrations.Migration):
             field=models.CharField(help_text="Payment provider / bank name (e.g. 'JazzCash', 'NBP').", max_length=100),
         ),
     ]
-

@@ -168,6 +168,7 @@ class AuditLog(models.Model):
 
     @staticmethod
     def parse_device(ua_str):
+        """Parse a user-agent string into (device_summary, device_type)."""
         try:
             import user_agents
             ua = user_agents.parse(ua_str or '')
@@ -694,4 +695,3 @@ class BlacklistEntry(models.Model):
 
     def __str__(self):
         return f"{self.plate_number} | {self.reason[:40]}"
-

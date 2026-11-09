@@ -94,7 +94,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
         password = (cfg.get('password') or '').strip()
         integrity = (cfg.get('integrity_salt') or cfg.get('integrity') or '').strip()
         if not (merchant_id and password and integrity):
-            return _not_configured('jazzcash')
+            return _demo_payload(challan, method, reference, return_url, 'jazzcash')
 
         action = (
             'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform'
@@ -108,7 +108,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
 
         now = datetime.now()
         txn_datetime = now.strftime('%Y%m%d%H%M%S')
-        expiry = now.strftime('%Y%m%d%H%M%S')
+        expiry = now.strftime('%Y%m%d%H%M%S')  
         bill_ref = (ticket or reference)[:20]
         fields = {
             'pp_Version': '1.1',
@@ -133,7 +133,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
                 )
             except Exception as e:
                 logger.warning('JazzCash hash failed: %s', e)
-                return _not_configured('jazzcash')
+                return _demo_payload(challan, method, reference, return_url, 'jazzcash')
 
         return {
             'ok': True,
@@ -148,7 +148,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
     if type_key == 'easypaisa':
         store_id = (cfg.get('store_id') or cfg.get('merchant_id') or '').strip()
         if not store_id:
-            return _not_configured('easypaisa')
+            return _demo_payload(challan, method, reference, return_url, 'easypaisa')
         action = (
             'https://easypaystg.easypaisa.com.pk/easypay/Index.jsf'
             if env != 'live' else
@@ -194,7 +194,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
 
     if type_key == 'card':
         if not _has_keys(cfg, 'publishable_key', 'secret_key'):
-            return _not_configured('card')
+            return _demo_payload(challan, method, reference, return_url, 'card')
         return {
             'ok': True,
             'mode': 'redirect',
@@ -205,17 +205,30 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
             'message': 'Card gateway configured - complete on return URL.',
         }
 
-    return _not_configured(type_key or 'wallet')
+    return _demo_payload(challan, method, reference, return_url, type_key or 'wallet')
 
 
-def _not_configured(provider: str) -> Dict[str, Any]:
-    logger.warning('Payment gateway %s has no credentials configured', provider)
+def _demo_payload(challan, method, reference: str, return_url: str, provider: str) -> Dict[str, Any]:
+    method_name = getattr(method, 'name', None) or str(method or 'wallet')
+    method_slug = str(provider or method_name).strip().lower().replace(' ', '_') or 'wallet'
+    try:
+        demo_url = f"/api/v1/payment/demo-checkout/?ref={reference}&challan={getattr(challan, 'id', '')}&method={method_slug}"
+    except Exception:
+        demo_url = return_url or '/'
+    logger.info('Payment demo mode for %s ref=%s', provider, reference)
     return {
-        'ok': False,
-        'mode': 'error',
-        'error': (
-            f'{provider.title()} is active but its merchant credentials are not '
-            'configured. Ask IT Support to configure the gateway credentials '
-            'before attempting payment.'
+        'ok': True,
+        'mode': 'demo',
+        'provider': provider,
+        'action_url': demo_url,
+        'fields': {
+            'reference': reference,
+            'amount': _amount_pkr(challan),
+            'ticket': getattr(challan, 'ticket_no', ''),
+        },
+        'reference': reference,
+        'message': (
+            f'{provider.title()} merchant keys are not configured. '
+            'Using demo checkout for FYP testing.'
         ),
     }

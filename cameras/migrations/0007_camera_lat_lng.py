@@ -19,4 +19,3 @@ class Migration(migrations.Migration):
             field=models.FloatField(blank=True, help_text='GPS longitude for map/heatmap (optional).', null=True),
         ),
     ]
-

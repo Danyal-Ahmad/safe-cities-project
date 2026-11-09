@@ -26,4 +26,3 @@ class Migration(migrations.Migration):
             old_name='detections_det_revi_rev_idx',
         ),
     ]
-

@@ -1,9 +1,24 @@
-
+/**
+ * SafeCities Project - Master App JS
+ * Core application functionality:
+ * - CSRF token handling for fetch
+ * - Live topbar clock
+ * - User dropdown menu
+ * - Sidebar toggle with localStorage persistence
+ * - SweetAlert2 wrappers (alert, confirm - explicit calls only)
+ * - Django flash messages: rendered inline under the navbar, auto-faded
+ * - Table sort/search
+ * - Custom modal system (data-bs-toggle="modal" compatible, no Bootstrap)
+ * - Custom tooltip system (data-bs-toggle="tooltip", no Bootstrap)
+ */
 (function () {
     'use strict';
 
     window.scApp = window.scApp || {};
 
+    // ============================================================
+    // CSRF / Fetch helpers
+    // ============================================================
 
     function getCookie(name) {
         if (!document.cookie) return null;
@@ -43,6 +58,9 @@
         return scFetch(url, { method: 'POST', body: data });
     }
 
+    // ============================================================
+    // Live Clock
+    // ============================================================
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -66,16 +84,29 @@
         setInterval(tick, 1000);
     }
 
+    // ============================================================
+    // User Menu
+    // ============================================================
 
     function closeUserMenu() {
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.remove('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (dd) { dd.classList.remove('open'); dd.classList.remove('show'); }
+        if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
     function scToggleUserMenu(e) {
         if (e) e.stopPropagation();
         const dd = document.querySelector('.sc-user-dropdown');
-        if (dd) dd.classList.toggle('show');
+        const btn = document.querySelector('.sc-user-btn');
+        if (dd) {
+            // 'open' is the class the stylesheet reacts to; keep 'show' in
+            // sync for any legacy rule that still expects it.
+            const willOpen = !dd.classList.contains('open');
+            dd.classList.toggle('open', willOpen);
+            dd.classList.toggle('show', willOpen);
+            if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
     }
 
     function initUserMenu() {
@@ -92,6 +123,9 @@
         });
     }
 
+    // ============================================================
+    // SweetAlert2 wrappers (used only for explicit confirm dialogs)
+    // ============================================================
 
     function hasSwal() { return typeof window.Swal !== 'undefined'; }
 
@@ -128,6 +162,12 @@
         });
     }
 
+    // ============================================================
+    // Flash messages: inline under the navbar, temporary.
+    // Messages stay in the document flow directly below the topbar
+    // (never floating), fade out automatically after 7s, and can be
+    // dismissed manually via the close button.
+    // ============================================================
 
     function fadeOutMsg(node) {
         if (node.__scFading) return;
@@ -148,24 +188,14 @@
             if (btn) {
                 btn.addEventListener('click', function () { fadeOutMsg(msg); });
             }
-
+            // Temporary display: auto-fade after 7 seconds.
             setTimeout(function () { fadeOutMsg(msg); }, 7000);
-        });
-
-
-        document.querySelectorAll('.sc-messages .sc-welcome-line').forEach(function (line) {
-            const delay = parseInt(line.getAttribute('data-welcome-autohide') || '6000', 10);
-            setTimeout(function () {
-                line.classList.add('is-hiding');
-                setTimeout(function () {
-                    const box = line.parentElement;
-                    line.remove();
-                    if (box && !box.children.length) box.remove();
-                }, 480);
-            }, delay);
         });
     }
 
+    // ============================================================
+    // Simple table sort + search
+    // ============================================================
 
     function scInitTables() {
         document.querySelectorAll('.sc-data-table').forEach(function (table) {
@@ -203,6 +233,11 @@
         });
     }
 
+    // ============================================================
+    // Custom modal system (replaces Bootstrap JS modals).
+    // API compatibility: [data-bs-toggle="modal"][data-bs-target="#id"]
+    // opens, [data-bs-dismiss="modal"] closes, .modal.show displays.
+    // ============================================================
 
     const scModals = {
         open: function (modalEl) {
@@ -257,6 +292,11 @@
         });
     }
 
+    // ============================================================
+    // Custom tooltips (replaces Bootstrap JS tooltips).
+    // [data-bs-toggle="tooltip"][title="..."] -> styled .sc-tooltip.
+    // Native title attribute is kept as fallback text source.
+    // ============================================================
 
     let scTooltipEl = null;
     let scTooltipHideTimer = null;
@@ -272,7 +312,7 @@
         }
         if (host.getAttribute('title')) {
             host.setAttribute('data-bs-original-title', host.getAttribute('title'));
-            host.removeAttribute('title');
+            host.removeAttribute('title'); // avoid double native tooltip
             host.__scRestoreTitle = true;
         }
         scTooltipEl.textContent = text;
@@ -311,6 +351,9 @@
         document.addEventListener('scroll', hideTooltip, true);
     }
 
+    // ============================================================
+    // Confirm-on-click for any element with data-confirm attr
+    // ============================================================
 
     function initConfirmLinks() {
         document.querySelectorAll('[data-confirm]').forEach(function (el) {
@@ -332,6 +375,9 @@
         });
     }
 
+    // ============================================================
+    // DOMContentLoaded init
+    // ============================================================
 
     function init() {
         startClock();
@@ -349,6 +395,9 @@
         init();
     }
 
+    // ============================================================
+    // Public API
+    // ============================================================
 
     window.scApp = {
         getCookie: getCookie,

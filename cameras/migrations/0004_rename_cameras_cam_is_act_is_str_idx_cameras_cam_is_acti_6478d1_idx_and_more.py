@@ -21,4 +21,3 @@ class Migration(migrations.Migration):
             old_name='cameras_cam_enrollmen_idx',
         ),
     ]
-

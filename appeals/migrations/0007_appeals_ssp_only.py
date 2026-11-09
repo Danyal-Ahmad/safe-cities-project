@@ -27,4 +27,3 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending', max_length=10),
         ),
     ]
-

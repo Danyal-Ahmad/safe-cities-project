@@ -1,4 +1,10 @@
-
+/*!
+ * SAFE CITIES PROJECT — it-challan-templates.js
+ * Shared behavior for the DIG/IT challan template pages.
+ * The preview cards now render the REAL PDF output server-side
+ * (rasterised first page / uploaded PDF), so no iframe srcdoc
+ * mounting is needed here — only the confirmation dialogs.
+ */
 (function () {
   'use strict';
 

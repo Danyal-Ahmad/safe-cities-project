@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West')], default='N', help_text='Pool / mounting direction of this camera (N/S/E/W). Used for physical placement labelling only - does NOT decide what counts as a violation.', max_length=10),
         ),
     ]
-

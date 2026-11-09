@@ -429,4 +429,3 @@ def decide_appeal(request, appeal_id):
                        citizen_notified=True)
         messages.success(request, f"Appeal {appeal.id} {decision.lower()} by SSP. Citizen has been notified.")
     return redirect('ssp_portal:dashboard')
-

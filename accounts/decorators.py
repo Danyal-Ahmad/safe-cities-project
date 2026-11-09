@@ -116,4 +116,3 @@ def user_only_required(view):
         messages.error(request, "Invalid account.")
         return redirect('auth_portal:citizen_login')
     return _wrapped
-

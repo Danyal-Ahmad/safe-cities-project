@@ -47,12 +47,5 @@ staticfiles/
 models/*.bak
 models/*.dead.bak
 
-
-
-# QA / one-off harness artifacts (removed from repo, kept local only if ever regenerated)
-SCREENSHOTS_UIUX/
-TESTING/
-loadtest/
-docs/
-scripts/
-permission.json
+# Python bytecode in scripts
+scripts/__pycache__/

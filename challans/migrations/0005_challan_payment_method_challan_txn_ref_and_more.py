@@ -29,4 +29,3 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['txn_ref'], name='sc_challans_txn_ref_085794_idx'),
         ),
     ]
-

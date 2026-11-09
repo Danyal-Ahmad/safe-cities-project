@@ -19,4 +19,3 @@ def json_esc(value):
         return json.dumps(str(value), ensure_ascii=False)
     except Exception:
         return '""'
-

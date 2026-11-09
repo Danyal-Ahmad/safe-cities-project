@@ -17,8 +17,8 @@
 </div>
 
 <div class="row g-4">
-
-  <div class="col-lg-12">
+  
+  <div class="col-lg-7">
     <div class="sc-card h-100">
       <div class="sc-card-header d-flex align-items-center gap-2">
         <i class="bi bi-camera-reels"></i>
@@ -69,8 +69,50 @@
     </div>
   </div>
 
+  <div class="col-lg-5">
+    <div class="sc-card h-100">
+      <div class="sc-card-header d-flex align-items-center gap-2">
+        <i class="bi bi-diagram-3"></i>
+        <span>What Happens After Upload</span>
+      </div>
+      <div class="sc-card-body">
+        <ol class="vp-steps">
+          <li class="vp-step">
+            <span class="vp-step-num">1</span>
+            <span>
+              <span class="vp-step-title d-block">Upload &amp; validation</span>
+              <span class="vp-step-text">The file (max 200 MB) is stored and linked to the selected camera.</span>
+            </span>
+          </li>
+          <li class="vp-step">
+            <span class="vp-step-num">2</span>
+            <span>
+              <span class="vp-step-title d-block">Frame extraction</span>
+              <span class="vp-step-text">Frames are pulled from the clip and scanned for number plates.</span>
+            </span>
+          </li>
+          <li class="vp-step">
+            <span class="vp-step-num">3</span>
+            <span>
+              <span class="vp-step-title d-block">Violation detection</span>
+              <span class="vp-step-text">The AI pipeline classifies violations and raises detections.</span>
+            </span>
+          </li>
+          <li class="vp-step">
+            <span class="vp-step-num">4</span>
+            <span>
+              <span class="vp-step-title d-block">Review &amp; challans</span>
+              <span class="vp-step-text">Detections appear in the review queue - confirmed ones become e-challans automatically.</span>
+            </span>
+          </li>
+        </ol>
+        <div class="sc-hint mt-3 mb-0">
+          <i class="bi bi-lightbulb me-1"></i> Processing runs in the background - you can safely leave this page.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
 
 {% if recent_uploads %}
 <div class="sc-card mt-4">

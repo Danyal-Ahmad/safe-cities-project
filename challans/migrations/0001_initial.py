@@ -67,4 +67,3 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['issue_date'], name='challans_cha_issue_idx'),
         ),
     ]
-

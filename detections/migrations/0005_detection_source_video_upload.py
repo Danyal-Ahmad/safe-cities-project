@@ -18,4 +18,3 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='pipeline_detections', to='video_processor.videoupload'),
         ),
     ]
-

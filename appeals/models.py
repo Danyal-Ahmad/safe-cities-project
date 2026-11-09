@@ -66,4 +66,3 @@ class ChallanAppeal(models.Model):
             if challan.payment_status != Challan.PAID:
                 challan.payment_status = Challan.VOIDED
                 challan.save(update_fields=['payment_status'])
-

@@ -1,4 +1,21 @@
+{% comment %}
+  SAFE CITIES PROJECT — government_grid_a4.html
+  "Government Grid" citation matrix layout (single A4 page, print-exact).
 
+  Ported from the approved "challan-template-1" reference sheet and
+  re-adjusted to the project print contract:
+    - ONE A4 page, @page margin 0, .sheet fixed 210 x 297 mm (overflow
+      hidden) so a second page is structurally impossible.
+    - No page numbers, no localhost/site URLs anywhere on the sheet.
+    - Payment channels render as the real static/img/payment icons when
+      present, with a plain text list as fallback (sample previews).
+    - Urdu set in Noto Nastaliq Urdu via @font-face (static/fonts/).
+
+  Layout uses CSS tables (WeasyPrint-deterministic), never flexbox.
+  Height budget (mm): padding 3 + 7 | hd 32 | title-row 20 | cols 84
+  | mid 88 | low 32 | ft 12 | margins 5 x 2.6 = 13  =>  total 291
+  ====================================================================
+{% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,7 +208,7 @@
 <body>
 <div class="sheet">
 
-
+  <!-- ========== HEADER ========== -->
   <header class="hd">
     <div class="hd-logo">
       <span class="ring">{% if logo_left_path %}<img src="{{ logo_left_path }}" alt="Safe Cities Project">{% endif %}</span>
@@ -209,7 +226,7 @@
     </div>
   </header>
 
-
+  <!-- ========== TITLE ROW ========== -->
   <section class="title-row">
     <div class="tt">
       <h2>E-Challan Notice</h2>
@@ -226,7 +243,7 @@
     </div>
   </section>
 
-
+  <!-- ========== VEHICLE / VIOLATION / PAYMENT ========== -->
   <section class="cols">
 
     <div class="box b-veh">
@@ -282,7 +299,7 @@
     </div>
   </section>
 
-
+  <!-- ========== EVIDENCE + IMPORTANT ========== -->
   <section class="mid">
     <div class="box evi">
       <div class="bh"><span>Evidence</span></div>
@@ -339,7 +356,7 @@ CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif 
     </div>
   </section>
 
-
+  <!-- ========== RULES + OFFICER ========== -->
   <section class="low">
     <div class="rules">
       <h3>Violation of Traffic Rules</h3>
@@ -360,7 +377,7 @@ CAM: {% if challan.camera %}{{ challan.camera.camera_id }}{% else %}—{% endif 
     </div>
   </section>
 
-
+  <!-- ========== FOOTER ========== -->
   <footer class="ft">
     <div><b>Helpline:</b> 15</div>
     <div>Safe Cities Project — Citizen Portal</div>

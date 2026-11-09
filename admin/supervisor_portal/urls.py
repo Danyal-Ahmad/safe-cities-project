@@ -47,14 +47,5 @@ urlpatterns = [
     path('cameras/<int:camera_id>/snapshot/', dig_views.camera_snapshot, name='camera_snapshot'),
     path('live-tracking/', dig_views.live_tracking, name='live_tracking'),
     path('live-tracking/timeline/', make_timeline_view(['SUPV', 'DIG']), name='live_tracking_timeline'),
-    path('officer-kpi/', dig_views.officer_kpi, name='officer_kpi'),
-    path('change-password/', dig_views.staff_change_password, name='change_password'),
-    path('appeals/tracker/', dig_views.appeals_queue, name='case_escalation_tracker'),
-    path('reports/generate/', dig_views.generate_report, name='generate_report'),
-    path('reports/operational/', dig_views.operational_reports, name='operational_reports'),
-    path('reports/financial/', dig_views.financial_reports, name='financial_reports'),
-    path('reports/operational-audit/', dig_views.operational_audit, name='operational_audit'),
-    path('violation-stats/', dig_views.violation_stats, name='violation_stats'),
-    path('heatmap/', dig_views.regional_heatmap, name='heatmap'),
-]
 
+]

@@ -82,7 +82,7 @@ def admin_login(request):
             user.reset_failed_login()
             _record_login(request, form.cleaned_data.get('username') or '', True,
                           user=user)
-            messages.success(request, f"Welcome, {user.display_name}.", extra_tags="welcome")
+            messages.success(request, f"Welcome, {user.display_name}.")
             return _login_redirect(request, default='auth_portal:role_redirect')
 
         identifier = (request.POST.get('username') or '').strip()
@@ -153,7 +153,7 @@ def citizen_login(request):
             user.reset_failed_login()
             _record_login(request, form.cleaned_data.get('username') or '', True,
                           portal='citizen', user=user)
-            messages.success(request, f"Welcome, {user.display_name}.", extra_tags="welcome")
+            messages.success(request, f"Welcome, {user.display_name}.")
             return _login_redirect(request, default='/portal/citizen/')
 
         identifier = (request.POST.get('username') or '').strip()
@@ -190,7 +190,7 @@ def citizen_signup(request):
                 user.email = ''
             user.save()
             login(request, user, backend='accounts.backends.PhoneOrEmailBackend')
-            messages.success(request, f"Welcome, {user.display_name}! Your account has been created.", extra_tags="welcome")
+            messages.success(request, f"Welcome, {user.display_name}! Your account has been created.")
             return redirect('/portal/citizen/')
     else:
         form = UserSignupForm()
@@ -466,4 +466,3 @@ def notifications_feed(request):
         for b in push_qs if _audience_match(b)
     ]
     return JsonResponse(data)
-

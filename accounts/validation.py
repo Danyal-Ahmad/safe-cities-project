@@ -9,4 +9,3 @@ def normalize_cnic(value):
 
 def cnic_is_valid(value):
     return bool(CNIC_RE.match(value or ''))
-

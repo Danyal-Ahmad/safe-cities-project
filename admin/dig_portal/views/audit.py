@@ -287,4 +287,3 @@ INTEGRITY_CHECK_LABELS = {
     'image_evidence': 'Image Evidence',
     'chain_integrity': 'Chain Integrity',
 }
-

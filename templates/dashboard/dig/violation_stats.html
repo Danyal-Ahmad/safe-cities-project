@@ -1,62 +1,71 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 {% block title %}Violation Statistics{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
 
 <div class="sc-page-hero">
- <div>
- <h1><i class="bi bi-arrow-right-circle me-2"></i>Violation Statistics</h1>
- <p class="sc-lead">Breakdown by type and location</p>
- </div>
- <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+  <div>
+    <h1><i class="bi bi-bar-chart me-2"></i>Violation Statistics</h1>
+    <p class="sc-lead">Breakdown by type and location</p>
+  </div>
+  <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
 </div>
 
-<div>
- <div>
- <div class="card h-100">
- <div class="card-header"><span><i class="bi bi-circle me-2"></i>Violations by Type</span></div>
- <div class="card-body">
- {% if by_type %}
- {% for label, count in by_type.items %}
- <div>
- <div class="d-flex justify-content-between small">
- <span>{{ label }}</span>
- <strong>{{ count }}</strong>
- </div>
- <div class="progress">
- <div class="progress-bar bg-primary" style="width:{% widthratio count type_max 100 %}%"></div>
- </div>
- </div>
- {% endfor %}
- {% else %}
- <div class="empty-state"><i class="bi bi-inbox"></i>No data available.</div>
- {% endif %}
- </div>
- </div>
- </div>
- <div>
- <div class="card h-100">
- <div class="card-header"><span><i class="bi bi-circle me-2"></i>Top Locations</span></div>
- <div class="card-body">
- {% if by_location %}
- {% for label, count in by_location.items %}
- <div>
- <div class="d-flex justify-content-between small">
- <span>{{ label|truncatechars:30 }}</span>
- <strong>{{ count }}</strong>
- </div>
- <div class="progress">
- <div class="progress-bar bg-primary" style="width:{% widthratio count loc_max 100 %}%"></div>
- </div>
- </div>
- {% endfor %}
- {% else %}
- <div class="empty-state"><i class="bi bi-inbox"></i>No data available.</div>
- {% endif %}
- </div>
- </div>
- </div>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><span><i class="bi bi-tag me-2"></i>Violations by Type</span></div>
+      <div class="card-body">
+        {% if type_rows %}
+        {% for v in type_rows %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>{{ v.label }}</span>
+            <strong>{{ v.count|intcomma }}</strong>
+          </div>
+          <div class="progress">
+            <div class="progress-bar bg-danger" style="width: {{ v.pct }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="sc-empty-state">
+          <i class="bi bi-inbox"></i>
+          <h3>No violation data available</h3>
+          <p>Issued challans will be summarized here by violation type.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><span><i class="bi bi-geo-alt me-2"></i>Top Locations</span></div>
+      <div class="card-body">
+        {% if loc_rows %}
+        {% for v in loc_rows %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>{{ v.label|truncatechars:30 }}</span>
+            <strong>{{ v.count|intcomma }}</strong>
+          </div>
+          <div class="progress">
+            <div class="progress-bar bg-primary" style="width: {{ v.pct }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="sc-empty-state">
+          <i class="bi bi-geo-alt"></i>
+          <h3>No location data available</h3>
+          <p>Locations appear once challans are issued.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

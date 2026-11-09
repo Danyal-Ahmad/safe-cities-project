@@ -1,10 +1,23 @@
+/* ==========================================================================
+   LIVE CCTV WALL | SAFE CITIES PROJECT
+   templates/dashboard/dig/live_monitor.html
 
+   - wall clock + per-channel clocks (single ticker)
+   - instant client-side filter (server search via GET form stays native)
+   - snapshot / video loading skeletons and no-signal fallbacks
+   - video review console: native controls + seek jumps, play/pause,
+     playback speed, seek bar and mm:ss time readout
+   - live counter + activity polling through live_monitor_feed
+   ========================================================================== */
 (function () {
   'use strict';
 
   var wall = document.getElementById('cctvWall');
   if (!wall) { return; }
 
+  /* ------------------------------------------------------------------
+     Small helpers
+     ------------------------------------------------------------------ */
 
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
@@ -41,6 +54,9 @@
     return box;
   }
 
+  /* ------------------------------------------------------------------
+     Clocks: shared wall clock + one running timestamp per channel
+     ------------------------------------------------------------------ */
 
   var wallClock = document.getElementById('cctvWallClock');
   var tileClocks = wall.querySelectorAll('[data-cctv-clock]');
@@ -53,6 +69,9 @@
   tickClocks();
   window.setInterval(tickClocks, 1000);
 
+  /* ------------------------------------------------------------------
+     Instant client-side filter (complements the server-side ?q= search)
+     ------------------------------------------------------------------ */
 
   var searchInput = document.getElementById('cctvSearch');
   var cols = Array.prototype.slice.call(wall.querySelectorAll('.cctv-col'));
@@ -78,6 +97,9 @@
     applyClientFilter();
   }
 
+  /* ------------------------------------------------------------------
+     Feed tiles: loading skeletons + no-signal fallbacks
+     ------------------------------------------------------------------ */
 
   Array.prototype.forEach.call(wall.querySelectorAll('[data-cctv-snapshot]'), function (img) {
     var feed = img.closest('.cctv-feed');
@@ -112,6 +134,9 @@
     if (video.readyState >= 2) { reveal(); }
   });
 
+  /* ------------------------------------------------------------------
+     Video review console (zoom overlay)
+     ------------------------------------------------------------------ */
 
   var overlay = document.createElement('div');
   overlay.id = 'cctvZoomOverlay';
@@ -341,7 +366,7 @@
   }
   window.setInterval(tickZoomClock, 1000);
 
-
+  /* Tile triggers: double-click (kept) + Enter key */
   Array.prototype.forEach.call(wall.querySelectorAll('.cctv-tile'), function (tile) {
     tile.addEventListener('dblclick', function () { openZoom(tile); });
     tile.addEventListener('keydown', function (e) {
@@ -355,6 +380,7 @@
     if (e.target === overlay) { closeZoom(); }
   });
 
+  /* Console controls */
 
   playBtn.addEventListener('click', function () {
     if (!activeVideo) { return; }
@@ -387,11 +413,12 @@
     timeCurrent.textContent = fmtTime(target);
   });
 
+  /* Keyboard shortcuts (console only) */
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { closeZoom(); return; }
     if (!overlay.classList.contains('is-open') || !activeVideo) { return; }
-
+    // Let native controls (video bar, seek range, buttons) keep their keys.
     var target = e.target;
     if (target && target.closest && target.closest('button, input, select, a, video')) { return; }
     if (e.code === 'Space') {
@@ -406,6 +433,9 @@
     }
   });
 
+  /* ------------------------------------------------------------------
+     Live counters + activity ticker (polled, videos keep playing)
+     ------------------------------------------------------------------ */
 
   var feedUrl = wall.getAttribute('data-feed-url');
 
@@ -443,7 +473,7 @@
         setText('cctvTotalCount', data.total_cameras != null ? data.total_cameras : '-');
         renderTicker(data.recent_detections || []);
       })
-      .catch(function () {  });
+      .catch(function () { /* keep last known values on transient errors */ });
   }
 
   if (feedUrl) {

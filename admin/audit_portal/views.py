@@ -1,6 +1,7 @@
 import datetime
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from admin.shared.net import client_ip
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 
@@ -31,27 +32,27 @@ def dashboard(request):
     audit_7d = AuditLog.objects.filter(timestamp__gte=last_7d).count()
     anomalies = _detect_anomalies()
     audit_categories = [
-        ('user.create',          'Users Created',         'bi-person-plus',     'primary'),
-        ('user.toggle',          'Users Toggled',         'bi-person-check',    'info'),
-        ('admin.edit',          'Admins Updated',        'bi-person-badge',   'violet'),
-        ('admin.toggle',         'Admins Toggled',        'bi-shield-half', 'warning'),
-        ('camera.add',           'Cameras Added',         'bi-camera-video',         'success'),
-        ('camera.edit',          'Cameras Updated',       'bi-pencil-square', 'info'),
-        ('camera.delete',        'Cameras Deleted',       'bi-trash',         'danger'),
-        ('camera.toggle',        'Cameras Toggled',       'bi-toggle-on',     'warning'),
+        ('user.create',          'Users Created',         'fa-user-plus',     'primary'),
+        ('user.toggle',          'Users Toggled',         'fa-user-check',    'info'),
+        ('admin.edit',          'Admins Updated',        'fa-user-shield',   'violet'),
+        ('admin.toggle',         'Admins Toggled',        'fa-shield-halved', 'warning'),
+        ('camera.add',           'Cameras Added',         'fa-video',         'success'),
+        ('camera.edit',          'Cameras Updated',       'fa-pen-to-square', 'info'),
+        ('camera.delete',        'Cameras Deleted',       'fa-trash',         'danger'),
+        ('camera.toggle',        'Cameras Toggled',       'fa-toggle-on',     'warning'),
         ('challan.manual_create','Manual Challans',       'fa-file-circle-plus', 'primary'),
         ('detection.confirm',    'Detections Confirmed',  'fa-check',         'success'),
         ('detection.reject',     'Detections Rejected',   'fa-xmark',         'danger'),
         ('detection.flag',       'Detections Flagged',    'fa-flag',          'warning'),
         ('detection.manual_annotate', 'Manual Annotations', 'fa-pen-fancy',   'violet'),
-        ('banner.create',        'Banners Created',       'bi-image',         'info'),
+        ('banner.create',        'Banners Created',       'fa-image',         'info'),
         ('banner.update',        'Banners Updated',       'fa-pen',           'primary'),
-        ('banner.delete',        'Banners Deleted',       'bi-trash-can',     'danger'),
+        ('banner.delete',        'Banners Deleted',       'fa-trash-can',     'danger'),
         ('payment_settings.update', 'Payment Config Changes', 'fa-credit-card', 'warning'),
         ('payment_method.create','Payment Methods Added', 'fa-plus',          'success'),
         ('payment_method.update','Payment Methods Updated', 'fa-pen',         'info'),
-        ('payment_method.toggle','Payment Methods Toggled', 'bi-toggle-on',   'warning'),
-        ('payment_method.delete','Payment Methods Removed', 'bi-trash',      'danger'),
+        ('payment_method.toggle','Payment Methods Toggled', 'fa-toggle-on',   'warning'),
+        ('payment_method.delete','Payment Methods Removed', 'fa-trash',      'danger'),
         ('ssp.approve_high_value','SSP Approvals',        'fa-stamp',         'primary'),
         ('ssp.appeal_decision',  'SSP Appeal Decisions',  'fa-gavel',         'info'),
         ('supervisor.appeal_override', 'Supervisor Overrides', 'fa-arrows-rotate', 'warning'),
@@ -193,7 +194,7 @@ def user_activity(request):
          'user.password_change', 'admin.create', 'admin.toggle',
          'supervisor.leave_grant'],
         'User Activity Audit',
-        'bi-persons',
+        'fa-users',
     )
 
 
@@ -223,7 +224,7 @@ def permission_changes(request):
         ['user.create', 'user.toggle', 'user.edit', 'admin.create', 'admin.toggle',
          'admin.edit'],
         'Permission Changes Audit',
-        'bi-shield-half',
+        'fa-shield-halved',
     )
 
 
@@ -236,7 +237,7 @@ def camera_changes(request):
          'camera.toggle', 'camera.set_online', 'camera.auto_delete_empty',
          'camera.regenerate_token', 'camera.assign', 'camera.unassign'],
         'Camera Changes Audit',
-        'bi-camera-video',
+        'fa-video',
     )
 
 
@@ -275,7 +276,7 @@ def banner_changes(request):
         'dashboard/audit/changes_log.html',
         ['banner.create', 'banner.update', 'banner.delete', 'banner.toggle'],
         'Banner Changes Audit',
-        'bi-image',
+        'fa-image',
     )
 
 
@@ -363,7 +364,7 @@ def audit_export(request):
 
 
 PDF_EXPORT_MAX_REQUESTS = 10
-PDF_EXPORT_WINDOW = 60
+PDF_EXPORT_WINDOW = 60  
 
 
 def _check_pdf_export_rate(request) -> bool:
@@ -372,7 +373,7 @@ def _check_pdf_export_rate(request) -> bool:
         ident = f"u{request.user.pk}"
     else:
         ident = (
-            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            client_ip(request)
             or request.META.get('REMOTE_ADDR', '127.0.0.1')
         )
     cache_key = f"audit_pdf_rl:{ident}"
@@ -415,14 +416,12 @@ def export_pdf(request, kind):
     return resp
 
 
-@role_required(*AUDIT_ROLES)
+@role_required('DIG')
 def templates_select(request):
-    from django.contrib import messages
-    from django.shortcuts import redirect, render
-
     from .audit_pdf import (BUILTIN_TEMPLATES, generate_audit_pdf,
                             get_active_template_key, get_audit_templates,
                             get_template_preview_html)
+
 
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
@@ -574,4 +573,3 @@ def uploads_log(request):
         'video_count': video_count,
         'template_count': template_count,
     })
-

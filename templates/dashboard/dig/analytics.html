@@ -4,7 +4,6 @@
 {% block title %}Analytics{% endblock %}
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
-{% with ns_vt=request.resolver_match.namespace|default:'dig'|add:':violation_stats' ns_hm=request.resolver_match.namespace|default:'dig'|add:':heatmap' ns_rp=request.resolver_match.namespace|default:'dig'|add:':reports' %}
 <div class="sc-page-hero">
   <div>
     <h1><i class="bi bi-bar-chart-line me-2" style="color:#6D28D9;"></i>Analytics</h1>
@@ -143,7 +142,7 @@
 
 <div class="row g-3 mt-2">
   <div class="col-md-4">
-    <a class="sc-card text-decoration-none h-100 d-block" href="{% url ns_vt %}">
+    <a class="sc-card text-decoration-none h-100 d-block" href="{% url 'dig:violation_stats' %}">
       <div class="sc-card-body text-center py-4">
         <i class="bi bi-list-columns fs-2 text-primary mb-2 d-block"></i>
         <div class="fw-semibold">Violation Stats</div>
@@ -152,7 +151,7 @@
     </a>
   </div>
   <div class="col-md-4">
-    <a class="sc-card text-decoration-none h-100 d-block" href="{% url ns_hm %}">
+    <a class="sc-card text-decoration-none h-100 d-block" href="{% url 'dig:heatmap' %}">
       <div class="sc-card-body text-center py-4">
         <i class="bi bi-map fs-2 text-success mb-2 d-block"></i>
         <div class="fw-semibold">Heatmap</div>
@@ -161,7 +160,7 @@
     </a>
   </div>
   <div class="col-md-4">
-    <a class="sc-card text-decoration-none h-100 d-block" href="{% url ns_rp %}">
+    <a class="sc-card text-decoration-none h-100 d-block" href="{% url 'dig:reports' %}">
       <div class="sc-card-body text-center py-4">
         <i class="bi bi-file-earmark-text fs-2 text-warning mb-2 d-block"></i>
         <div class="fw-semibold">Reports</div>
@@ -171,7 +170,6 @@
   </div>
 </div>
 
-{% endwith %}
 {% endblock %}
 
 {% block extra_js %}

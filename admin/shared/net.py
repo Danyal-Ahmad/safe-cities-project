@@ -3,4 +3,3 @@ def client_ip(request):
     if forwarded:
         return forwarded.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR', '')
-

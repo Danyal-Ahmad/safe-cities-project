@@ -15,4 +15,3 @@ urlpatterns = [
     path('api/charts/violation-distribution-shared/', views.api_chart_violation_distribution_shared, name='api_chart_violation_distribution'),
     path('api/citizen/challans/', views.api_citizen_challans, name='api_citizen_challans'),
 ]
-

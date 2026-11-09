@@ -1,3 +1,8 @@
+"""
+Unified Live Tracking Service - single source of truth for detection trail data.
+
+IT Support (unrestricted) and Officer (assignment-scoped) portals use this service. DIG does not.
+"""
 from __future__ import annotations
 
 from typing import Optional
@@ -10,6 +15,7 @@ from realtime.models import CameraAssignment
 
 
 class LiveTrackingService:
+    """Service for retrieving live tracking data with proper access control."""
 
     DEFAULT_STATUSES = [
         Detection.PENDING,
@@ -42,10 +48,11 @@ class LiveTrackingService:
 
     @property
     def camera_not_found(self) -> bool:
-        _ = self.camera
+        _ = self.camera  # triggers property logic
         return self._camera_not_found
 
     def get_available_cameras(self) -> list[Camera]:
+        """Get cameras user can access."""
         if self.user.role in (User.DIG, User.SSP, User.AUDIT, User.IT_SUPPORT):
             return list(Camera.objects.all().order_by('-is_active', '-installed_date')[:100])
         assigned_ids = list(CameraAssignment.objects.filter(
@@ -54,6 +61,7 @@ class LiveTrackingService:
         return list(Camera.objects.filter(id__in=assigned_ids).order_by('camera_id')[:1])
 
     def get_base_queryset(self) -> QuerySet:
+        """Base queryset with camera access control."""
         qs = Detection.objects.select_related('camera').order_by('-created_at')
 
         if self.user.role in (User.DIG, User.SSP, User.AUDIT, User.IT_SUPPORT):
@@ -80,13 +88,16 @@ class LiveTrackingService:
         return qs
 
     def get_recent_detections(self) -> list[Detection]:
+        """Get recent detections for the trail."""
         return list(self.get_base_queryset()[:self.limit])
 
     def get_latest_detection(self) -> Optional[Detection]:
+        """Get the most recent detection."""
         detections = self.get_recent_detections()
         return detections[0] if detections else None
 
     def get_stats(self, detections: list[Detection]) -> dict:
+        """Calculate summary statistics."""
         total = len(detections)
         if total == 0:
             return {
@@ -110,6 +121,7 @@ class LiveTrackingService:
         }
 
     def serialize_detections(self, detections: list[Detection]) -> list[dict]:
+        """Serialize detections for JSON API."""
         items = []
         for d in detections:
             raw = d.ai_raw_response or {}
@@ -173,6 +185,7 @@ class LiveTrackingService:
         return items
 
     def resolve_stream_url(self, camera: Optional[Camera] = None) -> Optional[str]:
+        """Best playable URL: uploaded demo video > HTTP/MJPEG > RTSP string."""
         cam = camera or self.camera
         if not cam:
             return None
@@ -207,5 +220,11 @@ class LiveTrackingService:
         return None
 
     def enforce_officer_one_camera(self) -> None:
-        return None
+        """Deprecated no-op kept for API compatibility.
 
+        Officers legitimately hold multiple concurrent camera assignments
+        (zone coverage); the live-tracking workstation lets them switch
+        cameras via the filter select. Assignment lifecycle is owned by
+        DIG / IT Support only.
+        """
+        return None

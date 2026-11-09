@@ -291,4 +291,3 @@ def camera_assignments_view(request):
         'officer_rows': officer_rows,
         'totals': totals,
     })
-

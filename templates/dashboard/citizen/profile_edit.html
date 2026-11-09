@@ -5,75 +5,26 @@
 {% block content %}
 <div class="sc-card" style="max-width:640px;">
 <div class="sc-card-head">Personal information</div>
+<form method="post">
+{% csrf_token %}
 <div class="sc-form-group">
-<label for="cnic">CNIC</label>
-<input type="text" id="cnic" value="{{ user.cnic|default:'Not on record' }}" disabled readonly>
-</div>
-<div class="sc-form-group">
-<label for="username">Username</label>
-<input type="text" id="username" value="{{ user.username }}" disabled readonly>
-</div>
-<div class="sc-form-group">
-<label for="fullName">Full name</label>
-<input type="text" id="fullName" value="{{ user.get_full_name|default:'-' }}" disabled readonly>
+<label for="displayName">Display name *</label>
+<input type="text" id="displayName" name="first_name" value="{{ user.first_name }}" required>
 </div>
 <div class="sc-form-group">
 <label for="phone">Phone</label>
-<input type="tel" id="phone" value="{{ user.phone|default:'Not on record' }}" disabled readonly>
+<input type="tel" id="phone" name="phone" value="{{ user.phone }}" placeholder="+92-300-1234567">
 </div>
 <div class="sc-form-group">
 <label for="email">Email</label>
-<input type="email" id="email" value="{{ user.email|default:'Not on record' }}" disabled readonly>
+<input type="email" id="email" name="email" value="{{ user.email }}">
 </div>
 <div class="sc-form-group">
 <label for="address">Address</label>
-<textarea id="address" rows="3" disabled readonly>{{ user.address|default:'Not on record' }}</textarea>
-</div>
-<div class="sc-text-xs sc-text-muted"><i class="bi bi-lock-fill"></i> Identity details are verified against your CNIC and managed by the traffic police. They cannot be edited here. Contact the nearest traffic police office for corrections.</div>
-</div>
-
-<div class="sc-card" style="max-width:640px;">
-<div class="sc-card-head">Profile photo</div>
-<form method="post" enctype="multipart/form-data">
-{% csrf_token %}
-<input type="hidden" name="action" value="avatar">
-<div class="sc-form-group">
-<label for="avatar">Photo</label>
-<input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp">
-<div class="sc-text-xs sc-text-muted">Square JPG/PNG/GIF/WEBP, max 2 MB.</div>
-</div>
-{% if user.avatar %}
-<div class="sc-form-group">
-<label>Current photo</label>
-<img src="{{ user.avatar.url }}" alt="Profile photo" style="max-width:96px;max-height:96px;border-radius:8px;object-fit:cover;border:1px solid var(--sc-border);">
-</div>
-{% endif %}
-<div class="sc-flex sc-gap-2">
-<button type="submit" class="sc-btn sc-btn-primary">Upload photo</button>
-<a href="{% url 'citizen_portal:home' %}" class="sc-btn">Cancel</a>
-</div>
-</form>
-</div>
-
-<div class="sc-card" style="max-width:480px;">
-<div class="sc-card-head">Change password</div>
-<form method="post">
-{% csrf_token %}
-<input type="hidden" name="action" value="password">
-<div class="sc-form-group">
-<label for="oldPassword">Current password *</label>
-<input type="password" id="oldPassword" name="old_password" required autocomplete="current-password">
-</div>
-<div class="sc-form-group">
-<label for="newPassword1">New password * (12+ chars)</label>
-<input type="password" id="newPassword1" name="new_password1" minlength="12" required autocomplete="new-password">
-</div>
-<div class="sc-form-group">
-<label for="newPassword2">Confirm new password *</label>
-<input type="password" id="newPassword2" name="new_password2" minlength="12" required autocomplete="new-password">
+<textarea id="address" name="address" rows="3">{{ user.address|default:'' }}</textarea>
 </div>
 <div class="sc-flex sc-gap-2">
-<button type="submit" class="sc-btn sc-btn-primary">Update password</button>
+<button type="submit" class="sc-btn sc-btn-primary">Save changes</button>
 <a href="{% url 'citizen_portal:home' %}" class="sc-btn">Cancel</a>
 </div>
 </form>

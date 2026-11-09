@@ -79,28 +79,62 @@ class PaymentIntegrityTests(TestCase):
         self.challan.refresh_from_db()
         self.assertEqual(self.challan.payment_status, 'UNPAID')
 
-    def test_demo_checkout_endpoint_is_removed(self):
+    def test_demo_checkout_requires_valid_reference(self):
         r = self.client.post('/api/v1/payment/demo-checkout/', {
             'ref': 'SC-forged-ref',
             'status': 'paid',
         })
-        self.assertEqual(r.status_code, 404)
+        self.assertIn(r.status_code, (400, 403))
         self.challan.refresh_from_db()
         self.assertEqual(self.challan.payment_status, 'UNPAID')
 
-    def test_unconfigured_gateway_never_marks_paid(self):
+    def test_demo_checkout_settles_pending_transaction(self):
+        from payments.models import PaymentTransaction
         from admin.it_support_portal.models import PaymentMethod
-        from integrations.payments import initiate_payment
         method = PaymentMethod.objects.filter(status=PaymentMethod.STATUS_ACTIVE).first()
         if method is None:
             self.skipTest('no active payment method seeded')
+        from integrations.payments import initiate_payment
         init = initiate_payment(
             self.challan, method,
             f'/challan/{self.challan.pk}/pay/done/', '/api/v1/payment/webhook/')
-        self.assertFalse(init.get('ok'))
-        self.assertEqual(init.get('mode'), 'error')
+        txn = PaymentTransaction.objects.create(
+            ticket_no=self.challan.ticket_no, challan=self.challan,
+            provider=init['provider'], amount=self.challan.fine_amount,
+            status=PaymentTransaction.STATUS_PENDING, txn_ref=init['reference'])
+        r = self.client.post('/api/v1/payment/demo-checkout/', {
+            'ref': init['reference'],
+            'status': 'paid',
+        })
+        self.assertEqual(r.status_code, 200)
         self.challan.refresh_from_db()
-        self.assertEqual(self.challan.payment_status, 'UNPAID')
+        self.assertEqual(self.challan.payment_status, 'PAID')
+        txn.refresh_from_db()
+        self.assertEqual(txn.status, 'success')
+
+    def test_demo_checkout_reference_is_single_use(self):
+        from payments.models import PaymentTransaction
+        from admin.it_support_portal.models import PaymentMethod
+        method = PaymentMethod.objects.filter(status=PaymentMethod.STATUS_ACTIVE).first()
+        if method is None:
+            self.skipTest('no active payment method seeded')
+        from integrations.payments import initiate_payment
+        init = initiate_payment(
+            self.challan, method,
+            f'/challan/{self.challan.pk}/pay/done/', '/api/v1/payment/webhook/')
+        PaymentTransaction.objects.create(
+            ticket_no=self.challan.ticket_no, challan=self.challan,
+            provider=init['provider'], amount=self.challan.fine_amount,
+            status=PaymentTransaction.STATUS_PENDING, txn_ref=init['reference'])
+        self.client.post('/api/v1/payment/demo-checkout/', {'ref': init['reference'], 'status': 'paid'})
+        self.challan.refresh_from_db()
+        before = self.challan.payment_status
+        other = make_challan(ticket='70000009', plate='LEA-900')
+        rr = self.client.post('/api/v1/payment/demo-checkout/', {'ref': init['reference'], 'status': 'paid'})
+        self.assertEqual(rr.status_code, 400)
+        other.refresh_from_db()
+        self.assertEqual(other.payment_status, 'UNPAID')
+        self.assertEqual(before, 'PAID')
 
 
 class GuestAppealSecurityTests(TestCase):

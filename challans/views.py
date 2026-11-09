@@ -510,7 +510,7 @@ def guest_pay(request, challan_id):
         PaymentTransaction.objects.create(
             ticket_no=challan.ticket_no,
             challan=challan,
-            provider=(init.get('provider') or method.name or 'gateway'),
+            provider=(init.get('provider') or method.name or 'demo'),
             amount=challan.fine_amount,
             status=PaymentTransaction.STATUS_PENDING,
             txn_ref=init.get('reference'),
@@ -529,6 +529,9 @@ def guest_pay(request, challan_id):
                 'init': init,
                 'payment_method': method,
             })
+
+        if init.get('mode') == 'demo':
+            return redirect(init.get('action_url') or f"/challan/{challan.id}/")
 
         if init.get('mode') == 'bank':
             return render(request, 'challan/guest_pay.html', {

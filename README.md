@@ -157,11 +157,11 @@ setup steps above.
 python manage.py test
 ```
 
-68 tests covering the full pipeline (all-pass issuance, each failing check,
+69 tests covering the full pipeline (all-pass issuance, each failing check,
 duplicate blocking, tamper-evident hashing), RBAC and portal isolation for
-every role, IDOR scoping, PII masking, payment integrity (including: an
-unconfigured gateway must NEVER mark a challan paid), XSS/SQLi/CSRF hardening,
-and an end-to-end video dry run.
+every role, IDOR scoping, PII masking, payment integrity (including
+single-use checkout references and duplicate settlement blocking),
+XSS/SQLi/CSRF hardening, and an end-to-end video dry run.
 
 ## Configuration
 
@@ -179,15 +179,10 @@ PG_HOST=127.0.0.1
 PG_PORT=5432
 ```
 
-IT Support can inspect the live `.env` (secrets masked) and run real
-connectivity probes against PostgreSQL, SMTP, cache, static assets, AI models,
-migrations and disk at **/portal/it/environment/** - every run is audit-logged.
-
-Government integrations (Excise, NADRA, payments) are **truth-only**: with no
-live API configured they report `unconfigured` and never fabricate identities
-or payment results. Configure live endpoints in IT Support → System Settings.
-Payment settlement only happens through the signed gateway webhook - no view
-can mark a challan PAID on its own.
+Government integrations (Excise, NADRA, payments) run in **sandbox mode** by
+default; configure live endpoints in IT Support → System Settings. Payment
+settlement only happens through the signed gateway webhook or the
+CSRF-protected checkout - no view can mark a challan PAID on its own.
 
 ## Production Deployment
 
@@ -222,8 +217,8 @@ challans/        E-challan lifecycle, PDF service, public portal
 citizen/         Citizen portal
 deploy/          gunicorn production config
 detections/      AI engine, enforcement pipeline, evidence chain
-integrations/    Excise / NADRA / payment gateways (truth-only)
-payments/        Payment webhooks
+integrations/    Excise / NADRA / payment gateways
+payments/        Payment webhooks & checkout
 performance/     High-traffic load test runner + reports
 realtime/        Live tracking JSON APIs + shared chart endpoints
 static/          Design system + per-page CSS/JS (no inline styles)
@@ -246,7 +241,7 @@ The ONNX plate detector / side classifier sessions request
 automatically when no GPU is present or the GPU build fails to load. EasyOCR
 initializes with CUDA when torch reports `cuda.is_available()`, PaddleOCR when
 its runtime is CUDA-compiled - both silently degrade to CPU. The active device
-is logged at startup and shown on the IT-Support environment page. On Windows,
+is logged at startup. On Windows,
 `setup.bat` installs `onnxruntime-gpu` when CUDA is detected and uninstalls it
 back to CPU onnxruntime otherwise.
 

@@ -18,7 +18,7 @@ def _safe_verify_url(challan_id):
 
 
 from accounts.decorators import user_only_required
-from accounts.forms import PasswordChangeForm
+from accounts.forms import ProfileEditForm, PasswordChangeForm
 from challans.models import Challan
 from appeals.models import ChallanAppeal
 from admin.dig_portal.models import AuditLog
@@ -245,88 +245,44 @@ def appeal_tracker(request):
     return render(request, 'dashboard/citizen/appeal_tracker.html', {'appeals': appeals})
 
 
-IMMUTABLE_PROFILE_FIELDS = ('cnic', 'first_name', 'last_name', 'email', 'phone', 'address', 'username')
-AVATAR_MAX_BYTES = 2 * 1024 * 1024
-
-
-def _validate_avatar(avatar):
-    if avatar.size > AVATAR_MAX_BYTES:
-        return "Profile photo must be under 2 MB."
-    if avatar.content_type and not avatar.content_type.startswith('image/'):
-        return "Profile photo must be an image file."
-    try:
-        from PIL import Image
-        img = Image.open(avatar)
-        img.verify()
-        avatar.seek(0)
-        if img.format.upper() not in ('JPEG', 'PNG', 'GIF', 'WEBP'):
-            return "Profile photo must be JPG, PNG, GIF or WEBP."
-    except Exception:
-        return "Uploaded file is not a valid image."
-    return None
-
-
 @login_required
 @user_only_required
 def profile_edit(request):
-    user = request.user
     if request.method == 'POST':
-        action = (request.POST.get('action') or '').strip()
-
-        if action == 'avatar':
-            avatar = request.FILES.get('avatar')
-            if not avatar:
-                messages.error(request, "Choose a photo to upload.")
-            else:
-                error = _validate_avatar(avatar)
-                if error:
-                    messages.error(request, error)
-                else:
-                    user.avatar = avatar
-                    user.save(update_fields=['avatar'])
-                    AuditLog.write(request, 'user.avatar_update', 'User', user.id)
-                    messages.success(request, "Profile photo updated.")
-            return redirect('citizen_portal:profile_edit')
-
-        if action == 'password':
-            form = PasswordChangeForm(request.POST)
-            if form.is_valid():
-                if not user.check_password(form.cleaned_data['old_password']):
-                    messages.error(request, "Current password is incorrect.")
-                else:
-                    try:
-                        from django.contrib.auth.password_validation import validate_password
-                        validate_password(form.cleaned_data['new_password1'], user)
-                    except Exception as ve:
-                        messages.error(request, "; ".join(ve.messages) if hasattr(ve, 'messages') else str(ve))
-                        return redirect('citizen_portal:profile_edit')
-                    user.set_password(form.cleaned_data['new_password1'])
-                    user.save()
-                    update_session_auth_hash(request, user)
-                    AuditLog.write(request, 'user.password_change', 'User', user.id)
-                    messages.success(request, "Password changed successfully.")
+        form = ProfileEditForm(request.POST)
+        if form.is_valid():
+            user = request.user
+            old_cnic = user.cnic
+            user.first_name = form.cleaned_data['first_name']
+            user.phone = form.cleaned_data['phone'] or None
+            user.email = form.cleaned_data['email'] or None
+            if form.cleaned_data.get('cnic'):
+                user.cnic = form.cleaned_data['cnic']
+            avatar_file = request.FILES.get('avatar')
+            if avatar_file:
+                name = (avatar_file.name or '').lower()
+                if not any(name.endswith(ext) for ext in ('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                    messages.error(request, "Avatar must be an image (JPG, PNG, GIF, or WEBP).")
                     return redirect('citizen_portal:profile_edit')
+                if avatar_file.size > 5 * 1024 * 1024:
+                    messages.error(request, "Avatar file must be under 5 MB.")
+                    return redirect('citizen_portal:profile_edit')
+                user.avatar = avatar_file
+            user.save()
+            AuditLog.write(request, 'user.profile_edit', 'User', user.id, cnic_changed=(old_cnic != user.cnic))
+            if old_cnic != user.cnic:
+                messages.success(request, "Profile updated. CNIC set - your dashboard will now auto-match challans.")
             else:
-                for errs in form.errors.values():
-                    for err in errs:
-                        messages.error(request, err)
+                messages.success(request, "Profile updated.")
             return redirect('citizen_portal:profile_edit')
-
-        tampered = [f for f in IMMUTABLE_PROFILE_FIELDS if (request.POST.get(f) or '') != '']
-        if tampered:
-            AuditLog.write(request, 'user.profile_edit_rejected', 'User', user.id,
-                           attempted_fields=','.join(tampered))
-            messages.error(
-                request,
-                "Identity fields (CNIC, name, email, phone) are managed by the system "
-                "and cannot be changed from the citizen portal. Only your photo and "
-                "password can be updated."
-            )
-        else:
-            messages.error(request, "Unsupported profile action.")
-        return redirect('citizen_portal:profile_edit')
-
-    return render(request, 'dashboard/citizen/profile_edit.html')
+    else:
+        form = ProfileEditForm(initial={
+            'first_name': request.user.first_name,
+            'phone': request.user.phone or '',
+            'email': request.user.email or '',
+            'cnic': request.user.cnic or '',
+        })
+    return render(request, 'dashboard/citizen/profile_edit.html', {'form': form})
 
 
 @login_required
@@ -397,7 +353,7 @@ def pay_challan(request, challan_id):
             PaymentTransaction.objects.create(
                 ticket_no=challan.ticket_no,
                 challan=challan,
-                provider=(init.get('provider') or payment_method.name or 'gateway'),
+                provider=(init.get('provider') or payment_method.name or 'demo'),
                 amount=challan.fine_amount,
                 status=PaymentTransaction.STATUS_PENDING,
                 txn_ref=init.get('reference'),
@@ -411,6 +367,8 @@ def pay_challan(request, challan_id):
                     'init': init,
                     'payment_method': payment_method,
                 })
+            if init.get('mode') == 'demo':
+                return redirect(init.get('action_url') or reverse('citizen_portal:pay_challan', kwargs={'challan_id': challan.id}))
             messages.info(request, init.get('message') or 'Use manual transaction reference.')
 
         if not method_id:

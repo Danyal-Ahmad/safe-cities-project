@@ -24,7 +24,6 @@ from detections.ai import is_models_available, get_model_info
 from payments.models import PaymentTransaction
 
 from .models import PaymentMethod
-from .env_connectivity import build_catalog, read_env_file, run_all_tests
 
 
 @it_required
@@ -736,39 +735,6 @@ def camera_heartbeat_run(request):
     else:
         messages.success(request, "Heartbeat scan complete: every online camera has a fresh heartbeat.")
     return redirect('it_support_portal:camera_heartbeats')
-
-
-@it_required
-def environment(request):
-    env_path, env_entries = read_env_file()
-    context = {
-        'env_path': str(env_path),
-        'env_exists': env_path.is_file(),
-        'env_key_count': len(env_entries),
-        'catalog': build_catalog(env_entries),
-        'email_effective_backend': django_settings.EMAIL_BACKEND.rsplit('.', 1)[-1],
-    }
-    return render(request, 'dashboard/it_support/environment.html', context)
-
-
-@it_required
-def environment_test(request):
-    if request.method != 'POST':
-        return HttpResponse(status=405)
-    env_path, env_entries = read_env_file()
-    results = run_all_tests(env_entries)
-    ok = sum(1 for item in results if item['status'] == 'ok')
-    warn = sum(1 for item in results if item['status'] == 'warn')
-    fail = sum(1 for item in results if item['status'] == 'fail')
-    AuditLog.write(
-        request, 'it.environment_test', 'Environment', None,
-        source=str(env_path), ok=ok, warn=warn, fail=fail,
-        outcomes={item['name']: item['status'] for item in results},
-    )
-    return HttpResponse(
-        json.dumps({'results': results, 'ok': ok, 'warn': warn, 'fail': fail}),
-        content_type='application/json',
-    )
 
 
 @it_required

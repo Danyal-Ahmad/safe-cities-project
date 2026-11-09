@@ -143,8 +143,6 @@ table { border-collapse: collapse; border-spacing: 0; }
   letter-spacing: 0.04em;
   color: var(--sc-navy-deep);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .sc-brand-sub {
@@ -154,8 +152,6 @@ table { border-collapse: collapse; border-spacing: 0; }
   letter-spacing: 0.12em;
   color: var(--sc-primary);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .sc-nav {
@@ -417,8 +413,7 @@ table { border-collapse: collapse; border-spacing: 0; }
   z-index: 100000;
 }
 
-.sc-user-dropdown.open,
-.sc-user-dropdown.show { display: block; }
+.sc-user-dropdown.open { display: block; }
 
 .sc-user-dropdown-header {
   display: flex;

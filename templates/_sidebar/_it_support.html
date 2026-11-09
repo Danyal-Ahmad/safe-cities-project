@@ -30,7 +30,6 @@
 <div class="sc-nav-section" data-section="System">
   <div class="sc-nav-title">System</div>
   {% if request.user|has_perm:"system_health" %}
-  <a href="{% url 'it_support_portal:environment' %}" class="sc-nav-link {% if request.path == '/portal/it/environment/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-lock2"></i> <span class="sc-nav-link-text">Environment (.env)</span></a>
   <a href="{% url 'it_support_portal:system_health' %}" class="sc-nav-link {% if request.path == '/portal/it/system-health/' %}sc-active{% endif %}"><i class="bi bi-heart-pulse-fill"></i> <span class="sc-nav-link-text">System Health</span></a>
   {% endif %}
   {% if request.user|has_perm:"edit_system_settings" %}
@@ -43,12 +42,15 @@
   <a href="{% url 'it_support_portal:challan_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/' %}sc-active{% endif %}"><i class="bi bi-file-earmark-ruled"></i> <span class="sc-nav-link-text">Challan Templates</span></a>
   <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Challan Studio</span></a>
   <a href="{% url 'it_support_portal:audit_templates' %}" class="sc-nav-link {% if request.path == '/portal/it/audit-templates/' %}sc-active{% endif %}"><i class="bi bi-journal-rich"></i> <span class="sc-nav-link-text">Audit Templates</span></a>
+  <a href="{% url 'it_support_portal:challan_template_designer' %}" class="sc-nav-link {% if request.path == '/portal/it/challan-templates/designer/' %}sc-active{% endif %}"><i class="bi bi-palette"></i> <span class="sc-nav-link-text">Template Designer</span></a>
   {% endif %}
   {% if request.user|has_perm:"view_backups" %}
   <a href="{% url 'it_support_portal:backup_list' %}" class="sc-nav-link {% if request.path == '/portal/it/backups/' %}sc-active{% endif %}"><i class="bi bi-cloud-arrow-down"></i> <span class="sc-nav-link-text">Backups</span></a>
   {% endif %}
   {% if request.user|has_perm:"manage_alerts" %}
   <a href="{% url 'it_support_portal:alerts_hub' %}" class="sc-nav-link {% if '/alerts/hub/' in request.path %}sc-active{% endif %}"><i class="bi bi-megaphone-fill"></i> <span class="sc-nav-link-text">Alerts</span></a>
+  {% endif %}
+  {% if request.user|has_perm:"manage_ads" %}
   {% endif %}
 </div>
 

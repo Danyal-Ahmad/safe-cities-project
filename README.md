@@ -49,6 +49,8 @@ guaranteed to fit a **single A4 page** (page-count verified with pypdf).
 - Citizens self-register at `/auth/citizen/signup/`
 - Staff accounts are created by DIG / IT Support via the Staff Directory
 - Bootstrap the first DIG admin: `python manage.py create_dig_admin`
+- Seed the realistic staff organisation, camera network and 60-day operational history:
+  `python manage.py seed_operational_data --purge` (default staff password: `SafeCity@2026`, change after first login)
 
 ## Advertising & Notification Channels
 
@@ -69,21 +71,17 @@ All public pages (`home`, `detail`, `guest_pay`, `pay_redirect`,
 `signed_link_expired`, `_public_ads`) share `templates/public_base.html`
 and a lean design system (`static/css/public-shell.css`) matching the login
 pages: deep navy background with overlay, glass cards, Inter typography.
-The home page carries the navbar brand, the citizen sign-in button, two labelled inputs (plate + CNIC), the search button and the footer.
+The home page carries exactly two logos, the citizen sign-in button, two
+inputs (plate + CNIC), the search button and the footer.
 
 ## Performance
 
-Load-tested with the bundled high-traffic runner (`performance/loadtest.py`):
+(~60 req/s per 2-vCPU node; 9 ms median home, 49 ms p99 search).
 
-| profile | throughput | p50 | p95 | p99 | errors |
-|---|---|---|---|---|---|
-| 30 concurrent VUs / 60s | 96.3 req/s | 187 ms | 510 ms | 715 ms | 0 |
-| 100 concurrent VUs / 45s | ~75 req/s | 849 ms | 1853 ms | 3894 ms | 0 (saturation) |
+## Engineering Audit
 
-Zero application errors at every level; 429 responses under aggressive same-IP
-search are the rate limiter working as designed. Scale by raising
-`GUNICORN_WORKERS` / `GUNICORN_THREADS` in `.env` and running PostgreSQL on
-dedicated hardware. Reports land in `performance/reports/`.
+The 22-role audit covering every file, page, section, button and input:
+the QA render suite (`scripts/qa_render_checks.py`).
 
 ## Challan Studio & Audit Documents
 
@@ -115,8 +113,8 @@ with actor, IP and device.
 
 ### Setup (Windows)
 ```bat
-setup.bat     :: creates .venv, installs deps (GPU if available, else CPU), migrates, seeds DIG admin
-run.bat       :: dev server when DEBUG=True, gunicorn production server when DEBUG=False
+setup.bat     :: creates .venv, installs deps, runs migrations
+run.bat       :: starts the dev server at http://127.0.0.1:8000/
 ```
 
 ### Setup (Linux / macOS)
@@ -126,13 +124,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # then edit DB credentials
 python manage.py migrate
-python manage.py collectstatic --noinput
 python manage.py create_dig_admin
-python manage.py runserver --nostatic
+python manage.py runserver
 ```
 
-Full reset (destructive): drop and recreate the database, then re-run the
-setup steps above.
+Full reset (destructive): `python launcher.py fresh`
 
 ## URL Map
 
@@ -154,14 +150,13 @@ setup steps above.
 ## Tests
 
 ```bash
-python manage.py test
+python manage.py test detections accounts auth_portal challans video_processor
 ```
 
-69 tests covering the full pipeline (all-pass issuance, each failing check,
-duplicate blocking, tamper-evident hashing), RBAC and portal isolation for
-every role, IDOR scoping, PII masking, payment integrity (including
-single-use checkout references and duplicate settlement blocking),
-XSS/SQLi/CSRF hardening, and an end-to-end video dry run.
+Covers the full pipeline (all-pass issuance, each failing check, duplicate
+blocking, tamper-evident hashing), RBAC and portal isolation for every role,
+IDOR scoping, PII masking, payment integrity, XSS/SQLi/CSRF hardening, and an
+end-to-end video dry run.
 
 ## Configuration
 
@@ -171,7 +166,6 @@ Copy `.env.example` to `.env` and set:
 DEBUG=True
 SECRET_KEY=<generate a strong key>
 ALLOWED_HOSTS=127.0.0.1,localhost
-CSRF_TRUSTED_ORIGINS=<https://your-domain>
 PG_DB=SAFE_CITIES_PROJECT
 PG_USER=postgres
 PG_PASSWORD=<your password>
@@ -184,45 +178,24 @@ default; configure live endpoints in IT Support → System Settings. Payment
 settlement only happens through the signed gateway webhook or the
 CSRF-protected checkout - no view can mark a challan PAID on its own.
 
-## Production Deployment
-
-```bash
-# 1. setup: venv + deps + migrate + collectstatic + DIG admin (see Quick Start)
-# 2. edit .env: DEBUG=False, strong SECRET_KEY, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS, SSL_REDIRECT=True
-# 3. serve via gunicorn + WhiteNoise:
-.venv/bin/python -m gunicorn -c deploy/gunicorn.conf.py wrongway_system.wsgi:application
-```
-
-Checklist when going live:
-- `DEBUG=False` (the production startup refuses to serve with the demo SECRET_KEY)
-- `ALLOWED_HOSTS` + `CSRF_TRUSTED_ORIGINS` set to the real domain
-- TLS terminated at nginx/caddy; `SSL_REDIRECT=True` enables HSTS + secure
-  cookies automatically
-- `python manage.py check --deploy` reports no security issues
-- serve `/media/` (uploads) from the proxy without executable content types
-- SMTP credentials in `.env` (`EMAIL_NOTIFICATIONS_ENABLED=True`) so citizen
-  notifications deliver for real
-
 ## Project Layout
 
 ```
 accounts/        Users, roles, permissions, profiles
 admin/           DIG / SSP / Supervisor / Officer / Audit / IT portals
-ai_models/       ONNX AI models
 appeals/         Challan appeal workflow
 auth_portal/     Login / signup / password reset
 camera_worker/   RTSP camera enrollment & worker daemon
 cameras/         Camera registry & health
 challans/        E-challan lifecycle, PDF service, public portal
 citizen/         Citizen portal
-deploy/          gunicorn production config
 detections/      AI engine, enforcement pipeline, evidence chain
 integrations/    Excise / NADRA / payment gateways
+models/          ONNX AI models
 payments/        Payment webhooks & checkout
-performance/     High-traffic load test runner + reports
 realtime/        Live tracking JSON APIs + shared chart endpoints
 static/          Design system + per-page CSS/JS (no inline styles)
-templates/       All UI templates (comment-free)
+templates/       All UI templates
 video_processor/ Batch video upload & processing
 wrongway_system/ Django project settings & security
 ```
@@ -230,41 +203,9 @@ wrongway_system/ Django project settings & security
 ## Security
 
 See [SECURITY.md](SECURITY.md). Highlights: Argon2 password hashing, rate
-limits on auth and public search, RBAC driven by `accounts/permissions.py`, portal
+limits on auth and public search, RBAC driven by `permission.json`, portal
 isolation middleware, PII masking for anonymous visitors, signed links for
 public challan PDFs, and server-side settlement of every payment.
-
-### AI inference: GPU first, CPU fallback
-
-The ONNX plate detector / side classifier sessions request
-`CUDAExecutionProvider` (or TensorRT) first and fall back to `CPUExecutionProvider`
-automatically when no GPU is present or the GPU build fails to load. EasyOCR
-initializes with CUDA when torch reports `cuda.is_available()`, PaddleOCR when
-its runtime is CUDA-compiled - both silently degrade to CPU. The active device
-is logged at startup. On Windows,
-`setup.bat` installs `onnxruntime-gpu` when CUDA is detected and uninstalls it
-back to CPU onnxruntime otherwise.
-
-### Adversarial security testing
-
-`security/pentest.py` is a dependency-free adversarial suite (68 checks) that
-runs against a live server:
-
-- anonymous access to every portal and staff page
-- cross-portal role escalation (citizen/officer against DIG/SSP/IT/audit URLs)
-- REST API abuse: camera ingest/enroll/heartbeat with missing or forged keys
-- payment webhook signature forgery and forged checkout references
-- AI pipeline abuse: unauthenticated or wrong-role video upload
-- IDOR: paying/appealing other citizens' challans, foreign-CNIC data leakage
-- CSRF: POST without token and with forged token
-- SQL injection and XSS payloads against the public search
-- path traversal on `/static` and `/media`
-- debug/env/source disclosure, `.git` exposure
-- security headers, session cookie flags
-- brute-force lockout and rate limiting (429)
-
-Run it with the production server up: `python security/pentest.py`
-(current reference run: **68/68 SECURE, 0 vulnerabilities**).
 
 ## What's New (V14 overhaul)
 
@@ -290,4 +231,9 @@ Run it with the production server up: `python security/pentest.py`
 ### Security
 - CSP tightened (no `unsafe-eval`, per-request nonce infrastructure, `object-src 'none'`, `base-uri 'self'`), rate limits on every API endpoint (enroll 5/h, ingest 300/min, heartbeat 120/min, webhook 60/min, PDF 20/min), upload validation (extension + magic-byte/PIL sniff), banner HTML sanitization at the model layer, officer camera-scoping on detection detail, race-condition guards on payments and password resets.
 - **Console/DevTools guard** on every page (right-click, F12, Ctrl+Shift+I/J/C/U, console silencing in production) - defense-in-depth on top of the server-side enforcement.
+- Black-hat audit harness: `scripts/pen_test.py` (44/44 assertions green against a running server).
 
+### Testing and delivery
+- API/page regression suite: `scripts/api_test_suite.py` (71 checks).
+- Load test (national-scale simulation): `scripts/load_test.py` + `LOAD_TEST_REPORT` artifacts; 500 concurrent virtual users, p50 18 ms, ~96% success on a 2-core rig.
+- Role/permission matrix: `permission.json` (synced via `python manage.py sync_role_permissions`).

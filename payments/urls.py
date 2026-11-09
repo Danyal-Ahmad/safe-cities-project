@@ -6,4 +6,3 @@ urlpatterns = [
     path('webhook/', webhook.payment_webhook, name='webhook'),
     path('demo-checkout/', views.demo_checkout, name='demo_checkout'),
 ]
-

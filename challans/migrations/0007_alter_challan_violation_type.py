@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('wrong_way', 'Wrong Way'), ('no_helmet', 'No Helmet'), ('signal_break', 'Signal Break'), ('over_speed', 'Over Speed'), ('other', 'Other')], max_length=20),
         ),
     ]
-

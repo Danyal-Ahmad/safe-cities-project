@@ -84,83 +84,22 @@ _plate_detector_session = None
 _side_classifier_session = None
 _side_input_meta = None
 
-_RUNTIME_DEVICE = None
-_ONNX_PROVIDERS = None
-
-
-def _detect_providers():
-    global _ONNX_PROVIDERS
-    if _ONNX_PROVIDERS is not None:
-        return _ONNX_PROVIDERS
-    providers = ['CPUExecutionProvider']
-    try:
-        import onnxruntime as ort
-        available = list(ort.get_available_providers())
-        for candidate in ('CUDAExecutionProvider', 'TensorrtExecutionProvider'):
-            if candidate in available:
-                providers = [candidate, 'CPUExecutionProvider']
-                break
-    except Exception as e:
-        logger.warning('Provider detection failed, using CPU: %s', e)
-    _ONNX_PROVIDERS = providers
-    return providers
-
-
-def _create_session(model_path, label):
-    import onnxruntime as ort
-    opts = ort.SessionOptions()
-    opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-    requested = _detect_providers()
-    wants_gpu = any(p != 'CPUExecutionProvider' for p in requested)
-    try:
-        session = ort.InferenceSession(model_path, sess_options=opts, providers=requested)
-    except Exception as e:
-        if not wants_gpu:
-            raise
-        logger.warning('%s: GPU providers failed (%s), falling back to CPU', label, e)
-        session = ort.InferenceSession(
-            model_path, sess_options=opts, providers=['CPUExecutionProvider']
-        )
-    active = list(session.get_providers())
-    device = 'GPU (' + ', '.join(p for p in active if p != 'CPUExecutionProvider') + ')' \
-        if any(p != 'CPUExecutionProvider' for p in active) else 'CPU'
-    logger.info('%s running on %s (providers=%s)', label, device, ', '.join(active))
-    return session, active
-
-
-def get_inference_device():
-    global _RUNTIME_DEVICE
-    if _RUNTIME_DEVICE is not None:
-        return _RUNTIME_DEVICE
-    gpu_requested = any(p != 'CPUExecutionProvider' for p in _detect_providers())
-    device = {
-        'onnx_providers_requested': ', '.join(_detect_providers()),
-        'onnx_provider_active': None,
-        'ocr_device': 'cpu',
-        'gpu_available': gpu_requested,
-    }
-    try:
-        import torch
-        if torch.cuda.is_available():
-            device['ocr_device'] = 'cuda'
-    except Exception:
-        pass
-    if _plate_detector_session is not None:
-        device['onnx_provider_active'] = ', '.join(_plate_detector_session.get_providers())
-    _RUNTIME_DEVICE = device
-    return device
-
 
 def _get_plate_detector():
     global _plate_detector_session
     if _plate_detector_session is not None:
         return _plate_detector_session
     try:
+        import onnxruntime as ort
         model_path = str(settings.PLATE_DETECTOR_MODEL)
         if not os.path.exists(model_path):
             logger.error("Plate detector model not found at %s", model_path)
             return None
-        _plate_detector_session, _ = _create_session(model_path, 'Plate detector')
+        opts = ort.SessionOptions()
+        opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        _plate_detector_session = ort.InferenceSession(
+            model_path, sess_options=opts, providers=['CPUExecutionProvider']
+        )
         inp = _plate_detector_session.get_inputs()[0]
         logger.info("ONNX plate detector loaded: %s  input=%s shape=%s",
                     model_path, inp.name, inp.shape)
@@ -175,11 +114,16 @@ def _get_side_classifier():
     if _side_classifier_session is not None:
         return _side_classifier_session
     try:
+        import onnxruntime as ort
         model_path = str(settings.SIDE_CLASSIFIER_MODEL)
         if not os.path.exists(model_path):
             logger.error("Side classifier model not found at %s", model_path)
             return None
-        _side_classifier_session, _ = _create_session(model_path, 'Side classifier')
+        opts = ort.SessionOptions()
+        opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        _side_classifier_session = ort.InferenceSession(
+            model_path, sess_options=opts, providers=['CPUExecutionProvider']
+        )
         inp = _side_classifier_session.get_inputs()[0]
         shape = list(inp.shape)
         layout = 'NHWC'
@@ -494,33 +438,19 @@ _paddle_ocr = None
 _easyocr_reader = None
 
 
-def _torch_gpu_available() -> bool:
-    try:
-        import torch
-        return bool(torch.cuda.is_available())
-    except Exception:
-        return False
-
-
 def _get_paddle_ocr():
     global _paddle_ocr
     if _paddle_ocr is not None:
         return _paddle_ocr
     try:
         from paddleocr import PaddleOCR
-        use_gpu = False
-        try:
-            import paddle
-            use_gpu = bool(paddle.is_compiled_with_cuda())
-        except Exception:
-            pass
         _paddle_ocr = PaddleOCR(
             use_angle_cls=True,
             lang='en',
             show_log=False,
-            use_gpu=use_gpu,
+            use_gpu=False,
         )
-        logger.info('PaddleOCR loaded for plate text recognition (gpu=%s)', use_gpu)
+        logger.info('PaddleOCR loaded for plate text recognition')
         return _paddle_ocr
     except Exception as e:
         logger.warning('PaddleOCR unavailable: %s', e)
@@ -534,15 +464,8 @@ def _get_easyocr():
         return _easyocr_reader if _easyocr_reader is not False else None
     try:
         import easyocr
-        gpu = _torch_gpu_available()
-        try:
-            _easyocr_reader = easyocr.Reader(['en'], gpu=gpu, verbose=False)
-        except Exception as e:
-            if not gpu:
-                raise
-            logger.warning('EasyOCR GPU init failed (%s), retrying on CPU', e)
-            _easyocr_reader = easyocr.Reader(['en'], gpu=False, verbose=False)
-        logger.info('EasyOCR loaded for plate text recognition (gpu=%s)', gpu)
+        _easyocr_reader = easyocr.Reader(['en'], gpu=False, verbose=False)
+        logger.info('EasyOCR loaded for plate text recognition')
         return _easyocr_reader
     except Exception as e:
         logger.warning('EasyOCR unavailable: %s', e)
@@ -586,7 +509,7 @@ def _preprocess_plate_for_ocr(pil_image):
 
 
 def _ocr_plate_image(pil_image) -> tuple:
-    candidates = []
+    candidates = []  
     variants = _preprocess_plate_for_ocr(pil_image)
 
     paddle = _get_paddle_ocr()
@@ -880,10 +803,8 @@ def get_model_info():
     cfg = get_ai_runtime_config()
     pd = cfg.get('plate_detector', {})
     sc = cfg.get('side_classifier', {})
-    device = get_inference_device()
     return {
         'ocr_backend': 'easyocr',
-        'device': device,
         'plate_detector': {
             'path': str(settings.PLATE_DETECTOR_MODEL),
             'exists': os.path.exists(str(settings.PLATE_DETECTOR_MODEL)),

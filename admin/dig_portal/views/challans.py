@@ -404,6 +404,14 @@ def blacklist_add(request):
 
 @it_required
 def challan_templates_manage(request):
+    """IT Support: challan template registry.
+
+    2026-11 redesign: previews are the REAL rendered PDF (inline sample
+    endpoint + rasterised first-page thumbnail). Raw template code is never
+    displayed, edited or uploaded through this page - layouts live in
+    templates/challan/challan_templates/ and are versioned with the code.
+    The only upload path is a finished PDF file.
+    """
     from ..models import ChallanTemplate, SystemSettings
     from challans.pdf_service import (
         TEMPLATE_MAP, DEFAULT_TEMPLATE_KEY, build_sample_context,
@@ -411,6 +419,7 @@ def challan_templates_manage(request):
     )
     sys_settings = SystemSettings.get()
 
+    # GET ?sample=<key> -> inline sample PDF of the real layout
     sample_key = (request.GET.get('sample') or '').strip()
     if sample_key:
         valid = {k for k in TEMPLATE_MAP} | {f'db:{t.pk}' for t in ChallanTemplate.objects.all()}
@@ -495,7 +504,7 @@ def challan_templates_manage(request):
     file_templates = []
     for key in TEMPLATE_MAP:
         if key not in TEMPLATE_META:
-            continue
+            continue  # aliases & overflow guards are not selectable layouts
         file_templates.append({
             'key': key,
             'name': TEMPLATE_META[key][0],
@@ -696,4 +705,3 @@ def challan_template_select(request):
         'layouts': layouts,
         'active_key': active_key,
     })
-

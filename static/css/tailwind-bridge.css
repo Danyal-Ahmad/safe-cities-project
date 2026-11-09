@@ -1,5 +1,62 @@
+/* ==========================================================================
+   SAFE CITIES PROJECT - tailwind-bridge.css
+   Bridge layer for running Tailwind CSS (Play CDN) alongside Bootstrap 5.
+   Loaded from templates/base.html after safe-city-modern.css.
+   ==========================================================================
 
+   HOW THE BRIDGE WORKS
+   --------------------
+   1. base.html loads Bootstrap 5.3.3 first, then the Tailwind Play CDN
+      (<script src="https://cdn.tailwindcss.com"></script>) with
+      corePlugins.preflight = false, so Tailwind never emits its CSS reset
+      and Bootstrap's base styling stays intact.
 
+   2. Cascade order is what makes utilities win, not !important. The Play CDN
+      compiles utilities at runtime into a <style> element it appends when it
+      executes, which is AFTER the Bootstrap <link> in document order. At
+      equal specificity (one class each) the later stylesheet wins, so a
+      Tailwind utility overrides the equivalent Bootstrap utility wherever
+      both apply. No !important hacks are needed on layout utilities.
+
+   3. Layering (first to last in the document):
+        Bootstrap 5.3.3            framework base (loaded first)
+        Tailwind Play CDN runtime  generated utilities (injected at run time)
+        bootstrap-icons / Font Awesome / animate.css   icon and effect libs
+        safe-city*.css             project design system (--sc-* tokens)
+        tailwind-bridge.css        THIS FILE, last of the linked stylesheets
+
+      Because this file loads last, the component classes below (.tw-*) and
+      the shared shell widgets (portal ticker, guard block screen) sit above
+      both frameworks and can safely style elements that Bootstrap or the
+      app shell also touch.
+
+   4. Rules of thumb when mixing the two frameworks on one element:
+      - Use ONE framework's utility per CSS concern (do not stack
+        "d-flex" and "flex" on the same element).
+      - Use Tailwind for one-off spacing, layout, typography and color
+        tweaks; use Bootstrap for its JS-driven components (modals,
+        dropdowns, tooltips) and the .tw-* classes below for repeated UI
+        patterns that must match the design tokens exactly.
+      - Tailwind color aliases from the inline tailwind.config in base.html:
+        safenavy #0F2557, safeblue #2563EB, safeink #16294E, safepage #E8EEF7.
+        They mirror the --sc-* tokens defined in safe-city.css.
+
+   Design tokens used here (with standalone fallbacks):
+     --sc-navy-deep #0F2557   headings, dark fills
+     --sc-navy     #16294E    secondary dark
+     --sc-primary  #2563EB    primary blue
+     --sc-bg       #E8EEF7    page background
+     --sc-surface  #FFFFFF    cards and surfaces
+     --sc-border   #E4E8EF    hairline borders
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Reusable modern component classes (.tw-*)
+   Plain CSS, token driven, framework agnostic. They work on any page that
+   loads base.html and never depend on Tailwind being available.
+   -------------------------------------------------------------------------- */
+
+/* .tw-card: elevated surface for panels and stat boxes */
 .tw-card {
   background: var(--sc-surface, #FFFFFF);
   border: 1px solid var(--sc-border, #E4E8EF);
@@ -9,7 +66,10 @@
   color: var(--sc-text, #33415C);
 }
 
-
+/* .tw-table: modern data table with clean borders, hover row, sticky header.
+   Wrap it in a container with max-height and overflow-auto when you want the
+   sticky header to scroll inside the table box; with page scrolling the
+   header sticks to the top of the scroll container as well. */
 .tw-table {
   width: 100%;
   border-collapse: separate;
@@ -45,7 +105,7 @@
 .tw-table tbody tr:last-child td:first-child { border-bottom-left-radius: 11px; }
 .tw-table tbody tr:last-child td:last-child { border-bottom-right-radius: 11px; }
 
-
+/* .tw-chip: compact inline label for filters, tags and metadata */
 .tw-chip {
   display: inline-flex;
   align-items: center;
@@ -68,7 +128,7 @@
   flex: 0 0 auto;
 }
 
-
+/* .tw-btn-primary: solid primary action button */
 .tw-btn-primary {
   display: inline-flex;
   align-items: center;
@@ -107,7 +167,7 @@
   transform: none;
 }
 
-
+/* .tw-badge: small severity or status badge */
 .tw-badge {
   display: inline-flex;
   align-items: center;
@@ -144,7 +204,7 @@
   border-color: rgba(226, 59, 78, 0.25);
 }
 
-
+/* .tw-input: modern text input shared by portal forms */
 .tw-input {
   display: block;
   width: 100%;
@@ -170,15 +230,34 @@
   cursor: not-allowed;
 }
 
+/* --------------------------------------------------------------------------
+   2. Portal ticker bar: MOVED. The full ticker design (strip above the
+   navbar, em-dash separators, seamless marquee) now lives with the rest
+   of the unified app shell in static/css/safe-city.css (section
+   "UNIFIED APP SHELL v2"). Only reduced-motion/print fallbacks are kept
+   here so this bridge stays self-contained.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-ticker.is-scrolling .sc-ticker-track { animation: none; }
+  .sc-ticker-viewport { overflow-x: auto; }
+}
 
 @media print {
   .sc-ticker { display: none !important; }
 }
 
 
+/* --------------------------------------------------------------------------
+   3. Console guard block screen (static/js/console-guard.js)
+   Full-screen notice rendered when the DevTools heuristic trips repeatedly
+   on an authenticated portal page. Styles live here so the notice is styled
+   even though console-guard.js replaces document.body.innerHTML.
+   -------------------------------------------------------------------------- */
+
 .sc-guard-block {
   min-height: 100vh;
-  width: 100%;
+  width: 100%; /* body keeps the .sc-app flex layout; still cover it fully */
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,14 +1,18 @@
-
+/* ==========================================================================
+   SAFE CITY | Core Design System  (v3.0 · Reference-matched light theme)
+   Tokens: page #E8EEF7 · surface #FFFFFF · navy #16294E · headings #0F2557
+   Body #5B6B85 · primary #2563EB · banner #1E4E9C→#3B6FC4
+   ========================================================================== */
 
 :root {
-
+  /* Surfaces */
   --sc-bg: #E8EEF7;
   --sc-bg-soft: #F1F4F9;
   --sc-surface: #FFFFFF;
   --sc-border: #E4E8EF;
   --sc-border-strong: #D3DAE7;
 
-
+  /* Brand */
   --sc-navy: #16294E;
   --sc-navy-deep: #0F2557;
   --sc-primary: #2563EB;
@@ -17,7 +21,7 @@
   --sc-banner-a: #1E4E9C;
   --sc-banner-b: #3B6FC4;
 
-
+  /* Semantic */
   --sc-success: #22A45D;
   --sc-success-bg: #EAF7F0;
   --sc-warning: #F5A623;
@@ -31,13 +35,13 @@
   --sc-purple: #7C5CE0;
   --sc-purple-bg: #F1EDFC;
 
-
+  /* Text */
   --sc-text: #33415C;
   --sc-text-muted: #5B6B85;
   --sc-text-faint: #8A94B0;
   --sc-heading: #0F2557;
 
-
+  /* Misc */
   --sc-radius-sm: 10px;
   --sc-radius: 14px;
   --sc-radius-lg: 20px;
@@ -76,12 +80,22 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 ::selection { background: rgba(37, 99, 235, 0.18); }
 
-
+/* Scrollbars */
 *::-webkit-scrollbar { width: 8px; height: 8px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background: #C4CEDF; border-radius: 8px; }
 *::-webkit-scrollbar-thumb:hover { background: #AAB6CE; }
 
+/* ==========================================================================
+   APP SHELL
+   ========================================================================== */
+
+/* ==========================================================================
+   UNIFIED APP SHELL (v2) - one connected frame, no separation.
+   Column: ticker strip (navy) -> navbar (white, full width) -> body
+   (dark sidebar + light scroll column) -> footer (navy, full width).
+   Blocks are flush behind 1px hairlines: no floating cards, no gaps.
+   ========================================================================== */
 
 .sc-app {
   display: flex;
@@ -97,77 +111,123 @@ table { border-collapse: collapse; border-spacing: 0; }
   min-height: 0;
 }
 
-
-.sc-sidebar {
-  position: relative;
-  align-self: stretch;
-  height: 100%;
-  width: 262px;
-  flex: 0 0 262px;
-  margin: 12px 0 12px 12px;
-
+/* ---- Announcement ticker: slim strip ABOVE the navbar, never merged
+       into it. Item segments use fully visible em dashes (no cut edges,
+       no left borders). Marquee: right-to-left, seamless, pause on hover. */
+.sc-ticker {
+  flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  background: var(--sc-surface);
-  border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius-lg);
-  box-shadow: var(--sc-shadow);
+  align-items: stretch;
+  height: 38px;
+  background: linear-gradient(90deg, #0A1836 0%, #0F2557 55%, #132A62 100%);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.25);
   overflow: hidden;
-  z-index: 99996;
-  transition: width 0.22s ease, flex-basis 0.22s ease;
 }
-
-.sc-brand {
+.sc-ticker-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  padding: 0 18px;
+  background: rgba(59, 130, 246, 0.18);
+  border-right: 1px solid rgba(96, 165, 250, 0.28);
+  color: #DBEAFE;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sc-ticker-label i { font-size: 0.85rem; color: #93C5FD; }
+.sc-ticker-viewport { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; overflow: hidden; }
+.sc-ticker-track {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 18px 16px;
-  border-bottom: 1px solid var(--sc-border);
-}
-
-.sc-brand img {
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
-  border-radius: 12px;
-  background: var(--sc-info-bg);
-  padding: 4px;
   flex: 0 0 auto;
-}
-
-.sc-brand-text { display: flex; flex-direction: column; min-width: 0; }
-
-.sc-brand-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--sc-navy-deep);
   white-space: nowrap;
+  padding: 0 28px;
+  will-change: transform;
 }
-
-.sc-brand-sub {
-  font-size: 0.68rem;
+.sc-ticker.is-scrolling .sc-ticker-track {
+  animation: sc-ticker-marquee var(--sc-ticker-duration, 40s) linear infinite;
+}
+.sc-ticker-viewport:hover .sc-ticker-track,
+.sc-ticker-viewport:focus-within .sc-ticker-track { animation-play-state: paused; }
+@keyframes sc-ticker-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.sc-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 64px;
+  font-size: 0.8rem;
   font-weight: 600;
-  text-transform: uppercase;
+  color: rgba(232, 240, 255, 0.88);
+}
+.sc-ticker-item::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #60A5FA;
+}
+.sc-ticker-item-critical::before, .sc-ticker-item-danger::before { background: #F87171; }
+.sc-ticker-item-warning::before, .sc-ticker-item-caution::before { background: #FBBF24; }
+.sc-ticker-item-success::before { background: #34D399; }
+.sc-ticker-item-title { color: #E8F0FF; }
+.sc-ticker-item-title a { color: #93C5FD; }
+.sc-ticker-item-title a:hover { text-decoration: underline; }
+.sc-ticker-item-message { color: rgba(232, 240, 255, 0.6); font-weight: 500; }
+.sc-ticker-item-time { font-family: var(--sc-mono, monospace); font-size: 0.72rem; color: rgba(147, 197, 253, 0.8); }
+.sc-ticker-item-new {
+  font-size: 0.6rem;
+  font-weight: 800;
   letter-spacing: 0.12em;
-  color: var(--sc-primary);
-  white-space: nowrap;
+  color: #6EE7B7;
+  border: 1px solid rgba(110, 231, 183, 0.45);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+/* Em-dash separator between ticker segments: always fully visible. */
+.sc-ticker-dash { color: rgba(96, 165, 250, 0.65); font-weight: 700; }
+
+/* ---------- Sidebar: dark rail, hangs from the navbar, rests on the
+   footer - connected to both, never a floating card ---------- */
+
+.sc-sidebar {
+  flex: 0 0 264px;
+  width: 264px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: linear-gradient(180deg, #0F2557 0%, #0B1D45 100%);
+  border-right: 1px solid rgba(96, 165, 250, 0.16);
+  overflow: hidden;
 }
 
+/* Sidebar: no head block. The two logos live in the navbar; role names are
+   never repeated on the left side. Group titles carry the context. */
 .sc-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px 12px;
+  padding: 10px 12px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.3) transparent;
 }
+.sc-nav::-webkit-scrollbar { width: 8px; }
+.sc-nav::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.28); border-radius: 8px; }
 
-.sc-nav-section { margin-top: 14px; }
+.sc-nav-section { margin-top: 16px; }
 
 .sc-nav-title {
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--sc-text-faint);
+  letter-spacing: 0.16em;
+  color: rgba(147, 197, 253, 0.55);
   padding: 6px 10px 6px 12px;
 }
 
@@ -175,39 +235,39 @@ table { border-collapse: collapse; border-spacing: 0; }
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   margin-bottom: 2px;
-  border-radius: var(--sc-radius);
-  color: var(--sc-text);
-  font-size: 0.875rem;
+  border-radius: 10px;
+  color: rgba(232, 240, 255, 0.78);
+  font-size: 0.855rem;
   font-weight: 500;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sc-nav-link i {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   width: 22px;
   text-align: center;
-  color: var(--sc-text-muted);
+  color: rgba(147, 197, 253, 0.68);
   transition: color 0.15s ease;
 }
 
 .sc-nav-link:hover {
-  background: var(--sc-bg-soft);
-  color: var(--sc-navy-deep);
+  background: rgba(96, 165, 250, 0.14);
+  color: #FFFFFF;
 }
 
-.sc-nav-link:hover i { color: var(--sc-primary); }
+.sc-nav-link:hover i { color: #93C5FD; }
 
 .sc-nav-link.sc-active,
 .sc-nav-link.active {
-  background: var(--sc-navy);
+  background: linear-gradient(90deg, #2563EB, #1D4ED8);
   color: #FFFFFF;
-  box-shadow: var(--sc-shadow-navy);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
 }
 
 .sc-nav-link.sc-active i,
-.sc-nav-link.active i { color: #9DB8F0; }
+.sc-nav-link.active i { color: #BFDBFE; }
 
 .sc-nav-link-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -220,58 +280,37 @@ table { border-collapse: collapse; border-spacing: 0; }
   padding: 1px 7px;
 }
 
-.sc-nav-bottom {
-  border-top: 1px solid var(--sc-border);
-  padding: 10px 12px;
-}
-
-.sc-nav-bottom-link {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 9px 12px;
-  border-radius: var(--sc-radius);
-  color: var(--sc-text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.sc-nav-bottom-link i { font-size: 1rem; width: 22px; text-align: center; }
-.sc-nav-bottom-link:hover { background: var(--sc-danger-bg); color: var(--sc-danger); }
-
+/* ---------- Scroll column: the only scroll container in the shell ---------- */
 
 .sc-main {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 16px 0 0;
-  scrollbar-gutter: stable;
 }
 
+/* ---------- Navbar: full-width white band, flush with the ticker above
+   and the sidebar on its left edge ---------- */
 
 .sc-topbar {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
+  position: relative;
   z-index: 99998;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 18px;
-  margin-bottom: 14px;
+  min-height: 64px;
+  padding: 8px 24px;
   background: var(--sc-surface);
-  border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius-lg);
-  box-shadow: var(--sc-shadow);
+  border-bottom: 1px solid var(--sc-border);
 }
 
 .sc-topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
 
-
+/* Topbar brand: dual logos + project/portal title (search bar removed) */
 .sc-topbar-brand {
   display: flex;
   align-items: center;
@@ -300,14 +339,6 @@ table { border-collapse: collapse; border-spacing: 0; }
   color: var(--sc-navy-deep);
   white-space: nowrap;
 }
-.sc-topbar-brand-sub {
-  font-size: 0.64rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--sc-primary);
-  white-space: nowrap;
-}
 @media (max-width: 900px) {
   .sc-topbar-brand-text { display: none; }
   .sc-topbar-brand-sep { display: none; }
@@ -334,7 +365,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .sc-user-menu { position: relative; }
 
-
+/* Round profile chip: avatar image + name + designation */
 .sc-user-btn {
   position: relative;
   display: flex;
@@ -474,100 +505,73 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .sc-user-dropdown-divider { height: 1px; background: var(--sc-border); margin: 6px 4px; }
 
+/* ---------- Content / footer ---------- */
 
-.sc-content { flex: 1; padding: 2px 2px 24px; min-width: 0; }
+.sc-content { flex: 1; padding: 22px 24px 28px; min-width: 0; }
 
-
+/* Footer: full-width navy band. It merges with the sidebar bottom (both
+   navy, continuous behind a hairline) - footer + sidebar read as one. */
 .sc-footer {
-  position: sticky;
-  bottom: 0;
+  flex: 0 0 auto;
   z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 14px 18px;
-  margin: 0 2px 12px;
-  border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius-lg) var(--sc-radius-lg) 0 0;
-  background: var(--sc-surface);
-  box-shadow: 0 -6px 18px rgba(15, 37, 87, 0.06);
-  font-size: 0.75rem;
-  color: var(--sc-text-faint);
+  padding: 12px 24px;
+  border-top: 1px solid rgba(96, 165, 250, 0.16);
+  background: linear-gradient(90deg, #0B1D45 0%, #0F2557 60%, #132A62 100%);
+  font-size: 0.72rem;
+  color: rgba(232, 240, 255, 0.55);
 }
 
+/* ---------- Flash messages: temporary inline strips directly below the
+   navbar. Never toasts, never floating. Segments are separated by a
+   fully visible em dash; NO cut-off left border. Auto-dismissed by JS. */
 
 .sc-messages {
-  position: sticky;
-  top: 76px;
-  z-index: 99997;
-  margin-bottom: 14px;
   display: grid;
   gap: 10px;
+  padding: 16px 24px 0;
 }
 
 .sc-msg {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 14px;
-  border-radius: var(--sc-radius);
+  padding: 12px 16px;
+  border-radius: 12px;
   border: 1px solid var(--sc-border);
   background: var(--sc-surface);
   box-shadow: var(--sc-shadow);
-  font-size: 0.875rem;
+  font-size: 0.855rem;
 }
 
-.sc-msg i { font-size: 1.05rem; margin-top: 1px; }
+.sc-msg i { font-size: 1.02rem; margin-top: 1px; }
+.sc-msg-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.sc-msg-dash { color: var(--sc-text-faint); font-weight: 700; margin-top: 1px; }
 .sc-msg-body { flex: 1; color: var(--sc-text); }
 .sc-msg-close { background: none; border: none; color: var(--sc-text-faint); cursor: pointer; font-size: 0.85rem; padding: 2px; }
+.sc-msg-close:hover { color: var(--sc-text); }
 
-.sc-msg-success { border-left: 4px solid var(--sc-success); }
-.sc-msg-success i { color: var(--sc-success); }
-.sc-msg-error, .sc-msg-danger { border-left: 4px solid var(--sc-danger); }
-.sc-msg-error i, .sc-msg-danger i { color: var(--sc-danger); }
-.sc-msg-warning { border-left: 4px solid var(--sc-warning); }
-.sc-msg-warning i { color: var(--sc-warning); }
-.sc-msg-info, .sc-msg-debug { border-left: 4px solid var(--sc-primary); }
-.sc-msg-info i, .sc-msg-debug i { color: var(--sc-primary); }
+.sc-msg-success i, .sc-msg-success .sc-msg-label { color: var(--sc-success); }
+.sc-msg-error i, .sc-msg-danger i,
+.sc-msg-error .sc-msg-label, .sc-msg-danger .sc-msg-label { color: var(--sc-danger); }
+.sc-msg-warning i, .sc-msg-warning .sc-msg-label { color: var(--sc-warning); }
+.sc-msg-info i, .sc-msg-debug i,
+.sc-msg-info .sc-msg-label, .sc-msg-debug .sc-msg-label { color: var(--sc-primary); }
 
-
-.sc-welcome-line {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 10px 18px 10px 22px;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 10%, #000 32%);
-  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 10%, #000 32%);
-  animation: sc-welcome-in 0.45s ease both;
-}
-.sc-welcome-line-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0.05) 55%, transparent 100%);
-  transform-origin: left center;
-  animation: sc-welcome-sweep 2.6s ease-out both;
-}
-.sc-welcome-line-text {
-  position: relative;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: var(--sc-navy-deep, #0F2557);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sc-welcome-line-text i { color: var(--sc-primary, #2563EB); margin-right: 8px; }
-.sc-welcome-line.is-hiding { transition: opacity 0.45s ease, max-height 0.45s ease; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
-@keyframes sc-welcome-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-@keyframes sc-welcome-sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@media print { .sc-welcome-line { display: none !important; } }
-
+/* ==========================================================================
+   PAGE HEADERS
+   ========================================================================== */
 
 .sc-page-hero {
   display: flex;
@@ -602,6 +606,9 @@ table { border-collapse: collapse; border-spacing: 0; }
   max-width: 640px;
 }
 
+/* ==========================================================================
+   GRID / UTILITIES
+   ========================================================================== */
 
 .sc-grid { display: grid; gap: 16px; }
 .sc-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -645,6 +652,9 @@ table { border-collapse: collapse; border-spacing: 0; }
   .sc-main { padding-left: 12px; }
 }
 
+/* ==========================================================================
+   CARDS
+   ========================================================================== */
 
 .sc-card {
   background: var(--sc-surface);
@@ -695,6 +705,9 @@ table { border-collapse: collapse; border-spacing: 0; }
   margin-top: 6px;
 }
 
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
 
 .sc-btn {
   display: inline-flex;
@@ -755,6 +768,9 @@ table { border-collapse: collapse; border-spacing: 0; }
 .sc-btn-sm { padding: 6px 13px; font-size: 0.76rem; }
 .sc-btn-block { display: flex; width: 100%; }
 
+/* ==========================================================================
+   BADGES
+   ========================================================================== */
 
 .sc-badge {
   display: inline-flex;
@@ -797,6 +813,9 @@ table { border-collapse: collapse; border-spacing: 0; }
 .sc-badge-teal { background: var(--sc-teal-bg); color: #0D9488; }
 .sc-badge-gray, .sc-badge-muted { background: var(--sc-bg-soft); color: var(--sc-text-muted); }
 
+/* ==========================================================================
+   TABLES
+   ========================================================================== */
 
 .sc-table-wrap { overflow-x: auto; border-radius: var(--sc-radius); border: 1px solid var(--sc-border); }
 
@@ -832,6 +851,11 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .sc-table tbody tr:hover, .sc-data-table tbody tr:hover { background: #F6F9FD; }
 
+/* ==========================================================================
+   TABLE CARD PRESENTATION (safe-city-tables.js)
+   The engine wraps tables in .sc-table-card and renders the pagination
+   footer INSIDE the card - no loose floating fragments.
+   ========================================================================== */
 
 .sc-table-card {
   background: var(--sc-surface);
@@ -908,7 +932,8 @@ table { border-collapse: collapse; border-spacing: 0; }
   user-select: none;
 }
 
-
+/* Footer placed after a .sc-table-wrap (horizontally scrollable table):
+   visually connect it to the table box above. */
 .sc-table-wrap + .sc-table-footer {
   border: 1px solid var(--sc-border);
   border-top: none;
@@ -918,7 +943,7 @@ table { border-collapse: collapse; border-spacing: 0; }
   border-radius: var(--sc-radius) var(--sc-radius) 0 0;
 }
 
-
+/* Chart empty state (safe-city-charts.js) */
 .sc-empty-state {
   display: flex;
   flex-direction: column;
@@ -971,6 +996,9 @@ table { border-collapse: collapse; border-spacing: 0; }
   max-width: 260px;
 }
 
+/* ==========================================================================
+   FORMS
+   ========================================================================== */
 
 .sc-form-group { margin-bottom: 14px; }
 
@@ -1017,6 +1045,9 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .sc-search-form { display: grid; gap: 4px; }
 
+/* ==========================================================================
+   KPI CARDS
+   ========================================================================== */
 
 .sc-kpi-grid {
   display: grid;
@@ -1026,12 +1057,37 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 
 .sc-kpi {
+  position: relative;
   background: var(--sc-surface);
   border: 1px solid var(--sc-border);
-  border-radius: var(--sc-radius);
+  border-radius: 14px;
   box-shadow: var(--sc-shadow);
   padding: 18px;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
+
+/* Accent edge: subtle brand gradient on the left rail of every KPI card,
+   tinted per status. Reads instantly, costs nothing. */
+.sc-kpi::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--sc-primary, #2563EB), rgba(37, 99, 235, 0));
+}
+
+.sc-kpi:hover {
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 14px 30px rgba(15, 37, 87, 0.14);
+}
+
+.sc-kpi-ok::after { background: linear-gradient(180deg, var(--sc-success, #22A45D), rgba(34, 164, 93, 0)); }
+.sc-kpi-amber::after { background: linear-gradient(180deg, #D98E0B, rgba(217, 142, 11, 0)); }
+.sc-kpi-danger::after { background: linear-gradient(180deg, var(--sc-danger, #E23B4E), rgba(226, 59, 78, 0)); }
 
 .sc-kpi-label {
   font-size: 0.68rem;
@@ -1042,11 +1098,12 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 
 .sc-kpi-value {
-  font-size: 1.65rem;
+  font-size: 1.72rem;
   font-weight: 800;
   color: var(--sc-navy-deep);
   margin-top: 4px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .sc-kpi-icon {
@@ -1057,9 +1114,10 @@ table { border-collapse: collapse; border-spacing: 0; }
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
-  background: var(--sc-info-bg);
+  background: linear-gradient(135deg, var(--sc-info-bg), rgba(96, 165, 250, 0.22));
   color: var(--sc-info);
   margin-bottom: 10px;
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25);
 }
 
 .sc-kpi-foot { font-size: 0.72rem; color: var(--sc-text-faint); margin-top: 4px; }
@@ -1070,6 +1128,9 @@ table { border-collapse: collapse; border-spacing: 0; }
 .sc-kpi-danger .sc-kpi-value, .sc-kpi-danger .sc-kpi-icon { color: var(--sc-danger); }
 .sc-kpi-danger .sc-kpi-icon { background: var(--sc-danger-bg); }
 
+/* ==========================================================================
+   BANNERS / TABS / ALERTS
+   ========================================================================== */
 
 .sc-banner {
   display: flex;
@@ -1128,6 +1189,9 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .sc-check { color: var(--sc-success); }
 
+/* ==========================================================================
+   DEFINITION LISTS / PSID
+   ========================================================================== */
 
 .sc-dl { display: grid; gap: 0; }
 
@@ -1179,6 +1243,9 @@ table { border-collapse: collapse; border-spacing: 0; }
   color: var(--sc-primary);
 }
 
+/* ==========================================================================
+   PUBLIC PAGES (guest pay / standalone cards)
+   ========================================================================== */
 
 .sc-public-main {
   display: grid;
@@ -1214,6 +1281,9 @@ table { border-collapse: collapse; border-spacing: 0; }
   color: var(--sc-navy-deep);
 }
 
+/* ==========================================================================
+   WORKSPACE (annotation studio)
+   ========================================================================== */
 
 .sc-workspace {
   display: grid;
@@ -1244,13 +1314,28 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .sc-ws-icon { font-size: 2.4rem; color: #2E3B55; display: block; margin-bottom: 8px; }
 
+/* ==========================================================================
+   PRINT (A4 challan sheet)
+   ========================================================================== */
 
 @media print {
-  .sc-sidebar, .sc-topbar, .sc-footer, .sc-messages { display: none !important; }
-  .sc-app { display: block; }
-  .sc-main { padding: 0; }
+  .sc-sidebar, .sc-topbar, .sc-ticker, .sc-footer, .sc-messages { display: none !important; }
+  .sc-app, .sc-body { display: block; }
+  .sc-main { overflow: visible; }
   .sc-content { padding: 0; }
   body { background: #FFFFFF; }
+}
+
+/* ---------- Small screens: hide the rail, condense the navbar ---------- */
+@media (max-width: 900px) {
+  .sc-sidebar { display: none; }
+  .sc-topbar { padding: 8px 14px; }
+  .sc-clock { display: none; }
+  .sc-content { padding: 14px; }
+  .sc-messages { padding: 12px 14px 0; }
+  .sc-footer { padding: 10px 14px; }
+  .sc-ticker-label span { display: none; }
+  .sc-ticker-label { padding: 0 12px; }
 }
 
 .sc-print-sheet {
@@ -1344,14 +1429,14 @@ table { border-collapse: collapse; border-spacing: 0; }
 .sc-print-sig-line { width: 190px; border-bottom: 1px solid var(--sc-text); margin-bottom: 5px; }
 .sc-print-footer { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--sc-border); font-size: 0.68rem; color: var(--sc-text-faint); }
 
-
+/* Legacy alias kept so old pages keep working */
 .metric-card { background: var(--sc-surface); border: 1px solid var(--sc-border); border-radius: var(--sc-radius); box-shadow: var(--sc-shadow); padding: 18px; }
 .metric-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .metric-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sc-text-muted); }
 .metric-value { font-size: 1.55rem; font-weight: 800; color: var(--sc-navy-deep); }
 .metric-icon-box { width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-info-bg); color: var(--sc-info); }
 
-
+/* SweetAlert2 toast - sits below topbar instead of covering it */
 .swal2-container.swal2-toast-container {
   z-index: 1080;
 }

@@ -20,7 +20,9 @@ STAFF_ROOMS = (
     'portal:it',
 )
 
+
 CHALLAN_ROOMS = STAFF_ROOMS + ('portal:citizen',)
+
 
 ROLE_ROOMS = {
     'DIG': 'portal:dig',
@@ -35,9 +37,11 @@ ROLE_ROOMS = {
     'USER': 'portal:citizen',
 }
 
+
 STAFF_ROLE_KEYS = frozenset({
     'DIG', 'SSP', 'SUPERVISOR', 'SUPV', 'OFFICER', 'AUDIT', 'IT', 'IT_SUPPORT',
 })
+
 
 AUDIENCE_ROOMS = {
     'all': ('everyone',),
@@ -120,8 +124,10 @@ def _schedule_emit(event, payload, rooms):
         except RuntimeError:
             running = None
         if running is loop:
+
             asyncio.ensure_future(coro)
         else:
+
             asyncio.run_coroutine_threadsafe(coro, loop)
         return True
     except Exception:
@@ -131,7 +137,7 @@ def _schedule_emit(event, payload, rooms):
 
 @sio.event
 async def connect(sid, environ, auth=None):
-    _capture_event_loop()
+    _capture_event_loop()  
 
     role = ''
     if isinstance(auth, dict):
@@ -283,4 +289,3 @@ def emit_challan_event(challan, event):
     except Exception:
         logger.exception('emit_challan_event failed')
         return False
-

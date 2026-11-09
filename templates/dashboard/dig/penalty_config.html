@@ -6,63 +6,94 @@
 {% block content %}
 
 <div class="sc-page-hero">
- <div>
- <h1><i class="bi bi-sliders me-2"></i>Penalty Configuration</h1>
- <p class="sc-lead">Fines · points · enable/disable per violation type</p>
- </div>
- <div>
- <span class="badge bg-secondary">{{ active_count|default:0 }} / {{ total_count|default:0 }} active</span>
- <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
- </div>
+  <div>
+    <h1><i class="bi bi-sliders me-2"></i>Penalty Configuration</h1>
+    <p class="sc-lead">Fines, points and enable/disable per violation type</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-secondary">{{ active_count|default:0 }} / {{ total_count|default:0 }} active</span>
+    <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+  </div>
 </div>
 
-<div class="alert alert-info small ">
- <i class="bi bi-arrow-right-circle me-1"></i>
- Project scope is <strong>Wrong-Way Driving</strong> only. Amounts are in PKR. 12+ points in a year may lead to license suspension.
+<div class="alert alert-info small">
+  <i class="bi bi-info-circle me-1"></i>
+  Project scope is <strong>Wrong-Way Driving</strong> only. Amounts are in PKR. 12+ points in a year may lead to license suspension.
 </div>
 
 <form method="post">
- {% csrf_token %}
- <div>
- {% for v in violations %}
- <div>
- <div class=" h-100 {% if not v.enabled %}opacity-75{% endif %}" id="section-{{ v.key }}">
- <div class="card-header">
- <span><i class=" {{ v.icon|default:'' }} me-2"></i>{{ v.label }}</span>
- <span class="badge bg-secondary">{{ forloop.counter }}</span>
- </div>
- <div class="card-body">
- <p class="small ">{{ v.desc }}</p>
- <div>
- <div>
- <label>Fine (PKR) *</label>
- <input type="number" name="amount_{{ v.key }}" value="{{ v.amount }}" min="0" step="50" required>
- </div>
- <div>
- <label>Points *</label>
- <input type="number" name="points_{{ v.key }}" value="{{ v.points }}" min="0" max="20" required>
- </div>
- </div>
- <div>
- <input class="form-check-input" type="checkbox" role="switch" name="enabled_{{ v.key }}" id="enabled_{{ v.key }}" {% if v.enabled %}checked{% endif %}
- onchange="onToggle('{{ v.key }}', this)">
- <label class="form-check-label" for="enabled_{{ v.key }}">Enable detection</label>
- </div>
- <div class="small fw-semibold" id="status-{{ v.key }}">
- {% if v.enabled %}ACTIVE - will detect and challan{% else %}DISABLED{% endif %}
- </div>
- </div>
- </div>
- </div>
- {% empty %}
- <div class="empty-state"><i class="bi bi-inbox"></i>No violation types configured.</div>
- {% endfor %}
- </div>
+  {% csrf_token %}
+  <div class="row g-4">
+    {% for v in violations %}
+    <div class="col-md-6">
+      <div class="card h-100 {% if not v.enabled %}opacity-75{% endif %}" id="section-{{ v.key }}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="{{ v.icon|default:'bi bi-exclamation-triangle' }} me-2"></i>{{ v.label }}</span>
+          <span class="badge bg-secondary">{{ forloop.counter }}</span>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted">{{ v.desc }}</p>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="sc-form-group">
+                <label>Fine (PKR) *</label>
+                <input type="number" name="amount_{{ v.key }}" class="form-control" value="{{ v.amount }}" min="0" step="50" required>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="sc-form-group">
+                <label>Points *</label>
+                <input type="number" name="points_{{ v.key }}" class="form-control" value="{{ v.points }}" min="0" max="20" required>
+              </div>
+            </div>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" role="switch" name="enabled_{{ v.key }}" id="enabled_{{ v.key }}" {% if v.enabled %}checked{% endif %}
+              onchange="onToggle('{{ v.key }}', this)">
+            <label class="form-check-label" for="enabled_{{ v.key }}">Enable detection</label>
+          </div>
+          <div class="small fw-semibold" id="status-{{ v.key }}">
+            {% if v.enabled %}ACTIVE - will detect and challan{% else %}DISABLED{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="sc-empty-state">
+        <i class="bi bi-exclamation-triangle"></i>
+        <h3>No violation types configured</h3>
+        <p>No violation types are configured in the system settings yet.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 
- <div class="d-flex gap-2 justify-content-end flex-wrap">
- <button type="reset" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Reset</button>
- <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-check-lg me-1"></i>Save Configuration</button>
- </div>
+  <div class="d-flex gap-2 mt-4">
+    <button type="reset" class="sc-btn"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Configuration</button>
+  </div>
 </form>
 
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+ function onToggle(key, el) {
+ var status = document.getElementById('status-' + key);
+ var section = document.getElementById('section-' + key);
+ if (!status) return;
+ if (el.checked) {
+ status.textContent = 'ACTIVE - will detect and challan';
+ status.classList.add('text-success');
+ status.classList.remove('text-muted');
+ if (section) section.classList.remove('opacity-75');
+ } else {
+ status.textContent = 'DISABLED';
+ status.classList.remove('text-success');
+ status.classList.add('text-muted');
+ if (section) section.classList.add('opacity-75');
+ }
+ }
+</script>
 {% endblock %}

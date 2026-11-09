@@ -52,4 +52,3 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['category'], name='dig_portal_notif_cat_idx'),
         ),
     ]
-

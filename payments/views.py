@@ -11,6 +11,7 @@ from wrongway_system.security.rate_limit import is_rate_limited, rate_limit_resp
 
 logger = logging.getLogger('wrongway.payments')
 
+
 DEMO_CHECKOUT_LIMIT = (30, 60)
 
 
@@ -112,6 +113,8 @@ def demo_checkout(request):
         challan = txn.challan
         return_url = f"/challan/{challan.id}/pay/done/"
         if status == 'paid':
+
+
             with transaction.atomic():
                 locked = type(challan).objects.select_for_update().get(pk=challan.pk)
                 if locked.payment_status != locked.PAID:
@@ -155,4 +158,3 @@ def demo_checkout(request):
         'action_url': request.path,
         'cancel_url': request.path,
     })
-

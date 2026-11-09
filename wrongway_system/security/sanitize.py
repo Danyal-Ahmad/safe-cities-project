@@ -13,4 +13,3 @@ def looks_malicious(value: Optional[str]) -> bool:
     if not value:
         return False
     return bool(_DANGEROUS.search(str(value)))
-

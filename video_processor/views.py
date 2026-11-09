@@ -38,10 +38,10 @@ def upload_video(request):
             head = video_file.read(64)
             video_file.seek(0)
             valid_magic = (
-                head[4:8] == b'ftyp'
-                or head.startswith(b'RIFF')
+                head[4:8] == b'ftyp'                     
+                or head.startswith(b'RIFF')               
                 or head.startswith(b'\x00\x00\x00') and head[4:12] in (b'moov', b'wide', b'mdat', b'free', b'skip')
-                or head.startswith(b'\x1aE\xdf\xa3')
+                or head.startswith(b'\x1aE\xdf\xa3')      
             )
         except Exception:
             valid_magic = False
@@ -128,4 +128,3 @@ def upload_video(request):
 def upload_list(request):
     uploads = VideoUpload.objects.select_related('camera', 'uploaded_by')[:100]
     return render(request, 'dashboard/video/upload_list.html', {'uploads': uploads})
-

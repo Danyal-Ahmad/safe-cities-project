@@ -7,4 +7,3 @@ class Migration(migrations.Migration):
         migrations.AlterModelTable(name='detectionreviewnote', table='sc_detection_review_notes'),
         migrations.AlterModelTable(name='annotation', table='sc_annotations'),
     ]
-

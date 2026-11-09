@@ -39,4 +39,3 @@ class Migration(migrations.Migration):
             field=models.JSONField(blank=True, default=list, help_text='Per-frame capture metadata for the 3-frame evidence sequence.'),
         ),
     ]
-

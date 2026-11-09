@@ -108,7 +108,7 @@ def initiate_payment(challan, method, return_url: str, callback_url: str) -> Dic
 
         now = datetime.now()
         txn_datetime = now.strftime('%Y%m%d%H%M%S')
-        expiry = now.strftime('%Y%m%d%H%M%S')
+        expiry = now.strftime('%Y%m%d%H%M%S')  
         bill_ref = (ticket or reference)[:20]
         fields = {
             'pp_Version': '1.1',
@@ -232,4 +232,3 @@ def _demo_payload(challan, method, reference: str, return_url: str, provider: st
             'Using demo checkout for FYP testing.'
         ),
     }
-

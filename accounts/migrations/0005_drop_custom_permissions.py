@@ -74,4 +74,3 @@ class Migration(migrations.Migration):
             reverse_add_custom_permissions,
         ),
     ]
-

@@ -22,7 +22,7 @@ import os as _os
 
 
 RATE_LIMIT_MAX_REQUESTS = int(_os.environ.get('SEARCH_RATE_LIMIT', 20))
-RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))
+RATE_LIMIT_WINDOW = int(_os.environ.get('SEARCH_RATE_WINDOW', 60))  
 
 
 PDF_RATE_LIMIT = (20, 60)
@@ -206,19 +206,6 @@ def home(request):
             except Exception:
                 c.signed_token = ''
 
-        try:
-            from appeals.models import ChallanAppeal
-            appeal_map = {
-                a.challan_id: a.get_status_display()
-                for a in ChallanAppeal.objects.filter(
-                    challan_id__in=[c.id for c in (challans or [])])
-            }
-            for c in (challans or []):
-                c.appeal_status = appeal_map.get(c.id, '')
-        except Exception:
-            for c in (challans or []):
-                c.appeal_status = ''
-
     return render(request, 'challan/home.html', {
         'challans': challans, 'plate': plate, 'cnic': cnic, 'searched': searched,
     })
@@ -286,7 +273,7 @@ def challan_detail(request, challan_id):
     can_appeal = (
         challan.payment_status == Challan.UNPAID
         and not has_active
-    )
+    )  
     existing_appeals = list(
         ChallanAppeal.objects.filter(challan=challan).order_by('-created_at')[:5]
     )
@@ -461,6 +448,8 @@ def challan_pdf(request, challan_id):
             save_challan_pdf(challan, force=True)
         challan.refresh_from_db()
     try:
+        # ?inline=1 streams the PDF for embedding (iframe/object on the
+        # detail page); the default remains a download attachment.
         as_attachment = (request.GET.get('inline') or '') != '1'
         return FileResponse(
             challan.pdf_file.open('rb'),
@@ -562,4 +551,3 @@ def guest_pay_done(request, challan_id):
             "Refresh this page in a few seconds."
         )
     return redirect('challans:challan_detail', challan_id=challan.id)
-

@@ -1,83 +1,88 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 {% block title %}Compliance{% endblock %}
 
 {% block body_class %}page-dig{% endblock %}
 {% block content %}
 
 <div class="sc-page-hero">
- <div>
- <h1><i class="bi bi-clipboard-check me-2"></i>Compliance Overview</h1>
- <p class="sc-lead">System compliance posture · audit trail</p>
- </div>
- <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
+  <div>
+    <h1><i class="bi bi-clipboard-check me-2"></i>Compliance Overview</h1>
+    <p class="sc-lead">System compliance posture and audit trail</p>
+  </div>
+  <a href="{% url 'dig:dashboard' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Dashboard</a>
 </div>
 
-<div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Pending Reviews</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ pending_reviews|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Total Challans</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ total_challans|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Total Appeals</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ total_appeals|default:0 }}</div>
- </div>
- </div>
- <div>
- <div class="metric-card h-100">
- <div class="metric-card-top">
- <span class="metric-label">Audit Entries</span>
- <span class="metric-icon-box -subtle "><i class="bi bi-circle"></i>
- </div>
- <div class="metric-value">{{ audit_entries|default:0 }}</div>
- </div>
- </div>
+<div class="row g-4">
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Pending Reviews</span>
+        <span class="metric-icon-box"><i class="bi bi-hourglass-split"></i></span>
+      </div>
+      <div class="metric-value">{{ pending_reviews|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">detections awaiting review</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Total Challans</span>
+        <span class="metric-icon-box"><i class="bi bi-receipt"></i></span>
+      </div>
+      <div class="metric-value">{{ total_challans|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">issued all time</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Total Appeals</span>
+        <span class="metric-icon-box"><i class="bi bi-envelope-exclamation"></i></span>
+      </div>
+      <div class="metric-value">{{ total_appeals|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">filed by citizens</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card h-100">
+      <div class="metric-card-top">
+        <span class="metric-label">Audit Entries</span>
+        <span class="metric-icon-box"><i class="bi bi-clock-history"></i></span>
+      </div>
+      <div class="metric-value">{{ audit_entries|default:0|intcomma }}</div>
+      <div class="sc-text-sm sc-text-muted">logged staff actions</div>
+    </div>
+  </div>
 </div>
 
-<div>
- <div class="card-header"><span><i class="bi bi-circle me-2"></i>System Compliance Status</span></div>
- <div class="card-body">
- <p class="d-flex justify-content-between small">All staff actions are logged in the audit trail. Pending detections are tracked for timely review.</p>
- <div class="list-group list-group-flush">
- <div class="list-group-item px-0">
- <span class=" small">Pending detections awaiting review</span>
- <strong>{{ pending_reviews|default:0 }}</strong>
- </div>
- <div class="list-group-item px-0">
- <span class=" small">Total challans issued</span>
- <strong>{{ total_challans|default:0 }}</strong>
- </div>
- <div class="list-group-item px-0">
- <span class=" small">Total appeals filed</span>
- <strong>{{ total_appeals|default:0 }}</strong>
- </div>
- <div class="list-group-item px-0">
- <span class=" small">Total audit log entries</span>
- <strong>{{ audit_entries|default:0 }}</strong>
- </div>
- </div>
- <div>
- <a href="{% url 'dig:audit_log' %}" class="sc-btn sc-btn-primary"><i class="bi bi-shield-lock me-1"></i>Audit Log</a>
- <a href="{% url 'dig:flagged_detections' %}" class="sc-btn sc-btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>Flagged</a>
- </div>
- </div>
+<div class="card mt-4">
+  <div class="card-header"><span><i class="bi bi-shield-check me-2"></i>System Compliance Status</span></div>
+  <div class="card-body">
+    <p class="small text-muted">All staff actions are logged in the audit trail. Pending detections are tracked for timely review.</p>
+    <div class="list-group list-group-flush">
+      <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span class="small text-muted">Pending detections awaiting review</span>
+        <strong>{{ pending_reviews|default:0|intcomma }}</strong>
+      </div>
+      <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span class="small text-muted">Total challans issued</span>
+        <strong>{{ total_challans|default:0|intcomma }}</strong>
+      </div>
+      <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span class="small text-muted">Total appeals filed</span>
+        <strong>{{ total_appeals|default:0|intcomma }}</strong>
+      </div>
+      <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span class="small text-muted">Total audit log entries</span>
+        <strong>{{ audit_entries|default:0|intcomma }}</strong>
+      </div>
+    </div>
+    <div class="d-flex gap-2 mt-3">
+      <a href="{% url 'dig:audit_log' %}" class="sc-btn sc-btn-primary"><i class="bi bi-shield-lock me-1"></i>Audit Log</a>
+      <a href="{% url 'dig:flagged_detections' %}" class="sc-btn"><i class="bi bi-flag me-1"></i>Flagged</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

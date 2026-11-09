@@ -98,4 +98,3 @@ class Migration(migrations.Migration):
             name='Annotation',
         ),
     ]
-

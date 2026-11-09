@@ -499,7 +499,7 @@ def regional_heatmap(request):
         for key, coords in CITY_GEO.items():
             if key in t:
                 return coords
-        return (31.5204, 74.3587)
+        return (31.5204, 74.3587)  
 
     heat_points = []
     camera_markers = []
@@ -548,4 +548,3 @@ def regional_heatmap(request):
         'camera_markers_json': json.dumps(camera_markers),
         'total_points': len(heat_points),
     })
-

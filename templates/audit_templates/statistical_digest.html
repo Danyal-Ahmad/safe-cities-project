@@ -127,9 +127,9 @@
     {% for g in distribution_grid %}
     <tr>
       <td>{{ g.0 }}</td><td class="sd-mono">{{ g.1 }}</td>
-      <td><div class="sd-chartbar"><span {% if g.1 %}style="width:{% widthratio g.1 by_type_max 100 %}%;"{% endif %}></span></div></td>
+      <td><div class="sd-chartbar"><span style="width:{% widthratio g.1 by_type_max 100 %}%;"></span></div></td>
       <td>{{ g.2 }}</td><td class="sd-mono">{{ g.3 }}</td>
-      <td><div class="sd-chartbar sd-chartbar-alt"><span {% if g.3 %}style="width:{% widthratio g.3 by_status_max 100 %}%;"{% endif %}></span></div></td>
+      <td><div class="sd-chartbar sd-chartbar-alt"><span style="width:{% widthratio g.3 by_status_max 100 %}%;"></span></div></td>
     </tr>
     {% empty %}
     <tr><td colspan="6">No distribution data available in this scope.</td></tr>
@@ -146,7 +146,7 @@
         {% for l in by_location %}
         <tr>
           <td>{{ l.0 }}</td><td class="sd-mono">{{ l.1 }}</td>
-          <td><div class="sd-chartbar"><span {% if l.1 %}style="width:{% widthratio l.1 by_location_max 100 %}%;"{% endif %}></span></div></td>
+          <td><div class="sd-chartbar"><span style="width:{% widthratio l.1 by_location_max 100 %}%;"></span></div></td>
         </tr>
         {% empty %}
         <tr><td colspan="3">No location data.</td></tr>

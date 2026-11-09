@@ -15,4 +15,3 @@ class Migration(migrations.Migration):
             name='can_add_manual_challan',
         ),
     ]
-

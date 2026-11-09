@@ -1,3 +1,22 @@
+"""ASGI entrypoint for the SAFE CITIES PROJECT e-challan platform.
+
+Combines the Django ASGI application with the Socket.IO realtime push
+layer (realtime/realtime_events.py) mounted at ``/ws/socket.io``:
+
+    application = socketio.ASGIApp(sio, django_asgi_app,
+                                   socketio_path='/ws/socket.io')
+
+Start with a SINGLE worker so in-process emits reach connected clients:
+
+    uvicorn wrongway_system.asgi:application --host 0.0.0.0 --port 8000 \
+        --workers 1 --log-level info
+
+(or: python launcher.py realtime).
+
+If python-socketio is unavailable or the realtime layer fails to build,
+``application`` falls back to the plain Django ASGI application so the
+site keeps serving exactly as before.
+"""
 import os
 
 import django
@@ -21,7 +40,7 @@ try:
         socketio_path='/ws/socket.io',
         on_startup=on_asgi_startup,
     )
-except Exception as exc:
+except Exception as exc:  
     import logging
 
     logging.getLogger('wrongway.realtime').warning(
@@ -30,4 +49,3 @@ except Exception as exc:
         type(exc).__name__, exc,
     )
     application = django_asgi_app
-

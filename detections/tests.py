@@ -273,4 +273,3 @@ class ReviewNoteTests(PipelineBase):
         d = self._make_detection()
         DetectionReviewNote.objects.create(detection=d, author=u, note='test note')
         self.assertEqual(d.review_notes_list.count(), 1)
-

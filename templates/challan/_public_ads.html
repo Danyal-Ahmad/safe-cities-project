@@ -1,19 +1,31 @@
-
+{% comment %}
+  Public ads partial (included only by challan/home.html).
+  BANNER ADS section: exactly ONE large banner, edge to edge - no border,
+  no rounded corners, a pure square/rectangle. Content is the highest
+  priority active banner with placement='static_post' (context:
+  static_post_ads, provided by admin.dig_portal.context_processors.
+  ads_delivery). Small ad chips and the popup channel were removed.
+  The ticker (placement='ticker') lives in the header, scrolling
+  right-to-left in an infinite loop.
+{% endcomment %}
 {% if static_post_ads %}
   {% with ad=static_post_ads.0 %}
-  <div class="psca-banner-media" aria-label="Public service announcement">
-    {% if ad.banner_type == 'html' and ad.html_content %}
-      <div class="psca-banner-html">{{ ad.html_content|safe }}</div>
-    {% elif ad.image %}
-      <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener">
-        <img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Public service announcement' }}" loading="lazy">
-      </a>
-    {% else %}
-      <div class="psca-banner-fallback" style="background: {{ ad.effective_bg_color }}; color: {{ ad.text_color|default:'#FFFFFF' }};">
-        <i class="bi bi-shield-check"></i>
-        <span>{{ ad.title }}</span>
-      </div>
-    {% endif %}
-  </div>
+  <section class="ph-banner-ads" aria-label="Banner advertisement">
+    <span class="ph-banner-label">BANNER ADS</span>
+    <div class="ph-big-banner">
+      {% if ad.banner_type == 'html' and ad.html_content %}
+        <div class="ph-big-banner-html">{{ ad.html_content|safe }}</div>
+      {% elif ad.image %}
+        <a href="{{ ad.image_link|default:'#' }}" target="_blank" rel="noopener" class="ph-big-banner-link">
+          <img src="{{ ad.image.url }}" alt="{{ ad.title|default:'Public service announcement' }}" loading="lazy">
+        </a>
+      {% else %}
+        <div class="ph-big-banner-fallback" style="background: {{ ad.effective_bg_color }}; color: {{ ad.text_color|default:'#FFFFFF' }};">
+          <i class="bi bi-shield-check"></i>
+          <span>{{ ad.title }}</span>
+        </div>
+      {% endif %}
+    </div>
+  </section>
   {% endwith %}
 {% endif %}

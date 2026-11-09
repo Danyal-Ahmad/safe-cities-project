@@ -143,4 +143,3 @@ class SspOnlyAppealFlowTests(TestCase):
         for gone in ('current_stage', 'is_escalated', 'escalated_at', 'escalation_reason',
                      'dig_comment', 'dig_reviewed_by', 'dig_reviewed_at', 'officer_comment'):
             self.assertNotIn(gone, field_names)
-

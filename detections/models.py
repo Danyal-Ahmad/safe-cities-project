@@ -190,4 +190,3 @@ class DetectionReviewNote(models.Model):
 
     def __str__(self):
         return f"Note by {self.author} on Detection {self.detection_id}"
-

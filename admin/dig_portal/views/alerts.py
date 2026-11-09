@@ -333,4 +333,3 @@ _BANNER_AUDIENCES = {code for code, _ in Banner.AUDIENCE_CHOICES}
 
 
 _BANNER_TYPES = {code for code, _ in Banner.BANNER_TYPE_CHOICES}
-

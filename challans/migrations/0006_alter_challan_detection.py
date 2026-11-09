@@ -18,4 +18,3 @@ class Migration(migrations.Migration):
             field=models.OneToOneField(blank=True, help_text='One detection can produce at most one challan (DB-enforced).', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='challans', to='detections.detection'),
         ),
     ]
-

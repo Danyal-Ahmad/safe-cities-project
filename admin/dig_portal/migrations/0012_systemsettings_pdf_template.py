@@ -31,4 +31,3 @@ class Migration(migrations.Migration):
             field=models.FloatField(default=0.75, help_text='Minimum confidence to accept a car detection (model default target 0.90)'),
         ),
     ]
-

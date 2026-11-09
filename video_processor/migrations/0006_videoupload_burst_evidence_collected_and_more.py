@@ -21,4 +21,3 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, help_text='Tamper-evident digest of the uploaded video file.', max_length=64, null=True),
         ),
     ]
-

@@ -1,5 +1,6 @@
 
 
+
 from django.db import migrations, models
 
 
@@ -19,4 +20,3 @@ class Migration(migrations.Migration):
                 default='unknown', max_length=20),
         ),
     ]
-

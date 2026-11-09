@@ -10,7 +10,7 @@ from django.utils import timezone
 logger = logging.getLogger('wrongway.video_upload')
 
 MAX_FRAMES_PER_UPLOAD = 500
-SEQUENTIAL_EVIDENCE_FRAMES = 2
+SEQUENTIAL_EVIDENCE_FRAMES = 2  
 
 
 def _extract_frame_timestamps(duration_seconds, interval_seconds):
@@ -291,4 +291,3 @@ def start_processing_async(upload_id):
     t = threading.Thread(target=process_video_upload, args=(upload_id,), daemon=True)
     t.start()
     return t
-

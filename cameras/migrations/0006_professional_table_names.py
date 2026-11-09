@@ -5,4 +5,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelTable(name='camera', table='sc_cameras'),
     ]
-

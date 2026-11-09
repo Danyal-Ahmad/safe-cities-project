@@ -1,50 +1,87 @@
+# =============================================================================
+# SAFE CITY FYP - complete dependency list
+# Database: PostgreSQL ONLY (no SQLite)
+# AI: ONNX plate detector + side classifier + OCR (EasyOCR / optional Paddle / Tesseract)
+# Python: 3.10 - 3.12 recommended on Windows. 3.13/3.14: use EasyOCR or Tesseract only.
+# =============================================================================
+
+# ----- Core web -----
 Django>=4.2,<5.1
 djangorestframework>=3.15,<4
 django-ratelimit>=4.1,<5
 asgiref>=3.7
 sqlparse>=0.4
 
+# ----- PostgreSQL -----
 psycopg2-binary>=2.9,<3
 
+# ----- Production server / static -----
 gunicorn>=21.2,<24
+# WhiteNoise: actually wired since the 2026 hardening pass - see
+# wrongway_system/settings.py (MIDDLEWARE + STORAGE + WHITENOISE_* settings).
+# Serves /static/ with immutable cache headers for fingerprinted assets.
 whitenoise>=6.6,<7
 
+# ----- Device fingerprinting (login audit) -----
 user-agents>=2.2
+
+# ----- Security / hashing -----
 argon2-cffi>=23.1
 cffi>=1.16
 
+# ----- AI / vision (ONNX + OpenCV) -----
 onnxruntime>=1.17
 numpy>=1.24
 Pillow>=10.0
 opencv-python-headless>=4.8
 
+# ----- OCR (plate text) - core path that works on most Windows Pythons -----
+# EasyOCR (primary when Paddle is unavailable)
 easyocr>=1.7.0
+# Optional OS Tesseract binding (install Tesseract binary separately on Windows)
 pytesseract>=0.3.10
 
+# NOTE: PaddlePaddle / PaddleOCR are OPTIONAL.
+# They have no official wheels for Python 3.13+ on Windows.
+# If you use Python 3.10–3.12 you may install them with:
+#   pip install "paddlepaddle>=2.5.0,<3.0" "paddleocr>=2.7.0,<3"
+# The app auto-falls back: Paddle → EasyOCR → Tesseract.
+
+# ----- PDF (challan templates) -----
 weasyprint>=60
 pydyf>=0.10
 tinycss2>=1.2
 cssselect2>=0.7
 Pyphen>=0.14
 fonttools>=4.40
+# WeasyPrint on Windows may need GTK3 runtime (system install)
 
-reportlab>=4.0
-xhtml2pdf>=0.2.16
-
+# ----- HTTP / APIs (Excise, NADRA, payments) -----
 requests>=2.31
 urllib3>=2.0
 certifi>=2024.0
 charset-normalizer>=3.0
 idna>=3.4
 
+# ----- Barcode + QR on challan PDF -----
 python-barcode>=0.15
 qrcode>=7.4
 
+# ----- Timezones (Windows) -----
 tzdata>=2024.1
 
+# PDF fallback when WeasyPrint/GTK unavailable (pure Python, works on Windows)
+reportlab>=4.0
+xhtml2pdf>=0.2.16
+
+
+# --- Realtime push (Socket.IO server + ASGI serving) ---
 python-socketio>=5.11,<6
 uvicorn>=0.29
 
+# --- PDF verification (single-page A4 enforcement) ---
 pypdf>=4.2
 
+# --- System telemetry (health dashboards) ---
 psutil>=5.9
+user-agents>=2.2

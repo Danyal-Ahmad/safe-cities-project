@@ -7,129 +7,167 @@
 <div class="sc-page-hero">
  <div>
  <h1><i class="bi bi-camera-video me-2"></i>Add camera</h1>
- <p class="sc-lead">Register RTSP / HTTP stream or upload a demo video for live tracking</p>
+ <p class=" opacity-75">Register RTSP / HTTP stream or upload a demo video for live tracking</p>
  </div>
  <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary"><i class="bi bi-list-ul me-1"></i>List</a>
 </div>
 
 <form method="post" enctype="multipart/form-data">
  {% csrf_token %}
- <div>
- <div>
+ <div class="row g-4">
+ <div class="col-12">
+ <div class="card">
  <div class="card-header">Identity</div>
  <div class="card-body">
- <div>
- <div>
+ <div class="row g-3">
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Camera ID *</label>
  <input type="text" name="camera_id" class="form-control font-monospace" required placeholder="CAM-001">
  </div>
- <div>
+ </div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Location *</label>
- <input type="text" name="location" required placeholder="Main Boulevard, Sector A">
+ <input type="text" name="location" class="form-control" required placeholder="Main Boulevard, Sector A">
  </div>
- <div>
+ </div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Latitude (map)</label>
- <input type="number" step="any" name="latitude" placeholder="31.5204">
+ <input type="number" step="any" name="latitude" class="form-control" placeholder="31.5204">
  </div>
- <div>
+ </div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Longitude (map)</label>
- <input type="number" step="any" name="longitude" placeholder="74.3587">
+ <input type="number" step="any" name="longitude" class="form-control" placeholder="74.3587">
  </div>
- <div>
+ </div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Legal direction</label>
- <select name="legal_direction" required>
+ <select name="legal_direction" class="form-select" required>
  <option value="N">North</option>
  <option value="S">South</option>
  <option value="E">East</option>
  <option value="W">West</option>
  </select>
  </div>
- <div>
+ </div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Violation side</label>
- <select name="violation_side" required>
+ <select name="violation_side" class="form-select" required>
  <option value="back">Back side = violation</option>
  <option value="front">Front side = violation</option>
  </select>
  </div>
- <div>
- <label>Auto-confirm threshold</label>
- <input type="number" name="auto_confirm_threshold" value="0.85" min="0.5" max="0.99" step="0.01">
  </div>
- <div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
+ <label>Auto-confirm threshold</label>
+ <input type="number" name="auto_confirm_threshold" class="form-control" value="0.85" min="0.5" max="0.99" step="0.01">
+ </div>
+ </div>
+ <div class="col-md-6 col-lg-3">
+ <div class="sc-form-group">
  <label>Notes</label>
- <textarea name="notes" rows="2" placeholder="Optional internal notes"></textarea>
+ <textarea name="notes" rows="2" class="form-control" placeholder="Optional internal notes"></textarea>
+ </div>
+ </div>
  </div>
  </div>
  </div>
  </div>
 
- <div>
+ <div class="col-12">
+ <div class="card">
  <div class="card-header">Stream source</div>
  <div class="card-body">
- <div>
- <label class="form-label fw-semibold">Source type *</label>
+ <div class="sc-form-group">
+ <label class=" fw-semibold">Source type *</label>
  <div class="btn-group w-100" role="group">
- <input type="radio" class="form-check-input" name="source_type" id="srcRtsp" value="rtsp" checked onchange="toggleSource()">
+ <input type="radio" class="btn-check" name="source_type" id="srcRtsp" value="rtsp" checked onchange="toggleSource()">
  <label class="sc-btn sc-btn-primary" for="srcRtsp"><i class="bi bi-arrow-right-circle me-1"></i>RTSP / HTTP</label>
- <input type="radio" class="form-check-input" name="source_type" id="srcVideo" value="video" onchange="toggleSource()">
+ <input type="radio" class="btn-check" name="source_type" id="srcVideo" value="video" onchange="toggleSource()">
  <label class="sc-btn sc-btn-primary" for="srcVideo"><i class="bi bi-arrow-right-circle me-1"></i>Upload video</label>
  </div>
  </div>
 
  <div id="boxRtsp">
- <div>
+ <div class="sc-form-group">
  <label>RTSP URL</label>
  <input type="text" name="rtsp_url" class="form-control font-monospace" placeholder="rtsp://user:pass@192.168.1.100:554/stream">
  </div>
- <div>
+ <div class="sc-form-group">
  <label>HTTP snapshot / MJPEG URL</label>
  <input type="text" name="http_snapshot_url" class="form-control font-monospace" placeholder="http://192.168.1.100/cgi-bin/snapshot.cgi">
- <div>Used by Live Tracking & Live Monitor when RTSP is unavailable in-browser.</div>
+ <div class="sc-hint">Used by Live Tracking &amp; Live Monitor when RTSP is unavailable in-browser.</div>
  </div>
  </div>
 
  <div id="boxVideo">
- <div class="alert alert-info py-2 small ">
+ <div class="alert alert-info py-2 small">
  <i class="bi bi-arrow-right-circle me-1"></i>
- Uploaded MP4/WebM is stored as this camera’s stream source and linked to <strong>Live Feed</strong> + optional AI video processing. Ideal for offline / demo testing of Live Tracking & Live Monitor.
+ Uploaded MP4/WebM is stored as this camera's stream source and linked to <strong>Live Feed</strong> + optional AI video processing. Ideal for offline / demo testing of Live Tracking &amp; Live Monitor.
  </div>
+ <div class="sc-form-group">
  <label>Video file *</label>
  <input type="file" name="video_file" accept="video/mp4,video/webm,video/avi,video/quicktime">
- <div>Max size depends on server limits. Prefer short clips (30-120s) looping on the monitor.</div>
+ <div class="sc-hint">Max size depends on server limits. Prefer short clips (30-120s) looping on the monitor.</div>
+ </div>
  </div>
  </div>
  </div>
  </div>
 
- <div>
- <div>
+ <div class="row g-4">
+ <div class="col-md-6">
+ <div class="card h-100">
  <div class="card-header">Status</div>
  <div class="card-body">
- <div>
+ <div class="form-check">
  <input class="form-check-input" type="checkbox" name="is_streaming" id="isStreaming" checked>
  <label class="form-check-label" for="isStreaming">Streaming enabled</label>
  </div>
- <div>
+ <div class="form-check">
  <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
  <label class="form-check-label" for="isActive">Camera active</label>
  </div>
  </div>
  </div>
- <div>
+ <div class="col-md-6">
+ <div class="card h-100">
  <div class="card-header">After save</div>
- <div class="small ">
- <ul class=" ps-3">
+ <div class="card-body small text-muted">
+ <ul class="mb-0 ps-3">
  <li>Camera appears on <strong>Live Tracking</strong> and <strong>Live Monitor</strong>.</li>
  <li>Assign to one officer from <strong>Camera Assignments</strong> (limit 1).</li>
  <li>Video source loops as a live feed for detection demos.</li>
  </ul>
  </div>
  </div>
- <div>
- <button type="submit" class="sc-btn sc-btn-primary"><i class="bi bi-camera-video me-1"></i>Add camera</button>
- <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn sc-btn-primary">Cancel</a>
+ <div class="col-12 d-flex gap-2">
+ <button type="submit" class="btn btn-primary"><i class="bi bi-camera-video me-1"></i>Add camera</button>
+ <a href="{% url portal_ns|add:':camera_list' %}" class="sc-btn">Cancel</a>
  </div>
  </div>
 </form>
 
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ request.csp_nonce }}">
+ function toggleSource() {
+ var rtsp = document.querySelector('input[name="source_type"][value="rtsp"]');
+ var boxRtsp = document.getElementById('boxRtsp');
+ var boxVideo = document.getElementById('boxVideo');
+ if (!boxRtsp || !boxVideo) return;
+ var isVideo = rtsp ? !rtsp.checked : false;
+ boxRtsp.style.display = isVideo ? 'none' : '';
+ boxVideo.style.display = isVideo ? '' : 'none';
+ }
+ document.addEventListener('DOMContentLoaded', toggleSource);
+</script>
 {% endblock %}
